@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teste de efeitos do nome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--night:#15100f;--night-2:#1c1513;--cloth:#24191a;--cloth-2:#2c1f1f;--line:#4a3527;--parch:#efe2c4;--parch-2:#cdbd9c;--smoke:#9d8f7f;--saffron:#e8ab45;--saffron-ink:#1d1206;--brass:#b98c46;--madder:#8e2c2c;
+  --f-display:"El Messiri","Palatino Linotype",Georgia,serif;--f-body:"Alegreya Sans","Gill Sans","Segoe UI",system-ui,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background-color:var(--night);color:var(--parch);font:17px/1.5 var(--f-body);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23b98c46' stroke-opacity='.07' stroke-width='1.2'%3E%3Cpath d='M60 10l14 36 36 14-36 14-14 36-14-36-36-14 36-14z'/%3E%3Cpath d='M60 28l9 23 23 9-23 9-9 23-9-23-23-9 23-9z'/%3E%3Ccircle cx='60' cy='60' r='6'/%3E%3C/g%3E%3C/svg%3E");background-size:120px 120px}
+.wrap{max-width:1240px;margin:0 auto;padding:28px max(16px,env(safe-area-inset-left,0px)) 64px;display:flex;flex-direction:column;gap:22px}
+header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px 24px}
+header.top h1{margin:0;font:600 30px/1.15 var(--f-display)}
+header.top p{margin:4px 0 0;color:var(--parch-2);max-width:62ch}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+button.b{font:600 15px var(--f-body);color:var(--saffron-ink);background:var(--saffron);border:0;border-radius:999px;padding:9px 16px;cursor:pointer}
+button.b.ghost{background:transparent;color:var(--parch);border:1px solid var(--line)}
+button.b:hover{filter:brightness(1.08)} button.b:focus-visible{outline:2px solid var(--parch);outline-offset:2px}
+label.chk{display:flex;gap:6px;align-items:center;font-size:15px;color:var(--parch-2)} label.chk input{accent-color:var(--saffron)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:linear-gradient(180deg,var(--cloth-2),var(--cloth));border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.card h2{margin:0;font:600 21px var(--f-display);display:flex;gap:10px;align-items:baseline}
+.card h2 .tag{font:500 12.5px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
+.card .txt{padding:14px 18px 18px;display:flex;flex-direction:column;gap:8px}
+.card .txt p{margin:0;font-size:15.5px;color:var(--parch-2)}
+.card .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.stage{position:relative;height:300px;overflow:hidden;isolation:isolate;
+  background:radial-gradient(70% 90% at 50% 100%,rgba(232,171,69,.10),transparent 60%),linear-gradient(180deg,#1a1210,#120d0c)}
+.stage::before{content:"";position:absolute;left:0;right:0;top:0;height:26px;z-index:3;
+  background:repeating-linear-gradient(90deg,var(--madder) 0 22px,#d8c7a0 22px 44px);
+  -webkit-mask:radial-gradient(12px 9px at 11px 26px,transparent 98%,#000) 0 0/22px 26px;mask:radial-gradient(12px 9px at 11px 26px,transparent 98%,#000) 0 0/22px 26px;box-shadow:inset 0 -8px 10px rgba(0,0,0,.3)}
+.stage::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--brass);z-index:4}
+.lan{position:absolute;top:22px;width:56px;height:150px;z-index:2}
+.lan.l{left:5%} .lan.r{right:5%}
+.counter{position:absolute;left:8%;right:8%;bottom:0;height:34px;z-index:2;border-radius:8px 8px 0 0;
+  background:linear-gradient(180deg,#3a2618,#24170f);border-top:2px solid var(--brass);box-shadow:0 -10px 30px rgba(0,0,0,.4)}
+.counter::before{content:"";position:absolute;left:50%;top:-2px;width:120px;height:2px;margin-left:-60px;background:var(--saffron);box-shadow:0 0 18px 4px rgba(232,171,69,.45);opacity:.6}
+.sign{position:absolute;left:0;right:0;top:58px;z-index:5;display:flex;flex-direction:column;align-items:center;gap:0;pointer-events:none;text-align:center}
+.kicker{font:500 clamp(15px,2vw,19px)/1.3 var(--f-display);color:var(--parch-2);letter-spacing:.04em}
+.big{display:inline-block;font:700 clamp(64px,9.5vw,112px)/.95 var(--f-display);color:var(--saffron);text-shadow:0 0 30px rgba(232,171,69,.35);position:relative;white-space:nowrap}
+.big .ch{display:inline-block;will-change:transform,opacity,filter}
+.sweep{position:absolute;inset:0;color:transparent;pointer-events:none;
+  background:linear-gradient(100deg,transparent 35%,rgba(255,244,214,.95) 50%,transparent 65%) 160% 0/250% 100% no-repeat;-webkit-background-clip:text;background-clip:text;opacity:0}
+svg.smoke{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none}
+svg.word{width:min(88%,470px);height:auto;overflow:visible;display:block}
+svg.word .fills path{fill:#ff7a2a;fill-opacity:0}
+svg.word .strokes path{fill:none;stroke:#ffcf73;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.badge{font-size:13px;color:var(--smoke)}
+.foot{font-size:14px;color:var(--smoke)}
+.foot a{color:var(--saffron)}
+@media (prefers-reduced-motion:reduce){.sweep{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Dois jeitos de o nome aparecer</h1>
+      <p>Teste para o topo do Balcão. Cada quadro repete a entrada do nome; aperte para rever quantas vezes quiser. O resto da página do site não muda.</p>
+    </div>
+    <div class="ctl">
+      <label class="chk"><input type="checkbox" id="lite"> Ver a versão leve do celular</label>
+      <button class="b" type="button" id="both">Rever os dois</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="hA">
+      <div class="stage" id="stA">
+        <svg class="lan l" viewBox="0 0 56 150" aria-hidden="true"><defs><radialGradient id="lgAl"><stop offset="0" stop-color="#ffcf73" stop-opacity=".6"/><stop offset="1" stop-color="#ffcf73" stop-opacity="0"/></radialGradient></defs>
+<line x1="28" y1="0" x2="28" y2="46" stroke="#b98c46" stroke-width="1.5" stroke-dasharray="3 3"/><circle class="glow" cx="28" cy="88" r="34" fill="url(#lgAl)"/>
+<path d="M21 50h14l6 9H15z" fill="#b98c46"/><path d="M15 59h26l4 20-6 22H17l-6-22z" fill="#3a2614" stroke="#b98c46" stroke-width="1.5"/>
+<path class="pane" d="M19 65h18l3 14-4 16H20l-4-16z" fill="#e8ab45" opacity=".92"/><path d="M17 101h22l-6 8H23z" fill="#b98c46"/></svg><svg class="lan r" viewBox="0 0 56 150" aria-hidden="true"><defs><radialGradient id="lgAr"><stop offset="0" stop-color="#ffcf73" stop-opacity=".6"/><stop offset="1" stop-color="#ffcf73" stop-opacity="0"/></radialGradient></defs>
+<line x1="28" y1="0" x2="28" y2="46" stroke="#b98c46" stroke-width="1.5" stroke-dasharray="3 3"/><circle class="glow" cx="28" cy="88" r="34" fill="url(#lgAr)"/>
+<path d="M21 50h14l6 9H15z" fill="#b98c46"/><path d="M15 59h26l4 20-6 22H17l-6-22z" fill="#3a2614" stroke="#b98c46" stroke-width="1.5"/>
+<path class="pane" d="M19 65h18l3 14-4 16H20l-4-16z" fill="#e8ab45" opacity=".92"/><path d="M17 101h22l-6 8H23z" fill="#b98c46"/></svg>
+        <div class="counter"></div>
+        <svg class="smoke" id="smA" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+        <div class="sign"><span class="kicker" id="aKick">Balcão de Negócios do</span><span class="big" id="aBig">Fumaça<span class="sweep" aria-hidden="true">Fumaça</span></span></div>
+      </div>
+      <div class="txt">
+        <div class="row"><h2 id="hA"><span class="tag">A</span>Sopro de fumaça</h2><button class="b ghost" type="button" id="replayA">Rever</button></div>
+        <p>Um sopro sai de dentro da barraca, de trás do balcão, e sobe. O nome se condensa dentro da fumaça, do centro para as pontas, e as lanternas dão um clarão que acende as letras. Cerca de 2,5 segundos.</p>
+        <p class="badge" id="aMode"></p>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="hB">
+      <div class="stage" id="stB">
+        <svg class="lan l" viewBox="0 0 56 150" aria-hidden="true"><defs><radialGradient id="lgBl"><stop offset="0" stop-color="#ffcf73" stop-opacity=".6"/><stop offset="1" stop-color="#ffcf73" stop-opacity="0"/></radialGradient></defs>
+<line x1="28" y1="0" x2="28" y2="46" stroke="#b98c46" stroke-width="1.5" stroke-dasharray="3 3"/><circle class="glow" cx="28" cy="88" r="34" fill="url(#lgBl)"/>
+<path d="M21 50h14l6 9H15z" fill="#b98c46"/><path d="M15 59h26l4 20-6 22H17l-6-22z" fill="#3a2614" stroke="#b98c46" stroke-width="1.5"/>
+<path class="pane" d="M19 65h18l3 14-4 16H20l-4-16z" fill="#e8ab45" opacity=".92"/><path d="M17 101h22l-6 8H23z" fill="#b98c46"/></svg><svg class="lan r" viewBox="0 0 56 150" aria-hidden="true"><defs><radialGradient id="lgBr"><stop offset="0" stop-color="#ffcf73" stop-opacity=".6"/><stop offset="1" stop-color="#ffcf73" stop-opacity="0"/></radialGradient></defs>
+<line x1="28" y1="0" x2="28" y2="46" stroke="#b98c46" stroke-width="1.5" stroke-dasharray="3 3"/><circle class="glow" cx="28" cy="88" r="34" fill="url(#lgBr)"/>
+<path d="M21 50h14l6 9H15z" fill="#b98c46"/><path d="M15 59h26l4 20-6 22H17l-6-22z" fill="#3a2614" stroke="#b98c46" stroke-width="1.5"/>
+<path class="pane" d="M19 65h18l3 14-4 16H20l-4-16z" fill="#e8ab45" opacity=".92"/><path d="M17 101h22l-6 8H23z" fill="#b98c46"/></svg>
+        <div class="counter"></div>
+        <svg class="smoke" id="smB" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+        <div class="sign"><span class="kicker" id="bKick">Balcão de Negócios do</span>
+          <svg class="word" id="bWord" viewBox="-6 22 472 136" role="img" aria-label="Fumaça">
+            <defs><filter id="emberGlow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="3"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <filter id="hot" x="-10%" y="-30%" width="120%" height="160%"><feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <radialGradient id="wispG"><stop offset="0" stop-color="#efe2c4" stop-opacity=".75"/><stop offset="1" stop-color="#cdbd9c" stop-opacity="0"/></radialGradient></defs>
+            <g class="fills" id="bFills"><path d="M30.6 122.4L12.9 122.4L12.9 50.3Q12.9 44.2 11.2 40.5Q9.5 36.7 3.4 36.7L3.4 36.7L2.0 36.7L2.0 32.6L59.0 32.6Q63.8 32.6 66.2 34.2Q68.7 35.8 69.6 38.3Q70.6 40.8 70.6 43.5L70.6 43.5L70.6 55.1L66.5 55.1Q66.5 46.2 62.1 42.5Q57.7 38.8 49.5 38.8L49.5 38.8L30.6 38.8L30.6 73.4L60.5 73.4L60.5 79.6L30.6 79.6L30.6 122.4" data-ch="F"/><path d="M108.0 123.8L108.0 123.8Q99.6 123.8 93.9 121.2Q88.3 118.6 85.5 113.0Q82.8 107.4 82.8 98.7L82.8 98.7L82.8 76.2Q82.8 70.0 81.1 66.3Q79.4 62.6 73.3 62.6L73.3 62.6L71.9 62.6L71.9 58.5L88.3 58.5Q93.0 58.5 95.7 60.1Q98.3 61.7 99.4 65.6Q100.5 69.4 100.5 76.2L100.5 76.2L100.5 98.9Q100.5 105.9 101.9 110.0Q103.2 114.1 105.8 115.9Q108.4 117.6 112.1 117.6L112.1 117.6Q115.3 117.6 117.8 116.1Q120.2 114.6 121.9 112.5Q123.5 110.4 124.3 108.8L124.3 108.8L124.3 58.5L142.0 58.5L142.0 122.4L130.4 122.4L125.7 116.3L125.0 116.3Q122.4 119.1 118.2 121.4Q114.0 123.8 108.0 123.8" data-ch="u"/><path d="M178.7 122.4L161.0 122.4L161.0 76.2Q161.0 70.0 159.4 66.3Q157.8 62.6 151.6 62.6L151.6 62.6L150.3 62.6L150.3 58.5L163.7 58.5Q167.8 58.5 170.8 59.6Q173.8 60.8 175.3 63.6L175.3 63.6L175.8 63.6Q178.3 61.5 182.6 59.3Q186.9 57.1 193.0 57.1L193.0 57.1Q198.2 57.1 202.0 58.5Q205.8 60.0 208.3 61.8Q210.8 63.6 211.8 64.9L211.8 64.9Q214.5 61.9 218.8 59.5Q223.2 57.1 231.1 57.1L231.1 57.1Q238.7 57.1 244.0 59.7Q249.3 62.3 252.1 67.8Q254.9 73.3 254.9 82.1L254.9 82.1L254.9 122.4L237.2 122.4L237.2 82.0Q237.2 72.1 234.1 68.0Q230.9 63.9 226.3 63.9L226.3 63.9Q222.5 63.9 219.4 65.4Q216.4 66.9 214.6 69.1L214.6 69.1Q215.7 71.1 216.2 74.6Q216.8 78.1 216.8 82.1L216.8 82.1L216.8 122.4L199.1 122.4L199.1 82.0Q199.1 72.1 196.0 68.0Q192.8 63.9 188.2 63.9L188.2 63.9Q185.6 63.9 183.0 65.3Q180.3 66.8 178.7 68.3L178.7 68.3L178.7 122.4" data-ch="m"/><path d="M289.5 123.8L289.5 123.8Q283.8 123.8 279.5 122.4Q275.3 121.0 272.3 118.7Q269.4 116.3 267.9 112.9Q266.4 109.5 266.4 105.4L266.4 105.4Q266.4 98.9 269.5 94.3Q272.5 89.8 280.6 87.4Q288.6 85.0 303.1 85.0L303.1 85.0L305.2 85.0Q305.2 76.8 303.7 72.1Q302.2 67.3 299.3 65.3Q296.3 63.2 292.3 63.2L292.3 63.2Q287.6 63.2 284.0 65.6Q280.3 67.9 278.7 75.5L278.7 75.5L271.2 75.5Q271.2 71.9 271.7 68.3Q272.1 64.6 274.6 61.9L274.6 61.9Q277.0 59.2 282.7 58.1Q288.3 57.1 295.0 57.1L295.0 57.1Q301.6 57.1 306.8 58.9Q312.0 60.7 315.6 64.2Q319.2 67.7 321.0 73.1Q322.9 78.5 322.9 85.7L322.9 85.7L322.9 122.4L311.3 122.4L306.5 116.3L305.9 116.3Q304.1 119.1 299.9 121.4Q295.7 123.8 289.5 123.8" data-ch="a"/><path d="M293.6 117.0L293.6 117.0Q298.1 117.0 301.1 114.0Q304.1 111.0 305.2 108.1L305.2 108.1L305.2 91.1L303.1 91.1Q293.4 91.1 289.1 94.7Q284.8 98.2 284.8 105.4L284.8 105.4Q284.8 111.1 287.2 114.0Q289.5 117.0 293.6 117.0" data-ch="a"/><path d="M370.5 148.0L360.9 148.0L360.9 141.7L367.7 141.7Q370.3 141.7 371.8 140.4Q373.2 139.1 373.2 137.4L373.2 137.4Q373.2 135.5 371.8 134.2Q370.3 132.9 367.7 132.9L367.7 132.9L361.6 132.9L361.6 123.4Q354.6 122.5 349.4 119.1L349.4 119.1Q342.0 114.6 338.4 107.0Q334.8 99.4 334.8 90.4L334.8 90.4Q334.8 81.3 338.4 73.8Q342.0 66.2 349.3 61.7Q356.6 57.1 367.5 57.1L367.5 57.1Q375.2 57.1 380.6 58.2Q386.0 59.3 388.6 61.9Q391.1 64.5 391.5 68.8Q392.0 73.2 392.0 80.9L392.0 80.9L387.9 80.9Q387.3 72.2 382.5 67.7Q377.7 63.2 369.5 63.2L369.5 63.2Q364.6 63.2 360.9 66.2Q357.3 69.1 355.2 75.1Q353.2 81.2 353.2 90.4L353.2 90.4Q353.2 99.4 355.1 105.5Q357.0 111.5 360.7 114.6Q364.5 117.6 370.2 117.6L370.2 117.6Q377.3 117.6 381.7 114.4Q386.1 111.1 389.6 106.4L389.6 106.4L393.9 109.5Q392.0 112.5 388.8 115.8Q385.6 119.1 380.5 121.4L380.5 121.4Q376.3 123.4 370.5 123.6L370.5 123.6L370.5 126.8Q376.2 126.8 379.4 129.6Q382.7 132.5 382.7 137.4L382.7 137.4Q382.7 142.1 379.4 145.0Q376.2 148.0 370.5 148.0L370.5 148.0" data-ch="ç"/><path d="M424.5 123.8L424.5 123.8Q418.7 123.8 414.5 122.4Q410.2 121.0 407.3 118.7Q404.3 116.3 402.8 112.9Q401.3 109.5 401.3 105.4L401.3 105.4Q401.3 98.9 404.4 94.3Q407.5 89.8 415.5 87.4Q423.5 85.0 438.1 85.0L438.1 85.0L440.1 85.0Q440.1 76.8 438.6 72.1Q437.1 67.3 434.2 65.3Q431.3 63.2 427.2 63.2L427.2 63.2Q422.6 63.2 418.9 65.6Q415.2 67.9 413.6 75.5L413.6 75.5L406.1 75.5Q406.1 71.9 406.6 68.3Q407.0 64.6 409.5 61.9L409.5 61.9Q411.9 59.2 417.6 58.1Q423.2 57.1 429.9 57.1L429.9 57.1Q436.6 57.1 441.7 58.9Q446.9 60.7 450.5 64.2Q454.1 67.7 455.9 73.1Q457.8 78.5 457.8 85.7L457.8 85.7L457.8 122.4L446.2 122.4L441.5 116.3L440.8 116.3Q439.0 119.1 434.8 121.4Q430.6 123.8 424.5 123.8" data-ch="a"/><path d="M428.5 117.0L428.5 117.0Q433.0 117.0 436.0 114.0Q439.0 111.0 440.1 108.1L440.1 108.1L440.1 91.1L438.1 91.1Q428.3 91.1 424.0 94.7Q419.7 98.2 419.7 105.4L419.7 105.4Q419.7 111.1 422.1 114.0Q424.5 117.0 428.5 117.0" data-ch="a"/></g>
+            <g class="strokes" id="bStrokes"></g>
+            <g id="bWisps"></g>
+            <g id="ember" opacity="0"><circle r="9" fill="#ff9a3c" opacity=".35" filter="url(#emberGlow)"/><circle r="2.6" fill="#fff1c9" filter="url(#emberGlow)"/></g>
+          </svg>
+        </div>
+      </div>
+      <div class="txt">
+        <div class="row"><h2 id="hB"><span class="tag">B</span>Incenso escrevendo</h2><button class="b ghost" type="button" id="replayB">Rever</button></div>
+        <p>A ponta de um incenso escreve o nome, letra por letra, deixando um fio de fumaça por onde passa. No fim, as letras esquentam como latão no fogo e esfriam na cor do site. Cerca de 3,5 segundos.</p>
+        <p class="badge">Igual no celular: o desenho é leve.</p>
+      </div>
+    </section>
+  </div>
+  <p class="foot">Depois de escolher, o efeito vai para o topo do <a href="./">Balcão</a>. Se preferir, dá para misturar: o sopro abrindo e o incenso escrevendo dentro dele.</p>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="smokeF" x="-25%" y="-60%" width="150%" height="220%" color-interpolation-filters="sRGB">
+    <feTurbulence id="smTurb" type="fractalNoise" baseFrequency="0.011 0.028" numOctaves="2" seed="7" result="n"/>
+    <feDisplacementMap id="smDisp" in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feGaussianBlur id="smBlur" in="d" stdDeviation="0"/>
+  </filter>
+  <defs><radialGradient id="puffG2"><stop offset="0" stop-color="#efe2c4" stop-opacity=".34"/><stop offset=".55" stop-color="#cdbd9c" stop-opacity=".12"/><stop offset="1" stop-color="#cdbd9c" stop-opacity="0"/></radialGradient></defs>
+</svg>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/MotionPathPlugin.min.js"></script>
+<script>
+gsap.registerPlugin(SplitText, DrawSVGPlugin, MotionPathPlugin);
+const $=id=>document.getElementById(id);
+const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const NS="http://www.w3.org/2000/svg";
+const mk=(t,a)=>{ const e=document.createElementNS(NS,t); for(const k in a) e.setAttribute(k,a[k]); return e; };
+const isLite=()=>$("lite").checked||matchMedia("(max-width:600px), (pointer:coarse)").matches;
+$("aMode").textContent = matchMedia("(max-width:600px), (pointer:coarse)").matches ? "Você está vendo a versão leve, a que vai para o celular." : "No celular entra uma versão mais leve, sem a distorção da fumaça; marque a caixa lá em cima para ver.";
+
+/* lanternas: balanço e chama */
+document.querySelectorAll(".lan").forEach((s,i)=>{
+  gsap.to(s,{rotation:i%2?-3:3,transformOrigin:"50% 0%",duration:2.4+i*.3,yoyo:true,repeat:-1,ease:"sine.inOut"});
+  gsap.to(s.querySelector(".glow"),{opacity:"random(0.55,1)",duration:"random(0.08,0.3)",repeat:-1,repeatRefresh:true,ease:"none"});
+});
+function lanternFlare(stage,at,tl){
+  tl.to(stage.querySelectorAll(".glow"),{scale:1.7,opacity:1,transformOrigin:"50% 50%",duration:.18,ease:"power2.out"},at)
+    .to(stage.querySelectorAll(".pane"),{fill:"#fff1c9",duration:.18},at)
+    .to(stage.querySelectorAll(".glow"),{scale:1,duration:.9,ease:"power2.inOut"},at+.2)
+    .to(stage.querySelectorAll(".pane"),{fill:"#e8ab45",duration:.9},at+.2);
+}
+
+/* ===== A: sopro de fumaça ===== */
+const splitA=SplitText.create("#aBig",{type:"chars",charsClass:"ch",ignore:".sweep",aria:"auto"});
+let tlA=null;
+function playA(){
+  if(tlA) tlA.kill();
+  const lite=isLite(), big=$("aBig"), sm=$("smA"), chars=splitA.chars, sweep=big.querySelector(".sweep");
+  sm.textContent="";
+  gsap.set(chars,{clearProps:"all"}); gsap.set([big,$("aKick"),sweep],{clearProps:"all"});
+  if(RM){ return; }
+  // nuvem que sai de trás do balcão
+  const puffs=[]; for(let i=0;i<14;i++){ const rx=gsap.utils.random(50,110); const p=mk("ellipse",{cx:300,cy:296,rx,ry:rx*.78,fill:"url(#puffG2)"}); sm.append(p); puffs.push(p); }
+  tlA=gsap.timeline();
+  gsap.set(puffs,{opacity:0,scale:.25,transformOrigin:"50% 50%"});
+  tlA.to(puffs,{opacity:()=>gsap.utils.random(.55,.9),scale:()=>gsap.utils.random(1.1,1.9),x:()=>gsap.utils.random(-210,210),y:()=>gsap.utils.random(-230,-120),duration:1.25,ease:"power3.out",stagger:{each:.035,from:"center"}},0)
+     .to(puffs,{opacity:0,y:"-=120",x:()=>"+="+gsap.utils.random(-60,60),scale:"+=0.8",duration:1.9,ease:"sine.in",stagger:.03},1.05);
+  // o nome se condensa
+  gsap.set(chars,{opacity:0});
+  if(!lite){
+    big.style.filter="url(#smokeF)";
+    const o={s:110,b:7,f:0.011};
+    gsap.set("#smDisp",{attr:{scale:o.s}}); gsap.set("#smBlur",{attr:{stdDeviation:o.b}});
+    tlA.to(o,{s:0,b:0,f:0.02,duration:1.7,ease:"power2.out",onUpdate:()=>{ $("smDisp").setAttribute("scale",o.s.toFixed(1)); $("smBlur").setAttribute("stdDeviation",o.b.toFixed(2)); $("smTurb").setAttribute("baseFrequency",`${o.f.toFixed(4)} ${(o.f*2.5).toFixed(4)}`); },onComplete:()=>{ big.style.filter=""; }},.35)
+       .fromTo(chars,{opacity:0,y:26,scale:1.35},{opacity:1,y:0,scale:1,duration:1.15,ease:"power3.out",stagger:{each:.08,from:"center"}},.35);
+  } else {
+    tlA.fromTo(chars,{opacity:0,y:22,scale:1.25,filter:"blur(12px)"},{opacity:1,y:0,scale:1,filter:"blur(0px)",duration:1.05,ease:"power3.out",stagger:{each:.08,from:"center"},clearProps:"filter"},.35);
+  }
+  tlA.from("#aKick",{opacity:0,y:10,filter:"blur(6px)",duration:.7,ease:"power2.out",clearProps:"filter"},1.15);
+  lanternFlare($("stA"),1.75,tlA);
+  tlA.fromTo(big,{textShadow:"0 0 30px rgba(232,171,69,.35)"},{textShadow:"0 0 46px rgba(255,214,140,.95)",duration:.18,ease:"power2.out"},1.75)
+     .to(big,{textShadow:"0 0 30px rgba(232,171,69,.35)",duration:1,ease:"power2.inOut"},1.95)
+     .fromTo(sweep,{opacity:1,backgroundPosition:"160% 0"},{backgroundPosition:"-60% 0",duration:.9,ease:"power2.inOut"},1.75)
+     .set(sweep,{opacity:0});
+}
+
+/* ===== B: incenso escrevendo ===== */
+const fills=[...$("bFills").querySelectorAll("path")];
+fills.forEach(p=>$("bStrokes").append(p.cloneNode()));
+const strokes=[...$("bStrokes").querySelectorAll("path")];
+const ember=$("ember"), wisps=$("bWisps");
+let tlB=null, lastW=0;
+function wisp(){
+  const now=performance.now(); if(now-lastW<45) return; lastW=now;
+  const x=gsap.getProperty(ember,"x"), y=gsap.getProperty(ember,"y");
+  const c=mk("circle",{cx:x,cy:y,r:gsap.utils.random(2.5,4.5),fill:"url(#wispG)"}); wisps.append(c);
+  gsap.to(c,{attr:{cy:y-gsap.utils.random(40,75),cx:x+gsap.utils.random(-14,14),r:gsap.utils.random(10,18)},opacity:0,duration:gsap.utils.random(1.3,2),ease:"sine.out",onComplete:()=>c.remove()});
+}
+function playB(){
+  if(tlB) tlB.kill(); wisps.textContent="";
+  gsap.set(fills,{fill:"#ff7a2a",fillOpacity:0,clearProps:"filter"}); gsap.set(strokes,{opacity:1,drawSVG:"0%"}); gsap.set(ember,{opacity:0,x:0,y:0}); gsap.set("#bKick",{clearProps:"all"}); gsap.set("#bWord",{clearProps:"filter"});
+  if(RM){ gsap.set(strokes,{opacity:0}); gsap.set(fills,{fill:"#e8ab45",fillOpacity:1}); return; }
+  tlB=gsap.timeline();
+  tlB.from("#bKick",{opacity:0,y:8,duration:.5,ease:"power2.out"},0);
+  const SPEED=1150; let t=.3;
+  strokes.forEach((p,i)=>{
+    const len=DrawSVGPlugin.getLength(p), d=Math.max(.16,len/SPEED);
+    tlB.set(ember,{opacity:1},t)
+       .to(p,{drawSVG:"100%",duration:d,ease:"none"},t)
+       .to(ember,{motionPath:{path:p,align:p,alignOrigin:[.5,.5],start:0,end:1},duration:d,ease:"none",onUpdate:wisp},t);
+    t+=d;
+    if(i<strokes.length-1){ tlB.to(ember,{opacity:.25,duration:.06},t); t+=.06; }
+  });
+  // esquenta e esfria
+  tlB.to(ember,{opacity:0,scale:2.5,transformOrigin:"50% 50%",duration:.35},t)
+     .to(fills,{fillOpacity:1,duration:.35,stagger:.05,ease:"power2.out"},t-.05)
+     .set("#bWord",{filter:"url(#hot)"},t)
+     .to(strokes,{opacity:0,duration:.6},t+.2)
+     .to(fills,{fill:"#e8ab45",duration:1.1,ease:"power2.inOut",stagger:.05},t+.35)
+     .set("#bWord",{clearProps:"filter"},t+1.6);
+  lanternFlare($("stB"),t,tlB);
+}
+
+$("replayA").addEventListener("click",playA); $("replayB").addEventListener("click",playB);
+$("both").addEventListener("click",()=>{ playA(); playB(); });
+$("lite").addEventListener("change",playA);
+const start=()=>{ playA(); playB(); };
+(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(()=>setTimeout(start,250));
+</script>
+</body>
+</html>
