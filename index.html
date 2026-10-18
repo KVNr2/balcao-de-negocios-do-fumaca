@@ -1,0 +1,1004 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Balcão de Negócios do Fumaça</title>
+<meta name="description" content="O balcão clandestino do Fumaça: prata, refino, craft, pesca e builds no Albion Online (Américas), com preços ao vivo e recomendações pela ficha de cada jogador.">
+<meta name="theme-color" content="#15100f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l4 10 10 4-10 4-4 10-4-10-10-4 10-4z' fill='%23e8ab45'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+/* Balcão de Negócios do Fumaça
+   Concept: a clandestine stall in a night souk. Striped awning on top, brass lanterns, smoke rising from the counter,
+   girih tiles faintly on the ground. Content sits on dark cloth panels with brass hairlines; numbers read like a ledger.
+   One loud moment (the stall header with smoke and lanterns); everything below stays calm. */
+:root{
+  --night:#15100f; --night-2:#1c1513; --cloth:#24191a; --cloth-2:#2c1f1f; --line:#4a3527; --line-soft:#33251f;
+  --parch:#efe2c4; --parch-2:#cdbd9c; --smoke:#9d8f7f;
+  --saffron:#e8ab45; --saffron-ink:#1d1206; --brass:#b98c46; --madder:#8e2c2c; --madder-2:#6f2124; --tile:#2f7d74; --tile-2:#4fb0a3;
+  --gain:#7cc79a; --loss:#ee8670;
+  --h-neutral:#2f2626; --h-b1:#1e3936; --h-b2:#22564f; --h-b3:#2e8076; --h-b4:#47ab9e; --h-r1:#43201f; --h-r2:#7d2b2c; --h-r3:#b64640;
+  --f-display:"El Messiri", "Palatino Linotype", Georgia, serif;
+  --f-body:"Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+body{margin:0;background-color:var(--night);color:var(--parch);font-family:var(--f-body);font-size:17px;line-height:1.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23b98c46' stroke-opacity='.07' stroke-width='1.2'%3E%3Cpath d='M60 10l14 36 36 14-36 14-14 36-14-36-36-14 36-14z'/%3E%3Cpath d='M60 28l9 23 23 9-23 9-9 23-9-23-23-9 23-9z'/%3E%3Cpath d='M0 0l20 20M120 0l-20 20M0 120l20-20M120 120l-20-20'/%3E%3Ccircle cx='60' cy='60' r='6'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:120px 120px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:30px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance;font-family:var(--f-display);font-weight:600}
+h2{font-size:26px;color:var(--parch)}
+h3{font-size:20px;color:var(--parch)}
+h2::before,h3.orn::before{content:"";display:inline-block;width:.62em;height:.62em;margin-right:.45em;vertical-align:.04em;background:var(--saffron);
+  clip-path:polygon(50% 0,63% 37%,100% 50%,63% 63%,50% 100%,37% 63%,0 50%,37% 37%)}
+p{margin:0;max-width:72ch}
+a{color:var(--saffron);text-underline-offset:2px}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.muted{color:var(--smoke)} .small{font-size:15.5px} .tiny{font-size:13.5px}
+.gain{color:var(--gain)} .loss{color:var(--loss)}
+:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+
+/* ---------- the stall ---------- */
+.stall{position:relative;margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:0 max(16px,env(safe-area-inset-left,0px)) 28px;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 0%,rgba(232,171,69,.16),transparent 60%),linear-gradient(180deg,#1d1412 0%,var(--night) 100%);border-bottom:1px solid var(--line)}
+.awning{display:block;width:calc(100% + 32px);height:86px;margin-left:-16px;transform-origin:50% 0}
+.stall-inner{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:10px 28px;align-items:end;padding-top:10px}
+.sign h1{display:flex;flex-direction:column;gap:2px}
+.sign h1 .kicker{font-size:clamp(17px,2.3vw,22px);font-weight:500;color:var(--parch-2);letter-spacing:.04em;line-height:1.3}
+.sign h1 .big{display:inline-block;font-size:clamp(58px,12vw,136px);font-weight:700;line-height:.9;color:var(--saffron);text-shadow:0 0 30px rgba(232,171,69,.35)}
+.sign .who{margin-top:8px;font-size:15px;color:var(--smoke)}
+.lanterns{width:220px;height:230px;align-self:start;margin-top:-86px}
+.lantern{transform-box:fill-box}
+.smoke{position:absolute;left:0;bottom:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.deal{position:relative;z-index:2;margin-top:22px;display:flex;flex-direction:column;gap:12px;max-width:820px}
+.deal .tag{font-family:var(--f-display);font-size:16px;color:var(--brass)}
+.answer{font:500 clamp(22px,3.4vw,34px)/1.22 var(--f-display);color:var(--parch);max-width:30ch;text-wrap:balance}
+.answer b{color:var(--saffron);font-weight:700}
+.others{display:flex;flex-wrap:wrap;gap:6px 26px;font-size:15.5px;color:var(--parch-2)}
+.facts{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:15px;color:var(--smoke);align-items:center}
+.facts strong{color:var(--parch);font-weight:500}
+.gold{display:inline-flex;align-items:center;gap:8px}
+.gold svg{width:96px;height:22px;overflow:visible}
+@media (max-width:720px){.stall-inner{grid-template-columns:minmax(0,1fr)}.lanterns{position:absolute;right:-30px;top:0;margin:0;width:150px;height:170px;opacity:.85}.awning{height:64px}}
+
+/* ---------- tabs as hanging signs ---------- */
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:-6px}
+nav.tabs button{font:500 16px var(--f-display);color:var(--parch-2);background:var(--cloth);border:1px solid var(--line);border-top:3px solid var(--line);border-radius:0 0 8px 8px;padding:8px 14px 9px;cursor:pointer}
+nav.tabs button:hover{color:var(--parch);border-top-color:var(--brass)}
+nav.tabs button[aria-selected="true"]{color:var(--saffron-ink);background:var(--saffron);border-color:var(--saffron)}
+section.panel{display:flex;flex-direction:column;gap:26px}
+.block{display:flex;flex-direction:column;gap:14px;min-width:0}
+.sheet{position:relative;background:linear-gradient(180deg,var(--cloth-2),var(--cloth));border:1px solid var(--line);border-radius:10px;padding:22px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.sheet::before,.sheet::after{content:"";position:absolute;width:14px;height:14px;border:1px solid var(--brass);opacity:.55}
+.sheet::before{top:6px;left:6px;border-right:0;border-bottom:0}
+.sheet::after{bottom:6px;right:6px;border-left:0;border-top:0}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+@media (max-width:820px){.cols{grid-template-columns:minmax(0,1fr)}}
+.aside{font-size:15.5px;color:var(--parch-2);border-left:2px solid var(--brass);padding-left:12px}
+.banner{background:rgba(232,171,69,.1);border:1px solid rgba(232,171,69,.35);border-radius:8px;padding:12px 14px;font-size:16px;max-width:none}
+ul.list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+ul.list li{max-width:70ch}
+ul.list li::marker{color:var(--brass)}
+ol.recs{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;counter-reset:r}
+ol.recs li{position:relative;padding:12px 14px 12px 50px;background:rgba(0,0,0,.18);border:1px solid var(--line-soft);border-radius:8px;counter-increment:r}
+ol.recs li::before{content:counter(r);position:absolute;left:12px;top:12px;width:26px;height:26px;display:grid;place-items:center;font:700 15px var(--f-display);color:var(--saffron-ink);background:var(--brass);border-radius:50%}
+ol.recs li:first-child::before{background:var(--saffron)}
+ol.recs li strong{display:block;font:600 18px/1.25 var(--f-display);color:var(--parch)}
+ol.recs li span{display:block;font-size:15px;color:var(--parch-2)}
+ol.recs li.empty{padding-left:14px} ol.recs li.empty::before{display:none}
+
+/* ---------- controls ---------- */
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--night-2)}
+.seg button{font:500 15px var(--f-body);background:none;color:var(--parch-2);border:0;border-right:1px solid var(--line);padding:7px 12px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button:hover{color:var(--parch)}
+.seg button[aria-pressed="true"]{background:var(--saffron);color:var(--saffron-ink)}
+.seg.big button{padding:9px 16px;font:500 17px var(--f-display)}
+.seg.big button small{display:block;font:400 13px var(--f-body);opacity:.8}
+.seg.sm button{padding:4px 9px;font-size:13.5px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:14.5px;color:var(--parch-2)}
+label.f .hint{font-size:13px;color:var(--smoke)}
+input,select,textarea{font:500 16px var(--f-body);font-variant-numeric:tabular-nums;color:var(--parch);background:var(--night-2);border:1px solid var(--line);border-radius:6px;padding:8px 9px;width:100%;min-width:0}
+textarea{font:14px ui-monospace,Menlo,Consolas,monospace}
+.ctl{display:flex;flex-direction:column;gap:4px;font-size:14.5px;color:var(--parch-2)}
+.row-ctl{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font:500 15px var(--f-body);background:var(--saffron);color:var(--saffron-ink);border:1px solid var(--saffron);border-radius:7px;padding:8px 13px;cursor:pointer}
+.btn.ghost{background:none;color:var(--parch-2);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--brass);color:var(--parch)}
+.linkbtn{font:500 15px var(--f-body);color:var(--saffron);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.linkbtn[disabled]{color:var(--smoke);text-decoration:none;cursor:wait}
+.chk{display:flex;gap:6px;align-items:center;font-size:15px;color:var(--parch-2)} .chk input{width:auto;accent-color:var(--saffron)}
+.pastebox{display:flex;flex-direction:column;gap:8px;max-width:640px}
+.grid-lv{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:4px 24px}
+.lv{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line-soft);min-width:0;flex-wrap:wrap}
+.lv .lbl{flex:1 1 120px;font-size:15.5px}
+.lv select{width:auto;padding:4px 6px;font-size:14px}
+.lv input{width:96px;padding:4px 6px;font-size:14px}
+@media (max-width:420px){.grid-lv{grid-template-columns:minmax(0,1fr)}}
+
+/* ---------- ledger + verdict ---------- */
+.ledger{width:100%;border-collapse:collapse;font-size:16px}
+.ledger td{padding:8px 0;border-bottom:1px dashed var(--line)}
+.ledger td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.ledger tr.total td{border-bottom:0;border-top:2px solid var(--brass);font-weight:700;font-size:19px;padding-top:10px}
+.ledger td small{display:block;color:var(--smoke);font-size:13px}
+.verdict{font-size:16px;padding:12px 14px;border-radius:8px;background:rgba(0,0,0,.22);border:1px solid var(--line-soft)}
+details summary{cursor:pointer;color:var(--parch-2)}
+
+/* ---------- heatmap ---------- */
+.tablebox{overflow-x:auto}
+table.heat{border-collapse:separate;border-spacing:3px;font-size:15px;min-width:440px}
+table.heat th{font-weight:500;color:var(--smoke);text-align:center;padding:4px 6px;font-size:14px;background:none}
+table.heat th.rh{text-align:left;color:var(--parch-2);font-family:var(--f-display)}
+table.heat td{text-align:center;padding:10px 6px;border-radius:5px;font-variant-numeric:tabular-nums;min-width:86px;cursor:default}
+table.heat td small{display:block;font-size:12.5px;opacity:.85}
+table.heat td.na{background:transparent;color:var(--smoke);border:1px dashed var(--line)}
+table.heat td.thin{box-shadow:inset 0 0 0 1.5px var(--parch-2)}
+.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13.5px;color:var(--smoke)}
+.legend .sw{display:inline-flex;gap:2px} .legend .sw i{width:22px;height:12px;border-radius:2px;display:block}
+
+/* ---------- tables ---------- */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--cloth)}
+.tbl table{border-collapse:collapse;width:100%;font-size:15.5px}
+.tbl th,.tbl td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.tbl th{font:500 14px var(--f-body);color:var(--brass);background:rgba(0,0,0,.25)}
+.tbl tr:last-child td{border-bottom:0}
+.chg{white-space:nowrap;font-size:14px} .chg.up{color:var(--gain)} .chg.down{color:var(--loss)} .chg.flat{color:var(--smoke)}
+.chg.up::before{content:"▲ "} .chg.down::before{content:"▼ "} .chg.flat::before{content:"· "}
+.spec{display:inline-block;font-size:12.5px;color:var(--saffron);border:1px solid currentColor;border-radius:999px;padding:0 7px;margin-left:4px;vertical-align:1px;white-space:nowrap}
+small.blk{display:block;font-size:13.5px;color:var(--smoke);margin-top:2px} small.blk.loss{color:var(--loss)}
+
+/* ---------- activity chart ---------- */
+.rows{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:minmax(140px,230px) minmax(0,1fr) 96px;gap:14px;align-items:center;padding:7px 0;border-top:1px solid var(--line-soft)}
+.row .lbl{font-size:16px;line-height:1.25} .row .lbl span{display:block;font-size:13.5px;color:var(--smoke)}
+.plot{position:relative;height:22px}
+.plot .grid{position:absolute;top:0;bottom:0;width:1px;background:var(--line-soft)}
+.plot .bar{position:absolute;top:5px;height:12px;border-radius:4px;background:var(--saffron);transform-origin:0 50%}
+.row:hover .bar,.row:focus .bar{filter:brightness(1.15)}
+.row .val{text-align:right;font-size:15px}
+.axis{display:grid;grid-template-columns:minmax(140px,230px) minmax(0,1fr) 96px;gap:14px}
+.axis .ticks{position:relative;height:18px;font-size:13px;color:var(--smoke)}
+.axis .ticks span{position:absolute;transform:translateX(-50%)} .axis .ticks span:first-child{transform:none}
+@media (max-width:620px){.row,.axis{grid-template-columns:minmax(0,1fr) 86px}.row .plot,.axis .ticks{grid-column:1/-1;grid-row:2}.axis>div:not(.ticks){display:none}}
+.risk{font-size:13px;color:var(--smoke)}
+.risk::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px;border:1.5px solid var(--smoke)}
+.risk.h::before{background:var(--smoke)} .risk.m::before{background:linear-gradient(90deg,var(--smoke) 50%,transparent 50%)}
+
+/* ---------- misc ---------- */
+#tip{position:fixed;z-index:20;pointer-events:none;background:#0f0b0a;color:var(--parch);border:1px solid var(--brass);border-radius:7px;padding:9px 11px;font-size:14.5px;line-height:1.35;max-width:290px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+#tip .v{font-size:17px;font-weight:700;color:var(--saffron)} #tip .k{color:var(--smoke)}
+#toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:var(--saffron);color:var(--saffron-ink);font:600 15px var(--f-body);padding:10px 16px;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.links a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--parch);background:var(--cloth);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.links a:hover{border-color:var(--saffron)}
+.links a span{color:var(--smoke);font-size:14.5px}
+footer{font-size:13.5px;color:var(--smoke);border-top:1px solid var(--line-soft);padding-top:14px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="stall">
+  <svg class="awning" viewBox="0 0 1200 92" preserveAspectRatio="none" aria-hidden="true">
+  <defs><clipPath id="scallop"><path d="M0 0 H1200 V58 A30 22 0 0 1 1140 58 A30 22 0 0 1 1080 58 A30 22 0 0 1 1020 58 A30 22 0 0 1 960 58 A30 22 0 0 1 900 58 A30 22 0 0 1 840 58 A30 22 0 0 1 780 58 A30 22 0 0 1 720 58 A30 22 0 0 1 660 58 A30 22 0 0 1 600 58 A30 22 0 0 1 540 58 A30 22 0 0 1 480 58 A30 22 0 0 1 420 58 A30 22 0 0 1 360 58 A30 22 0 0 1 300 58 A30 22 0 0 1 240 58 A30 22 0 0 1 180 58 A30 22 0 0 1 120 58 A30 22 0 0 1 60 58 A30 22 0 0 1 0 58 Z"/></clipPath>
+  <linearGradient id="awShade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".05"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></linearGradient></defs>
+  <g clip-path="url(#scallop)"><rect x="0" y="0" width="30" height="90" fill="var(--madder)"/><rect x="30" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="60" y="0" width="30" height="90" fill="var(--madder)"/><rect x="90" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="120" y="0" width="30" height="90" fill="var(--madder)"/><rect x="150" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="180" y="0" width="30" height="90" fill="var(--madder)"/><rect x="210" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="240" y="0" width="30" height="90" fill="var(--madder)"/><rect x="270" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="300" y="0" width="30" height="90" fill="var(--madder)"/><rect x="330" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="360" y="0" width="30" height="90" fill="var(--madder)"/><rect x="390" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="420" y="0" width="30" height="90" fill="var(--madder)"/><rect x="450" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="480" y="0" width="30" height="90" fill="var(--madder)"/><rect x="510" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="540" y="0" width="30" height="90" fill="var(--madder)"/><rect x="570" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="600" y="0" width="30" height="90" fill="var(--madder)"/><rect x="630" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="660" y="0" width="30" height="90" fill="var(--madder)"/><rect x="690" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="720" y="0" width="30" height="90" fill="var(--madder)"/><rect x="750" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="780" y="0" width="30" height="90" fill="var(--madder)"/><rect x="810" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="840" y="0" width="30" height="90" fill="var(--madder)"/><rect x="870" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="900" y="0" width="30" height="90" fill="var(--madder)"/><rect x="930" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="960" y="0" width="30" height="90" fill="var(--madder)"/><rect x="990" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="1020" y="0" width="30" height="90" fill="var(--madder)"/><rect x="1050" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="1080" y="0" width="30" height="90" fill="var(--madder)"/><rect x="1110" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="1140" y="0" width="30" height="90" fill="var(--madder)"/><rect x="1170" y="0" width="30" height="90" fill="#d8c7a0"/><rect width="1200" height="92" fill="url(#awShade)"/></g>
+  <rect x="0" y="0" width="1200" height="5" fill="var(--brass)"/>
+  <line x1="30.0" y1="80" x2="30.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="30.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="90.0" y1="80" x2="90.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="90.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="150.0" y1="80" x2="150.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="150.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="210.0" y1="80" x2="210.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="210.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="270.0" y1="80" x2="270.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="270.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="330.0" y1="80" x2="330.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="330.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="390.0" y1="80" x2="390.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="390.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="450.0" y1="80" x2="450.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="450.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="510.0" y1="80" x2="510.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="510.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="570.0" y1="80" x2="570.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="570.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="630.0" y1="80" x2="630.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="630.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="690.0" y1="80" x2="690.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="690.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="750.0" y1="80" x2="750.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="750.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="810.0" y1="80" x2="810.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="810.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="870.0" y1="80" x2="870.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="870.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="930.0" y1="80" x2="930.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="930.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="990.0" y1="80" x2="990.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="990.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="1050.0" y1="80" x2="1050.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="1050.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="1110.0" y1="80" x2="1110.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="1110.0" cy="90" r="3.2" fill="var(--saffron)"/><line x1="1170.0" y1="80" x2="1170.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="1170.0" cy="90" r="3.2" fill="var(--saffron)"/>
+</svg>
+  <div class="stall-inner">
+    <div class="sign">
+      <h1><span class="kicker">Balcão de Negócios do</span> <span class="big">Fumaça</span></h1>
+      <div class="who" id="who"></div>
+    </div>
+    <svg class="lanterns" viewBox="0 0 220 230" aria-hidden="true">
+  <defs><radialGradient id="lglow"><stop offset="0" stop-color="#ffcf73" stop-opacity=".55"/><stop offset="1" stop-color="#ffcf73" stop-opacity="0"/></radialGradient></defs>
+  <g class="lantern" data-ox="70" data-oy="0">
+    <line x1="70" y1="0" x2="70" y2="70" stroke="var(--brass)" stroke-width="1.6" stroke-dasharray="3 3"/>
+    <circle class="glow" cx="70" cy="116.0" r="48.0" fill="url(#lglow)"/>
+    <path d="M60.0 76.0 L80.0 76.0 L88.0 88.0 L52.0 88.0 Z" fill="var(--brass)"/>
+    <circle cx="70" cy="73.0" r="4.0" fill="none" stroke="var(--brass)" stroke-width="1.6"/>
+    <path d="M52.0 88.0 L88.0 88.0 L94.0 116.0 L86.0 146.0 L54.0 146.0 L46.0 116.0 Z" fill="#3a2614" stroke="var(--brass)" stroke-width="1.6"/>
+    <path class="pane" d="M58.0 96.0 L82.0 96.0 L86.0 116.0 L81.0 138.0 L59.0 138.0 L54.0 116.0 Z" fill="var(--saffron)" opacity=".92"/>
+    <path d="M70 100.0 L74.0 112.0 L84.0 116.0 L74.0 120.0 L70 132.0 L66.0 120.0 L56.0 116.0 L66.0 112.0 Z" fill="#3a2614" opacity=".75"/>
+    <path d="M54.0 146.0 L86.0 146.0 L78.0 156.0 L62.0 156.0 Z" fill="var(--brass)"/>
+    <line x1="70" y1="156.0" x2="70" y2="166.0" stroke="var(--brass)" stroke-width="2"/>
+  </g>
+  <g class="lantern" data-ox="160" data-oy="0">
+    <line x1="160" y1="0" x2="160" y2="40" stroke="var(--brass)" stroke-width="1.6" stroke-dasharray="3 3"/>
+    <circle class="glow" cx="160" cy="76.80000000000001" r="38.400000000000006" fill="url(#lglow)"/>
+    <path d="M152.0 44.8 L168.0 44.8 L174.4 54.4 L145.6 54.4 Z" fill="var(--brass)"/>
+    <circle cx="160" cy="42.4" r="3.2" fill="none" stroke="var(--brass)" stroke-width="1.6"/>
+    <path d="M145.6 54.4 L174.4 54.4 L179.2 76.80000000000001 L172.8 100.80000000000001 L147.2 100.80000000000001 L140.8 76.80000000000001 Z" fill="#3a2614" stroke="var(--brass)" stroke-width="1.6"/>
+    <path class="pane" d="M150.4 60.8 L169.6 60.8 L172.8 76.80000000000001 L168.8 94.4 L151.2 94.4 L147.2 76.80000000000001 Z" fill="var(--saffron)" opacity=".92"/>
+    <path d="M160 64.0 L163.2 73.6 L171.2 76.80000000000001 L163.2 80.0 L160 89.6 L156.8 80.0 L148.8 76.80000000000001 L156.8 73.6 Z" fill="#3a2614" opacity=".75"/>
+    <path d="M147.2 100.80000000000001 L172.8 100.80000000000001 L166.4 108.8 L153.6 108.8 Z" fill="var(--brass)"/>
+    <line x1="160" y1="108.8" x2="160" y2="116.80000000000001" stroke="var(--brass)" stroke-width="2"/>
+  </g>
+</svg>
+  </div>
+  <div class="deal" aria-live="polite">
+    <span class="tag">Mercadoria do dia</span>
+    <p class="answer" id="heroAnswer">Calculando o melhor uso do seu foco hoje…</p>
+    <div class="others" id="heroOthers"></div>
+    <div class="facts">
+      <span class="gold" id="goldBox">Ouro a <strong class="num" id="goldV">8.382</strong> pratas <svg id="goldSpark" viewBox="0 0 96 22" aria-hidden="true"></svg></span>
+      <span>Premium por cerca de <strong class="num" id="premV">31,4M</strong></span>
+      <span>Patch: <strong>Dragonfire 3</strong></span>
+      <span>Preços de <strong id="when">17/10/2026, entre 11h e 16h (Brasília)</strong></span>
+      <button type="button" id="reload" class="linkbtn">Atualizar preços</button>
+    </div>
+  </div>
+  <svg class="smoke" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+  <defs><filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter></defs>
+  <g filter="url(#blur)"><path class="wisp" d="M120 400 C150 360 90 320 125 280 S145 200 115 150" stroke="#e9dcc0" stroke-width="14" stroke-linecap="round" fill="none" opacity="0"/><path class="wisp" d="M260 400 C290 360 230 320 265 280 S285 200 255 150" stroke="#e9dcc0" stroke-width="10" stroke-linecap="round" fill="none" opacity="0"/><path class="wisp" d="M430 400 C460 360 400 320 435 280 S455 200 425 150" stroke="#e9dcc0" stroke-width="16" stroke-linecap="round" fill="none" opacity="0"/><path class="wisp" d="M640 400 C670 360 610 320 645 280 S665 200 635 150" stroke="#e9dcc0" stroke-width="12" stroke-linecap="round" fill="none" opacity="0"/><path class="wisp" d="M820 400 C850 360 790 320 825 280 S845 200 815 150" stroke="#e9dcc0" stroke-width="18" stroke-linecap="round" fill="none" opacity="0"/><path class="wisp" d="M990 400 C1020 360 960 320 995 280 S1015 200 985 150" stroke="#e9dcc0" stroke-width="11" stroke-linecap="round" fill="none" opacity="0"/><path class="wisp" d="M1110 400 C1140 360 1080 320 1115 280 S1135 200 1105 150" stroke="#e9dcc0" stroke-width="15" stroke-linecap="round" fill="none" opacity="0"/></g>
+</svg>
+</header>
+
+  <nav class="tabs" role="tablist" aria-label="Seções">
+    <button role="tab" id="t-voce" aria-controls="p-voce" aria-selected="true">Para você</button>
+    <button role="tab" id="t-ficha" aria-controls="p-ficha" aria-selected="false">Minha ficha</button>
+    <button role="tab" id="t-refino" aria-controls="p-refino" aria-selected="false">Refino</button>
+    <button role="tab" id="t-craft" aria-controls="p-craft" aria-selected="false">Craft</button>
+    <button role="tab" id="t-builds" aria-controls="p-builds" aria-selected="false">Builds</button>
+    <button role="tab" id="t-prata" aria-controls="p-prata" aria-selected="false">Onde está a prata</button>
+    <button role="tab" id="t-patch" aria-controls="p-patch" aria-selected="false">Patch 3</button>
+    <button role="tab" id="t-fontes" aria-controls="p-fontes" aria-selected="false">Fontes</button>
+  </nav>
+
+  <!-- PARA VOCÊ -->
+  <section class="panel" id="p-voce" role="tabpanel" aria-labelledby="t-voce">
+    <p class="banner" id="exampleBanner" hidden>Você está vendo a ficha de exemplo do Oleran. <button type="button" class="linkbtn" data-goto="t-ficha">Preencha a sua</button> e as recomendações passam a ser suas. A ficha fica salva só neste navegador.</p>
+    <div class="cols">
+      <div class="block">
+        <h2>Refino com o seu foco</h2>
+        <ol class="recs" id="recRefino"></ol>
+      </div>
+      <div class="block">
+        <h2>Craft com o seu foco</h2>
+        <ol class="recs" id="recCraft"></ol>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="block">
+        <h2>Builds para as Brumas</h2>
+        <ol class="recs" id="recBrumas"></ol>
+      </div>
+      <div class="block">
+        <h2>Builds para as Corrompidas</h2>
+        <ol class="recs" id="recCorr"></ol>
+      </div>
+    </div>
+    <div class="block">
+      <h2>Coleta</h2>
+      <div class="tbl"><table id="recColeta"></table></div>
+      <p class="tiny muted">Preço típico de venda da matéria-prima no seu tier mais alto. O quanto cada nó rende depende da sua spec e do encantamento do mapa.</p>
+    </div>
+    <div class="block" id="fishBlock" hidden>
+      <h2>Pesca</h2>
+      <div class="tbl"><table id="recPesca"></table></div>
+      <p class="tiny muted">Peixe em qualidade normal, mediana das cidades reais. Os raros saem do bioma indicado e valem mais; o peixe também pode virar Chopped Fish para comida.</p>
+    </div>
+  </section>
+
+  <!-- FICHA -->
+  <section class="panel" id="p-ficha" role="tabpanel" aria-labelledby="t-ficha" hidden>
+    <div class="block">
+      <h2>Minha ficha</h2>
+      <p class="small muted">Marque o nível de cada linha do seu Destiny Board. Fica salvo neste navegador, e cada amigo preenche a dele. Para levar para outro computador, copie a ficha e cole lá.</p>
+      <div class="row-ctl">
+        <label class="f" style="max-width:280px">Nome do personagem<input id="pfName" type="text" maxlength="40" placeholder="Ex.: Oleran"></label>
+        <div class="btnrow">
+          <button type="button" class="btn" id="pfCopy">Copiar minha ficha</button>
+          <button type="button" class="btn" id="pfPasteBtn">Colar ficha</button>
+          <button type="button" class="btn ghost" id="pfExample">Carregar exemplo do Oleran</button>
+          <button type="button" class="btn ghost" id="pfClear">Limpar ficha</button>
+        </div>
+      </div>
+      <div id="pfPasteBox" hidden class="pastebox">
+        <label class="f">Cole aqui o código da ficha<textarea id="pfPaste" rows="3"></textarea></label>
+        <div class="btnrow"><button type="button" class="btn" id="pfPasteApply">Usar esta ficha</button><span class="tiny muted" id="pfPasteMsg"></span></div>
+      </div>
+      <p class="tiny" id="pfStatus" aria-live="polite"></p>
+    </div>
+    <div class="sheet">
+      <h3 class="orn">Armas</h3>
+      <p class="tiny muted">Nada = não usa. T8 = consegue equipar T8 sem spec de verdade. Média e alta = quanto você upou as especializações da linha.</p>
+      <div class="grid-lv" id="pfWeapons"></div>
+    </div>
+    <div class="cols">
+      <div class="sheet">
+        <h3 class="orn">Armaduras</h3>
+        <div class="grid-lv" id="pfArmor"></div>
+      </div>
+      <div class="sheet">
+        <h3 class="orn">Coleta</h3>
+        <div class="grid-lv" id="pfGather"></div>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="sheet">
+        <h3 class="orn">Refino</h3>
+        <p class="tiny muted">Se souber, coloque o custo de foco que aparece no jogo para refinar uma barra T6.0. É o jeito mais exato: a página calcula o resto a partir dele.</p>
+        <div class="grid-lv" id="pfRefine"></div>
+      </div>
+      <div class="sheet">
+        <h3 class="orn">Craft</h3>
+        <p class="tiny muted">Linhas de armadura que você fabrica. O custo de foco do jogo, se souber, é o de uma peça T6.0.</p>
+        <div class="grid-lv" id="pfCraft"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REFINO -->
+  <section class="panel" id="p-refino" role="tabpanel" aria-labelledby="t-refino" hidden>
+    <div class="block">
+      <div class="seg big" role="group" aria-label="Recurso">
+        <button type="button" data-res="metal" aria-pressed="true">Metal<small>em Thetford</small></button>
+        <button type="button" data-res="cloth" aria-pressed="false">Tecido (linho)<small>em Lymhurst</small></button>
+        <button type="button" data-res="leather" aria-pressed="false">Couro<small>em Martlock</small></button>
+      </div>
+      <p class="small muted" id="resNote"></p>
+    </div>
+    <div class="sheet">
+      <h2 id="matTitle">Lucro por barra</h2>
+      <p class="small muted">Lucro de refinar uma barra com foco, já tirando taxas, com o custo de foco da sua ficha. Embaixo, quanto cada ponto de foco rende a mais do que refinar sem foco. Clique numa célula para abrir na calculadora.</p>
+      <div class="tablebox"><table class="heat" id="heat"></table></div>
+      <div class="legend" aria-hidden="true"><span>Prejuízo</span><span class="sw"><i style="background:var(--h-r3)"></i><i style="background:var(--h-r2)"></i><i style="background:var(--h-r1)"></i><i style="background:var(--h-neutral)"></i><i style="background:var(--h-b1)"></i><i style="background:var(--h-b2)"></i><i style="background:var(--h-b3)"></i><i style="background:var(--h-b4)"></i></span><span>Lucro</span><span>Contorno escuro: preço de uma cidade só</span></div>
+    </div>
+    <div class="cols">
+      <div class="sheet">
+        <h2 id="calcTitle">Calculadora</h2>
+        <div class="form">
+          <label class="f">Tier<select id="tier"><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option></select></label>
+          <label class="f">Encantamento<select id="ench"><option value="0">.0</option><option value="1" selected>.1</option><option value="2">.2</option><option value="3">.3</option></select></label>
+        </div>
+        <div class="form">
+          <label class="f"><span id="lRaw">Matéria-prima</span><input id="pRaw" type="number" min="0" inputmode="numeric"><span class="hint" id="sRaw"></span></label>
+          <label class="f"><span id="lPrev">Barra anterior</span><input id="pPrev" type="number" min="0" inputmode="numeric"><span class="hint" id="sPrev"></span></label>
+          <label class="f"><span id="lBar">Venda</span><input id="pBar" type="number" min="0" inputmode="numeric"><span class="hint" id="sBar"></span></label>
+        </div>
+        <div class="form">
+          <label class="f">Taxa da estação<input id="fee" type="number" min="0" step="10" value="500"><span class="hint">pratas por 100 de nutrição</span></label>
+          <label class="f">Custo de foco por barra<input id="focusCost" type="number" min="1"><span class="hint" id="focusHint">da sua ficha</span></label>
+          <label class="f">Foco para gastar<input id="focusPool" type="number" min="0" step="500" value="10000"><span class="hint">Premium gera 10.000 por dia</span></label>
+        </div>
+        <div class="form">
+          <div class="ctl">Foco<div class="seg" role="group" aria-label="Foco"><button type="button" data-g="focus" data-v="1" aria-pressed="true">Com foco</button><button type="button" data-g="focus" data-v="0" aria-pressed="false">Sem foco</button></div></div>
+          <div class="ctl">Bônus diário<div class="seg" role="group" aria-label="Bônus diário"><button type="button" data-g="daily" data-v="0" aria-pressed="true">Nenhum</button><button type="button" data-g="daily" data-v="0.1" aria-pressed="false">+10%</button><button type="button" data-g="daily" data-v="0.2" aria-pressed="false">+20%</button></div></div>
+          <div class="ctl">Conta<div class="seg" role="group" aria-label="Premium"><button type="button" data-g="prem" data-v="1" aria-pressed="true">Premium</button><button type="button" data-g="prem" data-v="0" aria-pressed="false">Sem Premium</button></div></div>
+          <div class="ctl">Como vende<div class="seg" role="group" aria-label="Venda"><button type="button" data-g="sell" data-v="order" aria-pressed="true">Ordem de venda</button><button type="button" data-g="sell" data-v="instant" aria-pressed="false">Venda direta</button></div></div>
+        </div>
+      </div>
+      <div class="sheet">
+        <h2>A conta de uma barra</h2>
+        <table class="ledger" id="ledger"></table>
+        <p class="verdict" id="verdict"></p>
+        <details class="small muted">
+          <summary style="cursor:pointer;color:var(--ink-2)">Como a conta é feita</summary>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+            <p>Bônus de produção = 0,18 da cidade real + 0,40 da cidade com bônus do recurso + 0,59 do foco + bônus diário. Taxa de retorno = bônus ÷ (1 + bônus): 36,7% sem foco e 53,9% com foco. O retorno vale para todos os insumos.</p>
+            <p>Taxa da estação = valor de item × 0,1125 × taxa ÷ 100. Imposto de venda 4% com Premium e 8% sem, mais 2,5% para criar a ordem.</p>
+            <p>Custo de foco = custo base × 0,5 elevado a (eficiência ÷ 10.000). A eficiência sai da sua ficha. Preço típico = mediana entre as cidades reais com oferta.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CRAFT -->
+  <section class="panel" id="p-craft" role="tabpanel" aria-labelledby="t-craft" hidden>
+    <div class="block">
+      <div class="form" style="max-width:720px">
+        <label class="f">Peça<select id="cSlot"><option value="HEAD">Elmo, capuz ou capucha</option><option value="ARMOR">Peito</option><option value="SHOES">Botas, sapatos ou sandálias</option></select></label>
+        <label class="f">Material<select id="cMat"><option value="PLATE">Placa</option><option value="LEATHER">Couro</option><option value="CLOTH">Pano</option></select></label>
+        <label class="f">Conjunto<select id="cSet"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label>
+      </div>
+      <p class="small muted" id="cNote"></p>
+    </div>
+    <div class="sheet">
+      <h2 id="cTitle">Lucro por peça</h2>
+      <p class="small muted">Lucro de fabricar uma peça com foco na cidade com bônus, comprando as barras pelo preço típico e vendendo a peça em qualidade normal. Peças de qualidade melhor saem de vez em quando e vendem mais caro, então isso é o piso. Embaixo, prata por ponto de foco.</p>
+      <div class="tablebox"><table class="heat" id="cHeat"></table></div>
+      <p class="tiny muted" id="cStatus"></p>
+    </div>
+  </section>
+
+  <!-- BUILDS -->
+  <section class="panel" id="p-builds" role="tabpanel" aria-labelledby="t-builds" hidden>
+    <p class="aside">As builds vêm do AlbionOnlineGrind (o número é quantos jogadores salvaram a build) e do MetaCorrupted (tier list de abril de 2026, antes do Dragonfire). A coluna do Patch 3 foi conferida no changelog oficial. As linhas com spec na sua ficha aparecem primeiro.</p>
+    <div class="row-ctl">
+      <div class="seg" role="group" aria-label="Conteúdo">
+        <button type="button" data-bc="brumas" aria-pressed="true">Brumas</button>
+        <button type="button" data-bc="corrompidas" aria-pressed="false">Corrompidas</button>
+        <button type="button" data-bc="barato" aria-pressed="false">Abadias, set barato</button>
+        <button type="button" data-bc="pve" aria-pressed="false">PvE e rastreio</button>
+      </div>
+      <label class="chk"><input type="checkbox" id="bOnlyMine" checked> Só armas da minha ficha</label>
+    </div>
+    <div class="tbl"><table id="bTable"></table></div>
+    <div class="cols">
+      <div class="block">
+        <h3 class="orn">Antes de aceitar a luta</h3>
+        <ul class="list small">
+          <li>Inspecione arma, elmo, peito e botas. Elmo e peito dizem se ele tem purge, cleanse, reflect ou imunidade.</li>
+          <li>Compare o IP médio. Nas Brumas não tem teto, então diferença grande pesa.</li>
+          <li>Veja se o escape dele já foi gasto antes de gastar o seu.</li>
+          <li>Na Abadia não tem montaria e terceiro chega rápido. Na dúvida, não entre.</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3 class="orn">Set caro nas Brumas</h3>
+        <p class="small">Por volta de 1500 de IP com Overcharge sai entre 600 e 700 mil pratas: arma e peito de artefato 5.2, elmo 5.2, botas 7.0 e capa 4.2, em qualidade excelente ou excepcional. Set barato 4.1 ou 5.1 dá cerca de 1200 de IP por 100 a 150 mil.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRATA -->
+  <section class="panel" id="p-prata" role="tabpanel" aria-labelledby="t-prata" hidden>
+    <div class="sheet">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center">
+        <h2>Prata por hora, por atividade</h2>
+        <div class="seg" role="group" aria-label="Filtro de atividades">
+          <button type="button" data-f="all" aria-pressed="true">Tudo</button>
+          <button type="button" data-f="solo" aria-pressed="false">Solo</button>
+          <button type="button" data-f="grupo" aria-pressed="false">Grupo</button>
+          <button type="button" data-f="seguro" aria-pressed="false">Sem risco</button>
+        </div>
+      </div>
+      <p class="small muted">Faixa bruta em milhões por hora, antes de mortes e taxas. Vem da tabela da AlbionCodex de abril de 2026, que o próprio site chama de estimativa. Serve para comparar, não para prometer.</p>
+      <div class="chart">
+        <div class="axis" aria-hidden="true"><div></div><div class="ticks" id="ticks"></div><div></div></div>
+        <div class="rows" id="rows"></div>
+      </div>
+      <p class="tiny muted"><span class="risk l">risco baixo</span> &nbsp; <span class="risk m">risco médio</span> &nbsp; <span class="risk h">risco alto</span></p>
+    </div>
+    <div class="cols">
+      <div class="block">
+        <h3 class="orn">Fora da tabela, mas confirmado</h3>
+        <ul class="list small">
+          <li>Portal S.A.F.E. (Horizons, 10/2024): teleporte pago de uma cidade-portal para um ponto aleatório da Zona Preta, com portal de volta por tempo limitado. Ninguém publicou número confiável de prata por hora.</li>
+          <li>The Depths (06/2025): entra pelas Antiquarian's Dens das cidades reais, times de 2v2 ou 3v3. Você mantém o equipamento vestido e perde só a mochila. Treina PvP, paga pouco.</li>
+          <li>Ancient Lands (Dragonfire, 31/08/2026): portais com dracos, Dragon Sanctuary e ataques de dragão. O Patch 3 deu 150% mais Might nos dragões do mundo aberto.</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3 class="orn">Regras de bolso de risco</h3>
+        <ul class="list small">
+          <li>Não leve para zona vermelha ou preta mais de 10% do seu caixa em equipamento e carga.</li>
+          <li>Planeje 20% de mortes em PvP solo e use só set que dá para repor duas vezes.</li>
+          <li>Prata por hora real é a faixa bruta menos sets perdidos, consumíveis e reparo.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PATCH -->
+  <section class="panel" id="p-patch" role="tabpanel" aria-labelledby="t-patch" hidden>
+    <div class="block">
+      <h2>Dragonfire Patch 3, 12/10/2026</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Área</th><th>O que mudou</th></tr></thead>
+        <tbody>
+          <tr><td>Evento</td><td>+15% de fama e loot por 7 dias, até ~19/10</td></tr>
+          <tr><td>Ancient Lands</td><td>Portais pequenos da zona amarela aparecem mais, abrem antes e duram mais, mas pagam 30% menos. Portais grandes surgem 50% mais e o baú do Fire Drake melhorou. Monstros com menos vida e dano.</td></tr>
+          <tr><td>Dragões</td><td>No mundo aberto, só recuperam vida até o último marco de 20% e dão 150% mais Might. Luta da Maeve ficou mais tolerante.</td></tr>
+          <tr><td>Buffs</td><td>Twin Slayers (Ring of Death 36, era 27, área dobrada), espadas (Heroic Strike 4s, era 3,5s), adagas (Bloodthirsty Blade 2,5%, era 4%), Great Fire Staff, Stillgaze Staff, Hellfire Hands, Mage Cowl, Dragonslayer Hood, Mage Robe (Purging Shield 30s, era 35s)</td></tr>
+          <tr><td>Nerfs</td><td>Bestas (Explosive Bolt 119, era 130), Rotcaller (35s, era 30s), Flamewalker (45s, era 40s), Holy Staffs (Smite em PvP 115, era 136), Quarterstaffs (Cartwheel 7 de energia, era 5), Phantom Twinblade, metamorfos (Tether Shift 16 de energia, escudo 88), Cowl of Purity (18m, era 21m), Armor of Valor (Requite 21, era 27)</td></tr>
+        </tbody></table></div>
+    </div>
+    <div class="block">
+      <h3 class="orn">O que mudou desde que vocês pararam</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>Data</th><th>Update</th><th>Efeito na prata</th></tr></thead>
+        <tbody>
+          <tr><td class="num">28/10/2024</td><td>Horizons</td><td>Portais S.A.F.E., acampamentos dinâmicos e recompensa crescendo com a qualidade da região</td></tr>
+          <tr><td class="num">06/2025</td><td>The Depths</td><td>PvP instanciado 2v2 e 3v3 sem perder o equipamento vestido</td></tr>
+          <tr><td class="num">13/04/2026</td><td>Radiant Wilds</td><td>Revisão visual do mundo, quase nada na economia</td></tr>
+          <tr><td class="num">31/08/2026</td><td>Dragonfire</td><td>Ancient Lands, Dragon Sanctuary, ataques de dragão, montaria Firewing Drake</td></tr>
+          <tr><td class="num">12/10/2026</td><td>Dragonfire Patch 3</td><td>Balanceamento de armas e ajustes nas Ancient Lands</td></tr>
+        </tbody></table></div>
+    </div>
+  </section>
+
+  <!-- FONTES -->
+  <section class="panel" id="p-fontes" role="tabpanel" aria-labelledby="t-fontes" hidden>
+    <p class="verdict">Os preços vêm ao vivo do Albion Data Project, que é alimentado por jogadores com o cliente dele aberto. Quanto mais gente do grupo rodar o cliente (o do Albion Data ou o da AFM) enquanto joga, mais frescos ficam os preços, principalmente nos encantamentos .2 e .3.</p>
+    <div class="links">
+      <a href="https://www.albion-online-data.com/" target="_blank" rel="noopener"><h3 class="orn">Albion Data Project</h3><span>Cliente que lê o mercado enquanto você joga e a API de preços.</span></a>
+      <a href="https://albionfreemarket.com/" target="_blank" rel="noopener"><h3 class="orn">Albion Free Market</h3><span>Calculadoras de craft e refino e flips do Mercado Negro.</span></a>
+      <a href="https://albiononlinegrind.com/builds/mists-solo" target="_blank" rel="noopener"><h3 class="orn">AlbionOnlineGrind</h3><span>Builds de Brumas e Corrompidas salvas pela comunidade.</span></a>
+      <a href="https://metacorrupted.com/mists" target="_blank" rel="noopener"><h3 class="orn">MetaCorrupted</h3><span>Tier lists de Corrompidas e Brumas.</span></a>
+      <a href="https://murderledger.albiononline2d.com/" target="_blank" rel="noopener"><h3 class="orn">Murder Ledger</h3><span>Kills por arma e build. Mistura kills de mundo aberto.</span></a>
+      <a href="https://buildsforge.com/en/patches/" target="_blank" rel="noopener"><h3 class="orn">BuildsForge</h3><span>O que mudou em cada habilidade, patch a patch.</span></a>
+    </div>
+    <div class="block">
+      <h3 class="orn">De onde vêm os números</h3>
+      <ul class="list small">
+        <li>Preços e ouro: API do Albion Data Project, servidor Américas, consultada pelo seu navegador ao abrir a página. Anúncios com mais de 3 dias são ignorados.</li>
+        <li>Receitas, valor de item e custo de foco: items.json do ao-data/ao-bin-dumps, commit de 12/10/2026.</li>
+        <li>Fórmula de custo de foco: Albion Free Market. Bônus de cidade e taxa de retorno: AlbionOnlineGrind e AlbionMarket.gg.</li>
+        <li>Prata por hora: AlbionCodex, estimativas de abril de 2026.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>Feito para o grupo. Albion Online é da Sandbox Interactive, sem ligação com este site.</footer>
+</div>
+<div id="tip" hidden></div>
+<div id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+let DATA = {"geradoEm":"2026-10-17T19:00:00Z","janela":"17/10/2026, entre 11h e 16h (Brasília)","ouro":8382,"itens":{"T3_METALBAR":{"Bridgewatch":[155,110],"Fort Sterling":[138,102],"Lymhurst":[175,0],"Martlock":[136,133],"Thetford":[0,122]},"T4_METALBAR":{"Bridgewatch":[284,277],"Fort Sterling":[260,226],"Lymhurst":[267,230],"Martlock":[271,222],"Thetford":[233,0]},"T4_ORE":{"Bridgewatch":[112,111],"Fort Sterling":[108,102],"Lymhurst":[113,112],"Martlock":[121,120],"Thetford":[129,117]},"T5_METALBAR":{"Bridgewatch":[1117,0],"Fort Sterling":[1002,950],"Lymhurst":[1073,1014]},"T5_ORE":{"Bridgewatch":[404,0],"Fort Sterling":[422,432],"Lymhurst":[394,393],"Martlock":[397,391]},"T6_METALBAR":{"Fort Sterling":[2828,2601],"Lymhurst":[2819,2684],"Thetford":[2660,2416]},"T6_ORE":{"Fort Sterling":[889,876],"Lymhurst":[809,791],"Martlock":[804,801],"Thetford":[864,833]},"T7_METALBAR":{"Bridgewatch":[7883,0],"Fort Sterling":[7952,6515],"Thetford":[7098,0]},"T7_ORE":{"Bridgewatch":[1954,1833],"Fort Sterling":[1985,1810],"Lymhurst":[1927,1821],"Martlock":[2142,1782],"Thetford":[2287,1978]},"T8_METALBAR":{"Fort Sterling":[26981,24048],"Thetford":[26723,24212]},"T8_ORE":{"Bridgewatch":[8319,7457],"Fort Sterling":[8144,8105],"Lymhurst":[8023,7668],"Martlock":[8246,7651],"Thetford":[8133,8120]},"T4_ORE_LEVEL1":{"Bridgewatch":[285,0],"Fort Sterling":[240,260],"Lymhurst":[263,0],"Martlock":[258,257]},"T5_ORE_LEVEL1":{"Bridgewatch":[778,777],"Fort Sterling":[829,828],"Lymhurst":[796,794],"Martlock":[820,818]},"T6_ORE_LEVEL1":{"Bridgewatch":[2107,2091],"Fort Sterling":[2125,2107],"Lymhurst":[2109,2060],"Martlock":[2090,2089],"Thetford":[2738,2300]},"T7_ORE_LEVEL1":{"Bridgewatch":[6088,5523],"Fort Sterling":[6555,6146],"Lymhurst":[5690,5313],"Martlock":[5814,5315],"Thetford":[6962,6100]},"T8_ORE_LEVEL1":{"Bridgewatch":[23361,20583],"Fort Sterling":[22389,21239],"Lymhurst":[23399,20280],"Martlock":[26105,21146],"Thetford":[23892,20897]},"T4_METALBAR_LEVEL1":{"Bridgewatch":[558,0],"Fort Sterling":[720,0],"Lymhurst":[575,0],"Thetford":[477,465]},"T5_METALBAR_LEVEL1":{"Fort Sterling":[2110,2106],"Lymhurst":[1989,1809],"Martlock":[2231,2099],"Thetford":[2163,2062]},"T6_METALBAR_LEVEL1":{"Bridgewatch":[7746,6442],"Lymhurst":[8090,6223]},"T7_METALBAR_LEVEL1":{"Bridgewatch":[24448,0],"Fort Sterling":[20940,17211],"Thetford":[21107,19507]},"T8_METALBAR_LEVEL1":{"Bridgewatch":[81983,61200],"Fort Sterling":[76690,64341],"Lymhurst":[75877,67002],"Martlock":[78057,61090],"Thetford":[75555,71555]},"T4_ORE_LEVEL2":{"Bridgewatch":[1235,0],"Fort Sterling":[1369,1368],"Lymhurst":[1206,0],"Martlock":[1271,1270]},"T5_ORE_LEVEL2":{"Bridgewatch":[2381,2332],"Fort Sterling":[2440,2436],"Lymhurst":[2399,2386],"Martlock":[2442,2441],"Thetford":[2511,2401]},"T6_ORE_LEVEL2":{"Bridgewatch":[7490,7400],"Fort Sterling":[7500,7202],"Lymhurst":[7680,6999],"Martlock":[7531,6965],"Thetford":[9741,7994]},"T7_ORE_LEVEL2":{"Bridgewatch":[22985,20009],"Fort Sterling":[25250,19035],"Lymhurst":[26898,17102],"Martlock":[22063,18139],"Thetford":[23991,20728]},"T8_ORE_LEVEL2":{"Bridgewatch":[62000,0],"Thetford":[72799,0]},"T4_METALBAR_LEVEL2":{"Bridgewatch":[2568,0],"Fort Sterling":[2278,0],"Lymhurst":[2294,1804],"Martlock":[2063,1450],"Thetford":[1859,1545]},"T5_METALBAR_LEVEL2":{"Fort Sterling":[6628,5903],"Lymhurst":[6587,6027],"Martlock":[6623,6075],"Thetford":[6399,6400]},"T6_METALBAR_LEVEL2":{"Bridgewatch":[23998,18716],"Fort Sterling":[24771,19563],"Lymhurst":[23964,20031],"Martlock":[24046,20004],"Thetford":[23974,0]},"T7_METALBAR_LEVEL2":{"Bridgewatch":[69520,60026],"Fort Sterling":[74980,62500],"Lymhurst":[64992,60006],"Martlock":[77455,45001]},"T4_ORE_LEVEL3":{"Bridgewatch":[0,5301],"Fort Sterling":[6004,5560],"Martlock":[5949,5597]},"T5_ORE_LEVEL3":{"Bridgewatch":[11930,10981],"Fort Sterling":[11964,11916],"Lymhurst":[11709,11246],"Martlock":[11847,11107],"Thetford":[13887,0]},"T6_ORE_LEVEL3":{"Bridgewatch":[32295,27818],"Fort Sterling":[31889,30565],"Lymhurst":[28977,27800],"Martlock":[30443,30202]},"T8_ORE_LEVEL3":{"Fort Sterling":[300000,0]},"T4_METALBAR_LEVEL3":{"Bridgewatch":[7936,0],"Fort Sterling":[9864,0],"Lymhurst":[7975,7065],"Thetford":[7657,7114]},"T5_METALBAR_LEVEL3":{"Thetford":[24997,24009]},"T6_METALBAR_LEVEL3":{"Martlock":[86977,0]},"T3_CLOTH":{"Bridgewatch":[195,159],"Fort Sterling":[180,160],"Lymhurst":[182,152],"Martlock":[212,137]},"T3_LEATHER":{"Bridgewatch":[228,201],"Fort Sterling":[277,220],"Lymhurst":[229,216],"Martlock":[228,215],"Thetford":[244,232]},"T4_FIBER":{"Bridgewatch":[105,104],"Fort Sterling":[109,108],"Lymhurst":[140,116],"Martlock":[99,98]},"T5_FIBER":{"Bridgewatch":[441,0],"Fort Sterling":[449,449],"Lymhurst":[458,440],"Martlock":[439,438]},"T6_FIBER":{"Bridgewatch":[989,0],"Fort Sterling":[946,919],"Lymhurst":[977,963],"Martlock":[926,891],"Thetford":[922,921]},"T7_FIBER":{"Bridgewatch":[2638,2223],"Fort Sterling":[2111,2044],"Martlock":[2181,1986],"Thetford":[0,2075]},"T8_FIBER":{"Fort Sterling":[7500,7227],"Lymhurst":[8002,0]},"T4_CLOTH":{"Bridgewatch":[297,290],"Fort Sterling":[346,266],"Lymhurst":[310,290],"Martlock":[309,270],"Thetford":[355,0]},"T5_CLOTH":{"Bridgewatch":[1176,1041],"Fort Sterling":[1269,1100],"Lymhurst":[1124,1116]},"T6_CLOTH":{"Bridgewatch":[3150,2834],"Fort Sterling":[3213,2887],"Lymhurst":[3134,2925],"Martlock":[3397,2547],"Thetford":[2993,2810]},"T7_CLOTH":{"Bridgewatch":[9333,8315],"Fort Sterling":[9316,8172],"Martlock":[10236,8215],"Thetford":[8877,8673]},"T8_CLOTH":{"Bridgewatch":[27097,24324],"Fort Sterling":[26985,23096],"Thetford":[27906,24900]},"T4_HIDE":{"Bridgewatch":[105,104],"Fort Sterling":[113,112],"Lymhurst":[105,104],"Martlock":[134,131]},"T5_HIDE":{"Bridgewatch":[585,584],"Fort Sterling":[603,602],"Lymhurst":[614,597],"Martlock":[655,608]},"T6_HIDE":{"Bridgewatch":[1752,0],"Fort Sterling":[1663,1657],"Lymhurst":[1656,1652],"Martlock":[1924,1800]},"T7_HIDE":{"Fort Sterling":[3866,3831],"Martlock":[4403,4172]},"T8_HIDE":{"Bridgewatch":[12389,0],"Fort Sterling":[10393,10321],"Lymhurst":[10903,0],"Martlock":[11355,1123],"Thetford":[10978,0]},"T4_LEATHER":{"Bridgewatch":[332,305],"Fort Sterling":[364,300],"Lymhurst":[326,311],"Martlock":[282,277]},"T5_LEATHER":{"Fort Sterling":[1553,1310],"Lymhurst":[1501,1392],"Martlock":[1398,1404],"Thetford":[1595,0]},"T6_LEATHER":{"Fort Sterling":[5213,4700],"Lymhurst":[5283,4808],"Martlock":[5129,0],"Thetford":[5108,4600]},"T7_LEATHER":{"Fort Sterling":[15481,13541],"Martlock":[15208,14900]},"T8_LEATHER":{"Bridgewatch":[36925,0],"Fort Sterling":[37612,34162],"Martlock":[36986,0]},"T4_FIBER_LEVEL1":{"Bridgewatch":[161,0],"Fort Sterling":[185,182],"Lymhurst":[217,194],"Martlock":[162,159]},"T5_FIBER_LEVEL1":{"Bridgewatch":[769,0],"Fort Sterling":[883,802],"Lymhurst":[818,817]},"T6_FIBER_LEVEL1":{"Fort Sterling":[1515,1495]},"T7_FIBER_LEVEL1":{"Fort Sterling":[4216,4200],"Lymhurst":[5073,0],"Thetford":[4741,4484]},"T8_FIBER_LEVEL1":{"Bridgewatch":[18709,0],"Fort Sterling":[18081,13059],"Lymhurst":[19228,0],"Thetford":[18853,15126]},"T4_CLOTH_LEVEL1":{"Bridgewatch":[406,291],"Lymhurst":[394,346]},"T5_CLOTH_LEVEL1":{"Bridgewatch":[2066,2007],"Fort Sterling":[2195,1605],"Lymhurst":[1939,1602],"Martlock":[2437,2035],"Thetford":[2120,1633]},"T6_CLOTH_LEVEL1":{"Bridgewatch":[6336,5627],"Fort Sterling":[6593,5808],"Lymhurst":[6093,5801],"Thetford":[6777,6217]},"T7_CLOTH_LEVEL1":{"Bridgewatch":[19595,15000],"Fort Sterling":[17977,16710],"Lymhurst":[16988,15515],"Martlock":[29982,1504]},"T8_CLOTH_LEVEL1":{"Bridgewatch":[63991,48005],"Fort Sterling":[61000,22223]},"T4_HIDE_LEVEL1":{"Bridgewatch":[210,208],"Fort Sterling":[156,155],"Lymhurst":[178,176],"Martlock":[216,215]},"T5_HIDE_LEVEL1":{"Bridgewatch":[843,0],"Fort Sterling":[884,883],"Lymhurst":[903,900],"Martlock":[997,944]},"T6_HIDE_LEVEL1":{"Bridgewatch":[3198,0],"Fort Sterling":[3108,3072],"Lymhurst":[3006,2929],"Martlock":[3498,3373],"Thetford":[3134,0]},"T7_HIDE_LEVEL1":{"Fort Sterling":[7599,7202],"Martlock":[8987,0]},"T8_HIDE_LEVEL1":{"Bridgewatch":[22971,0],"Fort Sterling":[23277,0],"Lymhurst":[21106,20242],"Martlock":[25111,23250]},"T4_LEATHER_LEVEL1":{"Bridgewatch":[500,0],"Fort Sterling":[944,411],"Lymhurst":[506,0],"Martlock":[579,0]},"T5_LEATHER_LEVEL1":{"Bridgewatch":[2430,0],"Fort Sterling":[2370,2090],"Lymhurst":[2452,2001],"Martlock":[2348,0]},"T6_LEATHER_LEVEL1":{"Fort Sterling":[10928,8000],"Lymhurst":[9974,8809],"Martlock":[9728,0]},"T7_LEATHER_LEVEL1":{"Fort Sterling":[32891,29002],"Lymhurst":[31545,0],"Martlock":[30342,0]},"T8_LEATHER_LEVEL1":{"Fort Sterling":[83984,65561],"Martlock":[83062,0]},"T4_FIBER_LEVEL2":{"Bridgewatch":[1279,0],"Fort Sterling":[1283,1282],"Lymhurst":[1349,1348]},"T5_FIBER_LEVEL2":{"Bridgewatch":[1297,0],"Fort Sterling":[1365,1364],"Lymhurst":[1463,0],"Thetford":[1743,0]},"T6_FIBER_LEVEL2":{"Fort Sterling":[5789,5656],"Thetford":[6022,5663]},"T7_FIBER_LEVEL2":{"Fort Sterling":[11981,0],"Martlock":[14965,0],"Thetford":[13584,13112]},"T8_FIBER_LEVEL2":{"Fort Sterling":[54051,50024],"Lymhurst":[65948,59000],"Martlock":[57796,0],"Thetford":[59387,50052]},"T4_CLOTH_LEVEL2":{"Bridgewatch":[2072,1740],"Lymhurst":[2119,1998]},"T5_CLOTH_LEVEL2":{"Bridgewatch":[4337,3520],"Fort Sterling":[4561,3907],"Lymhurst":[4410,4146],"Martlock":[4589,4140],"Thetford":[4503,4304]},"T6_CLOTH_LEVEL2":{"Bridgewatch":[16882,10012],"Fort Sterling":[19492,15111],"Lymhurst":[16938,14610],"Martlock":[18272,16001]},"T7_CLOTH_LEVEL2":{"Bridgewatch":[53699,36039],"Lymhurst":[45974,29787]},"T8_CLOTH_LEVEL2":{"Bridgewatch":[297991,72231],"Lymhurst":[171998,150001],"Martlock":[205974,150009]},"T4_HIDE_LEVEL2":{"Bridgewatch":[1423,0],"Fort Sterling":[1256,1255],"Martlock":[1331,1254]},"T5_HIDE_LEVEL2":{"Bridgewatch":[2996,0],"Fort Sterling":[2997,2880],"Lymhurst":[3047,2910],"Martlock":[3591,3207]},"T6_HIDE_LEVEL2":{"Fort Sterling":[8806,8729],"Martlock":[9566,0]},"T7_HIDE_LEVEL2":{"Martlock":[26940,0]},"T8_HIDE_LEVEL2":{"Martlock":[70988,63003]},"T4_LEATHER_LEVEL2":{"Fort Sterling":[2322,2043],"Martlock":[2200,2008]},"T5_LEATHER_LEVEL2":{"Fort Sterling":[8693,7169],"Martlock":[7539,0]},"T6_LEATHER_LEVEL2":{"Fort Sterling":[27992,25005],"Lymhurst":[26974,0],"Martlock":[25998,25003]},"T7_LEATHER_LEVEL2":{"Fort Sterling":[95999,67004],"Martlock":[82887,0]},"T8_LEATHER_LEVEL2":{"Fort Sterling":[229305,228000],"Martlock":[219999,0]},"T4_FIBER_LEVEL3":{"Bridgewatch":[5995,0],"Fort Sterling":[5862,5741],"Lymhurst":[6068,5700]},"T5_FIBER_LEVEL3":{"Fort Sterling":[7887,5919],"Lymhurst":[6969,6000]},"T6_FIBER_LEVEL3":{"Fort Sterling":[14746,14467]},"T7_FIBER_LEVEL3":{"Fort Sterling":[66996,0],"Lymhurst":[60995,56000],"Martlock":[51445,0]},"T8_FIBER_LEVEL3":{"Fort Sterling":[229998,0],"Lymhurst":[250941,228111]},"T4_CLOTH_LEVEL3":{"Bridgewatch":[8692,7200],"Fort Sterling":[9299,8010],"Lymhurst":[8477,7832],"Martlock":[8691,6201],"Thetford":[8597,8526]},"T5_CLOTH_LEVEL3":{"Bridgewatch":[19059,15001],"Fort Sterling":[18387,0],"Lymhurst":[18663,14602]},"T6_CLOTH_LEVEL3":{"Bridgewatch":[48469,35005],"Fort Sterling":[39990,36533],"Lymhurst":[41996,455]},"T7_CLOTH_LEVEL3":{"Bridgewatch":[199998,61245],"Lymhurst":[196962,174118]},"T8_CLOTH_LEVEL3":{"Bridgewatch":[599973,400062],"Martlock":[699996,400044]},"T4_HIDE_LEVEL3":{"Bridgewatch":[7000,0],"Fort Sterling":[6923,6523],"Martlock":[7461,0]},"T5_HIDE_LEVEL3":{"Fort Sterling":[11183,11100],"Martlock":[11489,0]},"T6_HIDE_LEVEL3":{"Fort Sterling":[32000,30009],"Lymhurst":[32493,0],"Martlock":[32965,0]},"T7_HIDE_LEVEL3":{"Martlock":[77975,0]},"T8_HIDE_LEVEL3":{"Fort Sterling":[289997,0],"Martlock":[306997,0]},"T4_LEATHER_LEVEL3":{"Fort Sterling":[9766,8119],"Lymhurst":[9706,8450],"Martlock":[8999,0]},"T5_LEATHER_LEVEL3":{"Fort Sterling":[27946,20113],"Martlock":[27334,0]},"T6_LEATHER_LEVEL3":{"Fort Sterling":[86000,70035],"Martlock":[86865,0]},"T7_LEATHER_LEVEL3":{"Fort Sterling":[268493,212007],"Martlock":[254886,0]},"T8_LEATHER_LEVEL3":{"Fort Sterling":[700000,600022],"Martlock":[669996,0]}}};
+const $ = id => document.getElementById(id);
+const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}, del(k){try{localStorage.removeItem(k)}catch(e){}} };
+const fmt = n => (n==null||!isFinite(n)) ? "—" : Math.round(n).toLocaleString("pt-BR");
+const sgn = n => (n>0?"+":"")+fmt(n);
+const fmtS = n => { if(n==null||!isFinite(n)) return "—"; const a=Math.abs(n); if(a>=1e6) return (n/1e6).toLocaleString("pt-BR",{maximumFractionDigits:1})+"M"; if(a>=1e4) return Math.round(n/1e3).toLocaleString("pt-BR")+" mil"; return fmt(n); };
+const dec = n => n.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1});
+const el = (tag, props={}, ...kids) => { const e=document.createElement(tag); for(const [k,v] of Object.entries(props)){ if(k==="class") e.className=v; else if(k==="text") e.textContent=v; else if(k==="role"||k.startsWith("data-")||k.startsWith("aria-")) e.setAttribute(k,v); else e[k]=v; } for(const c of kids) if(c!=null) e.append(c); return e; };
+
+/* ================= game constants ================= */
+const RES = {
+  metal:{raw:"ORE",ref:"METALBAR",city:"Thetford",rawName:"Minério",refName:"Barra de metal",prevName:"Barra",note:"Thetford tem o bônus de refino de minério. O minério vem barato de Fort Sterling, Martlock e Bridgewatch."},
+  cloth:{raw:"FIBER",ref:"CLOTH",city:"Lymhurst",rawName:"Fibra (linho)",refName:"Tecido",prevName:"Tecido",note:"Lymhurst tem o bônus de refino de fibra."},
+  leather:{raw:"HIDE",ref:"LEATHER",city:"Martlock",rawName:"Pelego",refName:"Couro",prevName:"Couro",note:"Martlock tem o bônus de refino de pelego."}
+};
+const N = {4:2,5:3,6:4,7:5,8:5};
+const FOCUS_REF = [[54,94,164,287],[94,164,287,503],[164,287,503,880],[287,503,880,1539],[503,880,1539,2694]];
+const FOCUS_CRAFT = [[429,750,1313,2298],[750,1313,2298,4021],[1313,2298,4021,7037],[2298,4021,7037,12315],[4021,7037,12315,21551]]; // elmo e botas; peito = ×2
+const IV = (t,e)=>Math.pow(2,t+e);
+const MATBAR = {PLATE:"METALBAR",LEATHER:"LEATHER",CLOTH:"CLOTH"};
+const SETN = {PLATE:["Soldier","Knight","Guardian"],LEATHER:["Mercenary","Hunter","Assassin"],CLOTH:["Scholar","Cleric","Mage"]};
+const SLOTN = {PLATE:{HEAD:"Helmet",ARMOR:"Armor",SHOES:"Boots"},LEATHER:{HEAD:"Hood",ARMOR:"Jacket",SHOES:"Shoes"},CLOTH:{HEAD:"Cowl",ARMOR:"Robe",SHOES:"Sandals"}};
+const CRAFT_PT = {HEAD_PLATE:"Elmo de placa",HEAD_LEATHER:"Capuz de couro",HEAD_CLOTH:"Capucha de pano",ARMOR_PLATE:"Peitoral de placa",ARMOR_LEATHER:"Jaqueta de couro",ARMOR_CLOTH:"Robe de pano",SHOES_PLATE:"Botas de placa",SHOES_LEATHER:"Sapatos de couro",SHOES_CLOTH:"Sandálias de pano"};
+const CRAFT_CITY = {HEAD_PLATE:"Fort Sterling",HEAD_LEATHER:"Lymhurst",HEAD_CLOTH:"Thetford",ARMOR_PLATE:"Bridgewatch",ARMOR_LEATHER:"Thetford",ARMOR_CLOTH:"Fort Sterling",SHOES_PLATE:"Martlock",SHOES_LEATHER:"Lymhurst",SHOES_CLOTH:"Bridgewatch"};
+const LINES = [["espada","Espadas"],["machado","Machados"],["maca","Maças"],["martelo","Martelos"],["lanca","Lanças"],["bordao","Bordões"],["adaga","Adagas"],["luvas","Luvas de guerra"],["arco","Arcos"],["besta","Bestas"],["metamorfo","Metamorfos"],["fogo","Fogo"],["gelo","Gelo"],["arcano","Arcano"],["sagrado","Sagrado"],["natureza","Natureza"],["maldito","Amaldiçoado"]];
+const LINE_NAME = Object.fromEntries(LINES);
+const GATHER = [["minerio","Minério","ORE","Montanha (Fort Sterling), terras altas (Martlock), estepe (Bridgewatch)"],["fibra","Fibra","FIBER","Pântano (Thetford), montanha, estepe"],["pelego","Pelego","HIDE","Estepe (Bridgewatch), floresta, pântano"],["madeira","Madeira","WOOD","Floresta (Lymhurst), pântano, terras altas"],["pedra","Pedra","ROCK","Terras altas (Martlock), montanha, floresta"],["pesca","Pesca",null,""]];
+const FISH_BIOMES = [["FOREST","floresta"],["STEPPE","estepe"],["MOUNTAIN","montanha"],["HIGHLANDS","terras altas"],["SWAMP","pântano"],["AVALON","Avalon"],["DRAGON_AREA","Ancient Lands"]];
+const FISH_IDS = (()=>{ const a=[]; for(let t=1;t<=8;t++) a.push(`T${t}_FISH_FRESHWATER_ALL_COMMON`,`T${t}_FISH_SALTWATER_ALL_COMMON`); for(const t of [3,5,7]){ for(const [b] of FISH_BIOMES) a.push(`T${t}_FISH_FRESHWATER_${b}_RARE`); a.push(`T${t}_FISH_SALTWATER_ALL_RARE`); } a.push("T1_FISHCHOPS","T8_FISH_SALTWATER_ALL_BOSS_SHARK"); return a; })();
+const LV_W = ["Nada","T8","Média","Alta"], LV_S = ["Sem spec","Pouca","Média","Alta"];
+const FCE_LV = [0,6000,15000,30000];
+
+/* ================= builds ================= */
+// c: brumas | corrompidas | barato | pve.  pop: salvamentos no AlbionOnlineGrind. mc: tier no MetaCorrupted (abr/2026). p: [up|down|flat, texto do Patch 3]
+const P = {
+  up_sw:["up","Espadas: Heroic Strike dura 4s (era 3,5s)"], up_dg:["up","Adagas: Bloodthirsty Blade 2,5% (era 4%)"], up_ts:["up","Ring of Death 36 (era 27), área dobrada"],
+  dn_xb:["down","Bestas: Explosive Bolt 119 (era 130)"], dn_ss:["down","Metamorfos: Tether Shift 16 de energia, escudo 88"], dn_fw:["down","Spontaneous Combustion 45s (era 40s)"],
+  dn_qs:["down","Bordões: Cartwheel 7 de energia (era 5)"], dn_ho:["down","Smite em PvP 115 (era 136)"], up_hh:["up","Infernal Boulder 24 por tick (era 18)"], up_gf:["up","Flame Pillar mais rápido"], flat:["flat","sem mudança"]
+};
+const BUILDS = [
+ {w:"Battleaxe",l:"machado",c:"brumas",pop:207,g:["Elder's Muisak","Hunter Hood","Fiend Cowl","Mistwalker Jacket","Assassin Jacket","Soldier Boots","Cleric Sandals","Undead Cape","Avalonian Cape"],f:"Eel Stew, Puremist Snapper; poções de cura e Gigantify",p:P.flat},
+ {w:"Dual Swords",l:"espada",c:"brumas",pop:90,g:["Hunter Hood","Fiend Cowl","Mercenary Jacket","Soldier Boots","Avalonian Cape","Undead Cape"],f:"Eel Stew; cura e Gigantify",p:P.up_sw},
+ {w:"Deathgivers",l:"adaga",c:"brumas",pop:68,g:["Stalker Hood","Fiend Cowl","Mercenary Jacket","Mistwalker Jacket","Cleric Sandals","Undead Cape","Avalonian Cape"],f:"Eel Stew; cura e Gigantify",p:P.up_dg},
+ {w:"Fists of Avalon",l:"luvas",c:"brumas",pop:43,mc:"S",g:["Cowl of Purity","Fiend Cowl","Feyscale Robe","Assassin Jacket","Cleric Sandals","Shoes of Tenacity","Undead Cape","Avalonian Cape"],f:"Eel Stew; cura e Gigantify",p:P.flat},
+ {w:"Cursed Staff",l:"maldito",c:"brumas",pop:40,mc:"A",g:["Elder's Muisak","Guardian Helmet","Helmet of Valor","Cleric Robe","Mage Robe","Soldier Boots","Caerleon Cape"],f:"Stew; cura e Gigantify",p:P.flat},
+ {w:"Prowling Staff",l:"metamorfo",c:"brumas",pop:36,g:["Fiend Cowl","Cultist Cowl","Mistwalker Jacket","Assassin Jacket","Soldier Boots","Undead Cape"],f:"Eel Stew; cura",p:P.dn_ss},
+ {w:"Bloodletter",l:"adaga",c:"brumas",pop:27,g:["Elder's Mistcaller","Cultist Cowl","Mercenary Hood","Stalker Jacket","Cleric Sandals","Avalonian Cape","Undead Cape"],f:"Eel Stew; cura e Gigantify",p:P.up_dg},
+ {w:"Spear",l:"lanca",c:"brumas",pop:24,mc:"A",g:["Elder's Mistcaller","Cultist Cowl","Fiend Cowl","Stalker Jacket","Soldier Boots","Undead Cape","Avalonian Cape"],f:"Puremist Snapper, Eel Stew; cura e Gigantify",p:P.flat},
+ {w:"Carving Sword",l:"espada",c:"brumas",pop:18,g:["Fiend Cowl","Mistwalker Jacket","Soldier Boots","Undead Cape","Avalonian Cape"],f:"Eel Stew, Puremist Snapper",p:P.up_sw},
+ {w:"Battle Bracers",l:"luvas",c:"brumas",pop:16,g:["Cowl of Purity","Fiend Cowl","Assassin Jacket","Scholar Sandals","Undead Cape","Avalonian Cape"],f:"Eel Stew; cura",p:P.flat},
+ {w:"Bear Paws",l:"machado",c:"brumas",pop:15,g:["Fiend Cowl","Mistwalker Jacket","Soldier Boots","Undead Cape","Avalonian Cape"],f:"Eel Stew, Puremist Snapper",p:P.flat},
+ {w:"Dagger",l:"adaga",c:"brumas",pop:14,g:["Elder's Torch","Helmet of Valor","Hunter Jacket","Cleric Sandals","Avalonian Cape"],f:"Eel Stew; cura e Gigantify",p:P.up_dg},
+ {w:"Quarterstaff",l:"bordao",c:"brumas",pop:12,mc:"A",g:["Cultist Cowl","Fiend Cowl","Stalker Jacket","Cleric Sandals","Avalonian Cape","Demon Cape"],f:"Eel Stew, Omelette",p:P.dn_qs},
+ {w:"Great Hammer",l:"martelo",c:"brumas",pop:11,g:["Cultist Cowl","Stalker Jacket","Cleric Sandals","Avalonian Cape"],f:"Eel Stew, Omelette; cura e Gigantify",p:P.flat},
+ {w:"Double Bladed Staff",l:"bordao",c:"brumas",pop:11,g:["Cultist Cowl","Mercenary Hood","Stalker Jacket","Cleric Sandals","Avalonian Cape"],f:"Omelette, Eel Stew",p:P.dn_qs},
+ {w:"Wildfire Staff",l:"fogo",c:"brumas",pop:9,g:["Elder's Tome of Spells","Hunter Hood","Cleric Robe","Feyscale Robe","Soldier Boots","Martlock Cape"],f:"Omelette; cura e Gigantify",p:P.flat},
+ {w:"Chillhowl",l:"gelo",c:"brumas",pop:8,mc:"A",g:["Elder's Mistcaller","Hunter Hood","Cowl of Purity","Cultist Robe","Assassin Jacket","Soldier Boots","Lymhurst Cape"],f:"Omelette; cura e Gigantify",p:P.flat},
+ {w:"Boltcasters",l:"besta",c:"brumas",pop:7,g:["Hunter Hood","Guardian Helmet","Cleric Robe","Soldier Boots","Martlock Cape"],f:"Eel Stew, Puremist Snapper",p:P.dn_xb},
+ {w:"Flamewalker Staff",l:"fogo",c:"brumas",pop:7,mc:"A",g:["Elder's Mistcaller","Helmet of Valor","Feyscale Robe","Shoes of Tenacity","Smuggler Cape"],f:"Omelette, Puremist Snapper",p:P.dn_fw},
+ {w:"Bow of Badon",l:"arco",c:"brumas",pop:7,g:["Cowl of Purity","Hunter Hood","Mistwalker Jacket","Soldier Boots","Undead Cape"],f:"Omelette, Eel Stew",p:P.flat},
+ {w:"Fire Staff",l:"fogo",c:"brumas",pop:7,g:["Elder's Mistcaller","Soldier Helmet","Hunter Hood","Feyscale Robe","Cleric Robe","Soldier Boots","Martlock Cape"],f:"Omelette; cura e Gigantify",p:P.flat},
+ {w:"Frost Staff",l:"gelo",c:"brumas",pop:7,g:["Elder's Leering Cane","Cowl of Purity","Assassin Jacket","Soldier Boots","Thetford Cape"],f:"Omelette; cura",p:P.flat},
+ {w:"Light Crossbow",l:"besta",c:"brumas",pop:6,g:["Elder's Muisak","Guardian Helmet","Cleric Robe","Soldier Boots","Martlock Cape"],f:"Eel Stew, Puremist Snapper",p:P.dn_xb},
+ {w:"Arclight Blasters",l:"besta",c:"brumas",pop:0,mc:"S",g:["Helmet of Valor ou Fiend Cowl","Mistwalker Jacket ou Cultist Robe","Scholar Sandals","Caerleon ou Brecilien Cape"],f:"Puremist Snapper ou Eel Stew",p:P.dn_xb,src:"pesquisa"},
+ {w:"Forcepulse Bracers",l:"luvas",c:"brumas",pop:5,g:["Helmet of Valor","Fiend Cowl","Mercenary Jacket","Scholar Sandals","Smuggler Cape"],f:"Puremist Snapper, Eel Stew",p:P.flat},
+ {w:"Hellfire Hands",l:"luvas",c:"brumas",pop:4,g:["Cleric Robe","Assassin Shoes","Hellion Shoes","Keeper Cape"],f:"Stew; cura e Gigantify",p:P.up_hh},
+ {w:"Mistpiercer",l:"arco",c:"brumas",pop:4,g:["Royal Helmet","Assassin Jacket","Soldier Boots","Morgana Cape"],f:"Beef Sandwich",p:P.flat},
+ {w:"Arcano (build Life Ender)",l:"arcano",c:"brumas",pop:4,g:["Elder's Mistcaller","Mage Cowl","Cowl of Purity","Mercenary Jacket","Demon Boots","Royal Boots","Thetford Cape"],f:"Stew, Pork",p:P.flat},
+ {w:"Warbow",l:"arco",c:"brumas",pop:4,g:["Guardian Helmet","Cowl of Purity","Assassin Jacket","Soldier Boots","Undead Cape"],f:"Omelette",p:P.flat},
+ {w:"Infinity Blade",l:"espada",c:"brumas",pop:3,g:["Elder's Facebreaker","Helmet of Valor","Mistwalker Jacket","Boots of Valor","Undead Cape"],f:"Eel Stew, Puremist Snapper",p:P.up_sw},
+ {w:"Arcane Staff",l:"arcano",c:"brumas",pop:2,mc:"A",g:["Elder's Muisak","Cowl of Purity","Mercenary Jacket","Cleric Sandals","Thetford Cape"],f:"Eel Stew",p:P.flat},
+ {w:"Mace",l:"maca",c:"brumas",pop:2,g:["Elder's Mistcaller","Cultist Cowl","Stalker Jacket","Hunter Shoes","Demon Cape"],f:"Stew; poção de veneno",p:P.flat},
+ {w:"Pike",l:"lanca",c:"brumas",pop:2,g:["Stalker Hood","Cleric Robe","Knight Boots","Thetford Cape"],f:"Eel Stew",p:P.flat},
+ {w:"Lightcaller",l:"metamorfo",c:"brumas",pop:0,mc:"S",g:["Fiend ou Mage Cowl","Robe of Purity ou Cultist Robe","Scholar Sandals","Caerleon ou Lymhurst Cape"],f:"Eel Stew",p:P.dn_ss,src:"pesquisa"},
+
+ {w:"Arcane Staff",l:"arcano",c:"corrompidas",pop:84,mc:"A",g:["Elder's Mistcaller","Hunter Hood","Mercenary Jacket","Soldier Boots","Thetford Cape"],f:"Omelette; cura e Gigantify",p:P.flat},
+ {w:"Bow of Badon",l:"arco",c:"corrompidas",pop:39,g:["Soldier Helmet","Hunter Hood","Assassin Jacket","Mistwalker Jacket","Soldier Boots","Thetford Cape"],f:"Omelette, Eel Stew",p:P.flat},
+ {w:"Spear",l:"lanca",c:"corrompidas",pop:31,mc:"A",g:["Elder's Taproot","Cultist Cowl","Fiend Cowl","Jacket of Tenacity","Stalker Jacket","Soldier Boots","Thetford Cape"],f:"Puremist Snapper, Eel Stew",p:P.flat},
+ {w:"Battleaxe",l:"machado",c:"corrompidas",pop:27,g:["Elder's Muisak","Hunter Hood","Fiend Cowl","Mercenary Jacket","Mistwalker Jacket","Soldier Boots","Thetford Cape"],f:"Puremist Snapper, Eel Stew",p:P.flat},
+ {w:"Fire Staff",l:"fogo",c:"corrompidas",pop:25,g:["Elder's Mistcaller","Soldier Helmet","Hunter Hood","Cultist Robe","Soldier Boots","Martlock Cape"],f:"Omelette",p:P.flat},
+ {w:"Trinity Spear",l:"lanca",c:"corrompidas",pop:11,g:["Hunter Hood","Cleric Robe","Mistwalker Jacket","Soldier Boots","Thetford Cape"],f:"Puremist Snapper",p:P.flat},
+ {w:"Bow",l:"arco",c:"corrompidas",pop:11,g:["Hunter Hood","Fiend Cowl","Mercenary Jacket","Soldier Boots","Thetford Cape"],f:"Puremist Snapper, Eel Stew",p:P.flat},
+ {w:"Cursed Skull",l:"maldito",c:"corrompidas",pop:10,g:["Hunter Hood","Mercenary Jacket","Soldier Boots","Martlock Cape"],f:"Puremist Snapper",p:P.flat},
+ {w:"Deathgivers",l:"adaga",c:"corrompidas",pop:10,g:["Fiend Cowl","Stalker Hood","Mercenary Jacket","Mistwalker Jacket","Cleric Sandals","Thetford Cape"],f:"Eel Stew, Puremist Snapper",p:P.up_dg},
+ {w:"Dual Swords",l:"espada",c:"corrompidas",pop:10,g:["Hunter Hood","Fiend Cowl","Mercenary Jacket","Soldier Boots","Thetford Cape"],f:"Eel Stew, Puremist Snapper",p:P.up_sw},
+ {w:"Fists of Avalon",l:"luvas",c:"corrompidas",pop:8,mc:"S",g:["Cultist Cowl","Fiend Cowl","Mistwalker Jacket","Cleric Sandals","Thetford Cape"],f:"Eel Stew",p:P.flat},
+ {w:"Skystrider Bow",l:"arco",c:"corrompidas",pop:8,mc:"A",g:["Cowl of Purity","Mage Cowl","Mistwalker Jacket","Assassin Jacket","Royal Boots","Soldier Boots","Smuggler Cape"],f:"Eel Stew, Omelette",p:P.flat},
+ {w:"Broadsword",l:"espada",c:"corrompidas",pop:7,g:["Elder's Facebreaker","Hunter Hood","Mercenary Jacket","Scholar Sandals","Martlock Cape"],f:"Pork",p:P.up_sw},
+ {w:"Primal Staff",l:"metamorfo",c:"corrompidas",pop:4,g:["Soldier Helmet","Hunter Hood","Cultist Robe","Soldier Boots","Martlock Cape"],f:"Eel Stew",p:P.dn_ss},
+ {w:"Lifetouch Staff",l:"sagrado",c:"corrompidas",pop:4,g:["Elder's Mistcaller","Guardian Helmet","Hunter Hood","Cleric Robe","Mage Robe","Sandals of Purity","Smuggler Cape"],f:"Omelette",p:P.dn_ho},
+ {w:"Great Frost Staff",l:"gelo",c:"corrompidas",pop:4,g:["Hunter Hood","Soldier Helmet","Cultist Robe","Soldier Boots","Martlock Cape"],f:"Omelette",p:P.flat},
+ {w:"Claymore",l:"espada",c:"corrompidas",pop:4,mc:"A",g:["Fiend Cowl","Cultist Cowl","Cleric Robe","Soldier Armor","Soldier Boots","Thetford Cape"],f:"Eel Stew",p:P.up_sw},
+ {w:"Chillhowl",l:"gelo",c:"corrompidas",pop:3,mc:"A",g:["Elder's Mistcaller","Soldier Helmet","Hunter Hood","Cultist Robe","Soldier Boots","Lymhurst Cape"],f:"Omelette",p:P.flat},
+ {w:"Quarterstaff",l:"bordao",c:"corrompidas",pop:3,mc:"A",g:["Hunter Hood","Specter Hood","Mercenary Jacket","Knight Boots","Martlock Cape"],f:"Puremist Snapper",p:P.dn_qs},
+ {w:"Light Crossbow",l:"besta",c:"corrompidas",pop:3,g:["Elder's Facebreaker","Helmet of Valor","Mercenary Jacket","Soldier Boots","Martlock Cape"],f:"Pork, Stew",p:P.dn_xb},
+ {w:"Daybreaker",l:"lanca",c:"corrompidas",pop:3,g:["Elder's Taproot","Fiend Cowl","Hunter Hood","Mistwalker Jacket","Soldier Boots","Thetford Cape"],f:"Puremist Snapper",p:P.flat},
+ {w:"Forgebark Staff",l:"natureza",c:"corrompidas",pop:3,mc:"A",g:["Elder's Facebreaker","Cowl of Purity","Guardian Helmet","Assassin Jacket","Stalker Shoes","Thetford Cape"],f:"Omelette",p:P.flat},
+ {w:"Holy Staff",l:"sagrado",c:"corrompidas",pop:2,mc:"A",g:["Elder's Celestial Censer","Mage Cowl","Mage Robe","Cleric Sandals","Martlock Cape"],f:"Omelette",p:P.dn_ho},
+ {w:"Tombhammer",l:"martelo",c:"corrompidas",pop:2,g:["Cultist Cowl","Soldier Armor","Scholar Sandals","Caerleon Cape"],f:"Beef Stew; veneno",p:P.flat},
+ {w:"Great Hammer",l:"martelo",c:"corrompidas",pop:1,g:["Cultist Cowl","Soldier Armor","Stalker Jacket","Cleric Sandals","Thetford Cape"],f:"Eel Stew",p:P.flat},
+ {w:"Twin Slayers",l:"adaga",c:"corrompidas",pop:2,g:["Duskweaver Helmet","Assassin Hood","Feyscale Robe","Mage Robe","Cultist Sandals","Avalonian Cape"],f:"Stew; veneno e Gigantify",p:P.up_ts},
+ {w:"Arclight Blasters",l:"besta",c:"corrompidas",pop:0,mc:"S",g:["Helmet of Valor ou Fiend Cowl","Mistwalker Jacket ou Cultist Robe","Scholar Sandals","Caerleon ou Brecilien Cape"],f:"Puremist Snapper ou Eel Stew",p:P.dn_xb,src:"pesquisa"},
+ {w:"Lightcaller",l:"metamorfo",c:"corrompidas",pop:0,mc:"S",g:["Fiend ou Mage Cowl","Robe of Purity ou Cultist Robe","Scholar Sandals","Caerleon ou Lymhurst Cape"],f:"Eel Stew",p:P.dn_ss,src:"pesquisa"},
+ {w:"Flamewalker Staff",l:"fogo",c:"corrompidas",pop:0,mc:"A",g:["Fiend ou Mage Cowl","Robe of Purity ou Cultist Robe","Scholar Sandals","Caerleon Cape"],f:"Eel Stew",p:P.dn_fw,src:"pesquisa"},
+ {w:"Shadowcaller",l:"maldito",c:"corrompidas",pop:0,mc:"A",g:[],f:"",p:P.flat,src:"MetaCorrupted"},
+ {w:"Bloodmoon Staff",l:"metamorfo",c:"corrompidas",pop:0,mc:"A",g:[],f:"",p:P.dn_ss,src:"MetaCorrupted"},
+
+ {w:"Battleaxe",l:"machado",c:"barato",pop:0,g:["Hunter Hood","Mercenary Jacket","Scholar Sandals","Thetford Cape"],f:"Roast Pork 7.1 ou Beef Stew 8.0; cura T6",p:P.flat,src:"pesquisa"},
+ {w:"Dual Swords",l:"espada",c:"barato",pop:0,g:["Hunter Hood","Mercenary Jacket","Soldier Boots","Avalonian Cape"],f:"Beef Stew 8.0; cura ou Gigantify",p:P.up_sw,src:"pesquisa"},
+ {w:"1H Spear",l:"lanca",c:"barato",pop:0,g:["Mage Cowl","Assassin Jacket","Scholar Sandals","Thetford Cape"],f:"Red Eel Stew 8.0 ou Omelette 7.1; cura T6",p:P.flat,src:"pesquisa"},
+ {w:"Quarterstaff",l:"bordao",c:"barato",pop:0,g:["Soldier Helmet","Assassin Jacket","Hunter Shoes","Thetford Cape"],f:"Beef Stew 8.1; cura ou veneno",p:P.dn_qs,src:"pesquisa"},
+ {w:"Bloodletter",l:"adaga",c:"barato",pop:0,g:["Fiend Cowl","Stalker Jacket","Scholar Sandals","Undead Cape"],f:"Beef Stew 8.0; invisibilidade ou Gigantify",p:P.up_dg,src:"pesquisa"},
+
+ {w:"Druidic Staff",l:"natureza",c:"pve",pop:0,g:["Mercenary Jacket"],f:"Portal S.A.F.E., acampamentos e solar masmorra de grupo",p:P.flat,src:"pesquisa"},
+ {w:"Blight Staff",l:"natureza",c:"pve",pop:0,g:[],f:"Portal S.A.F.E. e acampamentos dinâmicos",p:P.flat,src:"pesquisa"},
+ {w:"Great Axe",l:"machado",c:"pve",pop:0,g:[],f:"Portal S.A.F.E. com set barato",p:P.flat,src:"pesquisa"},
+ {w:"Shadowcaller",l:"maldito",c:"pve",pop:0,g:[],f:"Acampamentos T7 e T8",p:P.flat,src:"pesquisa"},
+ {w:"Bloodmoon Staff",l:"metamorfo",c:"pve",pop:0,g:[],f:"Solar masmorra de grupo e estática",p:P.dn_ss,src:"pesquisa"},
+ {w:"1H Dagger",l:"adaga",c:"pve",pop:0,g:["Hunter Jacket"],f:"Rastreio solo: mata a presa rápido",p:P.up_dg,src:"pesquisa"},
+ {w:"Forge Hammers",l:"martelo",c:"pve",pop:0,g:[],f:"Rastreio solo: segura quem tenta roubar a caçada",p:P.flat,src:"pesquisa"}
+];
+const armorType = name => /Helmet|Armor\b|Boots/.test(name) ? "placa" : /Hood|Jacket|Shoes/.test(name) ? "couro" : /Cowl|Robe|Sandals/.test(name) ? "pano" : null;
+
+/* ================= profile ================= */
+const EMPTY = () => ({nome:"", armas:{}, armaduras:{placa:0,couro:0,pano:0}, coleta:{}, refino:{metal:{lv:0},cloth:{lv:0},leather:{lv:0}}, craft:{}});
+const OLERAN = () => { const p=EMPTY(); p.nome="Oleran";
+  for(const [k] of LINES) p.armas[k]=1; Object.assign(p.armas,{martelo:3,maca:3,besta:3,lanca:3,arcano:3,espada:0,adaga:0,sagrado:0,natureza:0});
+  p.armaduras={placa:2,couro:2,pano:2};
+  p.coleta={minerio:{tier:8,lv:3},pesca:{tier:8,lv:3}};
+  p.craft={HEAD_PLATE:{lv:1}}; return p; };
+let PF = null, IS_EXAMPLE = false;
+function loadProfile(){ try{ const s=store.get("ficha"); if(s){ PF=Object.assign(EMPTY(),JSON.parse(s)); IS_EXAMPLE=false; return; } }catch(e){} PF=OLERAN(); IS_EXAMPLE=true; }
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._h);
+  if(window.gsap&&!RM) gsap.fromTo(t,{y:16,opacity:0},{y:0,opacity:1,duration:.3,ease:"back.out(2)"}); toast._h=setTimeout(()=>{ if(window.gsap&&!RM) gsap.to(t,{opacity:0,y:10,duration:.25,onComplete:()=>t.hidden=true}); else t.hidden=true; },1800); }
+function saveProfile(){ IS_EXAMPLE=false; store.set("ficha",JSON.stringify(PF)); $("pfStatus").textContent="Ficha salva neste navegador."; toast("Ficha guardada no livro"); renderWho(); recompute(); }
+const wl = k => PF.armas[k]||0;
+function fceFrom(lv,obs,base){ if(obs>0&&obs<base) return 10000*Math.log2(base/obs); return FCE_LV[lv||0]; }
+const refFCE = res => { const r=PF.refino[res]||{}; return fceFrom(r.lv,r.obs,FOCUS_REF[2][0]); };
+const craftFCE = (slot,mat) => { const r=PF.craft[slot+"_"+mat]||{}; return fceFrom(r.lv,r.obs,FOCUS_CRAFT[2][0]*(slot==="ARMOR"?2:1)); };
+const refFocus = (res,t,e) => Math.max(1,Math.round(FOCUS_REF[t-4][e]*Math.pow(0.5,refFCE(res)/10000)));
+const craftFocus = (slot,mat,t,e) => Math.max(1,Math.round(FOCUS_CRAFT[t-4][e]*(slot==="ARMOR"?2:1)*Math.pow(0.5,craftFCE(slot,mat)/10000)));
+
+/* ================= prices ================= */
+const idOf = (t,base,e)=>`T${t}_${base}`+(e?`_LEVEL${e}`:"");
+const gearId = (t,slot,mat,set,e)=>`T${t}_${slot}_${mat}_SET${set}`+(e?`@${e}`:"");
+function median(a){ const s=[...a].sort((x,y)=>x-y); const m=s.length>>1; return s.length%2?s[m]:(s[m-1]+s[m])/2; }
+function typical(id, field){ const r=DATA.itens[id]; if(!r) return null; const pts=Object.entries(r).filter(([c,v])=>v[field]>0).map(([c,v])=>({c,p:v[field]})); if(!pts.length) return null; return {p:median(pts.map(x=>x.p)), n:pts.length}; }
+const prevId = (res,t,e) => t===4 ? `T3_${RES[res].ref}` : idOf(t-1,RES[res].ref,e);
+
+/* ================= models ================= */
+const st={res:"metal",focus:1,daily:0,prem:1,sell:"order",bc:"brumas"};
+const rrr=(cityB,focus,daily)=>{const b=0.18+cityB+(focus?0.59:0)+daily; return b/(1+b);};
+const taxOf=()=> (st.prem?0.04:0.08)+(st.sell==="order"?0.025:0);
+const feeVal=()=>+$("fee").value||0;
+function model(res,t,e,o={}){
+  const R=RES[res];
+  const raw=o.raw!=null?{p:o.raw,n:9}:typical(idOf(t,R.raw,e),0);
+  const prev=o.prev!=null?{p:o.prev,n:9}:typical(prevId(res,t,e),0);
+  const bar=o.bar!=null?{p:o.bar,n:9}:typical(idOf(t,R.ref,e), st.sell==="instant"?1:0);
+  if(!raw||!prev||!bar) return null;
+  const inputs=N[t]*raw.p+prev.p, fee=IV(t,e)*0.1125*(o.fee??feeVal())/100, tax=taxOf(), net=bar.p*(1-tax);
+  const r1=rrr(0.40,true,st.daily), r0=rrr(0.40,false,st.daily);
+  const p1=net-inputs*(1-r1)-fee, p0=net-inputs*(1-r0)-fee, fc=o.fc||refFocus(res,t,e);
+  return {raw,prev,bar,inputs,fee,tax,net,r1,r0,p1,p0,fc,spf:(p1-p0)/fc,thin:Math.min(raw.n,prev.n,bar.n)<2};
+}
+function craftModel(slot,mat,set,t,e){
+  const cnt=slot==="ARMOR"?16:8;
+  const bar=typical(idOf(t,MATBAR[mat],e),0), item=typical(gearId(t,slot,mat,set,e), st.sell==="instant"?1:0);
+  if(!bar||!item) return null;
+  const inputs=cnt*bar.p, fee=cnt*IV(t,e)*0.1125*feeVal()/100, net=item.p*(1-taxOf());
+  const r1=rrr(0.15,true,st.daily), r0=rrr(0.15,false,st.daily);
+  const p1=net-inputs*(1-r1)-fee, p0=net-inputs*(1-r0)-fee, fc=craftFocus(slot,mat,t,e);
+  return {bar,item,inputs,fee,net,p1,p0,fc,spf:(p1-p0)/fc,thin:Math.min(bar.n,item.n)<2,cnt};
+}
+const gearName=(slot,mat,set)=>`${SETN[mat][set-1]} ${SLOTN[mat][slot]}`;
+
+/* ================= live data ================= */
+const HOST="https://west.albion-online-data.com";
+const CITIES=["Thetford","Fort Sterling","Martlock","Bridgewatch","Lymhurst"];
+const MAX_AGE_H=72;
+const fresh=d=>d&&!d.startsWith("0001")&&(Date.now()-Date.parse(d+"Z"))<MAX_AGE_H*3600e3;
+function baseIds(){ const ids=[]; for(const r of Object.values(RES)){ ids.push(`T3_${r.ref}`); for(let t=4;t<=8;t++) for(let e=0;e<=3;e++) for(const b of [r.raw,r.ref]) ids.push(`T${t}_${b}`+(e?`_LEVEL${e}@${e}`:"")); }
+  for(const b of ["WOOD","ROCK"]) for(let t=4;t<=8;t++) for(let e=0;e<=3;e++) ids.push(`T${t}_${b}`+(e?`_LEVEL${e}@${e}`:""));
+  return ids.concat(FISH_IDS); }
+function familyIds(slot,mat){ const ids=[]; for(let s=1;s<=3;s++) for(let t=4;t<=8;t++) for(let e=0;e<=3;e++) ids.push(gearId(t,slot,mat,s,e)); return ids; }
+async function fetchIds(ids, target){
+  const loc=CITIES.join(",").replace(/ /g,"%20");
+  for(let i=0;i<ids.length;i+=40){
+    const r=await fetch(`${HOST}/api/v2/stats/prices/${ids.slice(i,i+40).join(",")}.json?locations=${loc}&qualities=1`);
+    if(!r.ok) throw new Error("API respondeu "+r.status);
+    for(const x of await r.json()){
+      const s=fresh(x.sell_price_min_date)?x.sell_price_min:0, b=fresh(x.buy_price_max_date)?x.buy_price_max:0;
+      if(!s&&!b) continue; const k=x.item_id.includes("_LEVEL")?x.item_id.split("@")[0]:x.item_id; (target[k]||(target[k]={}))[x.city]=[s,b];
+    }
+  }
+}
+const loadedFam=new Set();
+async function ensureFamily(slot,mat){ const key=slot+"_"+mat; if(loadedFam.has(key)) return true; try{ await fetchIds(familyIds(slot,mat),DATA.itens); loadedFam.add(key); return true; }catch(e){ return false; } }
+let LIVE=false;
+async function loadLive(){
+  const btn=$("reload"); btn.disabled=true; btn.textContent="Atualizando…";
+  try{
+    const itens={}; await fetchIds(baseIds(),itens);
+    if(Object.keys(itens).length<30) throw new Error("poucos dados");
+    let ouro=DATA.ouro; try{ const g=await (await fetch(`${HOST}/api/v2/stats/gold.json?count=168`)).json(); if(g[0]) ouro=g[0].price; drawGold(g); }catch(e){}
+    const hh=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+    DATA={geradoEm:new Date().toISOString(),janela:`agora, consultados às ${hh} (anúncios de até 3 dias)`,ouro,itens}; LIVE=true; loadedFam.clear();
+    applyMeta(); recompute(true); btn.textContent="Atualizar preços";
+  }catch(e){ $("when").textContent=(DATA.janela||"")+". Não consegui puxar os preços ao vivo agora"; btn.textContent="Tentar de novo"; }
+  btn.disabled=false;
+}
+
+function drawGold(g){
+  const s=$("goldSpark"); if(!s||!g||g.length<4) return; const pts=[...g].reverse(); const v=pts.map(x=>x.price), lo=Math.min(...v), hi=Math.max(...v), W=96, H=22, P=3;
+  const X=i=>P+i*(W-2*P)/(pts.length-1), Y=p=>H-P-(hi===lo?0.5:(p-lo)/(hi-lo))*(H-2*P);
+  const d=v.map((p,i)=>`${i?"L":"M"}${X(i).toFixed(1)} ${Y(p).toFixed(1)}`).join(" ");
+  s.innerHTML=`<path d="${d} L${X(v.length-1).toFixed(1)} ${H} L${X(0)} ${H} Z" fill="var(--saffron)" opacity=".12"/><path d="${d}" fill="none" stroke="var(--saffron)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(v.length-1)}" cy="${Y(v[v.length-1])}" r="3" fill="var(--saffron)" stroke="var(--night)" stroke-width="1.5"/>`;
+  const box=$("goldBox"); box.tabIndex=0; const ch=((v[v.length-1]-v[0])/v[0]*100);
+  bindTip(box,()=>[["v",`${fmt(v[v.length-1])} pratas por ouro`],["",`Últimos 7 dias: de ${fmt(lo)} a ${fmt(hi)}`],["k",`${ch>=0?"Subiu":"Caiu"} ${dec(Math.abs(ch))}% na semana`]]);
+}
+
+/* ================= tooltip ================= */
+const tip=$("tip");
+function showTip(lines,x,y){ tip.textContent=""; lines.forEach(([cls,txt])=>tip.append(el("div",{class:cls||"",text:txt}))); tip.hidden=false; const w=tip.offsetWidth,h=tip.offsetHeight; let L=x+14,T=y+14; if(L+w>innerWidth-8) L=x-w-14; if(T+h>innerHeight-8) T=y-h-14; tip.style.left=Math.max(8,L)+"px"; tip.style.top=Math.max(8,T)+"px"; }
+function bindTip(node,get){ node.addEventListener("pointermove",ev=>{const l=get(); if(l) showTip(l,ev.clientX,ev.clientY);}); node.addEventListener("pointerleave",()=>tip.hidden=true); node.addEventListener("focus",()=>{const r=node.getBoundingClientRect(); const l=get(); if(l) showTip(l,r.right,r.top);}); node.addEventListener("blur",()=>tip.hidden=true); }
+
+/* ================= heatmaps ================= */
+function heatColor(v,scale){ const r=v/scale; if(Math.abs(r)<0.04) return ["var(--h-neutral)",false]; if(r>0) return r<0.25?["var(--h-b1)",false]:r<0.55?["var(--h-b2)",false]:r<0.85?["var(--h-b3)",true]:["var(--h-b4)",true]; return r>-0.25?["var(--h-r1)",false]:r>-0.6?["var(--h-r2)",true]:["var(--h-r3)",true]; }
+function drawHeat(tbl, get, onPick, tipFor){
+  tbl.textContent=""; const cells={}; let max=0;
+  for(let t=4;t<=8;t++) for(let e=0;e<=3;e++){ const m=get(t,e); cells[t+"."+e]=m; if(m) max=Math.max(max,Math.abs(m.p1)); }
+  const hr=tbl.createTHead().insertRow(); hr.append(el("th",{text:""})); [0,1,2,3].forEach(e=>hr.append(el("th",{text:`.${e}`,scope:"col"})));
+  const tb=tbl.createTBody();
+  for(let t=4;t<=8;t++){ const tr=tb.insertRow(); tr.append(el("th",{class:"rh",scope:"row",text:`T${t}`}));
+    for(let e=0;e<=3;e++){ const m=cells[t+"."+e], td=tr.insertCell(); td.tabIndex=0;
+      if(!m){ td.className="na"; td.textContent="sem preço"; bindTip(td,()=>[["",`T${t}.${e}: falta preço de algum insumo.`]]); continue; }
+      const [bg,dark]=heatColor(m.p1,Math.max(max*0.6,1)); td.style.background=bg; td.style.color=dark?"#ffffff":"var(--ink)"; if(m.thin) td.classList.add("thin");
+      td.append(sgn(m.p1), el("small",{text:`${dec(m.spf)} por foco`}));
+      if(onPick){ td.addEventListener("click",()=>onPick(t,e)); td.addEventListener("keydown",ev=>{ if(ev.key==="Enter") onPick(t,e); }); }
+      bindTip(td,()=>tipFor(t,e,m));
+    } }
+}
+function renderHeat(){
+  const R=RES[st.res];
+  drawHeat($("heat"),(t,e)=>model(st.res,t,e),(t,e)=>{ $("tier").value=t; $("ench").value=e; calc(true); $("calcTitle").scrollIntoView({behavior:"smooth",block:"start"}); },
+    (t,e,m)=>[["v",`${sgn(m.p1)} por barra com foco`],["",`${R.refName} T${t}.${e} em ${R.city}`],["k",`Sem foco: ${sgn(m.p0)}`],["k",`${R.rawName}: ${fmt(m.raw.p)} (${m.raw.n} cid.) × ${N[t]}`],["k",`Barra anterior: ${fmt(m.prev.p)} (${m.prev.n} cid.)`],["k",`Venda: ${fmt(m.bar.p)} (${m.bar.n} cid.)`],["k",`Custo de foco ${m.fc}, ${dec(m.spf)} pratas por ponto`]]);
+  $("matTitle").textContent=`${R.refName}: lucro por barra, com foco, em ${R.city}`;
+}
+async function renderCraft(){
+  const slot=$("cSlot").value, mat=$("cMat").value, set=+$("cSet").value, key=slot+"_"+mat;
+  $("cTitle").textContent=`${gearName(slot,mat,set)}: lucro por peça, com foco, em ${CRAFT_CITY[key]}`;
+  const lv=(PF.craft[key]||{}).lv||0;
+  $("cNote").textContent=`${CRAFT_PT[key]} tem bônus de fabricação em ${CRAFT_CITY[key]}. Usa ${slot==="ARMOR"?16:8} ${mat==="PLATE"?"barras de metal":mat==="LEATHER"?"couros":"tecidos"}. Sua ficha: ${LV_S[lv].toLowerCase()} nessa linha.`;
+  $("cStatus").textContent="Buscando preços das peças…";
+  const ok=await ensureFamily(slot,mat);
+  $("cStatus").textContent= ok ? "Preço da peça: qualidade normal, mediana das cidades reais." : "Não consegui buscar o preço das peças agora. Tente atualizar os preços.";
+  drawHeat($("cHeat"),(t,e)=>craftModel(slot,mat,set,t,e),null,(t,e,m)=>[["v",`${sgn(m.p1)} por peça com foco`],["",`${gearName(slot,mat,set)} T${t}.${e}`],["k",`Sem foco: ${sgn(m.p0)}`],["k",`${m.cnt} × barra a ${fmt(m.bar.p)} (${m.bar.n} cid.)`],["k",`Venda da peça: ${fmt(m.item.p)} (${m.item.n} cid.)`],["k",`Custo de foco ${fmt(m.fc)}, ${dec(m.spf)} pratas por ponto`]]);
+}
+
+/* ================= refining calculator ================= */
+const num=id=>{const x=+$(id).value; return x>0?x:null;};
+function calc(reset){
+  const R=RES[st.res], t=+$("tier").value, e=+$("ench").value;
+  $("lRaw").textContent=`${R.rawName} T${t}.${e}, cada (usa ${N[t]})`;
+  $("lPrev").textContent= t===4 ? `${R.prevName} T3 (usa 1)` : `${R.prevName} T${t-1}.${e} (usa 1)`;
+  $("lBar").textContent=`Venda de ${R.refName.toLowerCase()} T${t}.${e}`;
+  $("calcTitle").textContent=`Calculadora de ${R.refName.toLowerCase()} em ${R.city}`;
+  if(reset){ const a=typical(idOf(t,R.raw,e),0), b=typical(prevId(st.res,t,e),0), c=typical(idOf(t,R.ref,e),st.sell==="instant"?1:0);
+    const hint=(x,w)=>x?`${w}, ${x.n} ${x.n>1?"cidades":"cidade"}`:"sem preço, digite o do jogo";
+    $("pRaw").value=a?Math.round(a.p):""; $("sRaw").textContent=hint(a,"preço típico");
+    $("pPrev").value=b?Math.round(b.p):""; $("sPrev").textContent=hint(b,"preço típico");
+    $("pBar").value=c?Math.round(c.p):""; $("sBar").textContent=hint(c,st.sell==="instant"?"ordem de compra típica":"preço típico");
+    $("focusCost").value=refFocus(st.res,t,e); $("focusHint").textContent=refFCE(st.res)>0?"da sua ficha":"sem spec; ajuste na ficha"; }
+  const m=model(st.res,t,e,{raw:num("pRaw"),prev:num("pPrev"),bar:num("pBar"),fc:num("focusCost")});
+  const L=$("ledger"); L.textContent=""; const v=$("verdict");
+  if(!m){ v.textContent="Faltam preços para esta combinação. Abra o mercado no jogo e digite os valores acima."; return; }
+  const useF=st.focus===1, rr=useF?m.r1:m.r0, p=useF?m.p1:m.p0, pool=+$("focusPool").value||0, bars=useF?Math.floor(pool/m.fc):0;
+  [["Insumos",`${N[t]} × ${fmt(m.raw.p)} + ${fmt(m.prev.p)}`,-m.inputs],["Volta pelo retorno",`${dec(rr*100)}% dos insumos`,m.inputs*rr],["Taxa da estação",`valor de item ${IV(t,e)}`,-m.fee],["Venda",`${fmt(m.bar.p)} menos ${dec(m.tax*100)}% de taxas`,m.net]]
+    .forEach(([a,b,c])=>{ const tr=L.insertRow(); const td=tr.insertCell(); td.append(a,el("small",{text:b})); tr.insertCell().textContent=sgn(c); });
+  const tr=L.insertRow(); tr.className="total"; tr.insertCell().textContent="Lucro por barra"; const tc=tr.insertCell(); tc.textContent=sgn(p); tc.className=p>=0?"gain":"loss";
+  if(useF){ const t2=L.insertRow(); const a=t2.insertCell(); a.append(`Com ${fmt(pool)} de foco`,el("small",{text:`${fmt(bars)} barras, ${dec(m.spf)} pratas por ponto de foco`})); const b=t2.insertCell(); b.textContent=sgn(bars*p); b.className=p>=0?"gain":"loss"; }
+  v.textContent = m.p0>0 ? `Dá lucro até sem foco (${sgn(m.p0)} por barra). Vale comprar ${R.rawName.toLowerCase()} por ordem de compra e refinar em volume.`
+    : m.p1>0 ? `Só compensa com foco: sem ele você perde ${fmt(-m.p0)} por barra.` : `Com estes preços não compensa refinar, nem com foco. Olhe outro tier na tabela.`;
+}
+
+/* ================= recommendations ================= */
+function bestRefining(){ const out=[]; for(const res in RES) for(let t=4;t<=8;t++) for(let e=0;e<=3;e++){ const m=model(res,t,e,{fee:500}); if(m&&!m.thin&&m.p1>0) out.push({res,t,e,m,day:m.p1*Math.floor(10000/m.fc)}); } return out.sort((a,b)=>b.day-a.day); }
+function bestCraft(){ const out=[]; for(const key in PF.craft){ if(!(PF.craft[key].lv>0)) continue; const [slot,mat]=key.split("_"); if(!loadedFam.has(key)) continue;
+  for(let s=1;s<=3;s++) for(let t=4;t<=8;t++) for(let e=0;e<=3;e++){ const m=craftModel(slot,mat,s,t,e); if(m&&!m.thin&&m.p1>0) out.push({slot,mat,s,t,e,m,day:m.p1*Math.floor(10000/m.fc)}); } } return out.sort((a,b)=>b.day-a.day); }
+function rankBuilds(c,onlyMine){
+  const tierB={S:3,A:2}; return BUILDS.filter(b=>b.c===c&&(!onlyMine||wl(b.l)>=1))
+    .sort((a,b)=>(wl(b.l)-wl(a.l))||((tierB[b.mc]||0)-(tierB[a.mc]||0))||(b.pop-a.pop)); }
+function armorGaps(b){ const miss=new Set(); for(const g of b.g){ const t=armorType(g); if(t&&(PF.armaduras[t]||0)<1) miss.add(t); } return [...miss]; }
+function recItem(title, lines){ const li=el("li"); li.append(el("strong",{text:title})); lines.filter(Boolean).forEach(l=>li.append(el("span",{text:l}))); return li; }
+function renderRecs(){
+  const r=bestRefining(), box=$("recRefino"); box.textContent="";
+  if(!r.length) box.append(el("li",{class:"empty",text:"Com os preços de agora, nenhum refino dá lucro com segurança."}));
+  r.slice(0,3).forEach(x=>{ const R=RES[x.res]; box.append(recItem(`${R.refName} T${x.t}.${x.e} em ${R.city}`,[`${sgn(x.m.p1)} por barra, uns ${fmtS(x.day)} com 10.000 de foco`,`Custo de foco ${x.m.fc} por barra${refFCE(x.res)>0?"":", sem spec"}. Sem foco: ${sgn(x.m.p0)}`])); });
+  const cbox=$("recCraft"); cbox.textContent="";
+  const lines=Object.keys(PF.craft).filter(k=>PF.craft[k].lv>0);
+  if(!lines.length){ cbox.append(el("li",{class:"empty",text:"Marque na sua ficha as peças que você fabrica para ver o melhor craft."})); }
+  else{ const c=bestCraft();
+    if(!c.length) cbox.append(el("li",{class:"empty",text: lines.every(k=>loadedFam.has(k)) ? "Com os preços de agora, nenhuma das suas linhas dá lucro com segurança." : "Buscando preços das peças…"}));
+    c.slice(0,3).forEach(x=>{ const k=x.slot+"_"+x.mat; cbox.append(recItem(`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e} em ${CRAFT_CITY[k]}`,[`${sgn(x.m.p1)} por peça, uns ${fmtS(x.day)} com 10.000 de foco`,`Custo de foco ${fmt(x.m.fc)} por peça. Venda típica ${fmt(x.m.item.p)}`])); }); }
+  for(const [c,id] of [["brumas","recBrumas"],["corrompidas","recCorr"]]){
+    const b=rankBuilds(c,true).slice(0,3), bx=$(id); bx.textContent="";
+    if(!b.length) bx.append(el("li",{class:"empty",text:"Nenhuma build da lista usa as armas da sua ficha."}));
+    b.forEach(x=>{ const gaps=armorGaps(x); bx.append(recItem(`${x.w} (${LINE_NAME[x.l]}, spec ${LV_W[wl(x.l)].toLowerCase()})`,[x.g.length?x.g.join(", "):"Equipamento: veja no MetaCorrupted",x.f||null,`Patch 3: ${x.p[1]}`,gaps.length?`Atenção: sem spec em ${gaps.join(" e ")} na sua ficha`:null])); });
+  }
+  const tb=$("recColeta"); tb.textContent="";
+  const hr=tb.createTHead().insertRow(); ["Recurso","Seu tier",".0",".1",".2",".3","Onde aparece"].forEach(h=>hr.append(el("th",{text:h})));
+  const body=tb.createTBody(); let any=false;
+  for(const [k,name,base,bio] of GATHER){ const g=PF.coleta[k]; if(!base||!g||!(g.tier>=4)) continue; any=true; const tr=body.insertRow();
+    tr.insertCell().textContent=name; tr.insertCell().textContent=`T${g.tier}, spec ${LV_S[g.lv||0].toLowerCase()}`;
+    for(let e=0;e<=3;e++){ const td=tr.insertCell(); td.className="num"; if(!base){ td.textContent="—"; continue; } const p=typical(idOf(g.tier,base,e),0); td.textContent=p?fmt(p.p):"—"; }
+    tr.insertCell().textContent= base ? bio : "Peixe não está na API de preços desta página ainda"; }
+  if(!any){ const tr=body.insertRow(); const td=tr.insertCell(); td.colSpan=7; td.textContent="Marque na sua ficha o tier de coleta de cada recurso."; }
+  renderFish();
+}
+function renderFish(){
+  const g=PF.coleta.pesca, box=$("fishBlock"); if(!g||!(g.tier>=1)){ box.hidden=true; return; } box.hidden=false;
+  const tb=$("recPesca"); tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Peixe","Tier","Preço típico","Cidades"].forEach(h=>hr.append(el("th",{text:h})));
+  const body=tb.createTBody(), rows=[];
+  const add=(name,t,id)=>{ const p=typical(id,0); rows.push({name,t,p}); };
+  for(const t of [g.tier,g.tier-1].filter(x=>x>=1)){ add("Comum de água doce",t,`T${t}_FISH_FRESHWATER_ALL_COMMON`); add("Comum de água salgada",t,`T${t}_FISH_SALTWATER_ALL_COMMON`); }
+  const rares=[]; for(const t of [7,5,3].filter(x=>x<=g.tier)){ for(const [b,n] of FISH_BIOMES){ const p=typical(`T${t}_FISH_FRESHWATER_${b}_RARE`,0); if(p) rares.push({name:`Raro de ${n}`,t,p}); } const s=typical(`T${t}_FISH_SALTWATER_ALL_RARE`,0); if(s) rares.push({name:"Raro do mar",t,p:s}); }
+  rares.sort((a,b)=>b.p.p-a.p.p); rows.push(...rares.slice(0,6));
+  if(g.tier>=8){ const sh=typical("T8_FISH_SALTWATER_ALL_BOSS_SHARK",0); if(sh) rows.push({name:"Tubarão (chefe do mar)",t:8,p:sh}); }
+  const ch=typical("T1_FISHCHOPS",0); if(ch) rows.push({name:"Chopped Fish (peixe picado)",t:1,p:ch});
+  for(const r of rows){ const tr=body.insertRow(); tr.insertCell().textContent=r.name; tr.insertCell().textContent=`T${r.t}`; const td=tr.insertCell(); td.className="num"; td.textContent=r.p?fmt(r.p.p):"—"; tr.insertCell().textContent=r.p?String(r.p.n):"—"; }
+}
+function renderHero(){
+  const r=bestRefining()[0], c=bestCraft()[0];
+  const best = (c&&(!r||c.day>r.day)) ? {kind:"craft",x:c} : r ? {kind:"ref",x:r} : null;
+  const ans=$("heroAnswer"); ans.textContent="";
+  const who = PF.nome && !IS_EXAMPLE ? `${PF.nome}, hoje` : "Hoje";
+  if(!best){ ans.textContent=`${who}, nenhum refino ou craft da sua ficha dá lucro seguro com os preços de agora.`; $("heroOthers").textContent=""; return; }
+  const x=best.x, b=el("b");
+  const n=el("span",{class:"num",text:sgn(x.m.p1)});
+  if(best.kind==="ref"){ const R=RES[x.res]; b.textContent=`${R.refName.toLowerCase()} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais refinando `,b,` em ${R.city}: `,n,` por barra, uns ${fmtS(x.day)} com 10.000 de foco.`); }
+  else{ b.textContent=`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais fabricando `,b,` em ${CRAFT_CITY[x.slot+"_"+x.mat]}: `,n,` por peça, uns ${fmtS(x.day)} com 10.000 de foco.`); }
+  if(window.gsap&&!RM){ const o={v:0}; gsap.to(o,{v:x.m.p1,duration:1.1,ease:"power2.out",onUpdate:()=>n.textContent=sgn(o.v)}); }
+  $("heroOthers").textContent="";
+  $("heroOthers").append(el("span",{class:"muted",text:"Com o custo de foco da sua ficha e o preço típico das cidades. Confira o preço no jogo antes de comprar."}));
+}
+
+/* ================= builds table ================= */
+function renderBuilds(){
+  const only=$("bOnlyMine").checked, list=rankBuilds(st.bc,only), tb=$("bTable"); tb.textContent="";
+  const hr=tb.createTHead().insertRow(); ["Arma","Linha e sua spec","Equipamento citado","Fonte","Patch 3"].forEach(h=>hr.append(el("th",{text:h})));
+  const body=tb.createTBody();
+  if(!list.length){ const td=body.insertRow().insertCell(); td.colSpan=5; td.textContent="Nenhuma build desta lista usa as armas da sua ficha. Desmarque o filtro para ver todas."; return; }
+  for(const b of list){ const tr=body.insertRow();
+    const a=tr.insertCell(); a.append(b.w); if(b.mc) a.append(" ",el("span",{class:"spec",text:`tier ${b.mc}`}));
+    const lv=wl(b.l), c2=tr.insertCell(); c2.textContent=`${LINE_NAME[b.l]}: ${LV_W[lv].toLowerCase()}`; if(lv>=2) c2.className="gain";
+    const gaps=armorGaps(b), g=tr.insertCell(); g.append(b.g.length?b.g.join(", "):"Veja na fonte"); if(b.f) g.append(el("small",{class:"blk",text:b.f})); if(gaps.length) g.append(el("small",{class:"blk loss",text:`Sem spec em ${gaps.join(" e ")}`}));
+    tr.insertCell().textContent = b.src==="pesquisa" ? "Pesquisa, não conferida" : b.src==="MetaCorrupted" ? "MetaCorrupted" : `AOG, ${b.pop} salvos`;
+    const p=tr.insertCell(); p.className=`chg ${b.p[0]}`; p.textContent=b.p[1];
+  }
+}
+
+/* ================= profile editor ================= */
+function segRow(label, val, labels, onSet){ const row=el("div",{class:"lv"}); row.append(el("span",{class:"lbl",text:label})); const seg=el("div",{class:"seg sm",role:"group","aria-label":label});
+  labels.forEach((t,i)=>{ const b=el("button",{type:"button",text:t,"aria-pressed":String(i===val)}); b.addEventListener("click",()=>{ [...seg.children].forEach(x=>x.setAttribute("aria-pressed",String(x===b))); onSet(i); }); seg.append(b); }); row.append(seg); return row; }
+function renderProfile(){
+  $("pfName").value=PF.nome||"";
+  const w=$("pfWeapons"); w.textContent=""; for(const [k,n] of LINES) w.append(segRow(n,wl(k),LV_W,i=>{PF.armas[k]=i; saveProfile();}));
+  const a=$("pfArmor"); a.textContent=""; for(const [k,n] of [["placa","Placa"],["couro","Couro"],["pano","Pano"]]) a.append(segRow(n,PF.armaduras[k]||0,LV_W,i=>{PF.armaduras[k]=i; saveProfile();}));
+  const g=$("pfGather"); g.textContent="";
+  for(const [k,n] of GATHER){ const cur=PF.coleta[k]||{tier:0,lv:0}; const row=segRow(n,cur.lv||0,LV_S,i=>{ PF.coleta[k]=Object.assign({tier:0},PF.coleta[k],{lv:i}); saveProfile(); });
+    const sel=el("select",{"aria-label":`Tier de ${n}`}); [["0","—"],["4","T4"],["5","T5"],["6","T6"],["7","T7"],["8","T8"]].forEach(([v,t])=>sel.append(el("option",{value:v,text:t,selected:String(cur.tier||0)===v})));
+    sel.addEventListener("change",()=>{ PF.coleta[k]=Object.assign({lv:0},PF.coleta[k],{tier:+sel.value}); saveProfile(); }); row.insertBefore(sel,row.children[1]); g.append(row); }
+  const r=$("pfRefine"); r.textContent="";
+  for(const k in RES){ const cur=PF.refino[k]||{lv:0}; const row=segRow(RES[k].refName,cur.lv||0,LV_S,i=>{ PF.refino[k]=Object.assign({},PF.refino[k],{lv:i}); saveProfile(); });
+    const inp=el("input",{type:"number",min:"1",placeholder:"foco T6.0",value:cur.obs||"","aria-label":`Custo de foco no jogo para ${RES[k].refName} T6.0`}); inp.addEventListener("change",()=>{ PF.refino[k]=Object.assign({lv:0},PF.refino[k],{obs:+inp.value||0}); saveProfile(); }); row.append(inp); r.append(row); }
+  const c=$("pfCraft"); c.textContent="";
+  for(const key in CRAFT_PT){ const cur=PF.craft[key]||{lv:0}; const row=segRow(CRAFT_PT[key],cur.lv||0,LV_S,i=>{ PF.craft[key]=Object.assign({},PF.craft[key],{lv:i}); saveProfile(); });
+    const inp=el("input",{type:"number",min:"1",placeholder:"foco T6.0",value:cur.obs||"","aria-label":`Custo de foco no jogo para ${CRAFT_PT[key]} T6.0`}); inp.addEventListener("change",()=>{ PF.craft[key]=Object.assign({lv:0},PF.craft[key],{obs:+inp.value||0}); saveProfile(); }); row.append(inp); c.append(row); }
+}
+function renderWho(){ $("who").textContent = IS_EXAMPLE ? "Ficha de exemplo: Oleran" : (PF.nome ? `Ficha: ${PF.nome}` : "Ficha sem nome"); $("exampleBanner").hidden=!IS_EXAMPLE; }
+$("pfName").addEventListener("change",()=>{ PF.nome=$("pfName").value.trim().slice(0,40); saveProfile(); });
+$("pfCopy").addEventListener("click",()=>{ const code=btoa(unescape(encodeURIComponent(JSON.stringify(PF)))); const done=()=>$("pfStatus").textContent="Código da ficha copiado. Cole em outro navegador em Colar ficha.";
+  try{ navigator.clipboard.writeText(code).then(done,()=>{ $("pfPasteBox").hidden=false; $("pfPaste").value=code; $("pfPaste").select(); $("pfStatus").textContent="Copie o código selecionado abaixo."; }); }catch(e){ $("pfPasteBox").hidden=false; $("pfPaste").value=code; } });
+$("pfPasteBtn").addEventListener("click",()=>{ $("pfPasteBox").hidden=!$("pfPasteBox").hidden; $("pfPaste").value=""; $("pfPaste").focus(); });
+$("pfPasteApply").addEventListener("click",()=>{ try{ const o=JSON.parse(decodeURIComponent(escape(atob($("pfPaste").value.trim())))); if(typeof o!=="object"||!o.armas) throw 0; PF=Object.assign(EMPTY(),o); saveProfile(); renderProfile(); $("pfPasteBox").hidden=true; $("pfPasteMsg").textContent=""; }catch(e){ $("pfPasteMsg").textContent="Esse código não é uma ficha válida. Copie de novo pelo botão Copiar minha ficha."; } });
+$("pfExample").addEventListener("click",()=>{ PF=OLERAN(); saveProfile(); renderProfile(); });
+$("pfClear").addEventListener("click",()=>{ PF=EMPTY(); saveProfile(); renderProfile(); });
+
+/* ================= activities ================= */
+const ACTS=[
+ {n:"Corrompidas solo",d:"PvP 1v1, Stalker e Slayer letais",lo:2.0,hi:8.0,r:"h",tags:["solo"]},
+ {n:"Brumas e tesouros de Brecilien",d:"Abadias sem montaria",lo:1.5,hi:4.0,r:"h",tags:["solo"]},
+ {n:"Corações de facção em grupo",d:"Guerra de Facções",lo:1.8,hi:3.5,r:"m",tags:["grupo"]},
+ {n:"Baús das Estradas de Avalon",d:"1 a 3 jogadores",lo:1.2,hi:3.0,r:"h",tags:["grupo"]},
+ {n:"Craft com foco",d:"Precisa de spec na linha",lo:1.0,hi:3.0,r:"l",tags:["solo","seguro"]},
+ {n:"Flip para o Mercado Negro",d:"Transporte por zona vermelha",lo:0.8,hi:3.0,r:"m",tags:["solo"]},
+ {n:"Coleta T6+",d:"Minério, pelego ou fibra",lo:0.6,hi:2.5,r:"m",tags:["solo"]},
+ {n:"Flip na mesma cidade",d:"Ordens de compra e venda",lo:0.5,hi:2.0,r:"l",tags:["solo","seguro"]},
+ {n:"Mobs T4 e T5 em zona amarela",d:"",lo:0.4,hi:0.9,r:"l",tags:["solo","seguro"]},
+ {n:"Ilha com foco",d:"Plantio e criação",lo:0.3,hi:0.9,r:"l",tags:["solo","seguro"]},
+ {n:"Expedições",d:"",lo:0.25,hi:0.6,r:"l",tags:["solo","grupo","seguro"]}
+];
+const RISK={h:"risco alto",m:"risco médio",l:"risco baixo"}, MAXV=8;
+$("ticks").innerHTML=[0,2,4,6,8].map(v=>`<span style="left:${v/MAXV*100}%">${v}M</span>`).join("");
+function renderActs(f){ const box=$("rows"); box.textContent="";
+  ACTS.filter(a=>f==="all"||a.tags.includes(f)).forEach(a=>{ const row=el("div",{class:"row",tabIndex:0}); const lbl=el("div",{class:"lbl",text:a.n}); const sub=el("span"); sub.append(el("span",{class:`risk ${a.r}`,text:RISK[a.r],style:"display:inline"})); if(a.d) sub.append(`  ${a.d}`); lbl.append(sub);
+    const plot=el("div",{class:"plot"}); [2,4,6].forEach(v=>{const g=el("span",{class:"grid"}); g.style.left=(v/MAXV*100)+"%"; plot.append(g);}); const bar=el("span",{class:"bar"}); bar.style.left=(a.lo/MAXV*100)+"%"; bar.style.width=((a.hi-a.lo)/MAXV*100)+"%"; plot.append(bar);
+    row.append(lbl,plot,el("div",{class:"val num",text:`${dec(a.lo)} a ${dec(a.hi)}M`})); box.append(row);
+    bindTip(row,()=>[["v",`${dec(a.lo)} a ${dec(a.hi)} milhões por hora`],["",a.n],["k",RISK[a.r]+(a.d?", "+a.d.toLowerCase():"")],["k","Estimativa bruta da AlbionCodex, abr/2026"]]); }); }
+document.querySelectorAll("[data-f]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderActs(b.dataset.f);}));
+
+/* ================= wiring ================= */
+const tabs=[...document.querySelectorAll("nav.tabs [role=tab]")];
+function showTab(id, quiet){ let panel=null; tabs.forEach(b=>{const on=b.id===id; b.setAttribute("aria-selected",String(on)); const p=$(b.getAttribute("aria-controls")); p.hidden=!on; if(on) panel=p;}); tip.hidden=true; store.set("tab",id); if(id==="t-craft") renderCraft();
+  if(!quiet&&panel) animatePanel(panel); }
+function animatePanel(panel){
+  if(!window.gsap||RM) return;
+  gsap.fromTo(panel,{opacity:0,y:10},{opacity:1,y:0,duration:.35,ease:"power2.out",clearProps:"transform,opacity"});
+  const cells=panel.querySelectorAll("table.heat td"); if(cells.length) gsap.from(cells,{opacity:0,scale:.86,duration:.28,stagger:{each:.012},ease:"power1.out",clearProps:"opacity,transform"});
+  const bars=panel.querySelectorAll(".plot .bar"); if(bars.length) gsap.from(bars,{scaleX:0,duration:.7,stagger:.05,ease:"power3.out",clearProps:"transform"});
+  const recs=panel.querySelectorAll("ol.recs li"); if(recs.length) gsap.from(recs,{opacity:0,x:-12,duration:.35,stagger:.05,ease:"power2.out",clearProps:"opacity,transform"});
+}
+function stallIntro(){
+  if(!window.gsap||RM) return;
+  const tl=gsap.timeline({defaults:{ease:"power2.out"}});
+  tl.from(".awning",{scaleY:0,duration:.7,ease:"back.out(1.7)"})
+    .from(".sign .kicker",{y:12,opacity:0,duration:.45},"-=.25")
+    .from(".sign .big",{y:26,opacity:0,duration:.7},"-=.25")
+    .from(".lantern",{y:-70,opacity:0,duration:1,stagger:.18,ease:"bounce.out"},"-=.75")
+    .from(".deal > *",{y:12,opacity:0,duration:.45,stagger:.08},"-=.6")
+    .from("nav.tabs button",{y:-8,opacity:0,duration:.3,stagger:.03,clearProps:"opacity,transform"},"-=.35");
+  gsap.utils.toArray(".lantern").forEach((g,i)=>{ const ox=g.dataset.ox; gsap.to(g,{rotation:i?-3.2:2.6,svgOrigin:`${ox} 0`,duration:2.4+i*.5,ease:"sine.inOut",yoyo:true,repeat:-1,delay:1.4}); });
+  gsap.utils.toArray(".glow").forEach(c=>gsap.to(c,{opacity:"random(0.55,1)",duration:"random(0.08,0.3)",repeat:-1,repeatRefresh:true,ease:"none"}));
+  gsap.utils.toArray(".wisp").forEach((w,i)=>{ const t=gsap.timeline({repeat:-1,delay:i*0.9}); t.fromTo(w,{y:60,opacity:0,scaleX:.85,transformOrigin:"50% 100%"},{y:-40,opacity:.42,scaleX:1.1,duration:3.2,ease:"sine.out"}).to(w,{y:-200,opacity:0,scaleX:1.5,duration:3.4,ease:"sine.in"});
+    gsap.to(w,{x:"+=26",duration:2.6+i*.3,yoyo:true,repeat:-1,ease:"sine.inOut"}); });
+  gsap.to(".sign .big",{textShadow:"0 0 42px rgba(232,171,69,.55)",duration:2.2,yoyo:true,repeat:-1,ease:"sine.inOut",delay:1.2});
+}
+tabs.forEach(b=>b.addEventListener("click",()=>showTab(b.id)));
+document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.goto)));
+document.querySelectorAll("[data-res]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-res]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); st.res=b.dataset.res; $("resNote").textContent=RES[st.res].note; renderHeat(); calc(true); }));
+document.querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click",()=>{ const g=b.dataset.g; document.querySelectorAll(`[data-g="${g}"]`).forEach(x=>x.setAttribute("aria-pressed",String(x===b))); st[g]= g==="sell"?b.dataset.v:parseFloat(b.dataset.v); recompute(g==="sell"); }));
+document.querySelectorAll("[data-bc]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-bc]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); st.bc=b.dataset.bc; renderBuilds(); }));
+$("bOnlyMine").addEventListener("change",renderBuilds);
+["tier","ench"].forEach(id=>$(id).addEventListener("change",()=>calc(true)));
+["pRaw","pPrev","pBar","focusCost","focusPool"].forEach(id=>$(id).addEventListener("input",()=>calc(false)));
+$("fee").addEventListener("input",()=>recompute(false));
+["cSlot","cMat","cSet"].forEach(id=>$(id).addEventListener("change",renderCraft));
+$("reload").addEventListener("click",loadLive);
+function applyMeta(){ if(DATA.ouro){ $("goldV").textContent=fmt(DATA.ouro); $("premV").textContent=fmtS(DATA.ouro*3750); } if(DATA.janela) $("when").textContent=DATA.janela; }
+async function loadCraftFamilies(){ const keys=Object.keys(PF.craft).filter(k=>PF.craft[k].lv>0); for(const k of keys){ const [s,m]=k.split("_"); await ensureFamily(s,m); } renderRecs(); renderHero(); }
+function recompute(reset){ $("resNote").textContent=RES[st.res].note; renderHeat(); calc(!!reset); renderRecs(); renderHero(); renderBuilds(); if(!$("p-craft").hidden) renderCraft(); if(LIVE) loadCraftFamilies(); }
+
+loadProfile(); renderProfile(); renderWho(); applyMeta(); renderActs("all");
+const hash=location.hash.slice(1), start=tabs.find(b=>b.id==="t-"+hash)?"t-"+hash:(store.get("tab")||"t-voce"); recompute(true); if($(start)) showTab(start,true);
+stallIntro();
+loadLive();
+
+</script>
+</body>
+</html>
