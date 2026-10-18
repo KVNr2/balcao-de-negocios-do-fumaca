@@ -126,51 +126,73 @@ function ensureFZ(){
 }
 const fzName = id => (FARM.n[id]||id).replace(/^Sementes de /,"");
 function cheapestCrop(){ let best=null; for(const r of FARM.p){ if(HERBS.test(r[0])) continue; const p=typical(r[1],0); if(p&&(!best||p.p<best.p)) best={id:r[1],p:p.p}; } return best; }
-function plantModel(r,focus){
-  const [seed,crop,t,chance,bonus,fc,npc,avg]=r; const ps=typical(seed,0), pc=typical(crop,0), pw=typical("T1_WORM",0);
+/* foco: 1.000 por semente regada ou por vez que alimenta o filhote, sem spec; a spec de cada planta e animal reduz.
+   o valor que o jogo mostra pode ser digitado na linha e fica guardado */
+let FZ_OBS={}; try{ FZ_OBS=JSON.parse(store.get("fzObs")||"{}"); }catch(e){}
+const fzSpec = () => +(store.get("fzSpec")||0);
+const fzFocus = id => FZ_OBS[id]>0 ? FZ_OBS[id] : Math.max(1,Math.round(1000*Math.pow(0.5,FCE_LV[fzSpec()]/10000)));
+function plantModel(r){
+  const [seed,crop,t,chance,bonus,,npc,avg]=r; const ps=typical(seed,0), pc=typical(crop,0), pw=typical("T1_WORM",0);
   if(!pc) return null; const sp=ps?ps.p:npc;
-  const yieldN=avg*(st.prem?2:1), back=Math.min(chance+(focus?bonus:0),2);
-  const income=yieldN*pc.p*(1-taxOf())+back*sp+(pw?0.1*pw.p:0);
-  return {seed,crop,t,sp,seedMkt:!!ps,yieldN,back,cp:pc.p,profit:income-sp,fc:focus?fc:0,thin:pc.n<2};
+  const yieldN=avg*(st.prem?2:1), back0=Math.min(chance,2), back1=Math.min(chance+bonus,2);
+  const base=yieldN*pc.p*(1-taxOf())+(pw?0.1*pw.p:0)-sp;
+  const fc=fzFocus(seed), gain=(back1-back0)*sp;
+  return {seed,crop,t,sp,seedMkt:!!ps,yieldN,back0,back1,cp:pc.p,p0:base+back0*sp,p1:base+back1*sp,fc,spf:gain/fc,thin:pc.n<2};
 }
-function animalRaise(r,focus){
-  const [baby,grown,t,hours,off,bonus,nut,fav,cat,npc]=r; if(cat!=="plants") return null;
+function animalRaise(r){
+  const [baby,grown,t,hours,off,bonus,nut,fav,cat,npc,cycles]=r; if(cat!=="plants") return null;
   const pb=typical(baby,0), pg=typical(grown,0); if(!pg) return null; const bp=pb?pb.p:npc; if(!bp) return null;
   let food=null; if(fav){ const f=typical(fav,0); if(f) food={id:fav,n:Math.ceil(nut/96),p:f.p}; }
   if(!food){ const c=cheapestCrop(); if(c) food={id:c.id,n:Math.ceil(nut/48),p:c.p}; }
-  if(!food) return null; const offs=Math.min(off+(focus?bonus:0),1);
-  const profit=pg.p*(1-taxOf())+offs*bp-bp-food.n*food.p;
-  return {baby,grown,t,hours:st.prem?hours/2:hours,bp,gp:pg.p,food,offs,profit,perDay:profit/Math.max(1,(st.prem?hours/2:hours)/24),thin:pg.n<2};
+  if(!food) return null; const n=cycles||1, o0=Math.min(off,1), o1=Math.min(off+bonus*n,1);
+  const base=pg.p*(1-taxOf())-bp-food.n*food.p, h=st.prem?hours/2:hours, days=Math.max(1,h/24);
+  const fc1=fzFocus(baby), fc=fc1*n;
+  return {baby,grown,t,hours:h,bp,gp:pg.p,food,o0,o1,n,fc1,fc,p0:base+o0*bp,p1:base+o1*bp,days,spf:(o1-o0)*bp/fc,thin:pg.n<2};
 }
 function producerModel(r){
   const [grown,item,t,avg,nut,fav]=r; const pi=typical(item,0); if(!pi) return null;
   let food=null; if(fav){ const f=typical(fav,0); if(f) food={id:fav,n:Math.ceil(nut/96),p:f.p}; }
   if(!food) return null; return {grown,item,t,avg,ip:pi.p,food,profit:avg*pi.p*(1-taxOf())-food.n*food.p,thin:pi.n<2};
 }
+function focusInput(id,val){
+  const inp=el("input",{type:"number",min:"1",value:FZ_OBS[id]>0?String(FZ_OBS[id]):"",placeholder:String(val),"aria-label":"Foco que o jogo mostra"}); inp.className="fzobs";
+  inp.addEventListener("change",()=>{ const v=+inp.value; if(v>0) FZ_OBS[id]=v; else delete FZ_OBS[id]; store.set("fzObs",JSON.stringify(FZ_OBS)); renderFZ(); });
+  return inp;
+}
 async function renderFZ(){
   const tb=$("fzTable"), note=$("fzNote");
   if(!FARM){ note.textContent="Abrindo os dados da fazenda…"; try{ FARM=await need("farm"); }catch(e){ note.textContent="Não consegui abrir os dados da fazenda."; return; } }
   if(!FZ_LOADED){ tb.textContent=""; note.textContent="Consultando sementes, colheitas e animais…"; const ok=await ensureFZ(); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } }
   const focus=$("fzFocus").checked, plots=Math.max(1,Math.min(60,+$("fzPlots").value||1));
-  tb.textContent=""; const hr=tb.createTHead().insertRow(); const body=tb.createTBody(); const row=cells=>{ const tr=body.insertRow(); cells.forEach(([v,cls])=>{ const c=tr.insertCell(); if(cls) c.className=cls; c.textContent=v; }); return tr; };
+  $("fzSpecSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.lv===fzSpec())));
+  tb.textContent=""; const hr=tb.createTHead().insertRow(); const body=tb.createTBody();
+  const cell=(tr,v,cls)=>{ const c=tr.insertCell(); if(cls) c.className=cls; if(v instanceof Node) c.append(v); else c.textContent=v; return c; };
+  const gl=v=>"num "+(v>=0?"gain":"loss");
   if(fzKind==="crop"||fzKind==="herb"){
-    ["Planta","Semente","Colheita","Sementes de volta","Lucro por semente",`Por dia em ${plots} lote${plots>1?"s":""}`].forEach(h=>hr.append(el("th",{text:h})));
-    const list=FARM.p.filter(r=>(fzKind==="herb")===HERBS.test(r[0])).map(r=>plantModel(r,focus)).filter(Boolean).sort((a,b)=>b.profit-a.profit);
-    for(const m of list) row([[`${fzName(m.crop)} T${m.t}`],[`${fmt(m.sp)}${m.seedMkt?"":" (NPC)"}`,"num"],[`${dec(m.yieldN)} × ${fmt(m.cp)}`,"num"],[`${Math.round(m.back*100)}%`,"num"],[sgn(m.profit),"num "+(m.profit>=0?"gain":"loss")],[sgn(m.profit*9*plots),"num "+(m.profit>=0?"gain":"loss")]]);
-    note.textContent=`Lote de 9 sementes, colhido a cada 22 horas. Colheita média de ${st.prem?"9 (Premium dobra)":"4,5 (sem Premium)"} por semente, pela tabela do jogo.${focus?" Regando com foco: a chance de a semente voltar sobe pelo bônus do jogo; custa 1.000 de foco por semente sem spec de fazendeiro.":" Sem regar com foco."} Inclui a chance de 10% de minhoca. Semente sem anúncio entra pelo preço do NPC.`;
+    ["Planta","Semente","Colheita","Sementes de volta","Lucro por semente",`Por dia em ${plots} lote${plots>1?"s":""}`,"Foco por semente","Prata por foco"].forEach(h=>hr.append(el("th",{text:h})));
+    const list=FARM.p.filter(r=>(fzKind==="herb")===HERBS.test(r[0])).map(plantModel).filter(Boolean).sort((a,b)=>(focus?b.p1-a.p1:b.p0-a.p0));
+    for(const m of list){ const tr=body.insertRow(), p=focus?m.p1:m.p0;
+      cell(tr,`${fzName(m.crop)} T${m.t}`); cell(tr,`${fmt(m.sp)}${m.seedMkt?"":" (NPC)"}`,"num"); cell(tr,`${dec(m.yieldN)} × ${fmt(m.cp)}`,"num");
+      cell(tr,`${Math.round((focus?m.back1:m.back0)*100)}%`,"num"); cell(tr,sgn(p),gl(p)); cell(tr,sgn(p*9*plots),gl(p));
+      cell(tr,focusInput(m.seed,m.fc),"num"); cell(tr,dec(m.spf),"num"); }
+    note.textContent=`Lote de 9 sementes, colhido a cada 22 horas. Colheita média de ${st.prem?"9 por semente (Premium dobra)":"4,5 por semente (sem Premium)"}, pela tabela do jogo, com a chance de 10% de minhoca. Regar gasta foco por semente e aumenta a chance de a semente voltar; ${focus?"a tabela já está com rega.":"marque a caixa para ver com rega."} Prata por foco é quanto cada ponto de foco devolve em sementes. Semente sem anúncio entra pelo preço do NPC.`;
   } else if(fzKind==="prod"){
     ["Animal","Produz por dia","Ração por dia","Lucro por animal por dia",`Com ${plots} ${plots>1?"animais":"animal"}`].forEach(h=>hr.append(el("th",{text:h})));
     const list=FARM.pr.map(producerModel).filter(Boolean).sort((a,b)=>b.profit-a.profit);
-    for(const m of list) row([[`${fzName(m.grown)} T${m.t}`],[`${dec(m.avg)} × ${fzName(m.item)} a ${fmt(m.ip)}`,"num"],[`${m.food.n} × ${fzName(m.food.id)} a ${fmt(m.food.p)}`,"num"],[sgn(m.profit),"num "+(m.profit>=0?"gain":"loss")],[sgn(m.profit*plots),"num "+(m.profit>=0?"gain":"loss")]]);
-    note.textContent="Animal adulto alimentado com a planta favorita (vale o dobro de nutrição), coletado uma vez por dia. Média de 9 produtos (7 a 11) pela tabela do jogo.";
+    for(const m of list){ const tr=body.insertRow(); cell(tr,`${fzName(m.grown)} T${m.t}`); cell(tr,`${dec(m.avg)} × ${fzName(m.item)} a ${fmt(m.ip)}`,"num"); cell(tr,`${m.food.n} × ${fzName(m.food.id)} a ${fmt(m.food.p)}`,"num"); cell(tr,sgn(m.profit),gl(m.profit)); cell(tr,sgn(m.profit*plots),gl(m.profit)); }
+    note.textContent="Animal adulto alimentado com a planta favorita (vale o dobro de nutrição), coletado uma vez por dia. Média de 9 produtos (7 a 11) pela tabela do jogo. O adulto não gasta foco.";
   } else {
-    ["Animal","Filhote","Ração até crescer","Adulto vende por","Filhote de volta","Lucro por animal","Por dia"].forEach(h=>hr.append(el("th",{text:h})));
-    const list=FARM.b.map(r=>animalRaise(r,focus)).filter(Boolean).sort((a,b)=>b.perDay-a.perDay);
-    for(const m of list) row([[`${fzName(m.grown)} T${m.t}`],[fmt(m.bp),"num"],[`${m.food.n} × ${fzName(m.food.id)}`,"num"],[fmt(m.gp),"num"],[`${Math.round(m.offs*100)}%`,"num"],[sgn(m.profit),"num "+(m.profit>=0?"gain":"loss")],[`${sgn(m.perDay)} em ${dec(m.hours/24)} dia${m.hours>=48?"s":""}`,"num "+(m.perDay>=0?"gain":"loss")]]);
-    note.textContent=`Do filhote ao adulto, alimentado com a planta favorita ou a mais barata. ${st.prem?"Com Premium o crescimento leva metade do tempo.":"Sem Premium o crescimento leva o dobro do tempo."} Ao pegar o adulto há chance de vir um filhote novo${focus?", maior com foco":""}. Lucro por animal vendendo o adulto no mercado.`;
+    ["Animal","Filhote","Ração até crescer","Adulto vende por","Filhote de volta","Lucro por animal","Por dia","Foco por alimentação","Prata por foco"].forEach(h=>hr.append(el("th",{text:h})));
+    const list=FARM.b.map(animalRaise).filter(Boolean).sort((a,b)=>(focus?b.p1/b.days-a.p1/a.days:b.p0/b.days-a.p0/a.days));
+    for(const m of list){ const tr=body.insertRow(), p=focus?m.p1:m.p0;
+      cell(tr,`${fzName(m.grown)} T${m.t}`); cell(tr,fmt(m.bp),"num"); cell(tr,`${m.food.n} × ${fzName(m.food.id)}`,"num"); cell(tr,fmt(m.gp),"num");
+      cell(tr,`${Math.round((focus?m.o1:m.o0)*100)}%`,"num"); cell(tr,sgn(p),gl(p)); cell(tr,`${sgn(p/m.days)} em ${dec(m.days)} dia${m.days>=2?"s":""}`,gl(p));
+      const fcell=cell(tr,focusInput(m.baby,m.fc1),"num"); if(m.n>1) fcell.append(el("span",{class:"age",text:` × ${m.n} vezes`})); cell(tr,dec(m.spf),"num"); }
+    note.textContent=`Do filhote ao adulto, alimentado com a planta favorita ou a mais barata. ${st.prem?"Com Premium o crescimento leva metade do tempo.":"Sem Premium o crescimento leva o dobro do tempo."} Alimentar com foco gasta foco a cada vez (montarias aceitam várias vezes durante o crescimento) e aumenta a chance de vir um filhote novo ao pegar o adulto${focus?"; a tabela já está com foco":""}. Lucro vendendo o adulto no mercado.`;
   }
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.02,clearProps:"opacity,transform"});
 }
 document.querySelectorAll("[data-fz]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-fz]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); fzKind=b.dataset.fz; renderFZ(); }));
-$("fzFocus").addEventListener("change",renderFZ); $("fzPlots").addEventListener("input",()=>{ if(FARM&&FZ_LOADED) renderFZ(); });
+$("fzFocus").addEventListener("change",renderFZ);
+$("fzSpecSeg").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; store.set("fzSpec",b.dataset.lv); renderFZ(); }); $("fzPlots").addEventListener("input",()=>{ if(FARM&&FZ_LOADED) renderFZ(); });
 ["bcBuild","bcTier","bcEnch"].forEach(id=>$(id).addEventListener("change",renderBC));
