@@ -1072,7 +1072,7 @@ async function renderCook(){
     .sort((a,b)=>((b.p1??-1e12)-(a.p1??-1e12)));
   for(const m of rows){ const tr=body.insertRow(); tr.tabIndex=0; tr.className="clickrow";
     const a=tr.insertCell(); a.append(m.name); if(BUILD_FOOD.includes(m.id)) a.append(" ",el("span",{class:"spec",text:"build"}));
-    tr.insertCell().textContent=`${m.q} ${m.kind==="f"?"porções":"poções"}`;
+    tr.insertCell().textContent=`${m.q} ${m.kind==="f"?(m.q>1?"porções":"porção"):(m.q>1?"poções":"poção")}`;
     if(m.miss){ const td=tr.insertCell(); td.colSpan=3; td.className="muted"; td.textContent=`Sem preço: ${m.miss}`; tr.insertCell(); continue; }
     const c=tr.insertCell(); c.className="num "+(m.p1>=0?"gain":"loss"); c.textContent=sgn(m.p1);
     const d=tr.insertCell(); d.className="num"; d.textContent=dec(m.spf);
