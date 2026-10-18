@@ -1,0 +1,1414 @@
+{
+ "atualizado": "2026-10-18",
+ "fontes": [
+  "AlbionOnlineGrind",
+  "MetaCorrupted (abr/2026)",
+  "pesquisa"
+ ],
+ "builds": [
+  {
+   "w": "Battleaxe",
+   "l": "machado",
+   "c": "brumas",
+   "pop": 207,
+   "g": [
+    "Elder's Muisak",
+    "Hunter Hood",
+    "Fiend Cowl",
+    "Mistwalker Jacket",
+    "Assassin Jacket",
+    "Soldier Boots",
+    "Cleric Sandals",
+    "Undead Cape",
+    "Avalonian Cape"
+   ],
+   "f": "Eel Stew, Puremist Snapper; poções de cura e Gigantify",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Dual Swords",
+   "l": "espada",
+   "c": "brumas",
+   "pop": 90,
+   "g": [
+    "Hunter Hood",
+    "Fiend Cowl",
+    "Mercenary Jacket",
+    "Soldier Boots",
+    "Avalonian Cape",
+    "Undead Cape"
+   ],
+   "f": "Eel Stew; cura e Gigantify",
+   "p": [
+    "up",
+    "Espadas: Heroic Strike dura 4s (era 3,5s)"
+   ]
+  },
+  {
+   "w": "Deathgivers",
+   "l": "adaga",
+   "c": "brumas",
+   "pop": 68,
+   "g": [
+    "Stalker Hood",
+    "Fiend Cowl",
+    "Mercenary Jacket",
+    "Mistwalker Jacket",
+    "Cleric Sandals",
+    "Undead Cape",
+    "Avalonian Cape"
+   ],
+   "f": "Eel Stew; cura e Gigantify",
+   "p": [
+    "up",
+    "Adagas: Bloodthirsty Blade 2,5% (era 4%)"
+   ]
+  },
+  {
+   "w": "Fists of Avalon",
+   "l": "luvas",
+   "c": "brumas",
+   "pop": 43,
+   "mc": "S",
+   "g": [
+    "Cowl of Purity",
+    "Fiend Cowl",
+    "Feyscale Robe",
+    "Assassin Jacket",
+    "Cleric Sandals",
+    "Shoes of Tenacity",
+    "Undead Cape",
+    "Avalonian Cape"
+   ],
+   "f": "Eel Stew; cura e Gigantify",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Cursed Staff",
+   "l": "maldito",
+   "c": "brumas",
+   "pop": 40,
+   "mc": "A",
+   "g": [
+    "Elder's Muisak",
+    "Guardian Helmet",
+    "Helmet of Valor",
+    "Cleric Robe",
+    "Mage Robe",
+    "Soldier Boots",
+    "Caerleon Cape"
+   ],
+   "f": "Stew; cura e Gigantify",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Prowling Staff",
+   "l": "metamorfo",
+   "c": "brumas",
+   "pop": 36,
+   "g": [
+    "Fiend Cowl",
+    "Cultist Cowl",
+    "Mistwalker Jacket",
+    "Assassin Jacket",
+    "Soldier Boots",
+    "Undead Cape"
+   ],
+   "f": "Eel Stew; cura",
+   "p": [
+    "down",
+    "Metamorfos: Tether Shift 16 de energia, escudo 88"
+   ]
+  },
+  {
+   "w": "Bloodletter",
+   "l": "adaga",
+   "c": "brumas",
+   "pop": 27,
+   "g": [
+    "Elder's Mistcaller",
+    "Cultist Cowl",
+    "Mercenary Hood",
+    "Stalker Jacket",
+    "Cleric Sandals",
+    "Avalonian Cape",
+    "Undead Cape"
+   ],
+   "f": "Eel Stew; cura e Gigantify",
+   "p": [
+    "up",
+    "Adagas: Bloodthirsty Blade 2,5% (era 4%)"
+   ]
+  },
+  {
+   "w": "Spear",
+   "l": "lanca",
+   "c": "brumas",
+   "pop": 24,
+   "mc": "A",
+   "g": [
+    "Elder's Mistcaller",
+    "Cultist Cowl",
+    "Fiend Cowl",
+    "Stalker Jacket",
+    "Soldier Boots",
+    "Undead Cape",
+    "Avalonian Cape"
+   ],
+   "f": "Puremist Snapper, Eel Stew; cura e Gigantify",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Carving Sword",
+   "l": "espada",
+   "c": "brumas",
+   "pop": 18,
+   "g": [
+    "Fiend Cowl",
+    "Mistwalker Jacket",
+    "Soldier Boots",
+    "Undead Cape",
+    "Avalonian Cape"
+   ],
+   "f": "Eel Stew, Puremist Snapper",
+   "p": [
+    "up",
+    "Espadas: Heroic Strike dura 4s (era 3,5s)"
+   ]
+  },
+  {
+   "w": "Battle Bracers",
+   "l": "luvas",
+   "c": "brumas",
+   "pop": 16,
+   "g": [
+    "Cowl of Purity",
+    "Fiend Cowl",
+    "Assassin Jacket",
+    "Scholar Sandals",
+    "Undead Cape",
+    "Avalonian Cape"
+   ],
+   "f": "Eel Stew; cura",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Bear Paws",
+   "l": "machado",
+   "c": "brumas",
+   "pop": 15,
+   "g": [
+    "Fiend Cowl",
+    "Mistwalker Jacket",
+    "Soldier Boots",
+    "Undead Cape",
+    "Avalonian Cape"
+   ],
+   "f": "Eel Stew, Puremist Snapper",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Dagger",
+   "l": "adaga",
+   "c": "brumas",
+   "pop": 14,
+   "g": [
+    "Elder's Torch",
+    "Helmet of Valor",
+    "Hunter Jacket",
+    "Cleric Sandals",
+    "Avalonian Cape"
+   ],
+   "f": "Eel Stew; cura e Gigantify",
+   "p": [
+    "up",
+    "Adagas: Bloodthirsty Blade 2,5% (era 4%)"
+   ]
+  },
+  {
+   "w": "Quarterstaff",
+   "l": "bordao",
+   "c": "brumas",
+   "pop": 12,
+   "mc": "A",
+   "g": [
+    "Cultist Cowl",
+    "Fiend Cowl",
+    "Stalker Jacket",
+    "Cleric Sandals",
+    "Avalonian Cape",
+    "Demon Cape"
+   ],
+   "f": "Eel Stew, Omelette",
+   "p": [
+    "down",
+    "Bordões: Cartwheel 7 de energia (era 5)"
+   ]
+  },
+  {
+   "w": "Great Hammer",
+   "l": "martelo",
+   "c": "brumas",
+   "pop": 11,
+   "g": [
+    "Cultist Cowl",
+    "Stalker Jacket",
+    "Cleric Sandals",
+    "Avalonian Cape"
+   ],
+   "f": "Eel Stew, Omelette; cura e Gigantify",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Double Bladed Staff",
+   "l": "bordao",
+   "c": "brumas",
+   "pop": 11,
+   "g": [
+    "Cultist Cowl",
+    "Mercenary Hood",
+    "Stalker Jacket",
+    "Cleric Sandals",
+    "Avalonian Cape"
+   ],
+   "f": "Omelette, Eel Stew",
+   "p": [
+    "down",
+    "Bordões: Cartwheel 7 de energia (era 5)"
+   ]
+  },
+  {
+   "w": "Wildfire Staff",
+   "l": "fogo",
+   "c": "brumas",
+   "pop": 9,
+   "g": [
+    "Elder's Tome of Spells",
+    "Hunter Hood",
+    "Cleric Robe",
+    "Feyscale Robe",
+    "Soldier Boots",
+    "Martlock Cape"
+   ],
+   "f": "Omelette; cura e Gigantify",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Chillhowl",
+   "l": "gelo",
+   "c": "brumas",
+   "pop": 8,
+   "mc": "A",
+   "g": [
+    "Elder's Mistcaller",
+    "Hunter Hood",
+    "Cowl of Purity",
+    "Cultist Robe",
+    "Assassin Jacket",
+    "Soldier Boots",
+    "Lymhurst Cape"
+   ],
+   "f": "Omelette; cura e Gigantify",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Boltcasters",
+   "l": "besta",
+   "c": "brumas",
+   "pop": 7,
+   "g": [
+    "Hunter Hood",
+    "Guardian Helmet",
+    "Cleric Robe",
+    "Soldier Boots",
+    "Martlock Cape"
+   ],
+   "f": "Eel Stew, Puremist Snapper",
+   "p": [
+    "down",
+    "Bestas: Explosive Bolt 119 (era 130)"
+   ]
+  },
+  {
+   "w": "Flamewalker Staff",
+   "l": "fogo",
+   "c": "brumas",
+   "pop": 7,
+   "mc": "A",
+   "g": [
+    "Elder's Mistcaller",
+    "Helmet of Valor",
+    "Feyscale Robe",
+    "Shoes of Tenacity",
+    "Smuggler Cape"
+   ],
+   "f": "Omelette, Puremist Snapper",
+   "p": [
+    "down",
+    "Spontaneous Combustion 45s (era 40s)"
+   ]
+  },
+  {
+   "w": "Bow of Badon",
+   "l": "arco",
+   "c": "brumas",
+   "pop": 7,
+   "g": [
+    "Cowl of Purity",
+    "Hunter Hood",
+    "Mistwalker Jacket",
+    "Soldier Boots",
+    "Undead Cape"
+   ],
+   "f": "Omelette, Eel Stew",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Fire Staff",
+   "l": "fogo",
+   "c": "brumas",
+   "pop": 7,
+   "g": [
+    "Elder's Mistcaller",
+    "Soldier Helmet",
+    "Hunter Hood",
+    "Feyscale Robe",
+    "Cleric Robe",
+    "Soldier Boots",
+    "Martlock Cape"
+   ],
+   "f": "Omelette; cura e Gigantify",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Frost Staff",
+   "l": "gelo",
+   "c": "brumas",
+   "pop": 7,
+   "g": [
+    "Elder's Leering Cane",
+    "Cowl of Purity",
+    "Assassin Jacket",
+    "Soldier Boots",
+    "Thetford Cape"
+   ],
+   "f": "Omelette; cura",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Light Crossbow",
+   "l": "besta",
+   "c": "brumas",
+   "pop": 6,
+   "g": [
+    "Elder's Muisak",
+    "Guardian Helmet",
+    "Cleric Robe",
+    "Soldier Boots",
+    "Martlock Cape"
+   ],
+   "f": "Eel Stew, Puremist Snapper",
+   "p": [
+    "down",
+    "Bestas: Explosive Bolt 119 (era 130)"
+   ]
+  },
+  {
+   "w": "Arclight Blasters",
+   "l": "besta",
+   "c": "brumas",
+   "pop": 0,
+   "mc": "S",
+   "g": [
+    "Helmet of Valor ou Fiend Cowl",
+    "Mistwalker Jacket ou Cultist Robe",
+    "Scholar Sandals",
+    "Caerleon ou Brecilien Cape"
+   ],
+   "f": "Puremist Snapper ou Eel Stew",
+   "p": [
+    "down",
+    "Bestas: Explosive Bolt 119 (era 130)"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Forcepulse Bracers",
+   "l": "luvas",
+   "c": "brumas",
+   "pop": 5,
+   "g": [
+    "Helmet of Valor",
+    "Fiend Cowl",
+    "Mercenary Jacket",
+    "Scholar Sandals",
+    "Smuggler Cape"
+   ],
+   "f": "Puremist Snapper, Eel Stew",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Hellfire Hands",
+   "l": "luvas",
+   "c": "brumas",
+   "pop": 4,
+   "g": [
+    "Cleric Robe",
+    "Assassin Shoes",
+    "Hellion Shoes",
+    "Keeper Cape"
+   ],
+   "f": "Stew; cura e Gigantify",
+   "p": [
+    "up",
+    "Infernal Boulder 24 por tick (era 18)"
+   ]
+  },
+  {
+   "w": "Mistpiercer",
+   "l": "arco",
+   "c": "brumas",
+   "pop": 4,
+   "g": [
+    "Royal Helmet",
+    "Assassin Jacket",
+    "Soldier Boots",
+    "Morgana Cape"
+   ],
+   "f": "Beef Sandwich",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Arcano (build Life Ender)",
+   "l": "arcano",
+   "c": "brumas",
+   "pop": 4,
+   "g": [
+    "Elder's Mistcaller",
+    "Mage Cowl",
+    "Cowl of Purity",
+    "Mercenary Jacket",
+    "Demon Boots",
+    "Royal Boots",
+    "Thetford Cape"
+   ],
+   "f": "Stew, Pork",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Warbow",
+   "l": "arco",
+   "c": "brumas",
+   "pop": 4,
+   "g": [
+    "Guardian Helmet",
+    "Cowl of Purity",
+    "Assassin Jacket",
+    "Soldier Boots",
+    "Undead Cape"
+   ],
+   "f": "Omelette",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Infinity Blade",
+   "l": "espada",
+   "c": "brumas",
+   "pop": 3,
+   "g": [
+    "Elder's Facebreaker",
+    "Helmet of Valor",
+    "Mistwalker Jacket",
+    "Boots of Valor",
+    "Undead Cape"
+   ],
+   "f": "Eel Stew, Puremist Snapper",
+   "p": [
+    "up",
+    "Espadas: Heroic Strike dura 4s (era 3,5s)"
+   ]
+  },
+  {
+   "w": "Arcane Staff",
+   "l": "arcano",
+   "c": "brumas",
+   "pop": 2,
+   "mc": "A",
+   "g": [
+    "Elder's Muisak",
+    "Cowl of Purity",
+    "Mercenary Jacket",
+    "Cleric Sandals",
+    "Thetford Cape"
+   ],
+   "f": "Eel Stew",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Mace",
+   "l": "maca",
+   "c": "brumas",
+   "pop": 2,
+   "g": [
+    "Elder's Mistcaller",
+    "Cultist Cowl",
+    "Stalker Jacket",
+    "Hunter Shoes",
+    "Demon Cape"
+   ],
+   "f": "Stew; poção de veneno",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Pike",
+   "l": "lanca",
+   "c": "brumas",
+   "pop": 2,
+   "g": [
+    "Stalker Hood",
+    "Cleric Robe",
+    "Knight Boots",
+    "Thetford Cape"
+   ],
+   "f": "Eel Stew",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Lightcaller",
+   "l": "metamorfo",
+   "c": "brumas",
+   "pop": 0,
+   "mc": "S",
+   "g": [
+    "Fiend ou Mage Cowl",
+    "Robe of Purity ou Cultist Robe",
+    "Scholar Sandals",
+    "Caerleon ou Lymhurst Cape"
+   ],
+   "f": "Eel Stew",
+   "p": [
+    "down",
+    "Metamorfos: Tether Shift 16 de energia, escudo 88"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Arcane Staff",
+   "l": "arcano",
+   "c": "corrompidas",
+   "pop": 84,
+   "mc": "A",
+   "g": [
+    "Elder's Mistcaller",
+    "Hunter Hood",
+    "Mercenary Jacket",
+    "Soldier Boots",
+    "Thetford Cape"
+   ],
+   "f": "Omelette; cura e Gigantify",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Bow of Badon",
+   "l": "arco",
+   "c": "corrompidas",
+   "pop": 39,
+   "g": [
+    "Soldier Helmet",
+    "Hunter Hood",
+    "Assassin Jacket",
+    "Mistwalker Jacket",
+    "Soldier Boots",
+    "Thetford Cape"
+   ],
+   "f": "Omelette, Eel Stew",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Spear",
+   "l": "lanca",
+   "c": "corrompidas",
+   "pop": 31,
+   "mc": "A",
+   "g": [
+    "Elder's Taproot",
+    "Cultist Cowl",
+    "Fiend Cowl",
+    "Jacket of Tenacity",
+    "Stalker Jacket",
+    "Soldier Boots",
+    "Thetford Cape"
+   ],
+   "f": "Puremist Snapper, Eel Stew",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Battleaxe",
+   "l": "machado",
+   "c": "corrompidas",
+   "pop": 27,
+   "g": [
+    "Elder's Muisak",
+    "Hunter Hood",
+    "Fiend Cowl",
+    "Mercenary Jacket",
+    "Mistwalker Jacket",
+    "Soldier Boots",
+    "Thetford Cape"
+   ],
+   "f": "Puremist Snapper, Eel Stew",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Fire Staff",
+   "l": "fogo",
+   "c": "corrompidas",
+   "pop": 25,
+   "g": [
+    "Elder's Mistcaller",
+    "Soldier Helmet",
+    "Hunter Hood",
+    "Cultist Robe",
+    "Soldier Boots",
+    "Martlock Cape"
+   ],
+   "f": "Omelette",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Trinity Spear",
+   "l": "lanca",
+   "c": "corrompidas",
+   "pop": 11,
+   "g": [
+    "Hunter Hood",
+    "Cleric Robe",
+    "Mistwalker Jacket",
+    "Soldier Boots",
+    "Thetford Cape"
+   ],
+   "f": "Puremist Snapper",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Bow",
+   "l": "arco",
+   "c": "corrompidas",
+   "pop": 11,
+   "g": [
+    "Hunter Hood",
+    "Fiend Cowl",
+    "Mercenary Jacket",
+    "Soldier Boots",
+    "Thetford Cape"
+   ],
+   "f": "Puremist Snapper, Eel Stew",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Cursed Skull",
+   "l": "maldito",
+   "c": "corrompidas",
+   "pop": 10,
+   "g": [
+    "Hunter Hood",
+    "Mercenary Jacket",
+    "Soldier Boots",
+    "Martlock Cape"
+   ],
+   "f": "Puremist Snapper",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Deathgivers",
+   "l": "adaga",
+   "c": "corrompidas",
+   "pop": 10,
+   "g": [
+    "Fiend Cowl",
+    "Stalker Hood",
+    "Mercenary Jacket",
+    "Mistwalker Jacket",
+    "Cleric Sandals",
+    "Thetford Cape"
+   ],
+   "f": "Eel Stew, Puremist Snapper",
+   "p": [
+    "up",
+    "Adagas: Bloodthirsty Blade 2,5% (era 4%)"
+   ]
+  },
+  {
+   "w": "Dual Swords",
+   "l": "espada",
+   "c": "corrompidas",
+   "pop": 10,
+   "g": [
+    "Hunter Hood",
+    "Fiend Cowl",
+    "Mercenary Jacket",
+    "Soldier Boots",
+    "Thetford Cape"
+   ],
+   "f": "Eel Stew, Puremist Snapper",
+   "p": [
+    "up",
+    "Espadas: Heroic Strike dura 4s (era 3,5s)"
+   ]
+  },
+  {
+   "w": "Fists of Avalon",
+   "l": "luvas",
+   "c": "corrompidas",
+   "pop": 8,
+   "mc": "S",
+   "g": [
+    "Cultist Cowl",
+    "Fiend Cowl",
+    "Mistwalker Jacket",
+    "Cleric Sandals",
+    "Thetford Cape"
+   ],
+   "f": "Eel Stew",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Skystrider Bow",
+   "l": "arco",
+   "c": "corrompidas",
+   "pop": 8,
+   "mc": "A",
+   "g": [
+    "Cowl of Purity",
+    "Mage Cowl",
+    "Mistwalker Jacket",
+    "Assassin Jacket",
+    "Royal Boots",
+    "Soldier Boots",
+    "Smuggler Cape"
+   ],
+   "f": "Eel Stew, Omelette",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Broadsword",
+   "l": "espada",
+   "c": "corrompidas",
+   "pop": 7,
+   "g": [
+    "Elder's Facebreaker",
+    "Hunter Hood",
+    "Mercenary Jacket",
+    "Scholar Sandals",
+    "Martlock Cape"
+   ],
+   "f": "Pork",
+   "p": [
+    "up",
+    "Espadas: Heroic Strike dura 4s (era 3,5s)"
+   ]
+  },
+  {
+   "w": "Primal Staff",
+   "l": "metamorfo",
+   "c": "corrompidas",
+   "pop": 4,
+   "g": [
+    "Soldier Helmet",
+    "Hunter Hood",
+    "Cultist Robe",
+    "Soldier Boots",
+    "Martlock Cape"
+   ],
+   "f": "Eel Stew",
+   "p": [
+    "down",
+    "Metamorfos: Tether Shift 16 de energia, escudo 88"
+   ]
+  },
+  {
+   "w": "Lifetouch Staff",
+   "l": "sagrado",
+   "c": "corrompidas",
+   "pop": 4,
+   "g": [
+    "Elder's Mistcaller",
+    "Guardian Helmet",
+    "Hunter Hood",
+    "Cleric Robe",
+    "Mage Robe",
+    "Sandals of Purity",
+    "Smuggler Cape"
+   ],
+   "f": "Omelette",
+   "p": [
+    "down",
+    "Smite em PvP 115 (era 136)"
+   ]
+  },
+  {
+   "w": "Great Frost Staff",
+   "l": "gelo",
+   "c": "corrompidas",
+   "pop": 4,
+   "g": [
+    "Hunter Hood",
+    "Soldier Helmet",
+    "Cultist Robe",
+    "Soldier Boots",
+    "Martlock Cape"
+   ],
+   "f": "Omelette",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Claymore",
+   "l": "espada",
+   "c": "corrompidas",
+   "pop": 4,
+   "mc": "A",
+   "g": [
+    "Fiend Cowl",
+    "Cultist Cowl",
+    "Cleric Robe",
+    "Soldier Armor",
+    "Soldier Boots",
+    "Thetford Cape"
+   ],
+   "f": "Eel Stew",
+   "p": [
+    "up",
+    "Espadas: Heroic Strike dura 4s (era 3,5s)"
+   ]
+  },
+  {
+   "w": "Chillhowl",
+   "l": "gelo",
+   "c": "corrompidas",
+   "pop": 3,
+   "mc": "A",
+   "g": [
+    "Elder's Mistcaller",
+    "Soldier Helmet",
+    "Hunter Hood",
+    "Cultist Robe",
+    "Soldier Boots",
+    "Lymhurst Cape"
+   ],
+   "f": "Omelette",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Quarterstaff",
+   "l": "bordao",
+   "c": "corrompidas",
+   "pop": 3,
+   "mc": "A",
+   "g": [
+    "Hunter Hood",
+    "Specter Hood",
+    "Mercenary Jacket",
+    "Knight Boots",
+    "Martlock Cape"
+   ],
+   "f": "Puremist Snapper",
+   "p": [
+    "down",
+    "Bordões: Cartwheel 7 de energia (era 5)"
+   ]
+  },
+  {
+   "w": "Light Crossbow",
+   "l": "besta",
+   "c": "corrompidas",
+   "pop": 3,
+   "g": [
+    "Elder's Facebreaker",
+    "Helmet of Valor",
+    "Mercenary Jacket",
+    "Soldier Boots",
+    "Martlock Cape"
+   ],
+   "f": "Pork, Stew",
+   "p": [
+    "down",
+    "Bestas: Explosive Bolt 119 (era 130)"
+   ]
+  },
+  {
+   "w": "Daybreaker",
+   "l": "lanca",
+   "c": "corrompidas",
+   "pop": 3,
+   "g": [
+    "Elder's Taproot",
+    "Fiend Cowl",
+    "Hunter Hood",
+    "Mistwalker Jacket",
+    "Soldier Boots",
+    "Thetford Cape"
+   ],
+   "f": "Puremist Snapper",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Forgebark Staff",
+   "l": "natureza",
+   "c": "corrompidas",
+   "pop": 3,
+   "mc": "A",
+   "g": [
+    "Elder's Facebreaker",
+    "Cowl of Purity",
+    "Guardian Helmet",
+    "Assassin Jacket",
+    "Stalker Shoes",
+    "Thetford Cape"
+   ],
+   "f": "Omelette",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Holy Staff",
+   "l": "sagrado",
+   "c": "corrompidas",
+   "pop": 2,
+   "mc": "A",
+   "g": [
+    "Elder's Celestial Censer",
+    "Mage Cowl",
+    "Mage Robe",
+    "Cleric Sandals",
+    "Martlock Cape"
+   ],
+   "f": "Omelette",
+   "p": [
+    "down",
+    "Smite em PvP 115 (era 136)"
+   ]
+  },
+  {
+   "w": "Tombhammer",
+   "l": "martelo",
+   "c": "corrompidas",
+   "pop": 2,
+   "g": [
+    "Cultist Cowl",
+    "Soldier Armor",
+    "Scholar Sandals",
+    "Caerleon Cape"
+   ],
+   "f": "Beef Stew; veneno",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Great Hammer",
+   "l": "martelo",
+   "c": "corrompidas",
+   "pop": 1,
+   "g": [
+    "Cultist Cowl",
+    "Soldier Armor",
+    "Stalker Jacket",
+    "Cleric Sandals",
+    "Thetford Cape"
+   ],
+   "f": "Eel Stew",
+   "p": [
+    "flat",
+    "sem mudança"
+   ]
+  },
+  {
+   "w": "Twin Slayers",
+   "l": "adaga",
+   "c": "corrompidas",
+   "pop": 2,
+   "g": [
+    "Duskweaver Helmet",
+    "Assassin Hood",
+    "Feyscale Robe",
+    "Mage Robe",
+    "Cultist Sandals",
+    "Avalonian Cape"
+   ],
+   "f": "Stew; veneno e Gigantify",
+   "p": [
+    "up",
+    "Ring of Death 36 (era 27), área dobrada"
+   ]
+  },
+  {
+   "w": "Arclight Blasters",
+   "l": "besta",
+   "c": "corrompidas",
+   "pop": 0,
+   "mc": "S",
+   "g": [
+    "Helmet of Valor ou Fiend Cowl",
+    "Mistwalker Jacket ou Cultist Robe",
+    "Scholar Sandals",
+    "Caerleon ou Brecilien Cape"
+   ],
+   "f": "Puremist Snapper ou Eel Stew",
+   "p": [
+    "down",
+    "Bestas: Explosive Bolt 119 (era 130)"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Lightcaller",
+   "l": "metamorfo",
+   "c": "corrompidas",
+   "pop": 0,
+   "mc": "S",
+   "g": [
+    "Fiend ou Mage Cowl",
+    "Robe of Purity ou Cultist Robe",
+    "Scholar Sandals",
+    "Caerleon ou Lymhurst Cape"
+   ],
+   "f": "Eel Stew",
+   "p": [
+    "down",
+    "Metamorfos: Tether Shift 16 de energia, escudo 88"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Flamewalker Staff",
+   "l": "fogo",
+   "c": "corrompidas",
+   "pop": 0,
+   "mc": "A",
+   "g": [
+    "Fiend ou Mage Cowl",
+    "Robe of Purity ou Cultist Robe",
+    "Scholar Sandals",
+    "Caerleon Cape"
+   ],
+   "f": "Eel Stew",
+   "p": [
+    "down",
+    "Spontaneous Combustion 45s (era 40s)"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Shadowcaller",
+   "l": "maldito",
+   "c": "corrompidas",
+   "pop": 0,
+   "mc": "A",
+   "g": [],
+   "f": "",
+   "p": [
+    "flat",
+    "sem mudança"
+   ],
+   "src": "MetaCorrupted"
+  },
+  {
+   "w": "Bloodmoon Staff",
+   "l": "metamorfo",
+   "c": "corrompidas",
+   "pop": 0,
+   "mc": "A",
+   "g": [],
+   "f": "",
+   "p": [
+    "down",
+    "Metamorfos: Tether Shift 16 de energia, escudo 88"
+   ],
+   "src": "MetaCorrupted"
+  },
+  {
+   "w": "Battleaxe",
+   "l": "machado",
+   "c": "barato",
+   "pop": 0,
+   "g": [
+    "Hunter Hood",
+    "Mercenary Jacket",
+    "Scholar Sandals",
+    "Thetford Cape"
+   ],
+   "f": "Roast Pork 7.1 ou Beef Stew 8.0; cura T6",
+   "p": [
+    "flat",
+    "sem mudança"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Dual Swords",
+   "l": "espada",
+   "c": "barato",
+   "pop": 0,
+   "g": [
+    "Hunter Hood",
+    "Mercenary Jacket",
+    "Soldier Boots",
+    "Avalonian Cape"
+   ],
+   "f": "Beef Stew 8.0; cura ou Gigantify",
+   "p": [
+    "up",
+    "Espadas: Heroic Strike dura 4s (era 3,5s)"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "1H Spear",
+   "l": "lanca",
+   "c": "barato",
+   "pop": 0,
+   "g": [
+    "Mage Cowl",
+    "Assassin Jacket",
+    "Scholar Sandals",
+    "Thetford Cape"
+   ],
+   "f": "Red Eel Stew 8.0 ou Omelette 7.1; cura T6",
+   "p": [
+    "flat",
+    "sem mudança"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Quarterstaff",
+   "l": "bordao",
+   "c": "barato",
+   "pop": 0,
+   "g": [
+    "Soldier Helmet",
+    "Assassin Jacket",
+    "Hunter Shoes",
+    "Thetford Cape"
+   ],
+   "f": "Beef Stew 8.1; cura ou veneno",
+   "p": [
+    "down",
+    "Bordões: Cartwheel 7 de energia (era 5)"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Bloodletter",
+   "l": "adaga",
+   "c": "barato",
+   "pop": 0,
+   "g": [
+    "Fiend Cowl",
+    "Stalker Jacket",
+    "Scholar Sandals",
+    "Undead Cape"
+   ],
+   "f": "Beef Stew 8.0; invisibilidade ou Gigantify",
+   "p": [
+    "up",
+    "Adagas: Bloodthirsty Blade 2,5% (era 4%)"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Druidic Staff",
+   "l": "natureza",
+   "c": "pve",
+   "pop": 0,
+   "g": [
+    "Mercenary Jacket"
+   ],
+   "f": "Portal S.A.F.E., acampamentos e solar masmorra de grupo",
+   "p": [
+    "flat",
+    "sem mudança"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Blight Staff",
+   "l": "natureza",
+   "c": "pve",
+   "pop": 0,
+   "g": [],
+   "f": "Portal S.A.F.E. e acampamentos dinâmicos",
+   "p": [
+    "flat",
+    "sem mudança"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Great Axe",
+   "l": "machado",
+   "c": "pve",
+   "pop": 0,
+   "g": [],
+   "f": "Portal S.A.F.E. com set barato",
+   "p": [
+    "flat",
+    "sem mudança"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Shadowcaller",
+   "l": "maldito",
+   "c": "pve",
+   "pop": 0,
+   "g": [],
+   "f": "Acampamentos T7 e T8",
+   "p": [
+    "flat",
+    "sem mudança"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Bloodmoon Staff",
+   "l": "metamorfo",
+   "c": "pve",
+   "pop": 0,
+   "g": [],
+   "f": "Solar masmorra de grupo e estática",
+   "p": [
+    "down",
+    "Metamorfos: Tether Shift 16 de energia, escudo 88"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "1H Dagger",
+   "l": "adaga",
+   "c": "pve",
+   "pop": 0,
+   "g": [
+    "Hunter Jacket"
+   ],
+   "f": "Rastreio solo: mata a presa rápido",
+   "p": [
+    "up",
+    "Adagas: Bloodthirsty Blade 2,5% (era 4%)"
+   ],
+   "src": "pesquisa"
+  },
+  {
+   "w": "Forge Hammers",
+   "l": "martelo",
+   "c": "pve",
+   "pop": 0,
+   "g": [],
+   "f": "Rastreio solo: segura quem tenta roubar a caçada",
+   "p": [
+    "flat",
+    "sem mudança"
+   ],
+   "src": "pesquisa"
+  }
+ ]
+}
