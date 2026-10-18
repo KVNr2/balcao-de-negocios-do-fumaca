@@ -260,6 +260,12 @@ td.best{box-shadow:inset 0 0 0 1px var(--tile-2)}
 .mu .src a{color:var(--smoke)}
 .mu.mine{border-color:var(--tile)}
 
+.stall{position:relative}
+svg.burst{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
+.sign h1 .big{position:relative}
+.sign h1 .big .sweep{position:absolute;inset:0;color:transparent;pointer-events:none;opacity:0;text-shadow:none;
+  background:linear-gradient(100deg,transparent 35%,rgba(255,244,214,.95) 50%,transparent 65%) 160% 0/250% 100% no-repeat;-webkit-background-clip:text;background-clip:text}
+
 </style>
 </head>
 <body>
@@ -1390,6 +1396,44 @@ function moveTabLamp(btn, instant){
   if(!FX.ok||RM||instant) gsap.set(lamp,vars); else gsap.to(lamp,{...vars,duration:.45,ease:"back.out(1.6)"});
 }
 
+
+/* nome saindo de um sopro de fumaça de dentro da barraca */
+function smokeTitle(tl,chars,sweep){
+  const stall=document.querySelector(".stall"), big=$("bigTitle"), NS="http://www.w3.org/2000/svg";
+  const lite=matchMedia("(max-width:600px), (pointer:coarse)").matches;
+  const sr=stall.getBoundingClientRect(), br=big.getBoundingClientRect();
+  const W=Math.round(sr.width), H=Math.round(sr.height), cx=br.left-sr.left+br.width/2;
+  const svg=document.createElementNS(NS,"svg"); svg.setAttribute("class","burst"); svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.setAttribute("aria-hidden","true");
+  svg.innerHTML=`<defs><radialGradient id="burstG"><stop offset="0" stop-color="#efe2c4" stop-opacity=".34"/><stop offset=".55" stop-color="#cdbd9c" stop-opacity=".12"/><stop offset="1" stop-color="#cdbd9c" stop-opacity="0"/></radialGradient>
+    <filter id="smokeF" x="-25%" y="-60%" width="150%" height="220%" color-interpolation-filters="sRGB"><feTurbulence id="smTurb" type="fractalNoise" baseFrequency="0.011 0.028" numOctaves="2" seed="7" result="n"/><feDisplacementMap id="smDisp" in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur id="smBlur" in="d" stdDeviation="0"/></filter></defs>`;
+  stall.append(svg);
+  const puffs=[]; const n=lite?9:14, R=Math.max(60,br.height*.75);
+  for(let i=0;i<n;i++){ const rx=gsap.utils.random(R*.6,R*1.25); const e=document.createElementNS(NS,"ellipse"); e.setAttribute("cx",cx); e.setAttribute("cy",H-30); e.setAttribute("rx",rx); e.setAttribute("ry",rx*.78); e.setAttribute("fill","url(#burstG)"); svg.append(e); puffs.push(e); }
+  const rise=(br.top-sr.top+br.height/2)-(H-30), spread=Math.max(br.width*.55,140);
+  gsap.set(puffs,{opacity:0,scale:.25,transformOrigin:"50% 50%"});
+  tl.to(puffs,{opacity:()=>gsap.utils.random(.55,.9),scale:()=>gsap.utils.random(1.1,1.9),x:()=>gsap.utils.random(-spread,spread),y:()=>rise+gsap.utils.random(-50,40),duration:1.25,ease:"power3.out",stagger:{each:.035,from:"center"}},"title")
+    .to(puffs,{opacity:0,y:"-=130",x:()=>"+="+gsap.utils.random(-60,60),scale:"+=0.8",duration:1.9,ease:"sine.in",stagger:.03,onComplete:()=>svg.remove()},"title+=1.05");
+  gsap.set(chars,{opacity:0});
+  if(!lite){
+    const o={s:110,b:7,f:0.011}, disp=$("smDisp"), blur=$("smBlur"), turb=$("smTurb");
+    tl.add(()=>{ big.style.filter="url(#smokeF)"; },"title+=.3")
+      .fromTo(o,{s:110,b:7,f:0.011},{s:0,b:0,f:0.02,duration:1.7,ease:"power2.out",onUpdate:()=>{ disp.setAttribute("scale",o.s.toFixed(1)); blur.setAttribute("stdDeviation",o.b.toFixed(2)); turb.setAttribute("baseFrequency",`${o.f.toFixed(4)} ${(o.f*2.5).toFixed(4)}`); },onComplete:()=>{ big.style.filter=""; }},"title+=.3")
+      .fromTo(chars,{opacity:0,y:26,scale:1.35},{opacity:1,y:0,scale:1,duration:1.15,ease:"power3.out",stagger:{each:.08,from:"center"}},"title+=.35");
+  } else {
+    tl.fromTo(chars,{opacity:0,y:22,scale:1.25,filter:"blur(12px)"},{opacity:1,y:0,scale:1,filter:"blur(0px)",duration:1.05,ease:"power3.out",stagger:{each:.08,from:"center"},clearProps:"filter"},"title+=.35");
+  }
+  tl.from(".sign .kicker",{opacity:0,y:10,filter:"blur(6px)",duration:.7,ease:"power2.out",clearProps:"filter"},"title+=1.15");
+  // clarão das lanternas acendendo as letras
+  tl.to(".lantern .glow",{scale:1.7,opacity:1,transformOrigin:"50% 50%",duration:.18,ease:"power2.out"},"title+=1.75")
+    .to(".lantern .pane",{fill:"#fff1c9",duration:.18},"title+=1.75")
+    .to(".lantern .glow",{scale:1,duration:.9,ease:"power2.inOut"},"title+=1.95")
+    .to(".lantern .pane",{fill:"#e8ab45",duration:.9,clearProps:"fill"},"title+=1.95")
+    .fromTo(big,{textShadow:"0 0 30px rgba(232,171,69,.35)"},{textShadow:"0 0 46px rgba(255,214,140,.95)",duration:.18,ease:"power2.out",immediateRender:false},"title+=1.75")
+    .to(big,{textShadow:"0 0 30px rgba(232,171,69,.35)",duration:1,ease:"power2.inOut"},"title+=1.95")
+    .fromTo(sweep,{opacity:1,backgroundPosition:"160% 0"},{backgroundPosition:"-60% 0",duration:.9,ease:"power2.inOut",immediateRender:false},"title+=1.75")
+    .set(sweep,{opacity:0});
+}
+
 function stallIntro(){
   addFlourishes();
   if(!FX.ok) return;
@@ -1398,12 +1442,13 @@ function stallIntro(){
     const tl=gsap.timeline();
     let chars=[$("bigTitle")];
     if(window.SplitText){ const sp=SplitText.create("#bigTitle",{type:"chars",charsClass:"ch"}); chars=sp.chars; }
+    const sw=el("span",{class:"sweep","aria-hidden":"true",text:$("bigTitle").textContent}); $("bigTitle").append(sw);
     tl.from(".awning",{scaleY:0,transformOrigin:"50% 0%",duration:.9,ease:"elastic.out(1,.55)"})
       .from(".tassel",{rotation:gsap.utils.wrap([18,-18]),svgOrigin:(i,t)=>t.dataset.o,duration:1.2,ease:"elastic.out(1.2,.3)",stagger:{each:.02,from:"center"}},"<.25")
-      .from(".sign .kicker",{y:14,autoAlpha:0,duration:.5},"-=1")
-      .from(chars,{yPercent:120,rotationX:-80,autoAlpha:0,transformOrigin:"50% 100%",duration:.8,stagger:.06,ease:"back.out(2)"},"-=.7")
-      .from(".lantern",{y:-90,autoAlpha:0,duration:1.1,stagger:.2,ease:"bounce.out"},"-=.9")
-      .from(".deal > *",{y:16,autoAlpha:0,duration:.5,stagger:.08,clearProps:"opacity,visibility,transform"},"-=.7")
+      .addLabel("title",.35);
+    smokeTitle(tl,chars,sw);
+    tl.from(".lantern",{y:-90,autoAlpha:0,duration:1.1,stagger:.2,ease:"bounce.out"},"title+=.3")
+      .from(".deal > *",{y:16,autoAlpha:0,duration:.5,stagger:.08,clearProps:"opacity,visibility,transform"},"title+=1.1")
       .from(".ledger-book",{x:-40,rotationY:-24,transformPerspective:900,transformOrigin:"0% 50%",autoAlpha:0,duration:.7,ease:"power3.out",clearProps:"transform,opacity,visibility"},"-=.6")
       .from("nav.tabs button, nav.tabs .grp",{x:-14,autoAlpha:0,duration:.32,stagger:.025,clearProps:"opacity,visibility,transform"},"-=.45")
       .add(()=>moveTabLamp(document.querySelector('nav.tabs [aria-selected="true"]'),true));
@@ -1414,7 +1459,7 @@ function stallIntro(){
     gsap.utils.toArray(".puff").forEach((p,i)=>{ const t=gsap.timeline({repeat:-1,delay:i*.55});
       t.fromTo(p,{y:40,scale:.4,autoAlpha:0},{y:-120,scale:1.1,autoAlpha:.55,duration:3.2,ease:"sine.out"}).to(p,{y:-300,scale:1.9,autoAlpha:0,duration:3.6,ease:"sine.in"});
       gsap.to(p,{x:"+=34",duration:2.4+i*.25,yoyo:true,repeat:-1,ease:"sine.inOut"}); });
-    gsap.to("#bigTitle",{textShadow:"0 0 46px rgba(232,171,69,.6)",duration:2.4,yoyo:true,repeat:-1,ease:"sine.inOut",delay:2});
+    gsap.to("#bigTitle",{textShadow:"0 0 46px rgba(232,171,69,.6)",duration:2.4,yoyo:true,repeat:-1,ease:"sine.inOut",delay:3.6});
     if(window.ScrollTrigger){
       gsap.to(".lanterns",{yPercent:22,ease:"none",scrollTrigger:{trigger:".stall",start:"top top",end:"bottom top",scrub:true}});
       gsap.to(".smoke",{yPercent:-18,ease:"none",scrollTrigger:{trigger:".stall",start:"top top",end:"bottom top",scrub:true}});
