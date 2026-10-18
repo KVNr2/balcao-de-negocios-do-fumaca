@@ -2,10 +2,25 @@
 
 Site do grupo para fazer prata no Albion Online (servidor Américas).
 
-- Preços ao vivo do [Albion Data Project](https://www.albion-online-data.com/), puxados pelo navegador de quem abre a página.
-- Cada jogador preenche a própria ficha (armas, armaduras, coleta, refino e craft). A ficha fica salva no navegador dele e pode ser copiada para outro computador.
-- Recomendações de refino, craft, builds e coleta a partir da ficha.
+- Preços ao vivo do [Albion Data Project](https://www.albion-online-data.com/), puxados pelo navegador de quem abre a página e guardados por 10 minutos no próprio navegador.
+- Cada jogador preenche a própria ficha. A ficha fica salva no navegador dele e pode ser copiada para outro computador.
+- Recomendações de refino, craft, encantamento, cozinha, fazenda, coleta e builds a partir da ficha.
 
-O site inteiro é o arquivo `index.html`. Para publicar: Settings > Pages > Branch `main`, pasta `/ (root)`.
+## Como está organizado
+
+- `index.html`: a página (estrutura e textos).
+- `css/balcao.css`: a identidade visual.
+- `js/base.js`: ficha, preços, cache da API, refino, craft, cozinha, histórico e mapas.
+- `js/fx.js`: efeitos com GSAP (fumaça do título, lanternas, menu em livro); as animações de fundo param fora da tela.
+- `js/biz.js`: Mercado Negro, trabalhadores e matchups.
+- `js/novos.js`: custo da build, encantar e ilha e fazenda.
+- `js/main.js`: troca de páginas e inicialização.
+- `data/*.json`: dados fixos tirados dos arquivos do jogo (receitas, mapas, diários, fazenda, peças) e a foto de preços de reserva. Cada um só é baixado quando a página que usa é aberta.
+- `builds.json`: builds da semana, atualizado aos domingos por uma tarefa agendada.
+- `efeitos.html`: página de teste dos efeitos do título.
+
+Os arquivos levam `?v=` com um código de versão no `index.html`; ao trocar um arquivo, trocar também esse código para o navegador não usar a versão antiga.
+
+O site não aparece em buscadores (`robots.txt` e `noindex`). Publicação: Settings > Pages > Branch `main`, pasta `/ (root)`.
 
 Albion Online é da Sandbox Interactive, sem ligação com este site.
