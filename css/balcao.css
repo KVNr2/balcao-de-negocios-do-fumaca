@@ -253,3 +253,18 @@ svg.burst{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 .sign h1 .big{position:relative}
 .sign h1 .big .sweep{position:absolute;inset:0;color:transparent;pointer-events:none;opacity:0;text-shadow:none;
   background:linear-gradient(100deg,transparent 35%,rgba(255,244,214,.95) 50%,transparent 65%) 160% 0/250% 100% no-repeat;-webkit-background-clip:text;background-clip:text}
+
+/* ---------- guia de cada página ---------- */
+details.guide{background:linear-gradient(90deg,rgba(239,226,196,.07),rgba(239,226,196,.02));border:1px solid var(--line);border-left:3px solid var(--saffron);border-radius:8px;padding:10px 14px}
+details.guide summary{cursor:pointer;font:600 16px var(--f-display);color:var(--saffron);list-style:none;display:flex;align-items:center;gap:8px}
+details.guide summary::-webkit-details-marker{display:none}
+details.guide summary::before{content:"?";display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--saffron);color:var(--saffron-ink);font:700 13px var(--f-body)}
+details.guide summary::after{content:"mostrar";margin-left:auto;font:400 13px var(--f-body);color:var(--smoke)}
+details.guide[open] summary::after{content:"esconder"}
+details.guide dl{margin:10px 0 2px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px 14px}
+details.guide dt{font:500 12.5px/1.9 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--brass);white-space:nowrap}
+details.guide dd{margin:0;font-size:15.5px;line-height:1.45;color:var(--parch)}
+@media (max-width:560px){details.guide dl{grid-template-columns:minmax(0,1fr);gap:2px}details.guide dd{margin-bottom:6px}}
+details.more summary{cursor:pointer;font-size:14px;color:var(--smoke);width:max-content}
+details.more summary:hover{color:var(--parch)}
+details.more[open] summary{margin-bottom:8px}
