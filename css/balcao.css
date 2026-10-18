@@ -268,3 +268,6 @@ details.guide dd{margin:0;font-size:15.5px;line-height:1.45;color:var(--parch)}
 details.more summary{cursor:pointer;font-size:14px;color:var(--smoke);width:max-content}
 details.more summary:hover{color:var(--parch)}
 details.more[open] summary{margin-bottom:8px}
+
+div.f{display:flex;flex-direction:column;gap:4px;font-size:14.5px;color:var(--parch-2)}
+input.fzobs{width:92px;padding:4px 6px;font-size:14px;text-align:right}
