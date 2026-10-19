@@ -540,8 +540,8 @@ async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.has
 /* Sem aba nova: ao clicar em Sincronizar, esta aba pergunta ao programa (só no seu PC, 127.0.0.1) até a ficha ficar pronta. */
 let sondando=false;
 async function sondarPrograma(){ if(sondando) return; sondando=true; const fim=Date.now()+16*60*1000; let falhas=0;
-  while(Date.now()<fim){ try{ const r=await fetch("http://127.0.0.1:47831/ficha",{cache:"no-store",targetAddressSpace:"loopback"});
-      if(r.status===200){ const txt=await r.text(); location.hash="#ficha="+txt; break; } falhas=0; }catch(e){ if(++falhas>40) break; }
+  while(Date.now()<fim){ try{ const r=await fetch("http://127.0.0.1:47831/ficha",{cache:"no-store"});
+      if(r.status===200){ const txt=await r.text(); location.hash="#ficha="+txt; break; } falhas=0; }catch(e){ console.warn("programa local:",e); if(++falhas>40){ $("pfStatus").textContent="Esta aba não conseguiu falar com o programa (o navegador pode ter bloqueado o acesso ao seu computador). A ficha vai abrir em outra aba."; break; } }
     await new Promise(ok=>setTimeout(ok,1200)); }
   sondando=false; }
 $("pfAlbion").addEventListener("click",()=>{ $("pfStatus").textContent="A sincronia acontece quando o personagem LOGA. Se você já está dentro do jogo, saia para a seleção de personagem e entre de novo. A ficha chega sozinha aqui."; setTimeout(sondarPrograma,2500); });
