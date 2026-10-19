@@ -115,7 +115,7 @@ async function fillVolumes(shown){
 
 /* ================= mercado: todos os itens do jogo ================= */
 let CATALOG = null;                 // data/catalog.json: c: categorias, i: [id, categoria, subcategoria, tier, encantável, nome PT, nome EN]
-const MK = {cat:"crafting", sub:"", tier:0, ench:0, q:"", only:true};
+const MK = {cat:"crafting", sub:"resources", tier:0, ench:0, q:"", only:true};
 const SUB_PT = {resources:"Recursos brutos",refinedresources:"Recursos refinados",fish:"Peixes",alchemy:"Ingredientes de alquimia",cityresources:"Recursos de cidade",tokens:"Fichas",food:"Comidas",potions:"Poções",tomes:"Tomos",silverbag:"Sacos de prata",
   plate_armor:"Placa",leather_armor:"Couro",cloth_armor:"Pano",plate_helmet:"Placa",leather_helmet:"Couro",cloth_helmet:"Pano",plate_shoes:"Placa",leather_shoes:"Couro",cloth_shoes:"Pano",shieldtype:"Escudos",booktype:"Livros",torchtype:"Tochas",
   bags:"Bolsas",satchels:"Bolsas de lado",labourers:"Trabalhadores e diários",luxurygoods:"Artigos de luxo",maps:"Mapas",trash:"Sucata",killtrophy:"Troféus",lootitem:"Saque",farm:"Sementes e colheitas",pasture:"Animais",kennel:"Montarias da fazenda",herbgarden:"Ervas",farmingproducts:"Produtos",
@@ -134,7 +134,7 @@ function setupMk(){
   const sel=$("mkCat"); if(sel.options.length) return;
   const order=["crafting","weapons","armors","head","shoes","offhands","capes","consumables","farming","gathering","mounts","bags","artefacts","furniture","other","vanity"];
   for(const c of order) if(CATALOG.c[c]) sel.append(el("option",{value:c,text:CATALOG.c[c]}));
-  sel.value=store.get("mkCat2")||"crafting"; MK.cat=sel.value;
+  sel.value=store.get("mkCat2")||"crafting"; MK.cat=sel.value; if(MK.cat!=="crafting") MK.sub="";
   const tb=$("mkTier"); ["Todos",1,2,3,4,5,6,7,8].forEach((t,i)=>tb.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String(i===0),text:i?`T${t}`:t})));
   const eb=$("mkEnch"); ["Todos",0,1,2,3,4].forEach((e,i)=>eb.append(el("button",{type:"button","data-e":String(i?e:-1),"aria-pressed":String(i===1),text:i?`.${e}`:e})));
   const seg=(box,attr,key)=>box.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); MK[key]=+b.dataset[attr]; renderMk(); });
@@ -160,6 +160,7 @@ async function renderMk(){
   base=base.filter(r=>!MK.tier||r[3]===MK.tier);
   if(search){ const rank={weapons:0,armors:1,head:1,shoes:1,offhands:2,capes:2,crafting:3,consumables:3,farming:4,mounts:4,bags:4,gathering:5,artefacts:6,other:7,furniture:8,vanity:9};
     const nm_=r=>(mkName(r)||"").toLowerCase(); base.sort((a,b)=>((nm_(b).startsWith(q))-(nm_(a).startsWith(q)))||((rank[a[1]]??9)-(rank[b[1]]??9))||(a[3]-b[3])); }
+  else base.sort((a,b)=>subName(a[2]).localeCompare(subName(b[2]),"pt-BR")||mkName(a).localeCompare(mkName(b),"pt-BR")||(a[3]-b[3]));
   const list=[]; for(const r of base){ const es = MK.ench<0 ? (r[4]||isLevelRes(r)?[0,1,2,3]:[0]) : (MK.ench===0||r[4]||isLevelRes(r)?[MK.ench]:[]); for(const e of es) list.push({r,e,id:mkId(r,e)}); }
   const total=list.length, slice=list.slice(0,180);
   const want=slice.map(x=>x.id).filter(id=>!MK_SEEN.has(id));
