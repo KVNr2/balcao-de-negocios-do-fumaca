@@ -18,6 +18,7 @@ Site do grupo para fazer prata no Albion Online (servidor Américas).
 - `js/guia.js`: o quadro "Como usar esta página" de cada página (textos no topo do arquivo).
 - `js/oficina.js`: oficina de craft (receitas, custo, lucro, vendas por dia), comparador de mercado e quadro de detalhe do item.
 - `js/main.js`: troca de páginas e inicialização.
+- `data/catalog.json`: todos os itens do jogo (nome em português e inglês, categoria, tier) para a página Mercado.
 - `data/*.json`: dados fixos tirados dos arquivos do jogo (receitas, mapas, diários, fazenda, peças) e a foto de preços de reserva. Cada um só é baixado quando a página que usa é aberta.
 - `builds.json`: builds da semana, atualizado aos domingos por uma tarefa agendada.
 - `efeitos.html`: página de teste dos efeitos do título.

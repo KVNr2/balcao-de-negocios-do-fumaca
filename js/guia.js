@@ -5,7 +5,7 @@ const GUIA = {
   "p-ficha": ["A sua ficha, salva só no seu navegador.", "Digitar o nível de cada spec como está no Destiny Board: armas, armaduras, coleta, refino, craft, cozinha e alquimia. Todas as recomendações e o custo de foco saem daqui.", "Escreva o nome do personagem e os níveis. Para usar em outro aparelho, copie o link da ficha e abra lá."],
   "p-refino": ["Lucro de refinar minério, fibra e pelego com os preços de agora.", "Ver na tabela colorida qual tier e encantamento dá mais lucro, e fazer a conta exata de uma fornada.", "Escolha o material em cima. Verde é lucro, vermelho é prejuízo. Clique numa célula para abrir a conta, o histórico e a rota: onde comprar a matéria-prima, onde refinar e onde vender."],
   "p-craft": ["A oficina: receita, custo e lucro de cada item que dá para fabricar.", "Ver cada ingrediente com quantidade, cidade, preço e quando foi visto; o custo, a venda, o lucro e quantos vendem por dia. Vale para armas, armaduras, comidas, poções e refino.", "Escolha a categoria, o tier e o encantamento, e como compra e vende. Clique no título da coluna para ordenar e num item para ver os preços por cidade. Embaixo continua o mapa de lucro das armaduras."],
-  "p-mk": ["O comparador de mercado.", "Ver, para cada item, onde ele está mais caro e mais barato para vender e para comprar, e quando cada preço foi visto.", "Escolha a categoria e o tier. Clique num item para abrir os preços de todas as cidades e o gráfico de vendas por dia."],
+  "p-mk": ["O comparador de mercado, com todos os itens do jogo.", "Ver, para cada item, onde ele está mais caro e mais barato para vender e para comprar, e quando cada preço foi visto.", "Procure pelo nome em português ou inglês, ou escolha categoria, tipo, tier e encantamento. Clique num item para abrir os preços de todas as cidades e o gráfico de vendas por dia."],
   "p-encantar": ["Vale a pena encantar ou comprar já encantado?", "Comparar o custo de subir uma peça de nível (runa, alma, relíquia) com comprar ou fabricar a peça pronta.", "Escolha a linha de arma ou armadura e o tier. Economia positiva quer dizer que encantar sai mais barato."],
   "p-cozinha": ["Lucro de comidas e poções.", "Ver o que rende mais com foco, o que as builds usam e o histórico de preço de cada receita.", "Escolha comidas ou poções. Clique numa linha para ver os ingredientes."],
   "p-fazenda": ["Quanto rende a sua ilha.", "Comparar plantações, ervas, animais que dão leite e ovos e a criação de filhotes até adulto.", "Escolha o que quer ver, quantos lotes ou animais você tem e a sua spec de fazenda. O foco muda de planta para planta: se o jogo mostrar outro valor, digite na linha que ele fica guardado."],
@@ -24,8 +24,8 @@ const GUIA = {
   for(const [id,[que,pode,como]] of Object.entries(GUIA)){
     const panel=document.getElementById(id); if(!panel) continue;
     const d=document.createElement("details"); d.className="guide"; if(!closed[id]) d.open=true;
-    d.innerHTML=`<summary>Como usar esta página</summary><dl><dt>O que é</dt><dd></dd><dt>Dá para</dt><dd></dd><dt>Como usar</dt><dd></dd></dl>`;
-    const dds=d.querySelectorAll("dd"); dds[0].textContent=que; dds[1].textContent=pode; dds[2].textContent=como;
+    d.innerHTML=`<summary>Como usar esta página</summary><dl><dt>Dá para</dt><dd></dd><dt>Como usar</dt><dd></dd></dl>`;
+    const dds=d.querySelectorAll("dd"); dds[0].textContent=pode; dds[1].textContent=como;
     d.addEventListener("toggle",()=>{ closed[id]=!d.open; try{ localStorage.setItem("guiaFechado",JSON.stringify(closed)); }catch(e){} });
     const aside=panel.querySelector(":scope > p.aside");
     if(aside){ const m=document.createElement("details"); m.className="more"; m.innerHTML="<summary>Mais detalhes</summary>"; aside.replaceWith(m); m.append(aside); }

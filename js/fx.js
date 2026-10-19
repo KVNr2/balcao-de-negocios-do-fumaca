@@ -108,7 +108,7 @@ function stallIntro(){
       .addLabel("title",.35);
     smokeTitle(tl,chars,sw);
     tl.from(".lantern",{y:-90,autoAlpha:0,duration:1.1,stagger:.2,ease:"bounce.out"},"title+=.3")
-      .from(".deal > *",{y:16,autoAlpha:0,duration:.5,stagger:.08,clearProps:"opacity,visibility,transform"},"title+=1.1")
+      .from(".stall .facts > *",{y:10,autoAlpha:0,duration:.45,stagger:.06,clearProps:"opacity,visibility,transform"},"title+=1.1")
       .from(".ledger-book",{x:-40,rotationY:-24,transformPerspective:900,transformOrigin:"0% 50%",autoAlpha:0,duration:.7,ease:"power3.out",clearProps:"transform,opacity,visibility"},"-=.6")
       .from("nav.tabs button, nav.tabs .grp",{x:-14,autoAlpha:0,duration:.32,stagger:.025,clearProps:"opacity,visibility,transform"},"-=.45")
       .add(()=>moveTabLamp(document.querySelector('nav.tabs [aria-selected="true"]'),true));
