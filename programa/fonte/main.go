@@ -42,6 +42,23 @@ func requestAdminPermission() {
 	if len(os.Args) > 1 {
 		args = " -ArgumentList '" + strings.Join(os.Args[1:], "','") + "'"
 	}
+	if webMode {
+		// O processo elevado só captura e grava o resultado; quem abre o navegador é este processo,
+		// sem privilégio de administrador (assim abre no seu navegador de verdade).
+		_ = os.Remove(resultPath())
+		args = " -ArgumentList '" + strings.Join(append(append([]string{}, os.Args[1:]...), "-pai"), "','") + "'"
+		cmd := exec.Command("powershell", "-WindowStyle", "Hidden", "-Command", "Start-Process '"+exe+"' -Verb RunAs -Wait"+args)
+		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+		if err := cmd.Run(); err != nil {
+			infoBox("Sem a permissão de Administrador o programa não consegue ler o jogo. Clique em Sincronizar de novo e aceite o aviso do Windows.")
+			os.Exit(0)
+		}
+		if frag, e := os.ReadFile(resultPath()); e == nil && len(frag) > 0 {
+			_ = os.Remove(resultPath())
+			openURL(retURL + "#ficha=" + string(frag))
+		}
+		os.Exit(0)
+	}
 	cmd := exec.Command("powershell", "-WindowStyle", "Hidden", "-Command", "Start-Process '"+exe+"' -Verb RunAs"+args)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	_ = cmd.Run()
@@ -840,6 +857,7 @@ func main() {
 	ipFlag := flag.String("ip", "", "IP local da placa de rede a escutar (padrão: detecta sozinho)")
 	secs := flag.Int("secs", 900, "duração da captura em segundos")
 	janela := flag.Bool("janela", false, "modo avulso: abre a janela e captura sem o botão do site")
+	pai := flag.Bool("pai", false, "interno: aberto pelo próprio programa (modo do botão do site)")
 	flag.Parse()
 	for _, a := range flag.Args() {
 		if strings.HasPrefix(a, protoScheme+"://") {
@@ -1143,7 +1161,12 @@ wait:
 				ui.Stage, ui.Nos, ui.Found, ui.Copied, ui.Ramos, ui.code = "pronto", nNos, found, true, ramos, code
 			})
 			if webMode {
-				openSiteWithFicha(code)
+				saveResult(js)
+				if !*pai { // aberto direto como administrador: abre o site daqui mesmo
+					if frag, e := os.ReadFile(resultPath()); e == nil {
+						openURL(retURL + "#ficha=" + string(frag))
+					}
+				}
 				os.Exit(0)
 			}
 			fmt.Printf("[✓] %d níveis atualizados na sua ficha. Código COPIADO.\n", found)
