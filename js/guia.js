@@ -20,10 +20,12 @@ const GUIA = {
   "p-fontes": ["De onde vêm os dados do site.", "Conferir as fontes e os sites de apoio.", "Só leitura."]
 };
 (function(){
-  let closed={}; try{ closed=JSON.parse(localStorage.getItem("guiaFechado")||"{}"); }catch(e){}
+  // O guia abre sozinho só na primeira visita de cada página; depois fica fechado, a não ser que a pessoa abra.
+  let closed={}, seen={}; try{ closed=JSON.parse(localStorage.getItem("guiaFechado")||"{}"); seen=JSON.parse(localStorage.getItem("guiaVisto")||"{}"); }catch(e){}
+  const io=("IntersectionObserver" in window)?new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ seen[e.target.dataset.p]=1; io.unobserve(e.target); try{ localStorage.setItem("guiaVisto",JSON.stringify(seen)); }catch(_){} } })):null;
   for(const [id,[que,pode,como]] of Object.entries(GUIA)){
     const panel=document.getElementById(id); if(!panel) continue;
-    const d=document.createElement("details"); d.className="guide"; if(!closed[id]) d.open=true;
+    const d=document.createElement("details"); d.className="guide"; d.dataset.p=id; if(closed[id]===false || (!seen[id] && closed[id]!==true)) d.open=true; if(io) io.observe(d);
     d.innerHTML=`<summary>Como usar esta página</summary><dl><dt>Dá para</dt><dd></dd><dt>Como usar</dt><dd></dd></dl>`;
     const dds=d.querySelectorAll("dd"); dds[0].textContent=pode; dds[1].textContent=como;
     d.addEventListener("toggle",()=>{ closed[id]=!d.open; try{ localStorage.setItem("guiaFechado",JSON.stringify(closed)); }catch(e){} });

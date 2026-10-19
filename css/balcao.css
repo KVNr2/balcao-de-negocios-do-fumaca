@@ -397,3 +397,68 @@ label.lvt select{width:auto;padding:5px 6px;font-size:14px}
 .row-ctl{justify-content:flex-start;gap:14px 28px}
 .row-ctl>label.f{min-width:200px}
 @media (max-width:600px){ .app .stall .facts{gap:6px;font-size:12.5px} .app .stall .facts>*{padding:4px 9px} .app .stall .facts .gold svg{display:none} .ph-t{font-size:28px} }
+
+/* ===== v9: acabamento ===== */
+/* cabeçalho: uma faixa baixa, etiquetas curtas e alinhadas */
+.app .stall{padding-bottom:12px}
+.app .stall-inner{grid-template-columns:auto minmax(0,1fr) 92px;gap:8px 28px;padding-top:2px}
+.app .sign h1 .kicker{font-size:13.5px;color:var(--smoke)}
+.app .sign h1 .big{font-size:clamp(40px,3.3vw,54px)}
+.app .sign .who{margin-top:2px}
+.app .lanterns{width:92px;height:104px;margin-top:-34px}
+.app .stall .facts{gap:8px;font-size:14.5px}
+.app .stall .facts>*{height:34px;padding:0 13px;white-space:nowrap;gap:7px}
+.app .stall .facts .fl{color:var(--smoke)}
+.app .stall .facts strong{color:var(--parch);font-weight:600}
+.app .stall .facts .gold svg{width:52px;height:18px}
+.app .stall .facts>#reload{padding:0 15px}
+#reload:focus-visible,.seg button:focus-visible,.tabs button:focus-visible,summary:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+
+/* título da página com uma linha de base */
+.pagehead{padding-bottom:20px;border-bottom:1px solid var(--line-soft);margin-bottom:4px}
+.ph-d{color:var(--parch-2)}
+
+/* guia: fechado vira uma etiqueta discreta em vez de uma faixa inteira */
+details.guide:not([open]){align-self:flex-start;padding:6px 12px;background:none;border-left-width:1px}
+details.guide:not([open]) summary{font-size:14.5px;gap:8px}
+details.guide:not([open]) summary::after{margin-left:6px}
+
+/* barras de filtro: um bloco só, controles com a mesma altura */
+section.panel>.row-ctl{background:rgba(239,226,196,.03);border:1px solid var(--line-soft);border-radius:10px;padding:14px 18px}
+.row-ctl{align-items:flex-end}
+input:not([type=checkbox]):not([type=radio]),select{min-height:40px}
+.seg:not(.sm):not(.big) button{min-height:38px}
+label.f{gap:6px}
+
+/* tabelas: números à direita, cabeçalho firme, linha clicável marcada */
+.tbl td,.tbl th{font-variant-numeric:tabular-nums}
+.tbl th{white-space:nowrap;padding-top:11px;padding-bottom:11px;border-bottom:1px solid var(--line)}
+.tbl th.n,.tbl td.n{text-align:right}
+.tbl tbody tr{transition:background-color .12s}
+.tbl tbody tr:hover{background:rgba(239,226,196,.035)}
+.tbl tbody tr[data-id]:hover,.tbl tbody tr.click:hover,.tbl tbody tr[tabindex]:hover{background:rgba(232,171,69,.07);cursor:pointer}
+.tbl{box-shadow:0 1px 0 rgba(0,0,0,.25)}
+
+/* cartões e títulos de seção */
+.sheet{padding:24px 26px}
+h2{letter-spacing:.005em}
+.deal.sheet .answer{max-width:38ch;text-wrap:balance;line-height:1.25}
+p.muted,.note,.tiny{text-wrap:pretty}
+footer{margin-top:12px;padding-top:18px;display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between}
+
+/* mapa de calor um pouco maior, para não sobrar tanto vazio */
+@media (min-width:1100px){ table.heat td{min-width:104px;padding:11px 8px;font-size:16px} }
+
+@media (max-width:1250px){ .app .stall .facts>*{height:32px;padding:0 10px} .app .stall .facts .gold svg{display:none} }
+@media (max-width:900px){ section.panel>.row-ctl{padding:12px} .app .lanterns{width:80px;height:92px} }
+@media (max-width:1600px){ .app .stall .facts .gold svg{display:none} }
+/* duas barras de filtro seguidas viram um bloco só */
+section.panel>.row-ctl:has(+.row-ctl){border-bottom-left-radius:0;border-bottom-right-radius:0;padding-bottom:6px}
+section.panel>.row-ctl+.row-ctl{margin-top:-26px;border-top:0;border-top-left-radius:0;border-top-right-radius:0;padding-top:8px}
+/* caixas de marcar e links na barra de filtro ficam na linha dos campos */
+.row-ctl>label.chk,.row-ctl>.linkbtn,.row-ctl>button{min-height:40px;display:inline-flex;align-items:center}
+.tbl td select{min-height:34px;padding:4px 8px;width:auto;max-width:100%}
+#bcTable td{vertical-align:middle}
+@media (min-width:900px){ .deal.sheet .answer strong{white-space:nowrap} }
+@media (max-width:600px){ .app .stall .facts .patchchip{display:none} }
+section.panel>.seg,.sheet>.seg{align-self:flex-start}
