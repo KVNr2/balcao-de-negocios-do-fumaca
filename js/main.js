@@ -1,12 +1,15 @@
 /* ================= wiring ================= */
 const tabs=[...document.querySelectorAll("nav.tabs [role=tab]")];
-function showTab(id, quiet){ let panel=null; tabs.forEach(b=>{const on=b.id===id; b.setAttribute("aria-selected",String(on)); const p=$(b.getAttribute("aria-controls")); p.hidden=!on; if(on) panel=p;}); tip.hidden=true; store.set("tab",id); if(id==="t-craft") renderCraft();
+function setPageHead(btn){ if(!btn) return; let g=btn.previousElementSibling; while(g&&!g.classList.contains("grp")) g=g.previousElementSibling;
+  const fl=(btn.querySelector(".fl")||{}).textContent||""; $("phKick").textContent=`${g?g.textContent:""}${fl?`, folha ${fl.replace(/\D/g,"")}`:""}`;
+  $("phTitle").textContent=btn.querySelector(".tl").textContent; const gd=(typeof GUIA!=="undefined"&&GUIA[btn.getAttribute("aria-controls")])||[]; $("phDesc").textContent=gd[0]||""; document.title=`${btn.querySelector(".tl").textContent} · Balcão de Negócios do Fumaça`; }
+function showTab(id, quiet){ setPageHead(tabs.find(b=>b.id===id)); let panel=null; tabs.forEach(b=>{const on=b.id===id; b.setAttribute("aria-selected",String(on)); const p=$(b.getAttribute("aria-controls")); p.hidden=!on; if(on) panel=p;}); tip.hidden=true; store.set("tab",id); if(id==="t-craft") renderCraft();
   if(id==="t-cozinha") renderCook(); if(id==="t-mapas") renderMaps(); if(id==="t-mercado") renderBM(); if(id==="t-trab") renderWK(); if(id==="t-matchup") renderMU(); if(id==="t-craft") renderOf(); if(id==="t-mk") renderMk(); if(id==="t-encantar") renderEN(); if(id==="t-fazenda") renderFZ(); if(id==="t-custo") renderBC();
   moveTabLamp(tabs.find(b=>b.id===id), quiet); addFlourishes(panel||document);
   if(!quiet&&panel){ animatePanel(panel); if(FX.ok&&!RM){ revealOnScroll(); tiltCards(); if(window.ScrollTrigger) ScrollTrigger.refresh(); } } }
 function animatePanel(panel){
   if(!window.gsap||RM) return;
-  const bk=document.querySelector(".book"); if(bk&&bk.getBoundingClientRect().top<-40&&matchMedia("(min-width:901px)").matches) window.scrollTo({top:bk.getBoundingClientRect().top+scrollY-12,behavior:"smooth"});
+  const bk=document.querySelector("#pagehead"); if(bk&&bk.getBoundingClientRect().top<-40&&matchMedia("(min-width:901px)").matches) window.scrollTo({top:bk.getBoundingClientRect().top+scrollY-12,behavior:"smooth"});
   gsap.fromTo(panel,{opacity:0,rotationY:-8,x:-22,transformPerspective:1600,transformOrigin:"0% 50%"},{opacity:1,rotationY:0,x:0,duration:.55,ease:"power3.out",clearProps:"transform,opacity"});
   const cells=panel.querySelectorAll("table.heat td"); if(cells.length) gsap.from(cells,{opacity:0,scale:.86,duration:.28,stagger:{each:.012},ease:"power1.out",clearProps:"opacity,transform"});
   const bars=panel.querySelectorAll(".plot .bar"); if(bars.length) gsap.from(bars,{scaleX:0,duration:.7,stagger:.05,ease:"power3.out",clearProps:"transform"});

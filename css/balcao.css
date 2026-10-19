@@ -345,3 +345,55 @@ label.lvt select{width:auto;padding:5px 6px;font-size:14px}
 .hapin input{width:110px}
 .hapin span{color:var(--smoke);font-size:14px;white-space:nowrap}
 #wkYieldTxt{align-self:center;max-width:42ch;color:var(--parch-2)}
+
+/* ===================== v8: casca de aplicativo ===================== */
+/* menu do livro preso à esquerda na altura toda; cabeçalho baixo; conteúdo na largura da tela */
+.wrap.app{max-width:none;margin:0;padding:0;display:grid;grid-template-columns:268px minmax(0,1fr);gap:0;align-items:start;min-height:100vh}
+.app>.ledger-book{position:sticky;top:0;height:100vh;overflow-y:auto;overscroll-behavior:contain;border-radius:0;border-width:0 1px 0 0;margin:0;
+  padding:22px 14px 28px 28px;scrollbar-width:thin;scrollbar-color:#5a3d26 transparent}
+.app>.ledger-book::before{left:12px;top:0;bottom:0}
+.app>.ledger-book::after{top:0;bottom:0;right:0;width:5px;border-radius:0}
+.lb-head{margin-bottom:10px}
+.main{min-width:0;display:flex;flex-direction:column}
+.main>.leaves{padding:0 clamp(18px,2.4vw,40px) 64px;max-width:1720px;width:100%;gap:28px}
+/* cabeçalho */
+.app .stall{margin:0;padding:0 clamp(18px,2.4vw,40px) 18px;border-bottom:1px solid var(--line)}
+.app .awning{height:40px;width:calc(100% + 2*clamp(18px,2.4vw,40px));margin-left:calc(-1*clamp(18px,2.4vw,40px))}
+.app .stall-inner{grid-template-columns:auto minmax(0,1fr) 150px;align-items:center;gap:8px 32px;padding-top:6px}
+.app .sign h1 .kicker{font-size:15px}
+.app .sign h1 .big{font-size:clamp(44px,4.4vw,66px)}
+.app .sign .who{margin-top:4px;font-size:13.5px}
+.app .lanterns{width:150px;height:150px;margin-top:-46px;justify-self:end}
+.app .stall .facts{justify-content:flex-end;gap:8px;font-size:14px}
+.app .stall .facts>*{display:inline-flex;align-items:center;gap:6px;background:rgba(21,16,15,.55);border:1px solid var(--line);border-radius:999px;padding:6px 12px;backdrop-filter:blur(2px)}
+.app .stall .facts>#reload{background:var(--saffron);color:var(--saffron-ink);border-color:var(--saffron);font-weight:600;text-decoration:none;cursor:pointer}
+.app .stall .facts>#reload:hover{filter:brightness(1.08)}
+.app .stall .facts .gold svg{width:72px}
+/* título de cada página */
+.pagehead{padding:26px clamp(18px,2.4vw,40px) 18px;max-width:1720px;display:grid;gap:4px}
+.ph-k{font:500 14px var(--f-body);color:var(--brass)}
+.ph-t{font:600 clamp(30px,2.6vw,40px)/1.1 var(--f-display);color:var(--parch);margin:0}
+.ph-d{color:var(--parch-2);font-size:16.5px;max-width:80ch;margin:0}
+/* melhor uso do foco, agora um cartão do Para você */
+.deal.sheet{margin:0;max-width:none;display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:22px 26px;
+  background:radial-gradient(90% 140% at 0% 0%,rgba(232,171,69,.14),transparent 55%),linear-gradient(180deg,var(--cloth-2),var(--cloth))}
+.deal.sheet .answer{max-width:46ch;font-size:clamp(22px,2.2vw,30px)}
+/* grades usam a largura */
+@media (min-width:1500px){
+  #p-voce>.cols{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .links{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+}
+.tbl{border-radius:12px}
+@media (max-width:1100px){ .app .stall-inner{grid-template-columns:minmax(0,1fr) 120px}.app .stall .facts{grid-column:1/-1;justify-content:flex-start;order:3}.app .lanterns{width:120px;height:120px} }
+@media (max-width:900px){
+  .wrap.app{grid-template-columns:minmax(0,1fr)}
+  .app>.ledger-book{position:sticky;top:0;height:auto;z-index:20;padding:6px 6px 4px;border-width:0 0 1px 0;overflow:visible}
+  .main>.leaves,.pagehead,.app .stall{padding-left:16px;padding-right:16px}
+  .app .awning{width:calc(100% + 32px);margin-left:-16px}
+  .app .lanterns{position:absolute;right:-20px;top:0;margin:0;width:110px;height:120px;opacity:.85}
+  .app .stall .facts>*{padding:5px 10px}
+}
+
+.row-ctl{justify-content:flex-start;gap:14px 28px}
+.row-ctl>label.f{min-width:200px}
+@media (max-width:600px){ .app .stall .facts{gap:6px;font-size:12.5px} .app .stall .facts>*{padding:4px 9px} .app .stall .facts .gold svg{display:none} .ph-t{font-size:28px} }

@@ -113,54 +113,69 @@ async function fillVolumes(shown){
   document.querySelectorAll("#ofTable tbody tr").forEach(tr=>{ const v=OF.vol[tr.dataset.id+"|"+tr.dataset.city]; const c=tr.querySelector(".vol"); if(!c) return; c.textContent=v==null?"…":v<0?"—":v<1?"menos de 1":v<10?dec(v):fmt(v); c.classList.toggle("loss",v>=0&&v<3); c.title="Média de vendas por dia nos últimos 7 dias na cidade de venda, somando todas as qualidades"; });
 }
 
-/* ================= mercado: comparador e detalhe ================= */
-const MK = {cat:null, tier:0, ench:0, q:"", loaded:new Set()};
-function mkCats(){ return [...ofCats().filter(c=>c.k!=="refine"),{k:"res",label:"Recursos brutos e refinados",grp:"Recursos"},{k:"farm",label:"Fazenda: sementes, colheitas e animais",grp:"Recursos"}]; }
-function mkItems(cat){
-  if(cat.startsWith("g:")) return ofItems(cat).map(it=>({id:it.id,name:it.name,t:it.t,e:it.e}));
-  if(cat==="meal"||cat==="potion") return ofItems(cat).map(it=>({id:it.id,name:it.name,t:it.t,e:0}));
-  if(cat==="res"){ const o=[]; for(const R of REF5) for(let t=4;t<=8;t++) for(let e=0;e<=3;e++){ o.push({id:idLv(t,R.raw,e),api:apiLv(t,R.raw,e),name:R.rawPT,t,e},{id:idLv(t,R.ref,e),api:apiLv(t,R.ref,e),name:R.refPT,t,e}); } return o; }
-  if(cat==="farm"&&FARM){ const o=[]; FARM.p.forEach(r=>{ o.push({id:r[0],name:FARM.n[r[0]]||r[0],t:r[2],e:0},{id:r[1],name:FARM.n[r[1]]||r[1],t:r[2],e:0}); }); FARM.b.forEach(r=>{ o.push({id:r[0],name:FARM.n[r[0]]||r[0],t:r[2],e:0},{id:r[1],name:FARM.n[r[1]]||r[1],t:r[2],e:0}); }); return o; }
-  return [];
-}
-async function ensureMk(cat){
-  if(MK.loaded.has(cat)) return true;
-  try{ if(cat==="farm"&&!FARM) FARM=await need("farm");
-    if(cat.startsWith("g:")||cat==="meal"||cat==="potion"){ const ok=await ensureOf(cat); if(!ok) return false; }
-    else { const ids=mkItems(cat).map(x=>x.api||x.id); await fetchIds([...new Set(ids)],DATA.itens,SHOP_LOCS); }
-    MK.loaded.add(cat); return true; }catch(e){ return false; }
-}
+/* ================= mercado: todos os itens do jogo ================= */
+let CATALOG = null;                 // data/catalog.json: c: categorias, i: [id, categoria, subcategoria, tier, encantável, nome PT, nome EN]
+const MK = {cat:"crafting", sub:"", tier:0, ench:0, q:"", only:true};
+const SUB_PT = {resources:"Recursos brutos",refinedresources:"Recursos refinados",fish:"Peixes",alchemy:"Ingredientes de alquimia",cityresources:"Recursos de cidade",tokens:"Fichas",food:"Comidas",potions:"Poções",tomes:"Tomos",silverbag:"Sacos de prata",
+  plate_armor:"Placa",leather_armor:"Couro",cloth_armor:"Pano",plate_helmet:"Placa",leather_helmet:"Couro",cloth_helmet:"Pano",plate_shoes:"Placa",leather_shoes:"Couro",cloth_shoes:"Pano",shieldtype:"Escudos",booktype:"Livros",torchtype:"Tochas",
+  bags:"Bolsas",satchels:"Bolsas de lado",labourers:"Trabalhadores e diários",luxurygoods:"Artigos de luxo",maps:"Mapas",trash:"Sucata",killtrophy:"Troféus",lootitem:"Saque",farm:"Sementes e colheitas",pasture:"Animais",kennel:"Montarias da fazenda",herbgarden:"Ervas",farmingproducts:"Produtos",
+  ore:"Minério",fiber:"Fibra",hide:"Pelego",wood:"Madeira",rock:"Pedra",tracking:"Rastreio",
+  weapons:"Armas",armors:"Peito",head:"Cabeça",shoes:"Pés",offhands:"Mão secundária",capes:"Capas",fragments:"Fragmentos",favor:"Fichas de favor",
+  avatar:"Avatares",avatarring:"Molduras de avatar",mounts:"Montarias",killemotes:"Emotes",world:"Mundo",island:"Ilha",house:"Casa",chest:"Baús",repairkit:"Kits de reparo",
+  basemounts:"Montarias comuns",battle_mount:"Montarias de batalha",raremounts:"Montarias raras",questitems:"Missões",guilds:"Guilda",other:"Outros",
+  accessoires_capes_capes:"Capas comuns",accessoires_capes_bridgewatch:"Capas de Bridgewatch",accessoires_capes_fortsterling:"Capas de Fort Sterling",accessoires_capes_lymhurst:"Capas de Lymhurst",accessoires_capes_martlock:"Capas de Martlock",accessoires_capes_thetford:"Capas de Thetford",accessoires_capes_caerleon:"Capas de Caerleon",accessoires_capes_brecilien:"Capas de Brecilien",accessoires_capes_avalon:"Capas de Avalon",accessoires_capes_smuggler:"Capas de contrabandista",accessoires_capes_heretic:"Capas de herege",accessoires_capes_undead:"Capas mortas-vivas",accessoires_capes_keeper:"Capas de guardião",accessoires_capes_morgana:"Capas de Morgana",accessoires_capes_demon:"Capas demoníacas"};
+const LINE_SUB = {sword:"espada",axe:"machado",mace:"maca",hammer:"martelo",spear:"lanca",quarterstaff:"bordao",dagger:"adaga",knuckles:"luvas",bow:"arco",crossbow:"besta",shapeshifterstaff:"metamorfo",firestaff:"fogo",froststaff:"gelo",arcanestaff:"arcano",holystaff:"sagrado",naturestaff:"natureza",cursestaff:"maldito"};
+const subName = s => SUB_PT[s] || (LINE_SUB[s]&&LINE_NAME[LINE_SUB[s]]) || (s||"Outros").replace(/_/g," ").replace(/^\w/,c=>c.toUpperCase());
+const isLevelRes = r => r[2]==="resources"||r[2]==="refinedresources";
+function mkId(r,e){ if(!e) return r[0]; return isLevelRes(r) ? `${r[0]}_LEVEL${e}@${e}` : `${r[0]}@${e}`; }
+const mkKey = id => id.includes("_LEVEL") ? id.split("@")[0] : id;
+const mkName = r => (LANG==="en" ? r[6] : r[5]) || r[6] || r[0];
 function setupMk(){
   const sel=$("mkCat"); if(sel.options.length) return;
-  const groups={}; for(const c of mkCats()){ (groups[c.grp]||(groups[c.grp]=el("optgroup",{label:c.grp}))).append(el("option",{value:c.k,text:c.label})); }
-  ["Suas armas","Armaduras","Consumíveis","Recursos","Outras armas"].forEach(g=>{ if(groups[g]) sel.append(groups[g]); });
-  sel.value=store.get("mkCat")||"res";
+  const order=["crafting","weapons","armors","head","shoes","offhands","capes","consumables","farming","gathering","mounts","bags","artefacts","furniture","other","vanity"];
+  for(const c of order) if(CATALOG.c[c]) sel.append(el("option",{value:c,text:CATALOG.c[c]}));
+  sel.value=store.get("mkCat2")||"crafting"; MK.cat=sel.value;
   const tb=$("mkTier"); ["Todos",1,2,3,4,5,6,7,8].forEach((t,i)=>tb.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String(i===0),text:i?`T${t}`:t})));
-  const eb=$("mkEnch"); ["Todos",0,1,2,3].forEach((e,i)=>eb.append(el("button",{type:"button","data-e":String(i?e:-1),"aria-pressed":String(i===1),text:i?`.${e}`:e})));
+  const eb=$("mkEnch"); ["Todos",0,1,2,3,4].forEach((e,i)=>eb.append(el("button",{type:"button","data-e":String(i?e:-1),"aria-pressed":String(i===1),text:i?`.${e}`:e})));
   const seg=(box,attr,key)=>box.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); MK[key]=+b.dataset[attr]; renderMk(); });
   seg(tb,"t","tier"); seg(eb,"e","ench");
-  sel.addEventListener("change",()=>{ store.set("mkCat",sel.value); renderMk(); });
-  $("mkFind").addEventListener("input",()=>{ MK.q=$("mkFind").value.trim().toLowerCase(); renderMk(); });
+  sel.addEventListener("change",()=>{ MK.cat=sel.value; MK.sub=""; store.set("mkCat2",sel.value); fillSubs(); renderMk(); });
+  $("mkSub").addEventListener("change",()=>{ MK.sub=$("mkSub").value; renderMk(); });
+  let tmr=null; $("mkFind").addEventListener("input",()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ MK.q=$("mkFind").value.trim().toLowerCase(); renderMk(); },250); });
+  $("mkOnly").addEventListener("change",()=>{ MK.only=$("mkOnly").checked; renderMk(); });
+  fillSubs();
 }
-function extremes(id){ const r=DATA.itens[id]||{}; const out={smax:null,smin:null,bmax:null,bmin:null};
+function fillSubs(){ const ss=$("mkSub"); ss.textContent=""; ss.append(el("option",{value:"",text:"Todas"}));
+  const subs=[...new Set(CATALOG.i.filter(r=>r[1]===MK.cat).map(r=>r[2]))].sort((a,b)=>subName(a).localeCompare(subName(b),"pt-BR")); subs.forEach(s=>ss.append(el("option",{value:s,text:subName(s)}))); ss.value=MK.sub; }
+function extremes(id){ const r=DATA.itens[mkKey(id)]||{}; const out={smax:null,smin:null,bmax:null,bmin:null};
   for(const [c,v] of Object.entries(r)){ if(v[0]>0){ if(!out.smax||v[0]>out.smax.p) out.smax={p:v[0],c,t:v[2]}; if(!out.smin||v[0]<out.smin.p) out.smin={p:v[0],c,t:v[2]}; }
     if(v[1]>0){ if(!out.bmax||v[1]>out.bmax.p) out.bmax={p:v[1],c,t:v[3]}; if(!out.bmin||v[1]<out.bmin.p) out.bmin={p:v[1],c,t:v[3]}; } } return out; }
+const MK_SEEN = new Set();
 async function renderMk(){
   const note=$("mkNote"), tb=$("mkTable");
-  if(!BM){ try{ BM=await need("bm"); }catch(e){ note.textContent="Não consegui abrir os itens."; return; } }
-  setupMk(); const cat=$("mkCat").value;
-  if(!MK.loaded.has(cat)){ tb.textContent=""; note.textContent="Consultando os preços em todas as cidades…"; const ok=await ensureMk(cat); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("mkCat").value!==cat) return; }
-  const list=mkItems(cat).filter(x=>(!MK.tier||x.t===MK.tier)&&(MK.ench<0||x.e===MK.ench)&&(!MK.q||x.name.toLowerCase().includes(MK.q))).map(x=>({...x,x:extremes(x.id)})).filter(x=>x.x.smin||x.x.bmax);
+  if(!CATALOG){ note.textContent="Abrindo o catálogo de itens do jogo…"; try{ CATALOG=await need("catalog"); }catch(e){ note.textContent="Não consegui abrir o catálogo."; return; } }
+  setupMk();
+  const q=MK.q, search=q.length>=2;
+  let base=CATALOG.i.filter(r=> search ? ((r[5]||"").toLowerCase().includes(q)||(r[6]||"").toLowerCase().includes(q)||r[0].toLowerCase().includes(q)) : (r[1]===MK.cat&&(!MK.sub||r[2]===MK.sub)));
+  base=base.filter(r=>!MK.tier||r[3]===MK.tier);
+  if(search){ const rank={weapons:0,armors:1,head:1,shoes:1,offhands:2,capes:2,crafting:3,consumables:3,farming:4,mounts:4,bags:4,gathering:5,artefacts:6,other:7,furniture:8,vanity:9};
+    const nm_=r=>(mkName(r)||"").toLowerCase(); base.sort((a,b)=>((nm_(b).startsWith(q))-(nm_(a).startsWith(q)))||((rank[a[1]]??9)-(rank[b[1]]??9))||(a[3]-b[3])); }
+  const list=[]; for(const r of base){ const es = MK.ench<0 ? (r[4]||isLevelRes(r)?[0,1,2,3]:[0]) : (MK.ench===0||r[4]||isLevelRes(r)?[MK.ench]:[]); for(const e of es) list.push({r,e,id:mkId(r,e)}); }
+  const total=list.length, slice=list.slice(0,180);
+  const want=slice.map(x=>x.id).filter(id=>!MK_SEEN.has(id));
+  if(want.length){ note.textContent=`Consultando ${want.length} itens em todas as cidades…`; tb.textContent="";
+    try{ await fetchIds(want,DATA.itens,SHOP_LOCS); want.forEach(id=>MK_SEEN.add(id)); }catch(e){ note.textContent="Não consegui consultar os preços agora."; return; } }
+  const rows=slice.map(x=>({...x,x:extremes(x.id)})).filter(x=>!MK.only||x.x.smin||x.x.bmax);
   tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Item","Maior venda","Menor venda","Maior compra","Menor compra","Diferença"].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
   const cellP=(tr,o,cls)=>{ const c=tr.insertCell(); c.className="mkp "+(cls||""); if(!o){ c.textContent="—"; return; } c.append(el("b",{class:"city",text:o.c}),el("span",{class:"num",text:fmt(o.p)}),ageSpan(o.t)||""); };
-  for(const x of list.slice(0,150)){ const tr=body.insertRow(); tr.className="clickrow";
-    const c0=tr.insertCell(); c0.className="itemcell"; const hd=el("div",{class:"ihead"}); hd.append(iconImg(x.api?x.api:x.id,36)); const nb=el("span",{class:"inm"}); nb.append(el("strong",{text:x.name}),el("small",{text:`T${x.t}.${x.e}`})); hd.append(nb); c0.append(hd);
+  for(const x of rows){ const tr=body.insertRow(); tr.className="clickrow"; const nm_=mkName(x.r);
+    const c0=tr.insertCell(); c0.className="itemcell"; const hd=el("div",{class:"ihead"}); hd.append(iconImg(x.id,36)); const nb=el("span",{class:"inm"}); nb.append(el("strong",{text:nm_}),el("small",{text:`${x.r[3]?`T${x.r[3]}.${x.e}`:"sem tier"}, ${CATALOG.c[x.r[1]]||""}${x.r[2]&&subName(x.r[2])!==CATALOG.c[x.r[1]]?`: ${subName(x.r[2])}`:""}`})); hd.append(nb); c0.append(hd);
     cellP(tr,x.x.smax); cellP(tr,x.x.smin,"gain"); cellP(tr,x.x.bmax,"gain"); cellP(tr,x.x.bmin);
     const d=tr.insertCell(); d.className="num"; d.textContent=x.x.smax&&x.x.smin?fmt(x.x.smax.p-x.x.smin.p):"—"; d.title="Maior venda menos menor venda: o espaço para comprar numa cidade e vender em outra";
-    tr.addEventListener("click",()=>openItem(x.api||x.id,x.name)); }
-  note.textContent=list.length?`${list.length} itens. Menor venda é onde comprar na hora; maior compra é onde vender na hora. Clique num item para ver todas as cidades e o histórico.`:"Nenhum item com preço nesse filtro.";
-  if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.2,stagger:.008,clearProps:"opacity,transform"});
+    tr.addEventListener("click",()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`)); }
+  note.textContent = !total ? "Nenhum item com esse filtro." : `${total} ${total>1?"itens":"item"}${search?` com "${q}"`:` em ${CATALOG.c[MK.cat]}${MK.sub?` · ${subName(MK.sub)}`:""}`}${total>180?"; mostrando os 180 primeiros, use tier, encantamento ou a busca para filtrar":""}. ${rows.length<slice.length?`${slice.length-rows.length} sem anúncio nos últimos 3 dias ficaram de fora. `:""}Clique num item para ver todas as cidades e o histórico.`;
+  if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.2,stagger:.006,clearProps:"opacity,transform"});
 }
 
 /* quadro de detalhe de um item */
