@@ -526,6 +526,12 @@ $("pfCopy").addEventListener("click",()=>{ const code=btoa(unescape(encodeURICom
   try{ navigator.clipboard.writeText(code).then(done,()=>{ $("pfPasteBox").hidden=false; $("pfPaste").value=code; $("pfPaste").select(); $("pfStatus").textContent="Copie o código selecionado abaixo."; }); }catch(e){ $("pfPasteBox").hidden=false; $("pfPaste").value=code; } });
 $("pfPasteBtn").addEventListener("click",()=>{ $("pfPasteBox").hidden=!$("pfPasteBox").hidden; $("pfPaste").value=""; $("pfPaste").focus(); });
 $("pfPasteApply").addEventListener("click",()=>{ try{ const o=JSON.parse(decodeURIComponent(escape(atob($("pfPaste").value.trim())))); if(typeof o!=="object"||!o.armas) throw 0; PF=Object.assign(EMPTY(),migrate(o)); saveProfile(); renderProfile(); $("pfPasteBox").hidden=true; $("pfPasteMsg").textContent=""; }catch(e){ $("pfPasteMsg").textContent="Esse código não é uma ficha válida. Copie de novo pelo botão Copiar minha ficha."; } });
+/* Buscar do Albion: o programa do PC abre o site de volta com a ficha depois do "#" (não vai para servidor nenhum). */
+$("pfAlbion").href="albion-ficha://iniciar?voltar="+encodeURIComponent(location.origin+location.pathname);
+(function(){ const m=/^#ficha=(.+)$/.exec(location.hash); if(!m) return; history.replaceState(null,"",location.pathname+location.search);
+  let o=null; try{ o=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1]))))); if(typeof o!=="object"||!o||!o.armas) o=null; }catch(err){ o=null; }
+  if(!o){ $("pfStatus").textContent="Não consegui ler a ficha vinda do Albion."; return; }
+  if(confirm("Aplicar a ficha lida do Albion? Ela substitui a ficha atual deste navegador.")){ PF=Object.assign(EMPTY(),migrate(o)); saveProfile(); renderProfile(); $("pfStatus").textContent="Ficha do Albion aplicada."; } })();
 $("pfExample").addEventListener("click",()=>{ PF=OLERAN(); saveProfile(); renderProfile(); });
 $("pfClear").addEventListener("click",()=>{ PF=EMPTY(); saveProfile(); renderProfile(); });
 
