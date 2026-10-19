@@ -847,6 +847,9 @@ func main() {
 			retURL = parseReturnURL(a)
 		}
 	}
+	if webMode && tryUpdate() {
+		return // atualizou e abriu a versão nova
+	}
 	if !webMode && !*janela {
 		installSelf() // primeira vez: copia o programa para o lugar fixo e registra o botão do site
 		return
