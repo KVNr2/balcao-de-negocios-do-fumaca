@@ -537,14 +537,17 @@ async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.has
   if(!o){ $("pfStatus").textContent="Não consegui ler a ficha vinda do Albion."; return; }
   { const mesclar=(a,b)=>{ if(b&&typeof b==="object"&&!Array.isArray(b)){ const r=Object.assign({},a&&typeof a==="object"?a:{}); for(const k in b) r[k]=mesclar(r[k],b[k]); return r; } return ((b===0||b==="")&&a)?a:b; };
     const nomeAntes=(!IS_EXAMPLE&&PF.nome)||""; PF=Object.assign(EMPTY(),mesclar(PF,migrate(o))); if(nomeAntes) PF.nome=nomeAntes; saveProfile(); renderProfile(); $("pfStatus").textContent="Ficha do Albion aplicada (o que você já tinha preenchido foi mantido)."; } }
-/* Sem aba nova: ao clicar em Sincronizar, esta aba pergunta ao programa (só no seu PC, 127.0.0.1) até a ficha ficar pronta. */
-let sondando=false;
-async function sondarPrograma(){ if(sondando) return; sondando=true; const fim=Date.now()+16*60*1000; let falhas=0;
-  while(Date.now()<fim){ try{ const r=await fetch("http://127.0.0.1:47831/ficha",{cache:"no-store"});
-      if(r.status===200){ const txt=await r.text(); location.hash="#ficha="+txt; break; } falhas=0; }catch(e){ console.warn("programa local:",e); if(++falhas>40){ $("pfStatus").textContent="Esta aba não conseguiu falar com o programa (o navegador pode ter bloqueado o acesso ao seu computador). A ficha vai abrir em outra aba."; break; } }
-    await new Promise(ok=>setTimeout(ok,1200)); }
-  sondando=false; }
-$("pfAlbion").addEventListener("click",()=>{ $("pfStatus").textContent="A sincronia acontece quando o personagem LOGA. Se você já está dentro do jogo, saia para a seleção de personagem e entre de novo. A ficha chega sozinha aqui."; setTimeout(sondarPrograma,2500); });
+/* Navegação interna: ao clicar em Sincronizar, esta mesma aba vai para a página de andamento do programa (127.0.0.1, só no seu PC)
+   e volta sozinha para cá já com a ficha. Nada de aba nova. */
+let irSync=false;
+async function irParaSincronia(){ if(irSync) return; irSync=true; const alvo="http://127.0.0.1:47831/", t0=Date.now(), st=$("pfStatus");
+  st.textContent="Abrindo o programa… se o Windows perguntar, permita abrir o Ficha do Albion e aceite o aviso de Administrador.";
+  while(Date.now()-t0<30000){
+    const ok=await new Promise(res=>{ const im=new Image(); im.onload=()=>res(true); im.onerror=()=>res(false); im.src=alvo+"ping.gif?"+Date.now(); });
+    if(ok){ location.href=alvo; return; }
+    await new Promise(r=>setTimeout(r,700)); }
+  st.textContent="Não consegui falar com o programa. Ele está instalado? Baixe em \"Primeira vez? Baixe o programa\", dê dois cliques nele e clique em Sincronizar de novo."; irSync=false; }
+$("pfAlbion").addEventListener("click",()=>{ setTimeout(irParaSincronia,1200); });
 aplicarFichaDoAlbion(); window.addEventListener("hashchange",aplicarFichaDoAlbion);
 $("pfExample").addEventListener("click",()=>{ PF=OLERAN(); saveProfile(); renderProfile(); });
 $("pfClear").addEventListener("click",()=>{ PF=EMPTY(); saveProfile(); renderProfile(); });
