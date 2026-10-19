@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"net/url"
 	"os"
 	"os/exec"
@@ -76,7 +79,25 @@ func parseReturnURL(a string) string {
 	return defaultSite
 }
 
-// Abre o site de volta com a ficha depois do "#" (essa parte do endereço não vai para servidor nenhum).
-func openSiteWithFicha(code string) {
-	_ = exec.Command("explorer.exe", retURL+"#ficha="+url.QueryEscape(code)).Start()
+func resultPath() string {
+	return filepath.Join(os.Getenv("LOCALAPPDATA"), "FichaAlbion", "resultado.txt")
+}
+
+// A ficha vai para o site comprimida (gzip + base64 seguro para endereço): ~1,5 KB em vez de ~10 KB,
+// para o endereço não estourar o limite do Windows/navegador.
+func saveResult(js []byte) {
+	var buf bytes.Buffer
+	zw, _ := gzip.NewWriterLevel(&buf, gzip.BestCompression)
+	_, _ = zw.Write(js)
+	_ = zw.Close()
+	frag := "gz." + base64.RawURLEncoding.EncodeToString(buf.Bytes())
+	_ = os.MkdirAll(filepath.Dir(resultPath()), 0o755)
+	_ = os.WriteFile(resultPath(), []byte(frag), 0o600)
+}
+
+// Abre o endereço no navegador padrão (do processo sem privilégio de administrador).
+func openURL(u string) {
+	c := exec.Command("rundll32", "url.dll,FileProtocolHandler", u)
+	c.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	_ = c.Start()
 }

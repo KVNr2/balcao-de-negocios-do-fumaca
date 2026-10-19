@@ -528,8 +528,12 @@ $("pfPasteBtn").addEventListener("click",()=>{ $("pfPasteBox").hidden=!$("pfPast
 $("pfPasteApply").addEventListener("click",()=>{ try{ const o=JSON.parse(decodeURIComponent(escape(atob($("pfPaste").value.trim())))); if(typeof o!=="object"||!o.armas) throw 0; PF=Object.assign(EMPTY(),migrate(o)); saveProfile(); renderProfile(); $("pfPasteBox").hidden=true; $("pfPasteMsg").textContent=""; }catch(e){ $("pfPasteMsg").textContent="Esse código não é uma ficha válida. Copie de novo pelo botão Copiar minha ficha."; } });
 /* Buscar do Albion: o programa do PC abre o site de volta com a ficha depois do "#" (não vai para servidor nenhum). */
 $("pfAlbion").href="albion-ficha://iniciar?voltar="+encodeURIComponent(location.origin+location.pathname);
-function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.hash); if(!m) return; history.replaceState(null,"",location.pathname+location.search);
-  let o=null; try{ o=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1]))))); if(typeof o!=="object"||!o||!o.armas) o=null; }catch(err){ o=null; }
+async function lerFichaDoAlbion(txt){ txt=decodeURIComponent(txt);
+  if(txt.startsWith("gz.")){ const bin=Uint8Array.from(atob(txt.slice(3).replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
+    return JSON.parse(await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).text()); }
+  return JSON.parse(decodeURIComponent(escape(atob(txt)))); }
+async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.hash); if(!m) return; history.replaceState(null,"",location.pathname+location.search);
+  let o=null; try{ o=await lerFichaDoAlbion(m[1]); if(typeof o!=="object"||!o||!o.armas) o=null; }catch(err){ o=null; }
   if(!o){ $("pfStatus").textContent="Não consegui ler a ficha vinda do Albion."; return; }
   if(confirm("Aplicar a ficha lida do Albion? Os níveis do jogo atualizam a sua ficha; o resto que você preencheu é mantido.")){ const mesclar=(a,b)=>{ if(b&&typeof b==="object"&&!Array.isArray(b)){ const r=Object.assign({},a&&typeof a==="object"?a:{}); for(const k in b) r[k]=mesclar(r[k],b[k]); return r; } return ((b===0||b==="")&&a)?a:b; };
     const nomeAntes=(!IS_EXAMPLE&&PF.nome)||""; PF=Object.assign(EMPTY(),mesclar(PF,migrate(o))); if(nomeAntes) PF.nome=nomeAntes; saveProfile(); renderProfile(); $("pfStatus").textContent="Ficha do Albion aplicada (o que você já tinha preenchido foi mantido)."; } }
