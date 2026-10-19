@@ -139,14 +139,16 @@ details.guide dd{font-size:14px;color:var(--parch-2)}
 @media (max-width:560px){ .vip-top .bn small{display:none} .vip-top .facts .patchchip{display:none} }
 
 /* ---------- ícones do jogo nas linhas da ficha ---------- */
-.nico{width:34px;height:34px;object-fit:contain;flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.65))}
+/* ícones no mesmo jeito do Albion Market: imagem cheia dentro de um bloco escuro com borda fina e cantos arredondados */
+.nico,img.ico{box-sizing:border-box;object-fit:fill;flex:none;padding:3px;background:#14161c;border:1px solid #23262f;border-radius:11px;filter:none}
+.nico{width:40px;height:40px}
 .nico-off{visibility:hidden}
 .lvtn{display:flex;align-items:center;gap:7px;min-width:0}
-.lvtn .nico{width:44px;height:44px;padding:3px;border-radius:10px;background:#080b12;border:1px solid var(--line-soft)}
+.lvtn .nico{width:44px;height:44px;}
 .lbl.with-ic{display:flex;align-items:center;gap:9px}
-.lbl.with-ic .nico{width:42px;height:42px;padding:3px;border-radius:10px;background:#080b12;border:1px solid var(--line-soft)}
+.lbl.with-ic .nico{width:42px;height:42px;}
 details.spg summary{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;gap:10px}
-details.spg summary .nico{width:48px;height:48px;padding:3px;border-radius:11px;background:#080b12;border:1px solid var(--line)}
+details.spg summary .nico{width:48px;height:48px;}
 .spgrid label.lvt{justify-content:flex-end}
 
 .lvtn{gap:9px}
@@ -155,3 +157,7 @@ details.spg summary .nico{width:48px;height:48px;padding:3px;border-radius:11px;
 
 .spn{white-space:normal;line-height:1.15}
 .sps{font-size:12px;max-width:11em}
+
+img.ico{width:40px;height:40px}
+.chip img.ico{width:30px;height:30px;padding:2px;border-radius:8px}
+td.itemcell img.ico{width:44px;height:44px}
