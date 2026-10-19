@@ -154,21 +154,25 @@
     <div class="block">
       <h2>Minha ficha</h2>
       <ol class="steps">
-        <li><b>Escreva o nome do seu personagem.</b> A ficha passa a ser sua, e o site deixa de mostrar o exemplo do Oleran.</li>
-        <li><b>Coloque o nível de cada spec</b> como aparece no Destiny Board do jogo: combate, craft, coleta, refino, cozinha, alquimia e fazenda. Cada linha abre com a maestria e todos os itens dela. Deixe em branco o que você não upou.</li>
-        <li><b>Pronto.</b> Todas as páginas usam a sua ficha. Ela fica salva só neste navegador; cada amigo abre o site no computador dele e preenche a própria.</li>
-        <li><b>Para usar em outro aparelho</b>, clique em Copiar link da minha ficha e abra o link lá.</li>
+        <li><b>Clique em Sincronizar</b> e entre com o seu personagem no Albion. O programa Ficha do Albion, no seu PC, lê o Destiny Board sozinho e traz os níveis para cá.</li>
+        <li><b>Confirme</b> quando o site perguntar. A ficha inteira (combate, craft, coleta e refino) é preenchida.</li>
+        <li><b>Pronto.</b> Todas as páginas usam a sua ficha. Ela fica salva só neste navegador; cada amigo usa o próprio programa e a própria ficha.</li>
       </ol>
       <div class="row-ctl">
         <label class="f" style="max-width:280px">Nome do personagem<input id="pfName" type="text" maxlength="40" placeholder="Ex.: Oleran"></label>
         <div class="btnrow">
-          <button type="button" class="btn" id="pfLink">Copiar link da minha ficha</button>
-          <button type="button" class="btn ghost" id="pfCopy">Copiar código</button>
-          <button type="button" class="btn" id="pfPasteBtn">Colar ficha</button>
-          <a class="btn" id="pfAlbion" href="albion-ficha://iniciar" title="Abre o programa no seu PC, espera você entrar no jogo e traz os níveis do Destiny Board para cá">Buscar do Albion</a>
-          <button type="button" class="btn ghost" id="pfExample">Carregar exemplo do Oleran</button>
+          <a class="btn" id="pfAlbion" href="albion-ficha://iniciar" title="Abre o programa no seu PC, espera você entrar no jogo e traz os níveis do Destiny Board para cá">Sincronizar</a>
           <button type="button" class="btn ghost" id="pfClear">Limpar ficha</button>
         </div>
+        <details class="tiny muted" style="margin-top:.6rem">
+          <summary>Mais opções (outro aparelho, colar código, exemplo)</summary>
+          <div class="btnrow" style="margin-top:.5rem">
+            <button type="button" class="btn ghost" id="pfLink">Copiar link da minha ficha</button>
+            <button type="button" class="btn ghost" id="pfCopy">Copiar código</button>
+            <button type="button" class="btn ghost" id="pfPasteBtn">Colar ficha</button>
+            <button type="button" class="btn ghost" id="pfExample">Carregar exemplo do Oleran</button>
+          </div>
+        </details>
       </div>
       <div id="pfPasteBox" hidden class="pastebox">
         <label class="f">Cole aqui o código da ficha<textarea id="pfPaste" rows="3"></textarea></label>
