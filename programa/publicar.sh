@@ -9,6 +9,8 @@ SITE="$PWD"
 FONTE="${FONTE:?defina FONTE com a pasta do código-fonte (fica só no seu PC)}"
 [ -n "$1" ] || { echo "uso: $0 NOVA_VERSAO"; exit 1; }
 sed -i "s/^const appVersion = \".*\"/const appVersion = \"$1\"/" "$FONTE/update.go"
-(cd "$FONTE" && GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-H=windowsgui -s -w" -o "$SITE/ficha-albion.exe" .)
-printf '{"versao":"%s","sha256":"%s"}\n' "$1" "$(sha256sum ficha-albion.exe | cut -d' ' -f1)" > versao.json
-echo "Pronto: faça commit só de ficha-albion.exe e versao.json e envie para a main."
+(cd "$FONTE" && GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-H=windowsgui -s -w" -o "$SITE/AlbionSpecs.exe" .)
+# cópia com o nome antigo: só para quem instalou antes do nome AlbionSpecs.exe se atualizar e migrar sozinho
+cp AlbionSpecs.exe ficha-albion.exe
+printf '{"versao":"%s","sha256":"%s"}\n' "$1" "$(sha256sum AlbionSpecs.exe | cut -d' ' -f1)" > versao.json
+echo "Pronto: faça commit só de AlbionSpecs.exe, ficha-albion.exe e versao.json e envie para a main."
