@@ -143,8 +143,10 @@ function cheapestCrop(){ let best=null; for(const r of FARM.p){ if(HERBS.test(r[
 /* foco: 1.000 por semente regada ou por vez que alimenta o filhote, sem spec; a spec de cada planta e animal reduz.
    o valor que o jogo mostra pode ser digitado na linha e fica guardado */
 let FZ_OBS={}; try{ FZ_OBS=JSON.parse(store.get("fzObs")||"{}"); }catch(e){}
-const fzSpec = () => +(store.get("fzSpec")||0);
-const fzFocus = id => FZ_OBS[id]>0 ? FZ_OBS[id] : Math.max(1,Math.round(1000*Math.pow(0.5,FCE_LV[fzSpec()]/10000)));
+// a spec de cada planta, erva e animal vem da Minha ficha (seção Fazenda)
+const fzFCE = id => itemFCE(id.replace(/^T\d_/,""));
+const fzFocus = id => FZ_OBS[id]>0 ? FZ_OBS[id] : Math.max(1,Math.round(1000*Math.pow(0.5,fzFCE(id)/10000)));
+const fzHasSpec = () => ["z:plantas","z:ervas","z:animais"].some(k=>spMax((PF.sp||{})[k])>0);
 function plantModel(r){
   const [seed,crop,t,chance,bonus,,npc,avg]=r; const ps=typical(seed,0), pc=typical(crop,0), pw=typical("T1_WORM",0);
   if(!pc) return null; const sp=ps?ps.p:npc;
@@ -178,7 +180,7 @@ async function renderFZ(){
   if(!FARM){ note.textContent="Abrindo os dados da fazenda…"; try{ FARM=await need("farm"); }catch(e){ note.textContent="Não consegui abrir os dados da fazenda."; return; } }
   if(!FZ_LOADED){ tb.textContent=""; note.textContent="Consultando sementes, colheitas e animais…"; const ok=await ensureFZ(); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } }
   const focus=$("fzFocus").checked, plots=Math.max(1,Math.min(60,+$("fzPlots").value||1));
-  $("fzSpecSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.lv===fzSpec())));
+  $("fzSpecTxt").textContent = fzHasSpec() ? "O foco usa as specs de fazenda da sua ficha." : "Sem spec de fazenda na ficha: a conta usa o foco cheio. Preencha em Minha ficha, seção Fazenda.";
   tb.textContent=""; const hr=tb.createTHead().insertRow(); const body=tb.createTBody();
   const cell=(tr,v,cls)=>{ const c=tr.insertCell(); if(cls) c.className=cls; if(v instanceof Node) c.append(v); else c.textContent=v; return c; };
   const gl=v=>"num "+(v>=0?"gain":"loss");
@@ -208,6 +210,6 @@ async function renderFZ(){
 }
 document.querySelectorAll("[data-fz]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-fz]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); fzKind=b.dataset.fz; renderFZ(); }));
 $("fzFocus").addEventListener("change",renderFZ);
-$("fzSpecSeg").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; store.set("fzSpec",b.dataset.lv); renderFZ(); }); $("fzPlots").addEventListener("input",()=>{ if(FARM&&FZ_LOADED) renderFZ(); });
+$("fzPlots").addEventListener("input",()=>{ if(FARM&&FZ_LOADED) renderFZ(); });
 ["bcBuild","bcTier","bcEnch"].forEach(id=>$(id).addEventListener("change",renderBC));
 $("bcCopy").addEventListener("click",()=>{ const sel=$("bcBuild"); if(sel.value==="custom") return; const slots=buildSlots(BUILDS[+sel.value]); BC_CUSTOM={}; for(const s in slots){ const pick=slots[s].find(c=>c.key===bcSel[s])||slots[s][0]; if(pick) BC_CUSTOM[s]=pick.key; } saveCustom(); sel.value="custom"; renderBC(); });
