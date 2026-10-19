@@ -4,7 +4,9 @@ import (
 	_ "embed"
 	"os"
 	"runtime"
+	"sync"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -111,6 +113,7 @@ type msg struct {
 }
 
 type trayT struct {
+	once  sync.Once
 	hwnd  uintptr
 	icon  uintptr
 	ready chan struct{}
@@ -160,6 +163,11 @@ func (t *trayT) nid(flags uint32) *notifyIconData {
 func startTray(tip, status string) {
 	tray.tip, tray.menu = tip, status
 	go func() {
+		// Um problema no ícone nunca pode derrubar a leitura da ficha.
+		defer func() {
+			_ = recover()
+			tray.once.Do(func() { close(tray.ready) })
+		}()
 		runtime.LockOSThread()
 		hinst, _, _ := pGetModuleHandle.Call(0)
 		cls := u16("FichaAlbionTray")
@@ -184,13 +192,12 @@ func startTray(tip, status string) {
 		hwnd, _, _ := pCreateWindowEx.Call(0, uintptr(unsafe.Pointer(cls)), uintptr(unsafe.Pointer(title)), 0, 0, 0, 0, 0, hwndMessage, 0, hinst, 0)
 		runtime.KeepAlive(title)
 		if hwnd == 0 {
-			close(tray.ready)
 			return
 		}
 		tray.hwnd = hwnd
 		tray.icon = loadTrayIcon()
 		pShellNotifyIcon.Call(nimAdd, uintptr(unsafe.Pointer(tray.nid(nifMessage|nifIcon|nifTip))))
-		close(tray.ready)
+		tray.once.Do(func() { close(tray.ready) })
 		var m msg
 		for {
 			r, _, _ := pGetMessage.Call(uintptr(unsafe.Pointer(&m)), 0, 0, 0)
@@ -201,7 +208,10 @@ func startTray(tip, status string) {
 			pDispatchMessage.Call(uintptr(unsafe.Pointer(&m)))
 		}
 	}()
-	<-tray.ready
+	select {
+	case <-tray.ready:
+	case <-time.After(3 * time.Second):
+	}
 }
 
 func showTrayMenu(hwnd uintptr) {
