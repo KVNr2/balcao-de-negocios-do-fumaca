@@ -15,7 +15,7 @@ import (
 
 // Atualização automática: o site publica programa/versao.json ({"versao","sha256"}) e
 // programa/ficha-albion.exe. Quando a versão muda, o programa instalado se troca sozinho.
-const appVersion = "1.2.0"
+const appVersion = "1.3.0"
 
 var updateBase = "https://kvnr2.github.io/balcao-de-negocios-do-fumaca/programa/"
 
