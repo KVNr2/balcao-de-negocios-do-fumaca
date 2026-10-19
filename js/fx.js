@@ -26,7 +26,7 @@ function coinBurst(fromEl){
 function tiltCards(){
   if(!FX.ok||RM||!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
   document.querySelectorAll(".sheet, ol.recs li, .links a, .mu").forEach(card=>{
-    if(card.dataset.tilt) return; card.dataset.tilt=1;
+    if(card.dataset.tilt) return; card.dataset.tilt=1; if(card.querySelector("table, .tbl, .grid-lv, form, input, select")) return;
     gsap.set(card,{transformPerspective:900});
     const rx=gsap.quickTo(card,"rotationX",{duration:.5,ease:"power3"}), ry=gsap.quickTo(card,"rotationY",{duration:.5,ease:"power3"}), z=gsap.quickTo(card,"y",{duration:.4,ease:"power3"});
     const strength = card.classList.contains("sheet") ? 2.2 : 4;

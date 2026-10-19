@@ -340,3 +340,8 @@ label.lvt select{width:auto;padding:5px 6px;font-size:14px}
 @media (max-width:560px){.lvrow{grid-template-columns:minmax(0,1fr)}.lvh{white-space:normal}}
 #pfRefine,#pfCraft,#pfCook,#pfGather{display:block}
 .cols:has(#pfRefine){grid-template-columns:minmax(0,1fr)}
+
+.hapin{display:flex;align-items:center;gap:6px}
+.hapin input{width:110px}
+.hapin span{color:var(--smoke);font-size:14px;white-space:nowrap}
+#wkYieldTxt{align-self:center;max-width:42ch;color:var(--parch-2)}
