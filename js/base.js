@@ -531,7 +531,8 @@ $("pfAlbion").href="albion-ficha://iniciar?voltar="+encodeURIComponent(location.
 function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.hash); if(!m) return; history.replaceState(null,"",location.pathname+location.search);
   let o=null; try{ o=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1]))))); if(typeof o!=="object"||!o||!o.armas) o=null; }catch(err){ o=null; }
   if(!o){ $("pfStatus").textContent="Não consegui ler a ficha vinda do Albion."; return; }
-  if(confirm("Aplicar a ficha lida do Albion? Ela substitui a ficha atual deste navegador.")){ PF=Object.assign(EMPTY(),migrate(o)); saveProfile(); renderProfile(); $("pfStatus").textContent="Ficha do Albion aplicada."; } }
+  if(confirm("Aplicar a ficha lida do Albion? Os níveis do jogo atualizam a sua ficha; o resto que você preencheu é mantido.")){ const mesclar=(a,b)=>{ if(b&&typeof b==="object"&&!Array.isArray(b)){ const r=Object.assign({},a&&typeof a==="object"?a:{}); for(const k in b) r[k]=mesclar(r[k],b[k]); return r; } return ((b===0||b==="")&&a)?a:b; };
+    PF=Object.assign(EMPTY(),mesclar(PF,migrate(o))); saveProfile(); renderProfile(); $("pfStatus").textContent="Ficha do Albion aplicada (o que você já tinha preenchido foi mantido)."; } }
 aplicarFichaDoAlbion(); window.addEventListener("hashchange",aplicarFichaDoAlbion);
 $("pfExample").addEventListener("click",()=>{ PF=OLERAN(); saveProfile(); renderProfile(); });
 $("pfClear").addEventListener("click",()=>{ PF=EMPTY(); saveProfile(); renderProfile(); });
