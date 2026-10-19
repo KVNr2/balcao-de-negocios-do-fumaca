@@ -1017,7 +1017,7 @@ func main() {
 		}
 	}()
 
-	uiURL, uiOK := startUI(!webMode)
+	uiURL, uiOK := startUI(true)
 	startTray("Ficha do Albion: aguardando você entrar no jogo", "Aguardando você entrar no jogo")
 	fmt.Println("==========================================================")
 	if uiOK {
