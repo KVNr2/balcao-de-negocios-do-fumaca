@@ -154,7 +154,7 @@ const OLERAN = () => { const p=EMPTY(); p.nome="Oleran";
   p.craft={HEAD_PLATE:{m:50,s:{1:10,2:10,3:10}}}; p.cozinha={m:100,s:{},all:40}; p.alquimia={m:100,s:{},all:40}; return toV3(p); };
 let PF = null, IS_EXAMPLE = false;
 function deriveLv(){ // mantém .lv (0 a 3) para as recomendações
-  for(const k in PF.coleta){ const g=PF.coleta[k]; if(g.s){ let top=0; for(let t=2;t<=8;t++) if((g.s[t]||0)>0) top=t; g.tier=top&&g.s[top]>=100&&top<8?top+1:top; g.n=top?g.s[top]:0; } g.lv=band(g.n); }
+  for(const k in PF.coleta){ const g=PF.coleta[k]; if(g.s){ let top=0; for(let t=2;t<=8;t++) if((g.s[t]||0)>0) top=t; g.tier=top&&g.s[top]>=100&&top<8?top+1:top; g.n=top?g.s[top]:0; if(k==="pesca"){ const esp=g.s[8]||0, pes=g.m||0; g.tier=esp>=100?8:esp>0?7:pes>0?3:0; g.n=esp||pes; } } g.lv=band(g.n); }
   PF.sp=PF.sp||{}; for(const mat in ARMAT){ let v=0; for(const slot of ["HEAD","ARMOR","SHOES"]){ const g=PF.sp[`c:${slot}_${mat}`]; if(g) v=Math.max(v,g.m||0,...Object.values(g.s||{})); } PF.armaduras[ARMAT[mat]]=v; }
   for(const k in PF.refino){ const r=PF.refino[k]; r.lv=r.obs>0?2:band(Math.max(r.m||0,...Object.values(r.s||{}))); }
   for(const k in PF.craft){ const r=PF.craft[k]; r.lv=r.obs>0?2:band(Math.max(r.m||0,...Object.values(r.s||{}))); }
@@ -464,7 +464,7 @@ function renderProfile(){
   $("pfName").value=PF.nome||"";
   const g=$("pfGather"); g.textContent="";
   for(const [k,n] of GATHER){ const cur=PF.coleta[k]||(PF.coleta[k]={s:{}}); cur.s=cur.s||{};
-    const ins=[]; for(let t=2;t<=8;t++) ins.push(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${n} T${t}`,x=>{ if(x) cur.s[t]=x; else delete cur.s[t]; saveProfile(); renderGatherHint(row,cur); })));
+    const ins=[]; if(k==="pesca"){ ins.push(tagIn("Pescador",numIn(cur.m||0,100,"Pescador",x=>{ cur.m=x; saveProfile(); renderGatherHint(row,cur); })),tagIn("Especialista",numIn(cur.s[8]||0,100,"Especialista em pesca",x=>{ if(x) cur.s[8]=x; else delete cur.s[8]; saveProfile(); renderGatherHint(row,cur); }))); } else for(let t=2;t<=8;t++) ins.push(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${n} T${t}`,x=>{ if(x) cur.s[t]=x; else delete cur.s[t]; saveProfile(); renderGatherHint(row,cur); })));
     const row=lvRow(n,ins," "); g.append(row); renderGatherHint(row,cur); }
   const r=$("pfRefine"); r.textContent="";
   for(const k in RES){ const cur=PF.refino[k]||(PF.refino[k]={m:0,s:{}}); cur.s=cur.s||{};
@@ -535,8 +535,16 @@ async function lerFichaDoAlbion(txt){ txt=decodeURIComponent(txt);
 async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.hash); if(!m) return; history.replaceState(null,"",location.pathname+location.search);
   let o=null; try{ o=await lerFichaDoAlbion(m[1]); if(typeof o!=="object"||!o||!o.armas) o=null; }catch(err){ o=null; }
   if(!o){ $("pfStatus").textContent="Não consegui ler a ficha vinda do Albion."; return; }
-  if(confirm("Aplicar a ficha lida do Albion? Os níveis do jogo atualizam a sua ficha; o resto que você preencheu é mantido.")){ const mesclar=(a,b)=>{ if(b&&typeof b==="object"&&!Array.isArray(b)){ const r=Object.assign({},a&&typeof a==="object"?a:{}); for(const k in b) r[k]=mesclar(r[k],b[k]); return r; } return ((b===0||b==="")&&a)?a:b; };
+  { const mesclar=(a,b)=>{ if(b&&typeof b==="object"&&!Array.isArray(b)){ const r=Object.assign({},a&&typeof a==="object"?a:{}); for(const k in b) r[k]=mesclar(r[k],b[k]); return r; } return ((b===0||b==="")&&a)?a:b; };
     const nomeAntes=(!IS_EXAMPLE&&PF.nome)||""; PF=Object.assign(EMPTY(),mesclar(PF,migrate(o))); if(nomeAntes) PF.nome=nomeAntes; saveProfile(); renderProfile(); $("pfStatus").textContent="Ficha do Albion aplicada (o que você já tinha preenchido foi mantido)."; } }
+/* Sem aba nova: ao clicar em Sincronizar, esta aba pergunta ao programa (só no seu PC, 127.0.0.1) até a ficha ficar pronta. */
+let sondando=false;
+async function sondarPrograma(){ if(sondando) return; sondando=true; const fim=Date.now()+16*60*1000; let falhas=0;
+  while(Date.now()<fim){ try{ const r=await fetch("http://127.0.0.1:47831/ficha",{cache:"no-store",targetAddressSpace:"loopback"});
+      if(r.status===200){ const txt=await r.text(); location.hash="#ficha="+txt; break; } falhas=0; }catch(e){ if(++falhas>40) break; }
+    await new Promise(ok=>setTimeout(ok,1200)); }
+  sondando=false; }
+$("pfAlbion").addEventListener("click",()=>{ $("pfStatus").textContent="A sincronia acontece quando o personagem LOGA. Se você já está dentro do jogo, saia para a seleção de personagem e entre de novo. A ficha chega sozinha aqui."; setTimeout(sondarPrograma,2500); });
 aplicarFichaDoAlbion(); window.addEventListener("hashchange",aplicarFichaDoAlbion);
 $("pfExample").addEventListener("click",()=>{ PF=OLERAN(); saveProfile(); renderProfile(); });
 $("pfClear").addEventListener("click",()=>{ PF=EMPTY(); saveProfile(); renderProfile(); });
