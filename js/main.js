@@ -1,7 +1,7 @@
 /* ================= wiring ================= */
 const tabs=[...document.querySelectorAll("nav.tabs [role=tab]")];
 function showTab(id, quiet){ let panel=null; tabs.forEach(b=>{const on=b.id===id; b.setAttribute("aria-selected",String(on)); const p=$(b.getAttribute("aria-controls")); p.hidden=!on; if(on) panel=p;}); tip.hidden=true; store.set("tab",id); if(id==="t-craft") renderCraft();
-  if(id==="t-cozinha") renderCook(); if(id==="t-mapas") renderMaps(); if(id==="t-mercado") renderBM(); if(id==="t-trab") renderWK(); if(id==="t-matchup") renderMU(); if(id==="t-encantar") renderEN(); if(id==="t-fazenda") renderFZ(); if(id==="t-custo") renderBC();
+  if(id==="t-cozinha") renderCook(); if(id==="t-mapas") renderMaps(); if(id==="t-mercado") renderBM(); if(id==="t-trab") renderWK(); if(id==="t-matchup") renderMU(); if(id==="t-craft") renderOf(); if(id==="t-mk") renderMk(); if(id==="t-encantar") renderEN(); if(id==="t-fazenda") renderFZ(); if(id==="t-custo") renderBC();
   moveTabLamp(tabs.find(b=>b.id===id), quiet); addFlourishes(panel||document);
   if(!quiet&&panel){ animatePanel(panel); if(FX.ok&&!RM){ revealOnScroll(); tiltCards(); if(window.ScrollTrigger) ScrollTrigger.refresh(); } } }
 function animatePanel(panel){
@@ -35,7 +35,7 @@ loadProfile(); renderProfile(); renderWho(); renderActs("all");
 stallIntro();
 (async()=>{
   try{ const [p,c,z,g]=await Promise.all([need("precos"),need("cook"),need("zones"),need("gear")]); DATA=p; COOK=c; ZONES=z; GEAR=g; }catch(e){ $("when").textContent="Não consegui abrir os dados do site"; }
-  applyMeta();
+  applyMeta(); renderCookProfile(); importFromHash();
   const hash=location.hash.slice(1), start=tabs.find(b=>b.id==="t-"+hash)?"t-"+hash:(store.get("tab")||"t-voce"); recompute(true); if($(start)) showTab(start,true);
   loadBuilds(); loadLive();
 })();

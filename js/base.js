@@ -124,30 +124,61 @@ let BUILDS = [
 const armorType = name => /Helmet|Armor\b|Boots/.test(name) ? "placa" : /Hood|Jacket|Shoes/.test(name) ? "couro" : /Cowl|Robe|Sandals/.test(name) ? "pano" : null;
 
 /* ================= profile ================= */
-const EMPTY = () => ({nome:"", armas:{}, armaduras:{placa:0,couro:0,pano:0}, coleta:{}, refino:{metal:{lv:0},cloth:{lv:0},leather:{lv:0}}, craft:{}, cozinha:{lv:0}, alquimia:{lv:0}});
+const EMPTY = () => ({v:2, nome:"", armas:{}, armaduras:{placa:0,couro:0,pano:0}, coleta:{}, refino:{}, craft:{}, cozinha:{m:0,s:{}}, alquimia:{m:0,s:{}}});
+/* nível em número (0 a 100, armas até 120) → faixa usada nas recomendações: 0 nada, 1 pouca, 2 média, 3 alta */
+const band = n => !(n>0) ? 0 : n<40 ? 1 : n<80 ? 2 : 3;
+const OLD2N = [0,30,70,100];
+function migrate(p){
+  if(p.v===2) return p; const q=EMPTY(); q.nome=p.nome||"";
+  for(const k in (p.armas||{})) q.armas[k]=OLD2N[p.armas[k]]||0;
+  for(const k in (p.armaduras||{})) q.armaduras[k]=OLD2N[p.armaduras[k]]||0;
+  for(const k in (p.coleta||{})){ const g=p.coleta[k]||{}; q.coleta[k]={tier:g.tier||0,n:OLD2N[g.lv]||0}; }
+  const ms=[[0,0],[50,10],[100,40],[100,100]];
+  for(const k in (p.refino||{})){ const r=p.refino[k]||{}; const [m,sv]=ms[r.lv||0]; q.refino[k]={m,s:{4:sv,5:sv,6:sv,7:sv,8:sv},obs:r.obs||0}; }
+  for(const k in (p.craft||{})){ const r=p.craft[k]||{}; const [m,sv]=ms[r.lv||0]; q.craft[k]={m,s:{1:sv,2:sv,3:sv},obs:r.obs||0}; }
+  for(const k of ["cozinha","alquimia"]){ const lv=(p[k]||{}).lv||0; const [m,sv]=ms[lv]; q[k]={m,s:{},all:sv}; }
+  return q;
+}
 const OLERAN = () => { const p=EMPTY(); p.nome="Oleran";
-  for(const [k] of LINES) p.armas[k]=1; Object.assign(p.armas,{martelo:3,maca:3,besta:3,lanca:3,arcano:3,espada:0,adaga:0,sagrado:0,natureza:0});
-  p.armaduras={placa:2,couro:2,pano:2};
-  p.coleta={minerio:{tier:8,lv:3},pesca:{tier:8,lv:3}};
-  p.craft={HEAD_PLATE:{lv:1}}; p.cozinha={lv:2}; p.alquimia={lv:2}; return p; };
+  for(const [k] of LINES) p.armas[k]=30; Object.assign(p.armas,{martelo:100,maca:100,besta:100,lanca:100,arcano:100,espada:0,adaga:0,sagrado:0,natureza:0});
+  p.armaduras={placa:70,couro:70,pano:70};
+  p.coleta={minerio:{tier:8,n:100},pesca:{tier:8,n:100}};
+  p.craft={HEAD_PLATE:{m:50,s:{1:10,2:10,3:10}}}; p.cozinha={m:100,s:{},all:40}; p.alquimia={m:100,s:{},all:40}; return p; };
 let PF = null, IS_EXAMPLE = false;
-function loadProfile(){ try{ const s=store.get("ficha"); if(s){ PF=Object.assign(EMPTY(),JSON.parse(s)); IS_EXAMPLE=false; return; } }catch(e){} PF=OLERAN(); IS_EXAMPLE=true; }
+function deriveLv(){ // mantém .lv (0 a 3) para as recomendações
+  for(const k in PF.coleta){ const g=PF.coleta[k]; g.lv=band(g.n); }
+  for(const k in PF.refino){ const r=PF.refino[k]; r.lv=r.obs>0?2:band(Math.max(r.m||0,...Object.values(r.s||{}))); }
+  for(const k in PF.craft){ const r=PF.craft[k]; r.lv=r.obs>0?2:band(Math.max(r.m||0,...Object.values(r.s||{}))); }
+  for(const k of ["cozinha","alquimia"]){ const r=PF[k]||(PF[k]={m:0,s:{}}); r.lv=band(Math.max(r.m||0,r.all||0,...Object.values(r.s||{}))); }
+}
+function loadProfile(){ try{ const s=store.get("ficha"); if(s){ PF=migrate(Object.assign({},JSON.parse(s))); PF=Object.assign(EMPTY(),PF); IS_EXAMPLE=false; deriveLv(); return; } }catch(e){} PF=OLERAN(); IS_EXAMPLE=true; deriveLv(); }
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._h);
   if(window.gsap&&!RM) gsap.fromTo(t,{y:16,opacity:0},{y:0,opacity:1,duration:.3,ease:"back.out(2)"}); toast._h=setTimeout(()=>{ if(window.gsap&&!RM) gsap.to(t,{opacity:0,y:10,duration:.25,onComplete:()=>t.hidden=true}); else t.hidden=true; },1800); }
-function saveProfile(){ IS_EXAMPLE=false; store.set("ficha",JSON.stringify(PF)); $("pfStatus").textContent="Ficha salva neste navegador."; toast("Ficha guardada no livro"); coinBurst(); renderWho(); recompute(); }
-const wl = k => PF.armas[k]||0;
-function fceFrom(lv,obs,base){ if(obs>0&&obs<base) return 10000*Math.log2(base/obs); return FCE_LV[lv||0]; }
-const refFCE = res => { const r=PF.refino[res]||{}; return fceFrom(r.lv,r.obs,FOCUS_REF[2][0]); };
-const craftFCE = (slot,mat) => { const r=PF.craft[slot+"_"+mat]||{}; return fceFrom(r.lv,r.obs,FOCUS_CRAFT[2][0]*(slot==="ARMOR"?2:1)); };
-const refFocus = (res,t,e) => Math.max(1,Math.round(FOCUS_REF[t-4][e]*Math.pow(0.5,refFCE(res)/10000)));
-const craftFocus = (slot,mat,t,e) => Math.max(1,Math.round(FOCUS_CRAFT[t-4][e]*(slot==="ARMOR"?2:1)*Math.pow(0.5,craftFCE(slot,mat)/10000)));
+function saveProfile(){ IS_EXAMPLE=false; deriveLv(); store.set("ficha",JSON.stringify(PF)); $("pfStatus").textContent="Ficha salva neste navegador."; toast("Ficha guardada no livro"); coinBurst(); renderWho(); recompute(); }
+const wl = k => band(PF.armas[k]||0);
+const armorLv = t => band(PF.armaduras[t]||0);
+/* eficiência de foco pela regra do jogo: 250 por nível da própria spec, 15 por nível das specs irmãs, 30 por nível de maestria.
+   10.000 de eficiência cortam o foco pela metade. Se a pessoa digitou o custo de foco que o jogo mostra, ele manda. */
+function fceRule(m,specs,own){ const all=Object.values(specs||{}).reduce((a,b)=>a+(+b||0),0), o=+((specs||{})[own])||0; return 250*o+15*(all-o)+30*(+m||0); }
+const fceObs = (obs,base) => obs>0&&obs<base ? 10000*Math.log2(base/obs) : null;
+const refFCEt = (res,t) => { const r=PF.refino[res]||{}; return fceObs(r.obs,FOCUS_REF[2][0]) ?? fceRule(r.m,r.s,t); };
+const refFCE = res => refFCEt(res,6);
+const craftFCE = (slot,mat,set=1) => { const r=PF.craft[slot+"_"+mat]||{}; return fceObs(r.obs,FOCUS_CRAFT[2][0]*(slot==="ARMOR"?2:1)) ?? fceRule(r.m,r.s,set); };
+const refFocus = (res,t,e) => Math.max(1,Math.round(FOCUS_REF[t-4][e]*Math.pow(0.5,refFCEt(res,t)/10000)));
+const craftFocus = (slot,mat,t,e,set=1) => Math.max(1,Math.round(FOCUS_CRAFT[t-4][e]*(slot==="ARMOR"?2:1)*Math.pow(0.5,craftFCE(slot,mat,set)/10000)));
 
 /* ================= prices ================= */
 const idOf = (t,base,e)=>`T${t}_${base}`+(e?`_LEVEL${e}`:"");
 const gearId = (t,slot,mat,set,e)=>`T${t}_${slot}_${mat}_SET${set}`+(e?`@${e}`:"");
 function median(a){ const s=[...a].sort((x,y)=>x-y); const m=s.length>>1; return s.length%2?s[m]:(s[m-1]+s[m])/2; }
-function typical(id, field){ const r=DATA.itens[id]; if(!r) return null; const pts=Object.entries(r).filter(([c,v])=>v[field]>0).map(([c,v])=>({c,p:v[field]})); if(!pts.length) return null; return {p:median(pts.map(x=>x.p)), n:pts.length}; }
-function bestCity(id, field, want){ const r=DATA.itens[id]; if(!r) return null; let b=null; for(const [c,v] of Object.entries(r)){ const p=v[field]; if(!(p>0)) continue; if(!b||(want==="min"?p<b.p:p>b.p)) b={p,c}; } return b; }
+function typical(id, field){ const r=DATA.itens[id]; if(!r) return null; const pts=Object.entries(r).filter(([c,v])=>v[field]>0).map(([c,v])=>({c,p:v[field],t:v[field+2]||0})); if(!pts.length) return null; return {p:median(pts.map(x=>x.p)), n:pts.length, t:Math.max(...pts.map(x=>x.t))||snapTime()}; }
+/* idade dos preços e ícones dos itens */
+const snapTime = () => DATA.geradoEm && !LIVE ? Date.parse(DATA.geradoEm) : 0;
+function fmtAge(t){ if(!t) return ""; const h=(Date.now()-t)/3600e3; return h<1 ? `${Math.max(1,Math.round(h*60))} min` : h<48 ? `${Math.round(h)}h` : `${Math.round(h/24)} dias`; }
+const ageSpan = t => t ? el("span",{class:"age"+((Date.now()-t)>12*3600e3?" old":""),text:fmtAge(t)}) : null;
+const ICON = id => `https://render.albiononline.com/v1/item/${encodeURIComponent(id)}.png?size=64&quality=1`;
+const iconImg = (id,size=36) => { const i=el("img",{src:ICON(id),alt:"",loading:"lazy",decoding:"async",width:size,height:size}); i.className="ico"; i.onerror=()=>{ i.style.visibility="hidden"; }; return i; };
+function bestCity(id, field, want, only){ const r=DATA.itens[id]; if(!r) return null; let b=null; for(const [c,v] of Object.entries(r)){ if(only&&c!==only) continue; const p=v[field]; if(!(p>0)) continue; if(!b||(want==="min"?p<b.p:p>b.p)) b={p,c,t:v[field+2]||snapTime()}; } return b; }
 const RED_CITIES = new Set(["Caerleon"]);
 const routeWarn = cs => cs.some(c=>RED_CITIES.has(c)) ? "passa por Caerleon, rota de zona vermelha" : (new Set(cs)).size>2 ? "rota com várias cidades, conte o frete e o tempo" : "";
 const prevId = (res,t,e) => t===4 ? `T3_${RES[res].ref}` : idOf(t-1,RES[res].ref,e);
@@ -174,7 +205,7 @@ function craftModel(slot,mat,set,t,e){
   if(!bar||!item) return null;
   const inputs=cnt*bar.p, fee=cnt*IV(t,e)*0.1125*feeVal()/100, net=item.p*(1-taxOf());
   const r1=rrr(0.15,true,st.daily), r0=rrr(0.15,false,st.daily);
-  const p1=net-inputs*(1-r1)-fee, p0=net-inputs*(1-r0)-fee, fc=craftFocus(slot,mat,t,e);
+  const p1=net-inputs*(1-r1)-fee, p0=net-inputs*(1-r0)-fee, fc=craftFocus(slot,mat,t,e,set);
   return {bar,item,inputs,fee,net,p1,p0,fc,spf:(p1-p0)/fc,thin:Math.min(bar.n,item.n)<2,cnt};
 }
 function refRoute(res,t,e){ const R=RES[res]; const raw=bestCity(idOf(t,R.raw,e),0,"min"), prev=bestCity(prevId(res,t,e),0,"min"), bar=bestCity(idOf(t,R.ref,e),st.sell==="instant"?1:0,"max");
@@ -212,7 +243,7 @@ async function fetchIds(ids, target, locs=CITIES){
     const j=await apiJSON(`${HOST}/api/v2/stats/prices/${ids.slice(i,i+40).join(",")}.json?locations=${loc}&qualities=1`);
     for(const x of j){
       const s=fresh(x.sell_price_min_date)?x.sell_price_min:0, b=fresh(x.buy_price_max_date)?x.buy_price_max:0;
-      if(!s&&!b) continue; const k=x.item_id.includes("_LEVEL")?x.item_id.split("@")[0]:x.item_id; (target[k]||(target[k]={}))[x.city]=[s,b];
+      if(!s&&!b) continue; const k=x.item_id.includes("_LEVEL")?x.item_id.split("@")[0]:x.item_id; (target[k]||(target[k]={}))[x.city]=[s,b,s?Date.parse(x.sell_price_min_date+"Z"):0,b?Date.parse(x.buy_price_max_date+"Z"):0];
     }
   }
 }
@@ -228,7 +259,7 @@ async function loadLive(force){
     const when=isFinite(apiJSON.oldest)?new Date(apiJSON.oldest):new Date(); FORCE=false;
     const hh=when.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
     DATA={geradoEm:new Date().toISOString(),janela:`agora, consultados às ${hh} (anúncios de até 3 dias)`,ouro,itens}; LIVE=true; loadedFam.clear();
-    COOK_LOADED=false; BM_LOADED.clear(); PLANKS_LOADED=false; WK_LOADED=false; FZ_LOADED=false; EN_LOADED.clear(); applyMeta(); recompute(true); btn.textContent="Atualizar preços"; if(!$("p-cozinha").hidden) renderCook(); if(!$("p-mapas").hidden) renderMaps(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-trab").hidden) renderWK(); if(!$("p-fazenda").hidden) renderFZ(); if(!$("p-encantar").hidden) renderEN();
+    COOK_LOADED=false; BM_LOADED.clear(); PLANKS_LOADED=false; WK_LOADED=false; FZ_LOADED=false; EN_LOADED.clear(); OF.loaded.clear(); MK.loaded.clear(); applyMeta(); recompute(true); btn.textContent="Atualizar preços"; if(!$("p-cozinha").hidden) renderCook(); if(!$("p-mapas").hidden) renderMaps(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-trab").hidden) renderWK(); if(!$("p-fazenda").hidden) renderFZ(); if(!$("p-encantar").hidden) renderEN(); if(!$("p-craft").hidden) renderOf(); if(!$("p-mk").hidden) renderMk();
   }catch(e){ FORCE=false; $("when").textContent=(DATA.janela||"")+". Não consegui puxar os preços ao vivo agora"; btn.textContent="Tentar de novo"; }
   btn.disabled=false;
 }
@@ -272,8 +303,8 @@ function renderHeat(){
 async function renderCraft(){
   const slot=$("cSlot").value, mat=$("cMat").value, set=+$("cSet").value, key=slot+"_"+mat;
   $("cTitle").textContent=`${gearName(slot,mat,set)}: lucro por peça, com foco, em ${CRAFT_CITY[key]}`;
-  const lv=(PF.craft[key]||{}).lv||0;
-  $("cNote").textContent=`${CRAFT_PT[key]} tem bônus de fabricação em ${CRAFT_CITY[key]}. Usa ${slot==="ARMOR"?16:8} ${mat==="PLATE"?"barras de metal":mat==="LEATHER"?"couros":"tecidos"}. Sua ficha: ${LV_S[lv].toLowerCase()} nessa linha.`;
+  const lv=(PF.craft[key]||{}).lv||0, fceNow=Math.round(craftFCE(slot,mat,set));
+  $("cNote").textContent=`${CRAFT_PT[key]} tem bônus de fabricação em ${CRAFT_CITY[key]}. Usa ${slot==="ARMOR"?16:8} ${mat==="PLATE"?"barras de metal":mat==="LEATHER"?"couros":"tecidos"}. Sua ficha: eficiência de foco ${fmt(fceNow)} nesse conjunto.`;
   $("cStatus").textContent="Buscando preços das peças…";
   const ok=await ensureFamily(slot,mat);
   $("cStatus").textContent= ok ? "Preço da peça: qualidade normal, mediana das cidades reais." : "Não consegui buscar o preço das peças agora. Tente atualizar os preços.";
@@ -289,7 +320,7 @@ function calc(reset){
   $("lBar").textContent=`Venda de ${R.refName.toLowerCase()} T${t}.${e}`;
   $("calcTitle").textContent=`Calculadora de ${R.refName.toLowerCase()} em ${R.city}`;
   if(reset){ const a=typical(idOf(t,R.raw,e),0), b=typical(prevId(st.res,t,e),0), c=typical(idOf(t,R.ref,e),st.sell==="instant"?1:0);
-    const hint=(x,w)=>x?`${w}, ${x.n} ${x.n>1?"cidades":"cidade"}`:"sem preço, digite o do jogo";
+    const hint=(x,w)=>x?`${w}, ${x.n} ${x.n>1?"cidades":"cidade"}${x.t?`, visto há ${fmtAge(x.t)}`:""}`:"sem preço, digite o do jogo";
     $("pRaw").value=a?Math.round(a.p):""; $("sRaw").textContent=hint(a,"preço típico");
     $("pPrev").value=b?Math.round(b.p):""; $("sPrev").textContent=hint(b,"preço típico");
     $("pBar").value=c?Math.round(c.p):""; $("sBar").textContent=hint(c,st.sell==="instant"?"ordem de compra típica":"preço típico");
@@ -330,7 +361,7 @@ function bestCraft(){ const out=[]; for(const key in PF.craft){ if(!(PF.craft[ke
 function rankBuilds(c,onlyMine){
   const tierB={S:3,A:2}; return BUILDS.filter(b=>b.c===c&&(!onlyMine||wl(b.l)>=1))
     .sort((a,b)=>(wl(b.l)-wl(a.l))||((tierB[b.mc]||0)-(tierB[a.mc]||0))||(b.pop-a.pop)); }
-function armorGaps(b){ const miss=new Set(); for(const g of b.g){ const t=armorType(g); if(t&&(PF.armaduras[t]||0)<1) miss.add(t); } return [...miss]; }
+function armorGaps(b){ const miss=new Set(); for(const g of b.g){ const t=armorType(g); if(t&&armorLv(t)<1) miss.add(t); } return [...miss]; }
 function recItem(title, lines){ const li=el("li"); li.append(el("strong",{text:title})); lines.filter(Boolean).forEach(l=>li.append(el("span",{text:l}))); return li; }
 function renderRecs(){
   const r=bestRefining(), box=$("recRefino"); box.textContent="";
@@ -351,7 +382,7 @@ function renderRecs(){
   const hr=tb.createTHead().insertRow(); ["Recurso","Seu tier",".0",".1",".2",".3","Onde aparece"].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody(); let any=false;
   for(const [k,name,base,bio] of GATHER){ const g=PF.coleta[k]; if(!base||!g||!(g.tier>=4)) continue; any=true; const tr=body.insertRow();
-    tr.insertCell().textContent=name; tr.insertCell().textContent=`T${g.tier}, spec ${LV_S[g.lv||0].toLowerCase()}`;
+    tr.insertCell().textContent=name; tr.insertCell().textContent=`T${g.tier}, nível ${g.n||0}`;
     for(let e=0;e<=3;e++){ const td=tr.insertCell(); td.className="num"; if(!base){ td.textContent="—"; continue; } const p=typical(idOf(g.tier,base,e),0); td.textContent=p?fmt(p.p):"—"; }
     tr.insertCell().textContent= base ? bio : "Peixe não está na API de preços desta página ainda"; }
   if(!any){ const tr=body.insertRow(); const td=tr.insertCell(); td.colSpan=7; td.textContent="Marque na sua ficha o tier de coleta de cada recurso."; }
@@ -414,23 +445,46 @@ function renderBuilds(){
 /* ================= profile editor ================= */
 function segRow(label, val, labels, onSet){ const row=el("div",{class:"lv"}); row.append(el("span",{class:"lbl",text:label})); const seg=el("div",{class:"seg sm",role:"group","aria-label":label});
   labels.forEach((t,i)=>{ const b=el("button",{type:"button",text:t,"aria-pressed":String(i===val)}); b.addEventListener("click",()=>{ [...seg.children].forEach(x=>x.setAttribute("aria-pressed",String(x===b))); onSet(i); }); seg.append(b); }); row.append(seg); return row; }
+function numIn(val,max,label,onSet,ph){ const inp=el("input",{type:"number",min:"0",max:String(max),step:"1",inputMode:"numeric",value:val?String(val):"",placeholder:ph||"0","aria-label":label}); inp.className="lvn";
+  inp.addEventListener("change",()=>{ let v=Math.round(+inp.value||0); v=Math.max(0,Math.min(max,v)); inp.value=v?String(v):""; onSet(v); }); return inp; }
+function lvRow(label,inputs,hint){ const row=el("div",{class:"lvrow"}); row.append(el("span",{class:"lbl",text:label})); const box=el("div",{class:"lvins"}); inputs.forEach(x=>box.append(x)); row.append(box); if(hint) row.append(el("span",{class:"lvh",text:hint})); return row; }
+const tagIn = (t,inp) => { const w=el("label",{class:"lvt"}); w.append(el("span",{text:t}),inp); return w; };
+const bandTxt = n => ["sem spec","começando","média","alta"][band(n)];
 function renderProfile(){
   $("pfName").value=PF.nome||"";
-  const w=$("pfWeapons"); w.textContent=""; for(const [k,n] of LINES) w.append(segRow(n,wl(k),LV_W,i=>{PF.armas[k]=i; saveProfile();}));
-  const a=$("pfArmor"); a.textContent=""; for(const [k,n] of [["placa","Placa"],["couro","Couro"],["pano","Pano"]]) a.append(segRow(n,PF.armaduras[k]||0,LV_W,i=>{PF.armaduras[k]=i; saveProfile();}));
+  const w=$("pfWeapons"); w.textContent="";
+  for(const [k,n] of LINES){ const v=PF.armas[k]||0, row=lvRow(n,[numIn(v,120,`Nível de ${n}`,x=>{ PF.armas[k]=x; saveProfile(); renderProfile(); })],bandTxt(v)); w.append(row); }
+  const a=$("pfArmor"); a.textContent="";
+  for(const [k,n] of [["placa","Placa"],["couro","Couro"],["pano","Pano"]]){ const v=PF.armaduras[k]||0; a.append(lvRow(n,[numIn(v,120,`Nível de armadura de ${n}`,x=>{ PF.armaduras[k]=x; saveProfile(); renderProfile(); })],bandTxt(v))); }
   const g=$("pfGather"); g.textContent="";
-  for(const [k,n] of GATHER){ const cur=PF.coleta[k]||{tier:0,lv:0}; const row=segRow(n,cur.lv||0,LV_S,i=>{ PF.coleta[k]=Object.assign({tier:0},PF.coleta[k],{lv:i}); saveProfile(); });
-    const sel=el("select",{"aria-label":`Tier de ${n}`}); [["0","—"],["4","T4"],["5","T5"],["6","T6"],["7","T7"],["8","T8"]].forEach(([v,t])=>sel.append(el("option",{value:v,text:t,selected:String(cur.tier||0)===v})));
-    sel.addEventListener("change",()=>{ PF.coleta[k]=Object.assign({lv:0},PF.coleta[k],{tier:+sel.value}); saveProfile(); }); row.insertBefore(sel,row.children[1]); g.append(row); }
+  for(const [k,n] of GATHER){ const cur=PF.coleta[k]||{tier:0,n:0};
+    const sel=el("select",{"aria-label":`Tier máximo de ${n}`}); [["0","—"],["4","T4"],["5","T5"],["6","T6"],["7","T7"],["8","T8"]].forEach(([v,t])=>sel.append(el("option",{value:v,text:t,selected:String(cur.tier||0)===v})));
+    sel.addEventListener("change",()=>{ PF.coleta[k]=Object.assign({n:0},PF.coleta[k],{tier:+sel.value}); saveProfile(); });
+    g.append(lvRow(n,[tagIn("Tier",sel),tagIn("Nível",numIn(cur.n||0,100,`Nível da spec de ${n}`,x=>{ PF.coleta[k]=Object.assign({tier:0},PF.coleta[k],{n:x}); saveProfile(); }))])); }
   const r=$("pfRefine"); r.textContent="";
-  for(const k in RES){ const cur=PF.refino[k]||{lv:0}; const row=segRow(RES[k].refName,cur.lv||0,LV_S,i=>{ PF.refino[k]=Object.assign({},PF.refino[k],{lv:i}); saveProfile(); });
-    const inp=el("input",{type:"number",min:"1",placeholder:"foco T6.0",value:cur.obs||"","aria-label":`Custo de foco no jogo para ${RES[k].refName} T6.0`}); inp.addEventListener("change",()=>{ PF.refino[k]=Object.assign({lv:0},PF.refino[k],{obs:+inp.value||0}); saveProfile(); }); row.append(inp); r.append(row); }
+  for(const k in RES){ const cur=PF.refino[k]||(PF.refino[k]={m:0,s:{}}); cur.s=cur.s||{};
+    const ins=[tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${RES[k].refName}`,x=>{ cur.m=x; saveProfile(); renderProfile(); }))];
+    for(let t=4;t<=8;t++) ins.push(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${RES[k].refName} T${t}`,x=>{ cur.s[t]=x; saveProfile(); renderProfile(); })));
+    ins.push(tagIn("Foco T6.0 no jogo",numIn(cur.obs||0,99999,`Custo de foco no jogo para ${RES[k].refName} T6.0`,x=>{ cur.obs=x; saveProfile(); renderProfile(); },"—")));
+    r.append(lvRow(RES[k].refName,ins,`foco T6.0: ${fmt(refFocus(k,6,0))}`)); }
   const c=$("pfCraft"); c.textContent="";
-  for(const key in CRAFT_PT){ const cur=PF.craft[key]||{lv:0}; const row=segRow(CRAFT_PT[key],cur.lv||0,LV_S,i=>{ PF.craft[key]=Object.assign({},PF.craft[key],{lv:i}); saveProfile(); });
-    const inp=el("input",{type:"number",min:"1",placeholder:"foco T6.0",value:cur.obs||"","aria-label":`Custo de foco no jogo para ${CRAFT_PT[key]} T6.0`}); inp.addEventListener("change",()=>{ PF.craft[key]=Object.assign({lv:0},PF.craft[key],{obs:+inp.value||0}); saveProfile(); }); row.append(inp); c.append(row); }
+  for(const key in CRAFT_PT){ const cur=PF.craft[key]||{m:0,s:{}}; cur.s=cur.s||{}; const [slot,mat]=key.split("_");
+    const save=()=>{ PF.craft[key]=cur; saveProfile(); renderProfile(); };
+    const ins=[tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${CRAFT_PT[key]}`,x=>{ cur.m=x; save(); }))];
+    for(let st_=1;st_<=3;st_++) ins.push(tagIn(SETN[mat][st_-1],numIn(cur.s[st_]||0,100,`${gearName(slot,mat,st_)}`,x=>{ cur.s[st_]=x; save(); })));
+    ins.push(tagIn("Foco T6.0 no jogo",numIn(cur.obs||0,99999,`Custo de foco no jogo para ${CRAFT_PT[key]} T6.0`,x=>{ cur.obs=x; save(); },"—")));
+    c.append(lvRow(CRAFT_PT[key],ins,`foco T6.0 (conjunto 1): ${fmt(craftFocus(slot,mat,6,0,1))}`)); }
   renderCookProfile();
 }
-function renderCookProfile(){ const c=$("pfCook"); c.textContent=""; for(const [k,n] of [["cozinha","Cozinha"],["alquimia","Alquimia"]]) c.append(segRow(n,(PF[k]||{}).lv||0,LV_S,i=>{ PF[k]={lv:i}; saveProfile(); })); }
+const MEAL_PT = {SOUP:"Sopa",SALAD:"Salada",SEAWEEDSALAD:"Salada de algas",PIE:"Torta",OMELETTE:"Omelete",STEW:"Guisado",SANDWICH:"Sanduíche",ROAST:"Assado",GRILLEDFISH:"Peixe grelhado"};
+function cookTypes(kind){ const m={}; for(const id in COOK.r){ const r=COOK.r[id]; if(r[1]!==kind||!r[3]) continue; const tp=cookType(id); if(!m[tp]) m[tp]= MEAL_PT[tp] || r[0].replace(/^Poção\s+((de|da|do)\s+)?/i,"").replace(/\s+(Menor|Maior)$/,""); } return m; }
+function renderCookProfile(){ const c=$("pfCook"); c.textContent="";
+  for(const [k,n,kind] of [["cozinha","Cozinha","f"],["alquimia","Alquimia","p"]]){ const cur=PF[k]||(PF[k]={m:0,s:{}}); cur.s=cur.s||{};
+    const save=()=>{ saveProfile(); renderCookProfile(); };
+    const ins=[tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${n}`,x=>{ cur.m=x; save(); }))];
+    const types=cookTypes(kind);
+    for(const [tp,label] of Object.entries(types)) ins.push(tagIn(label,numIn(cur.s[tp]??cur.all??0,100,`${n}: ${label}`,x=>{ cur.s[tp]=x; save(); })));
+    c.append(lvRow(n,ins)); } }
 function renderWho(){ $("who").textContent = IS_EXAMPLE ? "Ficha de exemplo: Oleran" : (PF.nome ? `Ficha: ${PF.nome}` : "Ficha sem nome"); $("exampleBanner").hidden=!IS_EXAMPLE; }
 $("pfName").addEventListener("change",()=>{ PF.nome=$("pfName").value.trim().slice(0,40); saveProfile(); });
 $("pfCopy").addEventListener("click",()=>{ const code=btoa(unescape(encodeURIComponent(JSON.stringify(PF)))); const done=()=>$("pfStatus").textContent="Código da ficha copiado. Cole em outro navegador em Colar ficha.";
@@ -469,7 +523,8 @@ const BUILD_FOOD = ["T8_MEAL_STEW_FISH","T7_MEAL_ROAST_FISH","T7_MEAL_OMELETTE",
   "T6_POTION_HEAL","T4_POTION_HEAL","T7_POTION_REVIVE","T5_POTION_REVIVE","T8_POTION_COOLDOWN","T6_POTION_COOLDOWN","T8_POTION_CLEANSE","T7_POTION_STONESKIN","T5_POTION_STONESKIN","T7_POTION_CLEANSE2","T5_POTION_CLEANSE2","T6_POTION_ENERGY"];
 const COOK_CITY = {f:"Caerleon",p:"Brecilien"};
 const COOK_LOCS = ["Thetford","Fort Sterling","Martlock","Bridgewatch","Lymhurst","Caerleon","Brecilien"];
-const cookFCE = k => FCE_LV[(PF[k==="f"?"cozinha":"alquimia"]||{}).lv||0];
+const cookType = id => (id.split("_")[2]||"");
+const cookFCE = (k,id) => { const r=PF[k==="f"?"cozinha":"alquimia"]||{}; const specs=Object.assign({},r.s||{}); if(r.all&&id){ const tp=cookType(id); if(specs[tp]==null) specs[tp]=r.all; } return fceRule(r.m,specs,id?cookType(id):""); };
 let COOK_LOADED=false, COOK_LOADING=null, ckKind="f", ckSel=null;
 function ensureCook(){
   if(COOK_LOADED) return Promise.resolve(true);
@@ -487,7 +542,7 @@ function cookModel(id){
   if(item.n<2) thin=true;
   const fee=q*nut*0.1125*feeVal()/100, net=q*item.p*(1-taxOf());
   const r1=rrr(0.15,true,st.daily), r0=rrr(0.15,false,st.daily);
-  const p1=net-cost*(1-r1)-fee, p0=net-cost*(1-r0)-fee, fc=Math.max(1,Math.round(fo*Math.pow(0.5,cookFCE(kind)/10000)));
+  const p1=net-cost*(1-r1)-fee, p0=net-cost*(1-r0)-fee, fc=Math.max(1,Math.round(fo*Math.pow(0.5,cookFCE(kind,id)/10000)));
   return {id,name,kind,q,cost,fee,net,item,parts,p1,p0,fc,spf:(p1-p0)/fc,day:p1*Math.floor(10000/fc),thin,tier:+id[1]};
 }
 async function renderCook(){
@@ -626,3 +681,18 @@ function renderGo(){
 async function loadBuilds(){ try{ const r=await fetch("builds.json",{cache:"no-store"}); if(!r.ok) return; const j=await r.json(); if(Array.isArray(j.builds)&&j.builds.length>20){ BUILDS=j.builds; BUILDS_DATE=j.atualizado||""; renderBuilds(); renderRecs(); } }catch(e){} }
 let BUILDS_DATE="";
 
+/* link da ficha: o código vai depois do # e não sai do navegador */
+function fichaCode(){ return btoa(unescape(encodeURIComponent(JSON.stringify(PF)))); }
+$("pfLink").addEventListener("click",()=>{ const url=`${location.origin}${location.pathname}#ficha=${fichaCode()}`;
+  const done=()=>$("pfStatus").textContent="Link copiado. Abra em outro aparelho para usar a mesma ficha, ou mande para um amigo usar de base.";
+  try{ navigator.clipboard.writeText(url).then(done,()=>{ $("pfPasteBox").hidden=false; $("pfPaste").value=url; $("pfPaste").select(); $("pfStatus").textContent="Copie o link selecionado abaixo."; }); }catch(e){ $("pfPasteBox").hidden=false; $("pfPaste").value=url; } });
+function importFromHash(){
+  const m=location.hash.match(/^#ficha=([A-Za-z0-9+/=]+)/); if(!m) return;
+  let o=null; try{ o=JSON.parse(decodeURIComponent(escape(atob(m[1])))); }catch(e){} history.replaceState(null,"",location.pathname);
+  if(!o||typeof o!=="object") return;
+  const box=el("div",{class:"banner big importbox"}); box.append(el("b",{text:`Abrir a ficha de ${o.nome||"alguém"} neste navegador?`}),document.createTextNode(IS_EXAMPLE?" Você ainda não tem ficha aqui.":" Isso substitui a ficha que está salva aqui."));
+  const yes=el("button",{type:"button",class:"btn",text:"Usar esta ficha"}), no=el("button",{type:"button",class:"btn ghost",text:"Agora não"});
+  yes.addEventListener("click",()=>{ PF=Object.assign(EMPTY(),migrate(o)); saveProfile(); renderProfile(); box.remove(); showTab("t-ficha"); });
+  no.addEventListener("click",()=>box.remove());
+  box.append(el("div",{class:"btnrow"},yes,no)); const p=$("p-voce"); p.prepend(box); showTab("t-voce",true);
+}
