@@ -195,7 +195,7 @@ function itemImg(code,tiers){ let t=tiers||[4,5,6,3,7,8,2,1], i=0; const im=el("
   const fail=()=>{ if(++i<t.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } };
   im.onerror=fail; im._tier=n=>{ t=tierOrder(n); i=0; im.classList.remove("nico-off"); im.onerror=fail; set(); }; set(); return im; }
 const specCode = (g,key) => g.k.startsWith("a:") ? `${g.k.slice(2)}_SET${key}` : key;
-const ICON = id => `https://albionmarket.gg/icon/${encodeURIComponent(id)}/1/80`;
+const ICON = id => `https://albionmarket.gg/icon/${encodeURIComponent(id)}/1/200`;
 const iconImg = (id,size=36) => { const i=el("img",{src:ICON(id),alt:"",loading:"lazy",decoding:"async",width:size,height:size}); i.className="ico"; i.referrerPolicy="no-referrer"; i.onerror=()=>{ i.style.visibility="hidden"; }; return i; };
 function bestCity(id, field, want, only){ const r=DATA.itens[id]; if(!r) return null; let b=null; for(const [c,v] of Object.entries(r)){ if(only&&c!==only) continue; const p=v[field]; if(!(p>0)) continue; if(!b||(want==="min"?p<b.p:p>b.p)) b={p,c,t:v[field+2]||snapTime()}; } return b; }
 const RED_CITIES = new Set(["Caerleon"]);
