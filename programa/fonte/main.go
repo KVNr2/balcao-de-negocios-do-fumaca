@@ -1018,6 +1018,7 @@ func main() {
 	}()
 
 	uiURL, uiOK := startUI(!webMode)
+	startTray("Ficha do Albion: aguardando você entrar no jogo", "Aguardando você entrar no jogo")
 	fmt.Println("==========================================================")
 	if uiOK {
 		fmt.Println("  A janela do programa abriu no navegador:", uiURL)
@@ -1054,6 +1055,7 @@ wait:
 					doneAt = time.Now()
 					fmt.Println("[✓] Níveis do Destiny Board recebidos. Finalizando...")
 					ui.update(func() { ui.Stage = "recebido" })
+					setTray("Ficha do Albion: lendo os níveis", "Lendo os níveis do Destiny Board")
 				} else if time.Since(doneAt) >= 2*time.Second {
 					break wait
 				}
@@ -1160,14 +1162,18 @@ wait:
 			ui.update(func() {
 				ui.Stage, ui.Nos, ui.Found, ui.Copied, ui.Ramos, ui.code = "pronto", nNos, found, true, ramos, code
 			})
+			setTray("Ficha do Albion: ficha copiada", "Ficha copiada")
+			balloonTray("Ficha copiada", "Cole no site: Minha ficha, Colar ficha.")
 			if webMode {
 				saveResult(js)
+				balloonTray("Ficha pronta", "Abrindo o site com os níveis do seu Destiny Board.")
+				time.Sleep(1500 * time.Millisecond)
 				if !*pai { // aberto direto como administrador: abre o site daqui mesmo
 					if frag, e := os.ReadFile(resultPath()); e == nil {
 						openURL(retURL + "#ficha=" + string(frag))
 					}
 				}
-				os.Exit(0)
+				exitNow(0)
 			}
 			fmt.Printf("[✓] %d níveis atualizados na sua ficha. Código COPIADO.\n", found)
 			fmt.Println("    No site: Minha ficha > Colar ficha > Ctrl+V > Usar esta ficha.")

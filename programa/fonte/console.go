@@ -23,6 +23,7 @@ func showConsole(show bool) {
 
 // Mostra um erro numa caixa de mensagem (o programa não tem janela preta, então o console não serviria).
 func fatalBox(msg string) {
+	stopTray()
 	u := syscall.NewLazyDLL("user32.dll")
 	t, _ := syscall.UTF16PtrFromString("Ficha do Albion")
 	m, _ := syscall.UTF16PtrFromString(msg)
