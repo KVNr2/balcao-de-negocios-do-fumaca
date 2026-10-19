@@ -1,7 +1,7 @@
 /* ================= wiring ================= */
 const tabs=[...document.querySelectorAll("nav.tabs [role=tab]")];
 function setPageHead(btn){ if(!btn) return; let g=btn.previousElementSibling; while(g&&!g.classList.contains("grp")) g=g.previousElementSibling;
-  const fl=(btn.querySelector(".fl")||{}).textContent||""; $("phKick").textContent=`${g?g.textContent:""}${fl?`, folha ${fl.replace(/\D/g,"")}`:""}`;
+  const fl=(btn.querySelector(".fl")||{}).textContent||""; $("phKick").textContent=g?g.textContent:"";
   $("phTitle").textContent=btn.querySelector(".tl").textContent; const gd=(typeof GUIA!=="undefined"&&GUIA[btn.getAttribute("aria-controls")])||[]; $("phDesc").textContent=gd[0]||""; document.title=`${btn.querySelector(".tl").textContent} · Balcão de Negócios do Fumaça`; }
 function showTab(id, quiet){ setPageHead(tabs.find(b=>b.id===id)); let panel=null; tabs.forEach(b=>{const on=b.id===id; b.setAttribute("aria-selected",String(on)); const p=$(b.getAttribute("aria-controls")); p.hidden=!on; if(on) panel=p;}); tip.hidden=true; store.set("tab",id); if(id==="t-craft") renderCraft();
   if(id==="t-cozinha") renderCook(); if(id==="t-mapas") renderMaps(); if(id==="t-mercado") renderBM(); if(id==="t-trab") renderWK(); if(id==="t-matchup") renderMU(); if(id==="t-craft") renderOf(); if(id==="t-mk") renderMk(); if(id==="t-encantar") renderEN(); if(id==="t-fazenda") renderFZ(); if(id==="t-custo") renderBC();
