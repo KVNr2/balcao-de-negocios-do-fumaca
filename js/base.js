@@ -187,8 +187,13 @@ const snapTime = () => DATA.geradoEm && !LIVE ? Date.parse(DATA.geradoEm) : 0;
 function fmtAge(t){ if(!t) return ""; const h=(Date.now()-t)/3600e3; return h<1 ? `${Math.max(1,Math.round(h*60))} min` : h<48 ? `${Math.round(h)}h` : `${Math.round(h/24)} dias`; }
 const ageSpan = t => t ? el("span",{class:"age"+((Date.now()-t)>12*3600e3?" old":""),text:fmtAge(t)}) : null;
 /* Ícones do jogo: o servidor de imagens oficial devolve o ícone pelo código do item (tenta outros tiers se faltar). */
-function itemImg(code,tiers){ const t=tiers||[4,5,6,3,7,8,2,1]; let i=0; const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer";
-  const set=()=>{ im.src=ICON(`T${t[i]}_${code}`); }; im.onerror=()=>{ if(++i<t.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } }; set(); return im; }
+/* Tier liberado pela maestria da linha (armas e armaduras de combate): T4 no nível 1, T5 no 10, T6 no 30, T7 no 60, T8 no 100. */
+const tierFromMastery = m => m>=100?8 : m>=60?7 : m>=30?6 : m>=10?5 : m>=1?4 : 3;
+const tierOrder = t => { const o=[t]; for(let i=t-1;i>=1;i--) o.push(i); for(let i=t+1;i<=8;i++) o.push(i); return o; };
+function itemImg(code,tiers){ let t=tiers||[4,5,6,3,7,8,2,1], i=0; const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer";
+  const set=()=>{ im.src=ICON(`T${t[i]}_${code}`); };
+  const fail=()=>{ if(++i<t.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } };
+  im.onerror=fail; im._tier=n=>{ t=tierOrder(n); i=0; im.classList.remove("nico-off"); im.onerror=fail; set(); }; set(); return im; }
 const specCode = (g,key) => g.k.startsWith("a:") ? `${g.k.slice(2)}_SET${key}` : key;
 const ICON = id => `https://render.albiononline.com/v1/item/${encodeURIComponent(id)}.png?size=64&quality=1`;
 const iconImg = (id,size=36) => { const i=el("img",{src:ICON(id),alt:"",loading:"lazy",decoding:"async",width:size,height:size}); i.className="ico"; i.onerror=()=>{ i.style.visibility="hidden"; }; return i; };
@@ -505,13 +510,17 @@ function renderSpecs(){
     for(const g of SPECS.g.filter(x=>x.sec===sec)){
       if(g.sub!==sub){ sub=g.sub; root.append(el("h4",{class:"spsub",text:sub})); grid=el("div",{class:"spgroups"}); root.append(grid); }
       const d=el("details",{class:"spg"}), sm=el("summary"), nmS=el("span",{class:"spn",text:g.nome}), sumS=el("span",{class:"sps",text:spSummary(g)});
-      sm.append(itemImg(specCode(g,g.it[0][0])),nmS,sumS); d.append(sm); const body=el("div",{class:"spgrid"}); d.append(body);
-      const upd=()=>{ sumS.textContent=spSummary(g); sumS.classList.toggle("on",sumS.textContent!=="sem spec"); };
+      sm.append(nmS,sumS); d.append(sm); const body=el("div",{class:"spgrid"}); d.append(body);
+      const icons=[], combate=g.sec==="combate";
+      const mk=key=>{ const im=itemImg(specCode(g,key), combate?tierOrder(tierFromMastery(spMastery(g.k))):null); icons.push(im); return im; };
+      const upd=()=>{ const base=spSummary(g); sumS.textContent=base+(combate&&base!=="sem spec"?` · usa até T${tierFromMastery(spMastery(g.k))}`:""); sumS.classList.toggle("on",base!=="sem spec");
+        if(combate){ const t=tierFromMastery(spMastery(g.k)); icons.forEach(im=>im._tier(t)); } };
+      sm.prepend(mk(g.it[0][0]));
       let built=false;
       d.addEventListener("toggle",()=>{ if(!d.open||built) return; built=true;
-        body.append(tagIn("Maestria",numIn(spMastery(g.k),g.mmax,`Maestria de ${g.nome}`,x=>{ spSetMastery(g.k,x); saveProfile(); upd(); },"—"),itemImg(specCode(g,g.it[0][0]))));
+        body.append(tagIn("Maestria",numIn(spMastery(g.k),g.mmax,`Maestria de ${g.nome}`,x=>{ spSetMastery(g.k,x); saveProfile(); upd(); },"—"),mk(g.it[0][0])));
         for(const [key,pt,en] of g.it){ const label=LANG==="en"?en:pt;
-          body.append(tagIn(label,numIn(+(spGet(g.k).s||{})[key]||0,g.max,`${g.nome}: ${label}`,x=>{ const st=spEnsure(g.k); st.s=st.s||{}; if(x) st.s[key]=x; else delete st.s[key]; saveProfile(); upd(); },"—"),itemImg(specCode(g,key)))); }
+          body.append(tagIn(label,numIn(+(spGet(g.k).s||{})[key]||0,g.max,`${g.nome}: ${label}`,x=>{ const st=spEnsure(g.k); st.s=st.s||{}; if(x) st.s[key]=x; else delete st.s[key]; saveProfile(); upd(); },"—"),mk(key))); }
         if(g.k.startsWith("a:")){ const kk=g.k.slice(2); body.append(tagIn("Foco T6.0 no jogo",numIn((PF.craft[kk]||{}).obs||0,99999,`Custo de foco no jogo para ${g.nome} T6.0`,x=>{ spEnsure(g.k).obs=x; saveProfile(); upd(); },"—"))); }
       });
       upd(); grid.append(d); } } }
