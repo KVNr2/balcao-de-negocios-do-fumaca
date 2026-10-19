@@ -186,7 +186,7 @@ function typical(id, field){ const r=DATA.itens[id]; if(!r) return null; const p
 const snapTime = () => DATA.geradoEm && !LIVE ? Date.parse(DATA.geradoEm) : 0;
 function fmtAge(t){ if(!t) return ""; const h=(Date.now()-t)/3600e3; return h<1 ? `${Math.max(1,Math.round(h*60))} min` : h<48 ? `${Math.round(h)}h` : `${Math.round(h/24)} dias`; }
 const ageSpan = t => t ? el("span",{class:"age"+((Date.now()-t)>12*3600e3?" old":""),text:fmtAge(t)}) : null;
-/* Ícones do jogo: o servidor de imagens oficial devolve o ícone pelo código do item (tenta outros tiers se faltar). */
+/* Ícones do jogo: vêm do Albion Market (pelo código do item); se um falhar, usa o servidor oficial. Tenta outros tiers se faltar. */
 /* Tier liberado pela maestria da linha (armas e armaduras de combate): T4 no nível 1, T5 no 10, T6 no 30, T7 no 60, T8 no 100. */
 const tierFromMastery = m => m>=100?8 : m>=60?7 : m>=30?6 : m>=10?5 : m>=1?4 : 3;
 const tierOrder = t => { const o=[t]; for(let i=t-1;i>=1;i--) o.push(i); for(let i=t+1;i<=8;i++) o.push(i); return o; };
@@ -195,8 +195,9 @@ function itemImg(code,tiers){ let t=tiers||[4,5,6,3,7,8,2,1], i=0; const im=el("
   const fail=()=>{ if(++i<t.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } };
   im.onerror=fail; im._tier=n=>{ t=tierOrder(n); i=0; im.classList.remove("nico-off"); im.onerror=fail; set(); }; set(); return im; }
 const specCode = (g,key) => g.k.startsWith("a:") ? `${g.k.slice(2)}_SET${key}` : key;
-const ICON = id => `https://render.albiononline.com/v1/item/${encodeURIComponent(id)}.png?size=64&quality=1`;
-const iconImg = (id,size=36) => { const i=el("img",{src:ICON(id),alt:"",loading:"lazy",decoding:"async",width:size,height:size}); i.className="ico"; i.onerror=()=>{ i.style.visibility="hidden"; }; return i; };
+const ICON = id => `https://albionmarket.gg/icon/${encodeURIComponent(id)}/1/80`;
+const ICON_ALT = id => `https://render.albiononline.com/v1/item/${encodeURIComponent(id)}.png?size=64&quality=1`;
+const iconImg = (id,size=36) => { const i=el("img",{src:ICON(id),alt:"",loading:"lazy",decoding:"async",width:size,height:size}); i.className="ico"; i.referrerPolicy="no-referrer"; i.onerror=()=>{ i.onerror=()=>{ i.style.visibility="hidden"; }; i.src=ICON_ALT(id); }; return i; };
 function bestCity(id, field, want, only){ const r=DATA.itens[id]; if(!r) return null; let b=null; for(const [c,v] of Object.entries(r)){ if(only&&c!==only) continue; const p=v[field]; if(!(p>0)) continue; if(!b||(want==="min"?p<b.p:p>b.p)) b={p,c,t:v[field+2]||snapTime()}; } return b; }
 const RED_CITIES = new Set(["Caerleon"]);
 const routeWarn = cs => cs.some(c=>RED_CITIES.has(c)) ? "passa por Caerleon, rota de zona vermelha" : (new Set(cs)).size>2 ? "rota com várias cidades, conte o frete e o tempo" : "";
