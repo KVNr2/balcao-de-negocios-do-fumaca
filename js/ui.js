@@ -29,3 +29,20 @@ function makeSortable(tb){
   new MutationObserver(()=>{ if(tb._sorting) return; if(tb.tHead) [...tb.tHead.rows[0].cells].forEach(th=>{ if(th.textContent.trim()){ th.tabIndex=0; th.classList.add("sortable"); } }); applySort(tb); }).observe(tb,{childList:true});
 }
 document.querySelectorAll(".tbl table[id]").forEach(makeSortable);
+
+/* ================= números alinhados à direita ================= */
+// Coluna em que quase toda célula é um número (preço, lucro, %) fica alinhada à direita,
+// para os dígitos baterem uns embaixo dos outros.
+const NUMCELL=/^[-+−]?\s*[\d.,]+\s*(%|M|mil|k)?(\s+(há\s+)?\d+\s*(min|h|d))?$/;
+function alignNum(tb){
+  const body=tb.tBodies[0]; if(!body||!tb.tHead||!tb.tHead.rows[0]) return;
+  const rows=[...body.rows], head=tb.tHead.rows[0].cells;
+  for(let c=0;c<head.length;c++){
+    let num=0,tot=0;
+    for(const r of rows.slice(0,40)){ const td=r.cells[c]; if(!td||td.colSpan>1) continue; const t=td.textContent.trim(); if(!t||t==="—"||t==="-") continue; tot++; if(NUMCELL.test(t)) num++; }
+    const on=tot>0&&num/tot>=.7; head[c].classList.toggle("n",on);
+    for(const r of rows){ const td=r.cells[c]; if(td&&td.colSpan===1) td.classList.toggle("n",on); }
+  }
+}
+document.querySelectorAll(".tbl table").forEach(tb=>{ if(tb.classList.contains("heat")) return; alignNum(tb);
+  new MutationObserver(()=>{ if(!tb._sorting) alignNum(tb); }).observe(tb,{childList:true,subtree:true}); });

@@ -258,8 +258,8 @@ async function loadLive(force){
     let ouro=DATA.ouro; try{ const g=await apiJSON(`${HOST}/api/v2/stats/gold.json?count=168`,30); if(g[0]) ouro=g[0].price; drawGold(g); }catch(e){}
     const when=isFinite(apiJSON.oldest)?new Date(apiJSON.oldest):new Date(); FORCE=false;
     const hh=when.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
-    DATA={geradoEm:new Date().toISOString(),janela:`agora, consultados às ${hh} (anúncios de até 3 dias)`,ouro,itens}; LIVE=true; loadedFam.clear();
-    COOK_LOADED=false; BM_LOADED.clear(); PLANKS_LOADED=false; WK_LOADED=false; FZ_LOADED=false; EN_LOADED.clear(); OF.loaded.clear(); MK_SEEN.clear(); applyMeta(); recompute(true); btn.textContent="Atualizar preços"; if(!$("p-cozinha").hidden) renderCook(); if(!$("p-mapas").hidden) renderMaps(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-trab").hidden) renderWK(); if(!$("p-fazenda").hidden) renderFZ(); if(!$("p-encantar").hidden) renderEN(); if(!$("p-craft").hidden) renderOf(); if(!$("p-mk").hidden) renderMk();
+    DATA={geradoEm:new Date().toISOString(),janela:`ao vivo, ${hh}`,ouro,itens}; LIVE=true; loadedFam.clear();
+    COOK_LOADED=false; BM_LOADED.clear(); PLANKS_LOADED=false; WK_LOADED=false; FZ_LOADED=false; EN_LOADED.clear(); OF.loaded.clear(); MK_SEEN.clear(); applyMeta(); recompute(true); btn.textContent="Atualizar"; if(!$("p-cozinha").hidden) renderCook(); if(!$("p-mapas").hidden) renderMaps(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-trab").hidden) renderWK(); if(!$("p-fazenda").hidden) renderFZ(); if(!$("p-encantar").hidden) renderEN(); if(!$("p-craft").hidden) renderOf(); if(!$("p-mk").hidden) renderMk();
   }catch(e){ FORCE=false; $("when").textContent=(DATA.janela||"")+". Não consegui puxar os preços ao vivo agora"; btn.textContent="Tentar de novo"; }
   btn.disabled=false;
 }
@@ -435,7 +435,7 @@ function renderBuilds(){
   if(!list.length){ const td=body.insertRow().insertCell(); td.colSpan=5; td.textContent="Nenhuma build desta lista usa as armas da sua ficha. Desmarque o filtro para ver todas."; return; }
   for(const b of list){ const tr=body.insertRow();
     const a=tr.insertCell(); a.append(nm(b.w)); if(b.mc) a.append(" ",el("span",{class:"spec",text:`tier ${b.mc}`}));
-    const lv=wl(b.l), c2=tr.insertCell(); c2.textContent=`${LINE_NAME[b.l]}: ${LV_W[lv].toLowerCase()}`; if(lv>=2) c2.className="gain";
+    const lv=wl(b.l), c2=tr.insertCell(); const nv=PF.armas[b.l]||0; c2.textContent=nv?`${LINE_NAME[b.l]}: nível ${nv}`:`${LINE_NAME[b.l]}: sem spec`; if(lv>=2) c2.className="gain";
     const gaps=armorGaps(b), g=tr.insertCell(); g.append(b.g.length?b.g.map(nm).join(", "):"Veja na fonte"); if(b.f) g.append(el("small",{class:"blk",text:nmFood(b.f)})); if(gaps.length) g.append(el("small",{class:"blk loss",text:`Sem spec em ${gaps.join(" e ")}`}));
     tr.insertCell().textContent = b.src==="pesquisa" ? "Pesquisa, não conferida" : b.src==="MetaCorrupted" ? "MetaCorrupted" : `AOG, ${b.pop} salvos`;
     const p=tr.insertCell(); p.className=`chg ${b.p[0]}`; p.textContent=b.p[1];
