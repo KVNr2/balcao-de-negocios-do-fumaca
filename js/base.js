@@ -124,12 +124,20 @@ let BUILDS = [
 const armorType = name => /Helmet|Armor\b|Boots/.test(name) ? "placa" : /Hood|Jacket|Shoes/.test(name) ? "couro" : /Cowl|Robe|Sandals/.test(name) ? "pano" : null;
 
 /* ================= profile ================= */
-const EMPTY = () => ({v:2, nome:"", armas:{}, armaduras:{placa:0,couro:0,pano:0}, coleta:{}, refino:{}, craft:{}, cozinha:{m:0,s:{}}, alquimia:{m:0,s:{}}});
+const EMPTY = () => ({v:3, nome:"", armas:{}, armaduras:{placa:0,couro:0,pano:0}, coleta:{}, refino:{}, craft:{}, cozinha:{m:0,s:{}}, alquimia:{m:0,s:{}}, sp:{}});
+/* v3: a ficha guarda o Destiny Board inteiro. sp["c:espada"] = combate (maestria fica em armas.espada), sp["f:espada"] = craft da arma,
+   sp["c:HEAD_PLATE"] = combate da armadura, craft das armaduras continua em craft.HEAD_PLATE, sp["z:plantas"] = fazenda.
+   Cada grupo: {m: maestria, s: {item: nível}}. Coleta e refino ganham os tiers T2 a T8. */
+const ARMAT = {PLATE:"placa",LEATHER:"couro",CLOTH:"pano"};
+function toV3(p){ p.sp=p.sp||{}; if(p.v>=3) return p; p.v=3;
+  for(const slot of ["HEAD","ARMOR","SHOES"]) for(const mat in ARMAT){ const v=(p.armaduras||{})[ARMAT[mat]]||0; if(v&&!p.sp[`c:${slot}_${mat}`]) p.sp[`c:${slot}_${mat}`]={m:Math.min(100,v),s:{}}; }
+  for(const k in (p.coleta||{})){ const g=p.coleta[k]; if(g&&!g.s&&g.tier>0){ g.s={}; g.s[g.tier]=Math.max(1,g.n||0); } }
+  return p; }
 /* nível em número (0 a 100, armas até 120) → faixa usada nas recomendações: 0 nada, 1 pouca, 2 média, 3 alta */
 const band = n => !(n>0) ? 0 : n<40 ? 1 : n<80 ? 2 : 3;
 const OLD2N = [0,30,70,100];
 function migrate(p){
-  if(p.v===2) return p; const q=EMPTY(); q.nome=p.nome||"";
+  if(p.v>=2) return toV3(p); const q=EMPTY(); q.v=2; q.nome=p.nome||"";
   for(const k in (p.armas||{})) q.armas[k]=OLD2N[p.armas[k]]||0;
   for(const k in (p.armaduras||{})) q.armaduras[k]=OLD2N[p.armaduras[k]]||0;
   for(const k in (p.coleta||{})){ const g=p.coleta[k]||{}; q.coleta[k]={tier:g.tier||0,n:OLD2N[g.lv]||0}; }
@@ -137,25 +145,27 @@ function migrate(p){
   for(const k in (p.refino||{})){ const r=p.refino[k]||{}; const [m,sv]=ms[r.lv||0]; q.refino[k]={m,s:{4:sv,5:sv,6:sv,7:sv,8:sv},obs:r.obs||0}; }
   for(const k in (p.craft||{})){ const r=p.craft[k]||{}; const [m,sv]=ms[r.lv||0]; q.craft[k]={m,s:{1:sv,2:sv,3:sv},obs:r.obs||0}; }
   for(const k of ["cozinha","alquimia"]){ const lv=(p[k]||{}).lv||0; const [m,sv]=ms[lv]; q[k]={m,s:{},all:sv}; }
-  return q;
+  return toV3(q);
 }
 const OLERAN = () => { const p=EMPTY(); p.nome="Oleran";
   for(const [k] of LINES) p.armas[k]=30; Object.assign(p.armas,{martelo:100,maca:100,besta:100,lanca:100,arcano:100,espada:0,adaga:0,sagrado:0,natureza:0});
   p.armaduras={placa:70,couro:70,pano:70};
-  p.coleta={minerio:{tier:8,n:100},pesca:{tier:8,n:100}};
-  p.craft={HEAD_PLATE:{m:50,s:{1:10,2:10,3:10}}}; p.cozinha={m:100,s:{},all:40}; p.alquimia={m:100,s:{},all:40}; return p; };
+  p.coleta={minerio:{s:{2:100,3:100,4:100,5:100,6:100,7:100,8:100}},pesca:{s:{2:100,3:100,4:100,5:100,6:100,7:100,8:100}}};
+  p.craft={HEAD_PLATE:{m:50,s:{1:10,2:10,3:10}}}; p.cozinha={m:100,s:{},all:40}; p.alquimia={m:100,s:{},all:40}; return toV3(p); };
 let PF = null, IS_EXAMPLE = false;
 function deriveLv(){ // mantém .lv (0 a 3) para as recomendações
-  for(const k in PF.coleta){ const g=PF.coleta[k]; g.lv=band(g.n); }
+  for(const k in PF.coleta){ const g=PF.coleta[k]; if(g.s){ let top=0; for(let t=2;t<=8;t++) if((g.s[t]||0)>0) top=t; g.tier=top&&g.s[top]>=100&&top<8?top+1:top; g.n=top?g.s[top]:0; } g.lv=band(g.n); }
+  PF.sp=PF.sp||{}; for(const mat in ARMAT){ let v=0; for(const slot of ["HEAD","ARMOR","SHOES"]){ const g=PF.sp[`c:${slot}_${mat}`]; if(g) v=Math.max(v,g.m||0,...Object.values(g.s||{})); } PF.armaduras[ARMAT[mat]]=v; }
   for(const k in PF.refino){ const r=PF.refino[k]; r.lv=r.obs>0?2:band(Math.max(r.m||0,...Object.values(r.s||{}))); }
   for(const k in PF.craft){ const r=PF.craft[k]; r.lv=r.obs>0?2:band(Math.max(r.m||0,...Object.values(r.s||{}))); }
   for(const k of ["cozinha","alquimia"]){ const r=PF[k]||(PF[k]={m:0,s:{}}); r.lv=band(Math.max(r.m||0,r.all||0,...Object.values(r.s||{}))); }
 }
-function loadProfile(){ try{ const s=store.get("ficha"); if(s){ PF=migrate(Object.assign({},JSON.parse(s))); PF=Object.assign(EMPTY(),PF); IS_EXAMPLE=false; deriveLv(); return; } }catch(e){} PF=OLERAN(); IS_EXAMPLE=true; deriveLv(); }
+function loadProfile(){ try{ const s=store.get("ficha"); if(s){ PF=migrate(Object.assign({},JSON.parse(s))); PF=Object.assign(EMPTY(),PF); PF.v=3; IS_EXAMPLE=false; deriveLv(); return; } }catch(e){} PF=OLERAN(); IS_EXAMPLE=true; deriveLv(); }
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._h);
   if(window.gsap&&!RM) gsap.fromTo(t,{y:16,opacity:0},{y:0,opacity:1,duration:.3,ease:"back.out(2)"}); toast._h=setTimeout(()=>{ if(window.gsap&&!RM) gsap.to(t,{opacity:0,y:10,duration:.25,onComplete:()=>t.hidden=true}); else t.hidden=true; },1800); }
 function saveProfile(){ IS_EXAMPLE=false; deriveLv(); store.set("ficha",JSON.stringify(PF)); $("pfStatus").textContent="Ficha salva neste navegador."; toast("Ficha guardada no livro"); coinBurst(); renderWho(); recompute(); }
-const wl = k => band(PF.armas[k]||0);
+const spMax = g => g ? Math.max(g.m||0,...Object.values(g.s||{}).map(x=>+x||0)) : 0;
+const wl = k => band(Math.max(PF.armas[k]||0, spMax((PF.sp||{})["c:"+k])));
 const armorLv = t => band(PF.armaduras[t]||0);
 /* eficiência de foco pela regra do jogo: 250 por nível da própria spec, 15 por nível das specs irmãs, 30 por nível de maestria.
    10.000 de eficiência cortam o foco pela metade. Se a pessoa digitou o custo de foco que o jogo mostra, ele manda. */
@@ -425,7 +435,7 @@ function nm(en){ if(LANG==="en"||!GEAR||!en) return en; return expandAlts(en).ma
 const nmKey = (k,en) => LANG==="pt"&&GEAR&&GEAR.p[k] ? GEAR.p[k] : en;
 const nmFood = f => (LANG==="en"||!f) ? f : FOOD_PT.reduce((s,[rx,pt])=>s.replace(rx,pt),f);
 function setLang(l){ LANG=l; store.set("lang",l); document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===l)));
-  renderBuilds(); renderRecs(); ["p-mercado","p-encantar","p-custo","p-matchup"].forEach(id=>{ if(!$(id).hidden) ({"p-mercado":renderBM,"p-encantar":renderEN,"p-custo":renderBC,"p-matchup":renderMU})[id](); }); }
+  renderBuilds(); renderRecs(); renderSpecs(); ["p-mercado","p-encantar","p-custo","p-matchup"].forEach(id=>{ if(!$(id).hidden) ({"p-mercado":renderBM,"p-encantar":renderEN,"p-custo":renderBC,"p-matchup":renderMU})[id](); }); }
 
 /* ================= builds table ================= */
 function renderBuilds(){
@@ -435,7 +445,7 @@ function renderBuilds(){
   if(!list.length){ const td=body.insertRow().insertCell(); td.colSpan=5; td.textContent="Nenhuma build desta lista usa as armas da sua ficha. Desmarque o filtro para ver todas."; return; }
   for(const b of list){ const tr=body.insertRow();
     const a=tr.insertCell(); a.append(nm(b.w)); if(b.mc) a.append(" ",el("span",{class:"spec",text:`tier ${b.mc}`}));
-    const lv=wl(b.l), c2=tr.insertCell(); const nv=PF.armas[b.l]||0; c2.textContent=nv?`${LINE_NAME[b.l]}: nível ${nv}`:`${LINE_NAME[b.l]}: sem spec`; if(lv>=2) c2.className="gain";
+    const lv=wl(b.l), c2=tr.insertCell(); const nv=Math.max(PF.armas[b.l]||0,spMax((PF.sp||{})["c:"+b.l])); c2.textContent=nv?`${LINE_NAME[b.l]}: nível ${nv}`:`${LINE_NAME[b.l]}: sem spec`; if(lv>=2) c2.className="gain";
     const gaps=armorGaps(b), g=tr.insertCell(); g.append(b.g.length?b.g.map(nm).join(", "):"Veja na fonte"); if(b.f) g.append(el("small",{class:"blk",text:nmFood(b.f)})); if(gaps.length) g.append(el("small",{class:"blk loss",text:`Sem spec em ${gaps.join(" e ")}`}));
     tr.insertCell().textContent = b.src==="pesquisa" ? "Pesquisa, não conferida" : b.src==="MetaCorrupted" ? "MetaCorrupted" : `AOG, ${b.pop} salvos`;
     const p=tr.insertCell(); p.className=`chg ${b.p[0]}`; p.textContent=b.p[1];
@@ -445,37 +455,62 @@ function renderBuilds(){
 /* ================= profile editor ================= */
 function segRow(label, val, labels, onSet){ const row=el("div",{class:"lv"}); row.append(el("span",{class:"lbl",text:label})); const seg=el("div",{class:"seg sm",role:"group","aria-label":label});
   labels.forEach((t,i)=>{ const b=el("button",{type:"button",text:t,"aria-pressed":String(i===val)}); b.addEventListener("click",()=>{ [...seg.children].forEach(x=>x.setAttribute("aria-pressed",String(x===b))); onSet(i); }); seg.append(b); }); row.append(seg); return row; }
-function numIn(val,max,label,onSet,ph){ const inp=el("input",{type:"number",min:"0",max:String(max),step:"1",inputMode:"numeric",value:val?String(val):"",placeholder:ph||"0","aria-label":label}); inp.className="lvn";
+function numIn(val,max,label,onSet,ph){ const inp=el("input",{type:"number",min:"0",max:String(max),step:"1",inputMode:"numeric",value:val?String(val):"",placeholder:ph||"—","aria-label":label}); inp.className="lvn";
   inp.addEventListener("change",()=>{ let v=Math.round(+inp.value||0); v=Math.max(0,Math.min(max,v)); inp.value=v?String(v):""; onSet(v); }); return inp; }
 function lvRow(label,inputs,hint){ const row=el("div",{class:"lvrow"}); row.append(el("span",{class:"lbl",text:label})); const box=el("div",{class:"lvins"}); inputs.forEach(x=>box.append(x)); row.append(box); if(hint) row.append(el("span",{class:"lvh",text:hint})); return row; }
 const tagIn = (t,inp) => { const w=el("label",{class:"lvt"}); w.append(el("span",{text:t}),inp); return w; };
 const bandTxt = n => ["sem spec","começando","média","alta"][band(n)];
 function renderProfile(){
   $("pfName").value=PF.nome||"";
-  const w=$("pfWeapons"); w.textContent="";
-  for(const [k,n] of LINES){ const v=PF.armas[k]||0, row=lvRow(n,[numIn(v,120,`Nível de ${n}`,x=>{ PF.armas[k]=x; saveProfile(); renderProfile(); })],bandTxt(v)); w.append(row); }
-  const a=$("pfArmor"); a.textContent="";
-  for(const [k,n] of [["placa","Placa"],["couro","Couro"],["pano","Pano"]]){ const v=PF.armaduras[k]||0; a.append(lvRow(n,[numIn(v,120,`Nível de armadura de ${n}`,x=>{ PF.armaduras[k]=x; saveProfile(); renderProfile(); })],bandTxt(v))); }
   const g=$("pfGather"); g.textContent="";
-  for(const [k,n] of GATHER){ const cur=PF.coleta[k]||{tier:0,n:0};
-    const sel=el("select",{"aria-label":`Tier máximo de ${n}`}); [["0","—"],["4","T4"],["5","T5"],["6","T6"],["7","T7"],["8","T8"]].forEach(([v,t])=>sel.append(el("option",{value:v,text:t,selected:String(cur.tier||0)===v})));
-    sel.addEventListener("change",()=>{ PF.coleta[k]=Object.assign({n:0},PF.coleta[k],{tier:+sel.value}); saveProfile(); });
-    g.append(lvRow(n,[tagIn("Tier",sel),tagIn("Nível",numIn(cur.n||0,100,`Nível da spec de ${n}`,x=>{ PF.coleta[k]=Object.assign({tier:0},PF.coleta[k],{n:x}); saveProfile(); }))])); }
+  for(const [k,n] of GATHER){ const cur=PF.coleta[k]||(PF.coleta[k]={s:{}}); cur.s=cur.s||{};
+    const ins=[]; for(let t=2;t<=8;t++) ins.push(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${n} T${t}`,x=>{ if(x) cur.s[t]=x; else delete cur.s[t]; saveProfile(); renderGatherHint(row,cur); })));
+    const row=lvRow(n,ins," "); g.append(row); renderGatherHint(row,cur); }
   const r=$("pfRefine"); r.textContent="";
   for(const k in RES){ const cur=PF.refino[k]||(PF.refino[k]={m:0,s:{}}); cur.s=cur.s||{};
-    const ins=[tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${RES[k].refName}`,x=>{ cur.m=x; saveProfile(); renderProfile(); }))];
-    for(let t=4;t<=8;t++) ins.push(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${RES[k].refName} T${t}`,x=>{ cur.s[t]=x; saveProfile(); renderProfile(); })));
-    ins.push(tagIn("Foco T6.0 no jogo",numIn(cur.obs||0,99999,`Custo de foco no jogo para ${RES[k].refName} T6.0`,x=>{ cur.obs=x; saveProfile(); renderProfile(); },"—")));
-    r.append(lvRow(RES[k].refName,ins,`foco T6.0: ${fmt(refFocus(k,6,0))}`)); }
-  const c=$("pfCraft"); c.textContent="";
-  for(const key in CRAFT_PT){ const cur=PF.craft[key]||{m:0,s:{}}; cur.s=cur.s||{}; const [slot,mat]=key.split("_");
-    const save=()=>{ PF.craft[key]=cur; saveProfile(); renderProfile(); };
-    const ins=[tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${CRAFT_PT[key]}`,x=>{ cur.m=x; save(); }))];
-    for(let st_=1;st_<=3;st_++) ins.push(tagIn(SETN[mat][st_-1],numIn(cur.s[st_]||0,100,`${gearName(slot,mat,st_)}`,x=>{ cur.s[st_]=x; save(); })));
-    ins.push(tagIn("Foco T6.0 no jogo",numIn(cur.obs||0,99999,`Custo de foco no jogo para ${CRAFT_PT[key]} T6.0`,x=>{ cur.obs=x; save(); },"—")));
-    c.append(lvRow(CRAFT_PT[key],ins,`foco T6.0 (conjunto 1): ${fmt(craftFocus(slot,mat,6,0,1))}`)); }
-  renderCookProfile();
+    const hint=()=>row.querySelector(".lvh").textContent=`foco T6.0: ${fmt(refFocus(k,6,0))}`;
+    const ins=[tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${RES[k].refName}`,x=>{ cur.m=x; saveProfile(); hint(); }))];
+    for(let t=2;t<=8;t++) ins.push(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${RES[k].refName} T${t}`,x=>{ if(x) cur.s[t]=x; else delete cur.s[t]; saveProfile(); hint(); })));
+    ins.push(tagIn("Foco T6.0 no jogo",numIn(cur.obs||0,99999,`Custo de foco no jogo para ${RES[k].refName} T6.0`,x=>{ cur.obs=x; saveProfile(); hint(); },"—")));
+    const row=lvRow(RES[k].refName,ins," "); r.append(row); hint(); }
+  renderSpecs(); renderCookProfile();
 }
+function renderGatherHint(row,cur){ deriveLv(); const h=row.querySelector(".lvh"); if(h) h.textContent=cur.tier?`coleta até T${cur.tier}`:"sem spec"; }
+
+/* ================= Destiny Board completo (data/specs.json) ================= */
+let SPECS=null, SPIDX={};             // SPIDX: chave do item no jogo (MAIN_SWORD, HEAD_PLATE_SET1, FARM_CARROT_SEED) → [grupo, chave na ficha]
+function indexSpecs(){ SPIDX={}; for(const g of SPECS.g){ if(g.k.startsWith("c:")) continue;
+  for(const [key] of g.it){ const full = g.k.startsWith("a:") ? g.k.slice(2)+"_"+(/^\d$/.test(key)?"SET"+key:key) : key; SPIDX[full]=[g.k,key]; } } }
+/* onde fica guardado cada grupo: craft de armadura em PF.craft, o resto em PF.sp. A maestria de combate das armas fica em PF.armas. */
+function spGet(k){ return k.startsWith("a:") ? (PF.craft[k.slice(2)]||{}) : ((PF.sp||{})[k]||{}); }
+function spEnsure(k){ if(k.startsWith("a:")){ const kk=k.slice(2); return PF.craft[kk]||(PF.craft[kk]={m:0,s:{}}); } PF.sp=PF.sp||{}; const g=PF.sp[k]||(PF.sp[k]={m:0,s:{}}); g.s=g.s||{}; return g; }
+const spMastery = k => k.startsWith("c:")&&LINE_NAME[k.slice(2)] ? (PF.armas[k.slice(2)]||0) : (spGet(k).m||0);
+function spSetMastery(k,v){ if(k.startsWith("c:")&&LINE_NAME[k.slice(2)]){ PF.armas[k.slice(2)]=v; return; } spEnsure(k).m=v; }
+/* eficiência de foco de qualquer item que tenha spec de craft na ficha */
+function itemFCE(full){ const x=SPIDX[full]; if(!x) return 0; const [gk,key]=x;
+  if(gk.startsWith("a:")){ const [slot,mat]=gk.slice(2).split("_"); return craftFCE(slot,mat,key); }
+  const g=spGet(gk); return fceRule(g.m,g.s,key); }
+const SP_SECS = [["combate","pfCombat"],["craft","pfCraftAll"],["fazenda","pfFarm"]];
+function spSummary(g){ const st=spGet(g.k), s=st.s||{}, m=spMastery(g.k), vals=g.it.map(([key])=>+s[key]||0).filter(v=>v>0);
+  const parts=[]; if(m) parts.push(`maestria ${m}`); if(vals.length) parts.push(`${vals.length} de ${g.it.length} com nível, maior ${Math.max(...vals)}`);
+  if(g.k.startsWith("a:")){ const [slot,mat]=g.k.slice(2).split("_"); if(m||vals.length||st.obs) parts.push(`foco T6.0: ${fmt(craftFocus(slot,mat,6,0,1))}`); }
+  return parts.length?parts.join(", "):"sem spec"; }
+function renderSpecs(){
+  if(!SPECS) return;
+  for(const [sec,box] of SP_SECS){ const root=$(box); if(!root) continue; root.textContent=""; let sub=null, grid=null;
+    for(const g of SPECS.g.filter(x=>x.sec===sec)){
+      if(g.sub!==sub){ sub=g.sub; root.append(el("h4",{class:"spsub",text:sub})); grid=el("div",{class:"spgroups"}); root.append(grid); }
+      const d=el("details",{class:"spg"}), sm=el("summary"), nmS=el("span",{class:"spn",text:g.nome}), sumS=el("span",{class:"sps",text:spSummary(g)});
+      sm.append(nmS,sumS); d.append(sm); const body=el("div",{class:"spgrid"}); d.append(body);
+      const upd=()=>{ sumS.textContent=spSummary(g); sumS.classList.toggle("on",sumS.textContent!=="sem spec"); };
+      let built=false;
+      d.addEventListener("toggle",()=>{ if(!d.open||built) return; built=true;
+        body.append(tagIn("Maestria",numIn(spMastery(g.k),g.mmax,`Maestria de ${g.nome}`,x=>{ spSetMastery(g.k,x); saveProfile(); upd(); },"—")));
+        for(const [key,pt,en] of g.it){ const label=LANG==="en"?en:pt;
+          body.append(tagIn(label,numIn(+(spGet(g.k).s||{})[key]||0,g.max,`${g.nome}: ${label}`,x=>{ const st=spEnsure(g.k); st.s=st.s||{}; if(x) st.s[key]=x; else delete st.s[key]; saveProfile(); upd(); },"—"))); }
+        if(g.k.startsWith("a:")){ const kk=g.k.slice(2); body.append(tagIn("Foco T6.0 no jogo",numIn((PF.craft[kk]||{}).obs||0,99999,`Custo de foco no jogo para ${g.nome} T6.0`,x=>{ spEnsure(g.k).obs=x; saveProfile(); upd(); },"—"))); }
+      });
+      upd(); grid.append(d); } } }
 const MEAL_PT = {SOUP:"Sopa",SALAD:"Salada",SEAWEEDSALAD:"Salada de algas",PIE:"Torta",OMELETTE:"Omelete",STEW:"Guisado",SANDWICH:"Sanduíche",ROAST:"Assado",GRILLEDFISH:"Peixe grelhado"};
 function cookTypes(kind){ const m={}; for(const id in COOK.r){ const r=COOK.r[id]; if(r[1]!==kind||!r[3]) continue; const tp=cookType(id); if(!m[tp]) m[tp]= MEAL_PT[tp] || r[0].replace(/^Poção\s+((de|da|do)\s+)?/i,"").replace(/\s+(Menor|Maior)$/,""); } return m; }
 function renderCookProfile(){ const c=$("pfCook"); c.textContent="";
@@ -490,7 +525,7 @@ $("pfName").addEventListener("change",()=>{ PF.nome=$("pfName").value.trim().sli
 $("pfCopy").addEventListener("click",()=>{ const code=btoa(unescape(encodeURIComponent(JSON.stringify(PF)))); const done=()=>$("pfStatus").textContent="Código da ficha copiado. Cole em outro navegador em Colar ficha.";
   try{ navigator.clipboard.writeText(code).then(done,()=>{ $("pfPasteBox").hidden=false; $("pfPaste").value=code; $("pfPaste").select(); $("pfStatus").textContent="Copie o código selecionado abaixo."; }); }catch(e){ $("pfPasteBox").hidden=false; $("pfPaste").value=code; } });
 $("pfPasteBtn").addEventListener("click",()=>{ $("pfPasteBox").hidden=!$("pfPasteBox").hidden; $("pfPaste").value=""; $("pfPaste").focus(); });
-$("pfPasteApply").addEventListener("click",()=>{ try{ const o=JSON.parse(decodeURIComponent(escape(atob($("pfPaste").value.trim())))); if(typeof o!=="object"||!o.armas) throw 0; PF=Object.assign(EMPTY(),o); saveProfile(); renderProfile(); $("pfPasteBox").hidden=true; $("pfPasteMsg").textContent=""; }catch(e){ $("pfPasteMsg").textContent="Esse código não é uma ficha válida. Copie de novo pelo botão Copiar minha ficha."; } });
+$("pfPasteApply").addEventListener("click",()=>{ try{ const o=JSON.parse(decodeURIComponent(escape(atob($("pfPaste").value.trim())))); if(typeof o!=="object"||!o.armas) throw 0; PF=Object.assign(EMPTY(),migrate(o)); saveProfile(); renderProfile(); $("pfPasteBox").hidden=true; $("pfPasteMsg").textContent=""; }catch(e){ $("pfPasteMsg").textContent="Esse código não é uma ficha válida. Copie de novo pelo botão Copiar minha ficha."; } });
 $("pfExample").addEventListener("click",()=>{ PF=OLERAN(); saveProfile(); renderProfile(); });
 $("pfClear").addEventListener("click",()=>{ PF=EMPTY(); saveProfile(); renderProfile(); });
 

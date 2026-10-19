@@ -462,3 +462,26 @@ section.panel>.row-ctl+.row-ctl{margin-top:-26px;border-top:0;border-top-left-ra
 @media (min-width:900px){ .deal.sheet .answer strong{white-space:nowrap} }
 @media (max-width:600px){ .app .stall .facts .patchchip{display:none} }
 section.panel>.seg,.sheet>.seg{align-self:flex-start}
+/* ficha: Destiny Board completo */
+.spsec{display:flex;flex-direction:column;gap:8px}
+h4.spsub{margin:10px 0 2px;font:600 17px var(--f-display);color:var(--brass)}
+h4.spsub:first-child{margin-top:0}
+.spgroups{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:6px 18px;align-items:start}
+details.spg{border:1px solid var(--line-soft);border-radius:8px;background:rgba(0,0,0,.14)}
+details.spg[open]{grid-column:1/-1;background:rgba(0,0,0,.22);border-color:var(--line)}
+details.spg summary{cursor:pointer;list-style:none;display:flex;gap:10px;align-items:baseline;justify-content:space-between;padding:9px 12px}
+details.spg summary::-webkit-details-marker{display:none}
+details.spg summary::before{content:"";width:7px;height:7px;border-right:1.5px solid var(--brass);border-bottom:1.5px solid var(--brass);transform:rotate(-45deg);flex:none;align-self:center;transition:transform .15s}
+details.spg[open] summary::before{transform:rotate(45deg)}
+.spn{font:500 16px var(--f-display);color:var(--parch);flex:1}
+.sps{font-size:13px;color:var(--smoke);text-align:right}
+.sps.on{color:var(--gain)}
+.spgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 14px;padding:4px 14px 14px}
+.spgrid label.lvt{font-size:12.5px;letter-spacing:0;color:var(--parch-2)}
+.spgrid label.lvt:first-child span{color:var(--saffron)}
+.spgrid input.lvn{width:100%;text-align:left}
+.fzspec{align-self:center;max-width:46ch;margin:0}
+@media (max-width:560px){ .spgroups{grid-template-columns:minmax(0,1fr)} .spgrid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+details.spg summary{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:baseline}
+.spn{white-space:nowrap}
+.sps{justify-self:end}

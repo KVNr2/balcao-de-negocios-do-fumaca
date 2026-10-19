@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="f46ea7fe">
+<html lang="pt-BR" data-v="8e1f924e">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -10,7 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l4 10 10 4-10 4-4 10-4-10-10-4 10-4z' fill='%23e8ab45'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=f46ea7fe">
+<link rel="stylesheet" href="css/balcao.css?v=8e1f924e">
 </head>
 <body>
 <div class="wrap app">
@@ -155,7 +155,7 @@
       <h2>Minha ficha</h2>
       <ol class="steps">
         <li><b>Escreva o nome do seu personagem.</b> A ficha passa a ser sua, e o site deixa de mostrar o exemplo do Oleran.</li>
-        <li><b>Coloque o nível de cada spec</b> como aparece no Destiny Board do jogo: armas e armaduras de 0 a 120, coleta, refino, craft, cozinha e alquimia de 0 a 100. Deixe em branco o que você não upou.</li>
+        <li><b>Coloque o nível de cada spec</b> como aparece no Destiny Board do jogo: combate, craft, coleta, refino, cozinha, alquimia e fazenda. Cada linha abre com a maestria e todos os itens dela. Deixe em branco o que você não upou.</li>
         <li><b>Pronto.</b> Todas as páginas usam a sua ficha. Ela fica salva só neste navegador; cada amigo abre o site no computador dele e preenche a própria.</li>
         <li><b>Para usar em outro aparelho</b>, clique em Copiar link da minha ficha e abra o link lá.</li>
       </ol>
@@ -176,36 +176,36 @@
       <p class="tiny" id="pfStatus" aria-live="polite"></p>
     </div>
     <div class="sheet">
-      <h3 class="orn">Armas</h3>
-      <p class="tiny muted">O nível da linha de combate (por exemplo, Lutador de Martelo). Ao lado aparece como o site entende: sem spec, começando, média ou alta.</p>
-      <div class="grid-lv" id="pfWeapons"></div>
+      <h3 class="orn">Combate</h3>
+      <p class="tiny muted">Como no Destiny Board: a maestria da linha (por exemplo, Lutador de Martelo, até 100) e o nível de cada arma, armadura e mão secundária (até 120). Clique numa linha para abrir. O site usa o maior número de cada linha para saber quais armas e armaduras você usa.</p>
+      <div id="pfCombat" class="spsec"></div>
+    </div>
+    <div class="sheet">
+      <h3 class="orn">Craft</h3>
+      <p class="tiny muted">Maestria de cada oficina e o nível de cada item. A conta do foco segue o jogo: 250 por nível do próprio item, 15 por nível dos outros itens da mesma linha e 30 por nível de maestria. Nas armaduras dá para digitar o custo de foco que o jogo mostra para uma peça T6.0 do primeiro conjunto: ele passa a valer.</p>
+      <div id="pfCraftAll" class="spsec"></div>
     </div>
     <div class="cols">
-      <div class="sheet">
-        <h3 class="orn">Armaduras</h3>
-        <div class="grid-lv" id="pfArmor"></div>
-      </div>
       <div class="sheet">
         <h3 class="orn">Coleta</h3>
+        <p class="tiny muted">O nível de cada tier, de T2 a T8. O site entende que você coleta até o tier seguinte ao último que chegou a 100.</p>
         <div class="grid-lv" id="pfGather"></div>
       </div>
-    </div>
-    <div class="cols">
       <div class="sheet">
         <h3 class="orn">Refino</h3>
-        <p class="tiny muted">Maestria e o nível de cada tier (T4 a T8). A conta do foco segue o jogo: 250 por nível do próprio tier, 15 por nível dos outros tiers e 30 por nível de maestria. Se preferir, digite o custo de foco que o jogo mostra para uma barra T6.0: ele passa a valer.</p>
+        <p class="tiny muted">Maestria e o nível de cada tier (T2 a T8). Se preferir, digite o custo de foco que o jogo mostra para uma barra T6.0: ele passa a valer.</p>
         <div class="grid-lv" id="pfRefine"></div>
-      </div>
-      <div class="sheet">
-        <h3 class="orn">Craft</h3>
-        <p class="tiny muted">Para cada linha de armadura: maestria e o nível de cada conjunto. O custo de foco do jogo, se souber, é o de uma peça T6.0 do primeiro conjunto.</p>
-        <div class="grid-lv" id="pfCraft"></div>
       </div>
     </div>
     <div class="sheet">
       <h3 class="orn">Cozinha e alquimia</h3>
       <p class="tiny muted">Maestria e o nível de cada tipo de prato e de poção.</p>
       <div class="grid-lv" id="pfCook"></div>
+    </div>
+    <div class="sheet">
+      <h3 class="orn">Fazenda</h3>
+      <p class="tiny muted">Maestria e o nível de cada planta, erva e animal. A página Ilha e fazenda usa esses números para o custo de foco.</p>
+      <div id="pfFarm" class="spsec"></div>
     </div>
   </section>
 
@@ -243,9 +243,9 @@
           <label class="f">Foco para gastar<input id="focusPool" type="number" min="0" step="500" value="10000"><span class="hint">Premium gera 10.000 por dia</span></label>
         </div>
         <div class="form">
-          <div class="ctl">Foco<div class="seg" role="group" aria-label="Foco"><button type="button" data-g="focus" data-v="f46ea7fe" aria-pressed="true">Com foco</button><button type="button" data-g="focus" data-v="95976267" aria-pressed="false">Sem foco</button></div></div>
-          <div class="ctl">Bônus diário<div class="seg" role="group" aria-label="Bônus diário"><button type="button" data-g="daily" data-v="f46ea7fe" aria-pressed="true">Nenhum</button><button type="button" data-g="daily" data-v="0.1" aria-pressed="false">+10%</button><button type="button" data-g="daily" data-v="0.2" aria-pressed="false">+20%</button></div></div>
-          <div class="ctl">Conta<div class="seg" role="group" aria-label="Premium"><button type="button" data-g="prem" data-v="f46ea7fe" aria-pressed="true">Premium</button><button type="button" data-g="prem" data-v="95976267" aria-pressed="false">Sem Premium</button></div></div>
+          <div class="ctl">Foco<div class="seg" role="group" aria-label="Foco"><button type="button" data-g="focus" data-v="8e1f924e" aria-pressed="true">Com foco</button><button type="button" data-g="focus" data-v="95976267" aria-pressed="false">Sem foco</button></div></div>
+          <div class="ctl">Bônus diário<div class="seg" role="group" aria-label="Bônus diário"><button type="button" data-g="daily" data-v="8e1f924e" aria-pressed="true">Nenhum</button><button type="button" data-g="daily" data-v="0.1" aria-pressed="false">+10%</button><button type="button" data-g="daily" data-v="0.2" aria-pressed="false">+20%</button></div></div>
+          <div class="ctl">Conta<div class="seg" role="group" aria-label="Premium"><button type="button" data-g="prem" data-v="8e1f924e" aria-pressed="true">Premium</button><button type="button" data-g="prem" data-v="95976267" aria-pressed="false">Sem Premium</button></div></div>
           <div class="ctl">Como vende<div class="seg" role="group" aria-label="Venda"><button type="button" data-g="sell" data-v="order" aria-pressed="true">Ordem de venda</button><button type="button" data-g="sell" data-v="instant" aria-pressed="false">Venda direta</button></div></div>
         </div>
       </div>
@@ -494,12 +494,13 @@
   <!-- MERCADO NEGRO -->
   <section class="panel" id="p-mercado" role="tabpanel" aria-labelledby="t-mercado" hidden>
     <p class="aside">O Mercado Negro fica em Caerleon e compra equipamento para repor o saque dos monstros e baús do mundo. Ele paga por ordem de compra: você vende na hora, só com a taxa de venda (4% com Premium), sem a taxa de anúncio. As ordens mudam rápido e somem quando alguém vende; a idade de cada uma aparece na tabela. Confira no jogo antes de fabricar.</p>
+    <p class="aside">Em "Comprar barato e revender", a tabela procura a peça mais barata em todas as cidades, inclusive Caerleon e Brecilien. Comprar numa cidade real e levar para Caerleon é atravessar zona vermelha com a peça na bolsa; de Brecilien o caminho é pelas Brumas. "O MN compra por dia" é quantas peças o Mercado Negro comprou por dia na última semana: a API não mostra o tamanho das ordens abertas, então esse é o melhor sinal de quanto ele absorve. Pouca compra por dia quer dizer que levar muitas de uma vez pode encalhar.</p>
     <div class="row-ctl">
       <label class="f">Mercadoria<select id="bmGroup"></select></label>
       <div class="seg" role="group" aria-label="Tier" id="bmTier"></div>
       <div class="seg" role="group" aria-label="Como ganhar">
         <button type="button" data-bm="craft" aria-pressed="true">Fabricar e vender</button>
-        <button type="button" data-bm="flip" aria-pressed="false">Revender de Caerleon</button>
+        <button type="button" data-bm="flip" aria-pressed="false">Comprar barato e revender</button>
       </div>
       <label class="chk"><input type="checkbox" id="bmFocus"> Fabricar com foco</label>
     </div>
@@ -549,7 +550,7 @@
       </div>
       <label class="f">Lotes ou animais<input type="number" id="fzPlots" min="1" max="60" value="4" style="width:110px"></label>
       <label class="chk"><input type="checkbox" id="fzFocus"> Regar ou cuidar com foco</label>
-      <div class="f"><span>Sua spec de fazenda</span><div class="seg" role="group" aria-label="Spec de fazenda" id="fzSpecSeg"><button type="button" data-lv="0" aria-pressed="true">Sem spec</button><button type="button" data-lv="1" aria-pressed="false">Pouca</button><button type="button" data-lv="2" aria-pressed="false">Média</button><button type="button" data-lv="3" aria-pressed="false">Alta</button></div></div>
+      <p class="tiny muted fzspec" id="fzSpecTxt"></p>
     </div>
     <p class="small muted" id="fzNote"></p>
     <div class="tbl"><table id="fzTable"></table></div>
@@ -606,13 +607,13 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/base.js?v=f46ea7fe"></script>
-<script src="js/fx.js?v=f46ea7fe"></script>
-<script src="js/biz.js?v=f46ea7fe"></script>
-<script src="js/novos.js?v=f46ea7fe"></script>
-<script src="js/guia.js?v=f46ea7fe"></script>
-<script src="js/ui.js?v=f46ea7fe"></script>
-<script src="js/oficina.js?v=f46ea7fe"></script>
-<script src="js/main.js?v=f46ea7fe"></script>
+<script src="js/base.js?v=8e1f924e"></script>
+<script src="js/fx.js?v=8e1f924e"></script>
+<script src="js/biz.js?v=8e1f924e"></script>
+<script src="js/novos.js?v=8e1f924e"></script>
+<script src="js/guia.js?v=8e1f924e"></script>
+<script src="js/ui.js?v=8e1f924e"></script>
+<script src="js/oficina.js?v=8e1f924e"></script>
+<script src="js/main.js?v=8e1f924e"></script>
 </body>
 </html>
