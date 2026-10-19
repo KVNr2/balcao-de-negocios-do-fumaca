@@ -24,6 +24,7 @@ function coinBurst(fromEl){
 }
 
 function tiltCards(){
+  return; // visual novo: cartões planos, sem inclinação
   if(!FX.ok||RM||!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
   document.querySelectorAll(".sheet, ol.recs li, .links a, .mu").forEach(card=>{
     if(card.dataset.tilt) return; card.dataset.tilt=1; if(card.querySelector("table, .tbl, .grid-lv, form, input, select")) return;
@@ -96,7 +97,7 @@ function smokeTitle(tl,chars,sweep){
 
 function stallIntro(){
   addFlourishes();
-  if(!FX.ok) return;
+  if(!FX.ok||!document.querySelector(".stall .awning")) return; // o visual novo não tem barraca/lanternas
   const mm=gsap.matchMedia();
   mm.add({motion:"(prefers-reduced-motion: no-preference)"},()=>{
     const tl=gsap.timeline();

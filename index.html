@@ -5,16 +5,32 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Balcão de Negócios do Fumaça</title>
 <meta name="description" content="O balcão clandestino do Fumaça: prata, refino, craft, cozinha, pesca, mapas e builds no Albion Online (Américas), com preços ao vivo e recomendações pela ficha de cada jogador.">
-<meta name="theme-color" content="#15100f">
+<meta name="theme-color" content="#06080c">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l4 10 10 4-10 4-4 10-4-10-10-4 10-4z' fill='%23e8ab45'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="css/balcao.css?v=8e1f924e">
+<link rel="stylesheet" href="css/vip.css?v=1">
 </head>
 <body>
 <div class="wrap app">
-<aside class="ledger-book" aria-label="Livro de negócios">
+<header class="vip-top" role="banner">
+  <a class="brand" href="#" aria-label="Balcão de Negócios do Fumaça">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/></svg>
+    <span class="bn"><b>Balcão do Fumaça</b><small>Mercado e ofícios do Albion</small></span>
+  </a>
+  <span class="status" id="whenBox" title="Quando os preços foram lidos"><i class="pulse" aria-hidden="true"></i><span class="fl">Preços</span> <strong id="when">carregando…</strong></span>
+  <div class="facts" aria-label="Situação do mercado">
+    <span class="gold" id="goldBox" title="Quanto custa 1 ouro em prata"><span class="fl">Ouro</span> <strong class="num" id="goldV">8.382</strong> <svg id="goldSpark" viewBox="0 0 96 22" aria-hidden="true"></svg></span>
+    <span title="Premium de 30 dias (3.750 ouro) em prata"><span class="fl">Premium</span> <strong class="num" id="premV">31,4M</strong></span>
+    <span class="patchchip"><span class="fl">Patch</span> <strong>Dragonfire 3</strong></span>
+    <button type="button" id="reload" class="linkbtn" title="Buscar os preços de novo agora"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg><span>Atualizar preços</span></button>
+  </div>
+  <button type="button" class="who-chip" data-goto="t-ficha" title="Abrir Minha ficha"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.4 7-5.4s6.2 1.8 7 5.4"/></svg><span id="who"></span></button>
+</header>
+<aside class="ledger-book" aria-label="Menu">
+    <button type="button" id="navToggle" class="nav-toggle" aria-label="Recolher o menu" aria-expanded="true" title="Recolher / expandir o menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg></button>
     <div class="lb-head"><span class="lb-k">Livro de negócios</span><span class="lb-t">do Fumaça</span></div>
     <div class="lang" role="group" aria-label="Nomes dos itens"><span>Nomes</span><button type="button" data-lang="pt" aria-pressed="true">PT</button><button type="button" data-lang="en" aria-pressed="false">EN</button></div>
     <nav class="tabs" role="tablist" aria-orientation="vertical" aria-label="Páginas"><span class="lamp" id="tabLamp" aria-hidden="true"></span>
@@ -43,57 +59,7 @@
     </nav>
   </aside>
 <div class="main">
-<header class="stall">
-  <svg class="awning" viewBox="0 0 1200 92" preserveAspectRatio="none" aria-hidden="true">
-  <defs><clipPath id="scallop"><path d="M0 0 H1200 V58 A30 22 0 0 1 1140 58 A30 22 0 0 1 1080 58 A30 22 0 0 1 1020 58 A30 22 0 0 1 960 58 A30 22 0 0 1 900 58 A30 22 0 0 1 840 58 A30 22 0 0 1 780 58 A30 22 0 0 1 720 58 A30 22 0 0 1 660 58 A30 22 0 0 1 600 58 A30 22 0 0 1 540 58 A30 22 0 0 1 480 58 A30 22 0 0 1 420 58 A30 22 0 0 1 360 58 A30 22 0 0 1 300 58 A30 22 0 0 1 240 58 A30 22 0 0 1 180 58 A30 22 0 0 1 120 58 A30 22 0 0 1 60 58 A30 22 0 0 1 0 58 Z"/></clipPath>
-  <linearGradient id="awShade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".05"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></linearGradient></defs>
-  <g clip-path="url(#scallop)"><rect x="0" y="0" width="30" height="90" fill="var(--madder)"/><rect x="30" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="60" y="0" width="30" height="90" fill="var(--madder)"/><rect x="90" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="120" y="0" width="30" height="90" fill="var(--madder)"/><rect x="150" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="180" y="0" width="30" height="90" fill="var(--madder)"/><rect x="210" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="240" y="0" width="30" height="90" fill="var(--madder)"/><rect x="270" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="300" y="0" width="30" height="90" fill="var(--madder)"/><rect x="330" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="360" y="0" width="30" height="90" fill="var(--madder)"/><rect x="390" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="420" y="0" width="30" height="90" fill="var(--madder)"/><rect x="450" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="480" y="0" width="30" height="90" fill="var(--madder)"/><rect x="510" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="540" y="0" width="30" height="90" fill="var(--madder)"/><rect x="570" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="600" y="0" width="30" height="90" fill="var(--madder)"/><rect x="630" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="660" y="0" width="30" height="90" fill="var(--madder)"/><rect x="690" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="720" y="0" width="30" height="90" fill="var(--madder)"/><rect x="750" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="780" y="0" width="30" height="90" fill="var(--madder)"/><rect x="810" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="840" y="0" width="30" height="90" fill="var(--madder)"/><rect x="870" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="900" y="0" width="30" height="90" fill="var(--madder)"/><rect x="930" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="960" y="0" width="30" height="90" fill="var(--madder)"/><rect x="990" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="1020" y="0" width="30" height="90" fill="var(--madder)"/><rect x="1050" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="1080" y="0" width="30" height="90" fill="var(--madder)"/><rect x="1110" y="0" width="30" height="90" fill="#d8c7a0"/><rect x="1140" y="0" width="30" height="90" fill="var(--madder)"/><rect x="1170" y="0" width="30" height="90" fill="#d8c7a0"/><rect width="1200" height="92" fill="url(#awShade)"/></g>
-  <rect x="0" y="0" width="1200" height="5" fill="var(--brass)"/>
-  <g class="tassel" data-o="30.0 80"><line x1="30.0" y1="80" x2="30.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="30.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="90.0 80"><line x1="90.0" y1="80" x2="90.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="90.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="150.0 80"><line x1="150.0" y1="80" x2="150.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="150.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="210.0 80"><line x1="210.0" y1="80" x2="210.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="210.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="270.0 80"><line x1="270.0" y1="80" x2="270.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="270.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="330.0 80"><line x1="330.0" y1="80" x2="330.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="330.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="390.0 80"><line x1="390.0" y1="80" x2="390.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="390.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="450.0 80"><line x1="450.0" y1="80" x2="450.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="450.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="510.0 80"><line x1="510.0" y1="80" x2="510.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="510.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="570.0 80"><line x1="570.0" y1="80" x2="570.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="570.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="630.0 80"><line x1="630.0" y1="80" x2="630.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="630.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="690.0 80"><line x1="690.0" y1="80" x2="690.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="690.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="750.0 80"><line x1="750.0" y1="80" x2="750.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="750.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="810.0 80"><line x1="810.0" y1="80" x2="810.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="810.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="870.0 80"><line x1="870.0" y1="80" x2="870.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="870.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="930.0 80"><line x1="930.0" y1="80" x2="930.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="930.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="990.0 80"><line x1="990.0" y1="80" x2="990.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="990.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="1050.0 80"><line x1="1050.0" y1="80" x2="1050.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="1050.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="1110.0 80"><line x1="1110.0" y1="80" x2="1110.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="1110.0" cy="90" r="3.2" fill="var(--saffron)"/></g><g class="tassel" data-o="1170.0 80"><line x1="1170.0" y1="80" x2="1170.0" y2="88" stroke="var(--brass)" stroke-width="2"/><circle cx="1170.0" cy="90" r="3.2" fill="var(--saffron)"/></g>
-</svg>
-  <div class="stall-inner">
-    <div class="sign">
-      <h1><span class="kicker">Balcão de Negócios do</span> <span class="big" id="bigTitle">Fumaça</span></h1>
-      <div class="who" id="who"></div>
-    </div>
-    <div class="facts" aria-label="Situação do mercado">
-      <span class="gold" id="goldBox" title="Quanto custa 1 ouro em prata"><span class="fl">Ouro</span> <strong class="num" id="goldV">8.382</strong> <svg id="goldSpark" viewBox="0 0 96 22" aria-hidden="true"></svg></span>
-      <span title="Premium de 30 dias (3.750 ouro) em prata"><span class="fl">Premium</span> <strong class="num" id="premV">31,4M</strong></span>
-      <span class="patchchip"><span class="fl">Patch</span> <strong>Dragonfire 3</strong></span>
-      <span id="whenBox"><span class="fl">Preços</span> <strong id="when">17/10/2026, entre 11h e 16h (Brasília)</strong></span>
-      <button type="button" id="reload" class="linkbtn" title="Buscar os preços de novo agora">Atualizar</button>
-    </div>
-    <svg class="lanterns" viewBox="0 0 220 230" aria-hidden="true">
-  <defs><radialGradient id="lglow"><stop offset="0" stop-color="#ffcf73" stop-opacity=".55"/><stop offset="1" stop-color="#ffcf73" stop-opacity="0"/></radialGradient></defs>
-  <g class="lantern" data-ox="70" data-oy="0">
-    <line x1="70" y1="0" x2="70" y2="70" stroke="var(--brass)" stroke-width="1.6" stroke-dasharray="3 3"/>
-    <circle class="glow" cx="70" cy="116.0" r="48.0" fill="url(#lglow)"/>
-    <path d="M60.0 76.0 L80.0 76.0 L88.0 88.0 L52.0 88.0 Z" fill="var(--brass)"/>
-    <circle cx="70" cy="73.0" r="4.0" fill="none" stroke="var(--brass)" stroke-width="1.6"/>
-    <path d="M52.0 88.0 L88.0 88.0 L94.0 116.0 L86.0 146.0 L54.0 146.0 L46.0 116.0 Z" fill="#3a2614" stroke="var(--brass)" stroke-width="1.6"/>
-    <path class="pane" d="M58.0 96.0 L82.0 96.0 L86.0 116.0 L81.0 138.0 L59.0 138.0 L54.0 116.0 Z" fill="var(--saffron)" opacity=".92"/>
-    <path d="M70 100.0 L74.0 112.0 L84.0 116.0 L74.0 120.0 L70 132.0 L66.0 120.0 L56.0 116.0 L66.0 112.0 Z" fill="#3a2614" opacity=".75"/>
-    <path d="M54.0 146.0 L86.0 146.0 L78.0 156.0 L62.0 156.0 Z" fill="var(--brass)"/>
-    <line x1="70" y1="156.0" x2="70" y2="166.0" stroke="var(--brass)" stroke-width="2"/>
-  </g>
-  <g class="lantern" data-ox="160" data-oy="0">
-    <line x1="160" y1="0" x2="160" y2="40" stroke="var(--brass)" stroke-width="1.6" stroke-dasharray="3 3"/>
-    <circle class="glow" cx="160" cy="76.80000000000001" r="38.400000000000006" fill="url(#lglow)"/>
-    <path d="M152.0 44.8 L168.0 44.8 L174.4 54.4 L145.6 54.4 Z" fill="var(--brass)"/>
-    <circle cx="160" cy="42.4" r="3.2" fill="none" stroke="var(--brass)" stroke-width="1.6"/>
-    <path d="M145.6 54.4 L174.4 54.4 L179.2 76.80000000000001 L172.8 100.80000000000001 L147.2 100.80000000000001 L140.8 76.80000000000001 Z" fill="#3a2614" stroke="var(--brass)" stroke-width="1.6"/>
-    <path class="pane" d="M150.4 60.8 L169.6 60.8 L172.8 76.80000000000001 L168.8 94.4 L151.2 94.4 L147.2 76.80000000000001 Z" fill="var(--saffron)" opacity=".92"/>
-    <path d="M160 64.0 L163.2 73.6 L171.2 76.80000000000001 L163.2 80.0 L160 89.6 L156.8 80.0 L148.8 76.80000000000001 L156.8 73.6 Z" fill="#3a2614" opacity=".75"/>
-    <path d="M147.2 100.80000000000001 L172.8 100.80000000000001 L166.4 108.8 L153.6 108.8 Z" fill="var(--brass)"/>
-    <line x1="160" y1="108.8" x2="160" y2="116.80000000000001" stroke="var(--brass)" stroke-width="2"/>
-  </g>
-</svg>
-  </div>
-  <svg class="smoke" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-  <defs><radialGradient id="puffG"><stop offset="0" stop-color="#efe2c4" stop-opacity=".22"/><stop offset=".55" stop-color="#cdbd9c" stop-opacity=".08"/><stop offset="1" stop-color="#cdbd9c" stop-opacity="0"/></radialGradient></defs>
-  <ellipse class="puff" cx="90" cy="360" rx="60" ry="48" fill="url(#puffG)" opacity="0"/><ellipse class="puff" cx="210" cy="380" rx="48" ry="38" fill="url(#puffG)" opacity="0"/><ellipse class="puff" cx="340" cy="354" rx="70" ry="56" fill="url(#puffG)" opacity="0"/><ellipse class="puff" cx="480" cy="362" rx="52" ry="41" fill="url(#puffG)" opacity="0"/><ellipse class="puff" cx="600" cy="370" rx="76" ry="60" fill="url(#puffG)" opacity="0"/><ellipse class="puff" cx="730" cy="351" rx="58" ry="46" fill="url(#puffG)" opacity="0"/><ellipse class="puff" cx="860" cy="352" rx="72" ry="57" fill="url(#puffG)" opacity="0"/><ellipse class="puff" cx="990" cy="376" rx="54" ry="43" fill="url(#puffG)" opacity="0"/><ellipse class="puff" cx="1110" cy="367" rx="66" ry="52" fill="url(#puffG)" opacity="0"/><ellipse class="puff" cx="560" cy="353" rx="90" ry="72" fill="url(#puffG)" opacity="0"/>
-</svg>
-</header>
+
   <div class="pagehead" id="pagehead"><span class="ph-k" id="phKick">Livro-caixa, folha 1</span><h1 class="ph-t" id="phTitle">Para você</h1><p class="ph-d" id="phDesc"></p></div>
 <div class="leaves">
 
