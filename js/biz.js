@@ -30,7 +30,7 @@ async function ensureBM(g){
     BM_LOADED.add(g); return true;
   }catch(e){ return false; }
 }
-function bmFCE(key){ const m=key.match(/^(HEAD|ARMOR|SHOES)_(PLATE|LEATHER|CLOTH)_SET\d$/); return m?craftFCE(m[1],m[2]):0; }
+function bmFCE(key){ const m=key.match(/^(HEAD|ARMOR|SHOES)_(PLATE|LEATHER|CLOTH)_SET(\d)$/); return m?craftFCE(m[1],m[2],+m[3]):0; }
 function bmModel(key,t,e,focus=$("bmFocus").checked){
   const r=BM[key], id=bmId(key,t,e), rec=BMP[id]||{};
   const bmo=rec["Black Market"], cae=rec["Caerleon"];
