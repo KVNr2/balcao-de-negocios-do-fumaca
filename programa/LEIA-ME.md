@@ -1,4 +1,4 @@
-# Programa Ficha do Albion
+# Programa AlbionSpecs
 
 Lê, no seu PC, os níveis do seu Destiny Board quando você entra no personagem e leva para o site (botão **Sincronizar**).
 

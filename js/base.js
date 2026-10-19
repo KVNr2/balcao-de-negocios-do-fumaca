@@ -541,7 +541,7 @@ async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.has
    e volta sozinha para cá já com a ficha. Nada de aba nova. */
 let irSync=false;
 async function irParaSincronia(){ if(irSync) return; irSync=true; const alvo="http://127.0.0.1:47831/", t0=Date.now(), st=$("pfStatus");
-  st.textContent="Abrindo o programa… se o Windows perguntar, permita abrir o Ficha do Albion e aceite o aviso de Administrador.";
+  st.textContent="Abrindo o programa… se o Windows perguntar, permita abrir o AlbionSpecs e aceite o aviso de Administrador.";
   while(Date.now()-t0<30000){
     const ok=await new Promise(res=>{ const im=new Image(); im.onload=()=>res(true); im.onerror=()=>res(false); im.src=alvo+"ping.gif?"+Date.now(); });
     if(ok){ location.href=alvo; return; }
