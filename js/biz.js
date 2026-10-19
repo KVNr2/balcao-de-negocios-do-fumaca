@@ -63,12 +63,12 @@ async function renderBM(){
   if(!BM_LOADED.has(g)){ tb.textContent=""; note.textContent="Consultando as ordens do Mercado Negro…"; const ok=await ensureBM(g); if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; } if($("bmGroup").value!==g) return; }
   const rows=[]; for(const k of bmKeys(g)) for(let t=4;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; for(let e=0;e<=3;e++){ const m=bmModel(k,t,e); if(m.bm) rows.push(m); } }
   const val=m=>bmMode==="flip"?m.flip:m.craft;
-  const ok=rows.filter(m=>val(m)!=null).sort((a,b)=>val(b)-val(a)), shown=ok.slice(0,40);
+  const ok=rows.filter(m=>val(m)!=null).sort((a,b)=>val(b)-val(a)), shown=ok.slice(0,100);
   tb.textContent=""; const hr=tb.createTHead().insertRow();
   (bmMode==="flip"?["Peça","Tier","O MN paga","Caerleon vende por","Lucro por peça",""]:["Peça","Tier","O MN paga","Custo para fabricar","Lucro por peça","Cidade com bônus"]).forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
   for(const m of shown){ const tr=body.insertRow(); tr.className="clickrow"; tr.tabIndex=0;
-    tr.insertCell().textContent=m.name; tr.insertCell().textContent=`${m.t}.${m.e}`;
+    tr.insertCell().textContent=nmKey(m.key,m.name); tr.insertCell().textContent=`${m.t}.${m.e}`;
     const c1=tr.insertCell(); c1.className="num"; c1.append(fmt(m.bm.p)," ",el("span",{class:"age"+(m.bm.age>6?" old":""),text:m.bm.age<1?"agora":`${Math.round(m.bm.age)}h`}));
     const c2=tr.insertCell(); c2.className="num"; c2.textContent=fmt(bmMode==="flip"?m.buyC:m.cost);
     const v=val(m), c3=tr.insertCell(); c3.className="num "+(v>=0?"gain":"loss"); c3.textContent=sgn(v);
@@ -76,12 +76,12 @@ async function renderBM(){
     const pick=()=>{ bmSel=m; renderBMDetail(); }; tr.addEventListener("click",pick); tr.addEventListener("keydown",ev=>{ if(ev.key==="Enter") pick(); }); }
   const gname=BM_GROUPS.find(x=>x[0]===g)[1], pos=ok.filter(m=>val(m)>0).length;
   note.textContent = !rows.length ? `Nenhuma ordem do Mercado Negro para ${gname.toLowerCase()} nos últimos 3 dias.`
-    : `${rows.length} ordens de ${gname.toLowerCase()}; ${pos} dão lucro ${bmMode==="flip"?"revendendo o que está à venda em Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${ok.length>40?" Mostrando as 40 melhores.":""} Clique numa linha para ver a conta e o histórico.`;
+    : `${rows.length} ordens de ${gname.toLowerCase()}; ${pos} dão lucro ${bmMode==="flip"?"revendendo o que está à venda em Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${ok.length>100?" Mostrando as 100 melhores.":""} Clique numa linha para ver a conta e o histórico.`;
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
 }
 function renderBMDetail(){
   const m=bmSel, box=$("bmDetail"); if(!m) return; box.hidden=false;
-  $("bmTitle").textContent=`${m.name} ${m.t}.${m.e}`;
+  $("bmTitle").textContent=`${nmKey(m.key,m.name)} ${m.t}.${m.e}`;
   const L=$("bmLedger"); L.textContent=""; const add=(a,b,cls)=>{ const tr=L.insertRow(); if(cls) tr.className=cls; tr.insertCell().textContent=a; const c=tr.insertCell(); c.className="num"; c.textContent=b; };
   add("O Mercado Negro paga",fmt(m.bm.p)); add(`Menos a taxa de venda (${st.prem?4:8}%)`,fmt(m.net));
   if(m.cost!=null){ for(const p of m.parts) add(`${p.q} × ${p.nm}`,fmt(p.q*p.p)); add(`Volta ${Math.round(m.rr*100)}% dos recursos em ${m.city}`,"−"+fmt(m.res*m.rr)); add("Taxa da estação",fmt(m.fee));
@@ -156,7 +156,7 @@ async function renderMU(){
   for(const m of MU){ if(q&&!(m.w+" "+(LINE_NAME[m.l]||"")).toLowerCase().includes(q)) continue;
     const good=mine.filter(k=>LINE_RX[k]&&LINE_RX[k].test([].concat(m.forte_contra||[]).join(" ")));
     const card=el("article",{class:"mu"+(hi&&good.length?" mine":"")});
-    card.append(el("h3",{},document.createTextNode(m.w),el("small",{text:LINE_NAME[m.l]||""})));
+    card.append(el("h3",{},document.createTextNode(nm(m.w)),el("small",{text:LINE_NAME[m.l]||""})));
     const dl=el("dl"); const row=(t,d,cls)=>{ if(!d) return; dl.append(el("dt",{text:t}),el("dd",{class:cls||"",text:d})); };
     row("O perigo",m.ameaca,"threat"); row("Costuma vir com",m.outras); row("Quando entrar",m.janela); row("Guarde",m.guardar); row("Erro comum",m.erro); row("Quem lida bem",[].concat(m.forte_contra||[]).join("; ")); if(m.patch) row("Patch",m.patch);
     card.append(dl);

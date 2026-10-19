@@ -14,6 +14,7 @@ Site do grupo para fazer prata no Albion Online (servidor Américas).
 - `js/fx.js`: efeitos com GSAP (fumaça do título, lanternas, menu em livro); as animações de fundo param fora da tela.
 - `js/biz.js`: Mercado Negro, trabalhadores e matchups.
 - `js/novos.js`: custo da build, encantar e ilha e fazenda.
+- `js/ui.js`: ordenar qualquer tabela clicando no título da coluna.
 - `js/guia.js`: o quadro "Como usar esta página" de cada página (textos no topo do arquivo).
 - `js/main.js`: troca de páginas e inicialização.
 - `data/*.json`: dados fixos tirados dos arquivos do jogo (receitas, mapas, diários, fazenda, peças) e a foto de preços de reserva. Cada um só é baixado quando a página que usa é aberta.
