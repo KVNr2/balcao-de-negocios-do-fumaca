@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="9c8eeaba">
+<html lang="pt-BR" data-v="5021ae93">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -10,7 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l4 10 10 4-10 4-4 10-4-10-10-4 10-4z' fill='%23e8ab45'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=9c8eeaba">
+<link rel="stylesheet" href="css/balcao.css?v=5021ae93">
 </head>
 <body>
 <div class="wrap">
@@ -240,9 +240,9 @@
           <label class="f">Foco para gastar<input id="focusPool" type="number" min="0" step="500" value="10000"><span class="hint">Premium gera 10.000 por dia</span></label>
         </div>
         <div class="form">
-          <div class="ctl">Foco<div class="seg" role="group" aria-label="Foco"><button type="button" data-g="focus" data-v="9c8eeaba" aria-pressed="true">Com foco</button><button type="button" data-g="focus" data-v="95976267" aria-pressed="false">Sem foco</button></div></div>
-          <div class="ctl">Bônus diário<div class="seg" role="group" aria-label="Bônus diário"><button type="button" data-g="daily" data-v="9c8eeaba" aria-pressed="true">Nenhum</button><button type="button" data-g="daily" data-v="0.1" aria-pressed="false">+10%</button><button type="button" data-g="daily" data-v="0.2" aria-pressed="false">+20%</button></div></div>
-          <div class="ctl">Conta<div class="seg" role="group" aria-label="Premium"><button type="button" data-g="prem" data-v="9c8eeaba" aria-pressed="true">Premium</button><button type="button" data-g="prem" data-v="95976267" aria-pressed="false">Sem Premium</button></div></div>
+          <div class="ctl">Foco<div class="seg" role="group" aria-label="Foco"><button type="button" data-g="focus" data-v="5021ae93" aria-pressed="true">Com foco</button><button type="button" data-g="focus" data-v="95976267" aria-pressed="false">Sem foco</button></div></div>
+          <div class="ctl">Bônus diário<div class="seg" role="group" aria-label="Bônus diário"><button type="button" data-g="daily" data-v="5021ae93" aria-pressed="true">Nenhum</button><button type="button" data-g="daily" data-v="0.1" aria-pressed="false">+10%</button><button type="button" data-g="daily" data-v="0.2" aria-pressed="false">+20%</button></div></div>
+          <div class="ctl">Conta<div class="seg" role="group" aria-label="Premium"><button type="button" data-g="prem" data-v="5021ae93" aria-pressed="true">Premium</button><button type="button" data-g="prem" data-v="95976267" aria-pressed="false">Sem Premium</button></div></div>
           <div class="ctl">Como vende<div class="seg" role="group" aria-label="Venda"><button type="button" data-g="sell" data-v="order" aria-pressed="true">Ordem de venda</button><button type="button" data-g="sell" data-v="instant" aria-pressed="false">Venda direta</button></div></div>
         </div>
       </div>
@@ -465,11 +465,9 @@
     <p class="aside">Cada trabalhador da sua ilha ou casa recebe um diário cheio e devolve recursos no dia seguinte. Quanto ele devolve depende da felicidade, que vem da mobília e dos troféus da casa. Os diários enchem sozinhos enquanto você coleta, fabrica, pesca ou mata monstros com eles na bolsa, então dá para vender o diário cheio mesmo sem ter trabalhador.</p>
     <div class="row-ctl">
       <div class="seg" role="group" aria-label="Tier" id="wkTier"></div>
-      <div class="seg" role="group" aria-label="Felicidade da casa" id="wkHappy">
-        <button type="button" data-h="1" aria-pressed="false">Felicidade 100%</button>
-        <button type="button" data-h="1.25" aria-pressed="false">125%</button>
-        <button type="button" data-h="1.5" aria-pressed="true">150%</button>
-      </div>
+      <label class="f">Felicidade do trabalhador<span class="hapin"><input type="number" id="wkHap" min="0" max="900" step="10" inputmode="numeric"><span id="wkHapMax">de 900</span></span></label>
+      <label class="f">Ou o rendimento que o jogo mostra<span class="hapin"><input type="number" id="wkPct" min="1" max="200" placeholder="—" inputmode="numeric"><span>%</span></span></label>
+      <p class="small" id="wkYieldTxt"></p>
     </div>
     <div class="tbl"><table id="wkTable"></table></div>
     <p class="tiny muted" id="wkStatus">Devolução calculada pela tabela de saque do jogo: quantidade base do diário vezes o valor médio de cada sorteio, com o preço típico das cidades. Encantados saem de vez em quando e já entram na média.</p>
@@ -603,13 +601,13 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/base.js?v=9c8eeaba"></script>
-<script src="js/fx.js?v=9c8eeaba"></script>
-<script src="js/biz.js?v=9c8eeaba"></script>
-<script src="js/novos.js?v=9c8eeaba"></script>
-<script src="js/guia.js?v=9c8eeaba"></script>
-<script src="js/ui.js?v=9c8eeaba"></script>
-<script src="js/oficina.js?v=9c8eeaba"></script>
-<script src="js/main.js?v=9c8eeaba"></script>
+<script src="js/base.js?v=5021ae93"></script>
+<script src="js/fx.js?v=5021ae93"></script>
+<script src="js/biz.js?v=5021ae93"></script>
+<script src="js/novos.js?v=5021ae93"></script>
+<script src="js/guia.js?v=5021ae93"></script>
+<script src="js/ui.js?v=5021ae93"></script>
+<script src="js/oficina.js?v=5021ae93"></script>
+<script src="js/main.js?v=5021ae93"></script>
 </body>
 </html>
