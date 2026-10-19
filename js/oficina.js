@@ -107,9 +107,10 @@ async function fillVolumes(shown){
   for(let i=0;i<need_.length;i+=25){ const part=need_.slice(i,i+25), ids=[...new Set(part.map(m=>m.it.id))], locs=[...new Set(part.map(m=>m.sale.c))];
     try{ const j=await apiJSON(`${HOST}/api/v2/stats/history/${ids.join(",")}.json?locations=${locs.join(",").replace(/ /g,"%20")}&time-scale=24`,360);
       for(const m of part){ OF.vol[m.it.id+"|"+m.sale.c]=0; }
-      for(const x of j){ if(x.quality!==1) continue; const d=(x.data||[]).slice(-7); if(!d.length) continue; const avg=d.reduce((a,r)=>a+r.item_count,0)/7; OF.vol[x.item_id+"|"+x.location]=avg; }
+      const since=Date.now()-7*86400e3;
+      for(const x of j){ const k=x.item_id+"|"+x.location; let sum=0; for(const d of (x.data||[])) if(Date.parse(d.timestamp+"Z")>=since) sum+=d.item_count; if(k in OF.vol) OF.vol[k]+=sum/7; }
     }catch(e){ for(const m of part) OF.vol[m.it.id+"|"+m.sale.c]=-1; } }
-  document.querySelectorAll("#ofTable tbody tr").forEach(tr=>{ const v=OF.vol[tr.dataset.id+"|"+tr.dataset.city]; const c=tr.querySelector(".vol"); if(!c) return; c.textContent=v==null?"…":v<0?"—":fmt(v); c.classList.toggle("loss",v>=0&&v<3); c.title="Média dos últimos 7 dias na cidade de venda"; });
+  document.querySelectorAll("#ofTable tbody tr").forEach(tr=>{ const v=OF.vol[tr.dataset.id+"|"+tr.dataset.city]; const c=tr.querySelector(".vol"); if(!c) return; c.textContent=v==null?"…":v<0?"—":v<1?"menos de 1":v<10?dec(v):fmt(v); c.classList.toggle("loss",v>=0&&v<3); c.title="Média de vendas por dia nos últimos 7 dias na cidade de venda, somando todas as qualidades"; });
 }
 
 /* ================= mercado: comparador e detalhe ================= */
@@ -178,7 +179,7 @@ async function openItem(apiId,name){
     const a=tr.insertCell(); a.className="num"; a.textContent=v[0]?fmt(v[0]):"—"; tr.insertCell().append(ageSpan(v[2])||"—");
     const d=tr.insertCell(); d.className="num"; d.textContent=v[1]?fmt(v[1]):"—"; tr.insertCell().append(ageSpan(v[3])||"—"); }
   if(!rows.length) box.textContent="Nenhum anúncio recente desse item."; else box.append(t);
-  try{ const j=await apiJSON(`${HOST}/api/v2/stats/history/${apiId}.json?locations=${locs.join(",").replace(/ /g,"%20")}&time-scale=24`,360); drawStack($("dlgChart"),j.filter(x=>x.quality===1)); }catch(e){ $("dlgNote").textContent="Sem histórico agora."; }
+  try{ const j=await apiJSON(`${HOST}/api/v2/stats/history/${apiId}.json?locations=${locs.join(",").replace(/ /g,"%20")}&time-scale=24`,360); drawStack($("dlgChart"),j); }catch(e){ $("dlgNote").textContent="Sem histórico agora."; }
 }
 function drawStack(svg,series){
   const ns="http://www.w3.org/2000/svg", mk=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e.setAttribute(k,a[k]); return e; };
