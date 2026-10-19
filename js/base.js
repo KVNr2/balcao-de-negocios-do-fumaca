@@ -147,6 +147,9 @@ const idOf = (t,base,e)=>`T${t}_${base}`+(e?`_LEVEL${e}`:"");
 const gearId = (t,slot,mat,set,e)=>`T${t}_${slot}_${mat}_SET${set}`+(e?`@${e}`:"");
 function median(a){ const s=[...a].sort((x,y)=>x-y); const m=s.length>>1; return s.length%2?s[m]:(s[m-1]+s[m])/2; }
 function typical(id, field){ const r=DATA.itens[id]; if(!r) return null; const pts=Object.entries(r).filter(([c,v])=>v[field]>0).map(([c,v])=>({c,p:v[field]})); if(!pts.length) return null; return {p:median(pts.map(x=>x.p)), n:pts.length}; }
+function bestCity(id, field, want){ const r=DATA.itens[id]; if(!r) return null; let b=null; for(const [c,v] of Object.entries(r)){ const p=v[field]; if(!(p>0)) continue; if(!b||(want==="min"?p<b.p:p>b.p)) b={p,c}; } return b; }
+const RED_CITIES = new Set(["Caerleon"]);
+const routeWarn = cs => cs.some(c=>RED_CITIES.has(c)) ? "passa por Caerleon, rota de zona vermelha" : (new Set(cs)).size>2 ? "rota com várias cidades, conte o frete e o tempo" : "";
 const prevId = (res,t,e) => t===4 ? `T3_${RES[res].ref}` : idOf(t-1,RES[res].ref,e);
 
 /* ================= models ================= */
@@ -174,6 +177,11 @@ function craftModel(slot,mat,set,t,e){
   const p1=net-inputs*(1-r1)-fee, p0=net-inputs*(1-r0)-fee, fc=craftFocus(slot,mat,t,e);
   return {bar,item,inputs,fee,net,p1,p0,fc,spf:(p1-p0)/fc,thin:Math.min(bar.n,item.n)<2,cnt};
 }
+function refRoute(res,t,e){ const R=RES[res]; const raw=bestCity(idOf(t,R.raw,e),0,"min"), prev=bestCity(prevId(res,t,e),0,"min"), bar=bestCity(idOf(t,R.ref,e),st.sell==="instant"?1:0,"max");
+  if(!raw||!prev||!bar) return null; const m=model(res,t,e,{raw:raw.p,prev:prev.p,bar:bar.p}); return m&&Object.assign(m,{rawC:raw.c,prevC:prev.c,barC:bar.c}); }
+function craftRoute(slot,mat,set,t,e){ const bar=bestCity(idOf(t,MATBAR[mat],e),0,"min"), item=bestCity(gearId(t,slot,mat,set,e),st.sell==="instant"?1:0,"max"); if(!bar||!item) return null;
+  const cnt=slot==="ARMOR"?16:8, inputs=cnt*bar.p, fee=cnt*IV(t,e)*0.1125*feeVal()/100, net=item.p*(1-taxOf()), r1=rrr(0.15,true,st.daily), r0=rrr(0.15,false,st.daily);
+  return {barC:bar.c,bar:bar.p,itemC:item.c,item:item.p,p1:net-inputs*(1-r1)-fee,p0:net-inputs*(1-r0)-fee}; }
 const gearName=(slot,mat,set)=>`${SETN[mat][set-1]} ${SLOTN[mat][slot]}`;
 
 /* ================= live data ================= */
@@ -258,7 +266,7 @@ function drawHeat(tbl, get, onPick, tipFor){
 function renderHeat(){
   const R=RES[st.res];
   drawHeat($("heat"),(t,e)=>model(st.res,t,e),(t,e)=>{ $("tier").value=t; $("ench").value=e; calc(true); $("calcTitle").scrollIntoView({behavior:"smooth",block:"start"}); },
-    (t,e,m)=>[["v",`${sgn(m.p1)} por barra com foco`],["",`${R.refName} T${t}.${e} em ${R.city}`],["k",`Sem foco: ${sgn(m.p0)}`],["k",`${R.rawName}: ${fmt(m.raw.p)} (${m.raw.n} cid.) × ${N[t]}`],["k",`Barra anterior: ${fmt(m.prev.p)} (${m.prev.n} cid.)`],["k",`Venda: ${fmt(m.bar.p)} (${m.bar.n} cid.)`],["k",`Custo de foco ${m.fc}, ${dec(m.spf)} pratas por ponto`]]);
+    (t,e,m)=>[["v",`${sgn(m.p1)} por barra com foco`],["",`${R.refName} T${t}.${e} em ${R.city}`],(()=>{ const r=refRoute(st.res,t,e); return r?["",`Melhor rota: compra em ${r.rawC}, vende em ${r.barC}: ${sgn(r.p1)}`]:["k","Sem rota: faltam preços"]; })(),["k",`Sem foco: ${sgn(m.p0)}`],["k",`${R.rawName}: ${fmt(m.raw.p)} (${m.raw.n} cid.) × ${N[t]}`],["k",`Barra anterior: ${fmt(m.prev.p)} (${m.prev.n} cid.)`],["k",`Venda: ${fmt(m.bar.p)} (${m.bar.n} cid.)`],["k",`Custo de foco ${m.fc}, ${dec(m.spf)} pratas por ponto`]]);
   $("matTitle").textContent=`${R.refName}: lucro por barra, com foco, em ${R.city}`;
 }
 async function renderCraft(){
@@ -269,7 +277,7 @@ async function renderCraft(){
   $("cStatus").textContent="Buscando preços das peças…";
   const ok=await ensureFamily(slot,mat);
   $("cStatus").textContent= ok ? "Preço da peça: qualidade normal, mediana das cidades reais." : "Não consegui buscar o preço das peças agora. Tente atualizar os preços.";
-  drawHeat($("cHeat"),(t,e)=>craftModel(slot,mat,set,t,e),null,(t,e,m)=>[["v",`${sgn(m.p1)} por peça com foco`],["",`${gearName(slot,mat,set)} T${t}.${e}`],["k",`Sem foco: ${sgn(m.p0)}`],["k",`${m.cnt} × barra a ${fmt(m.bar.p)} (${m.bar.n} cid.)`],["k",`Venda da peça: ${fmt(m.item.p)} (${m.item.n} cid.)`],["k",`Custo de foco ${fmt(m.fc)}, ${dec(m.spf)} pratas por ponto`]]);
+  drawHeat($("cHeat"),(t,e)=>craftModel(slot,mat,set,t,e),null,(t,e,m)=>[["v",`${sgn(m.p1)} por peça com foco`],["",`${gearName(slot,mat,set)} T${t}.${e}`],(()=>{ const r=craftRoute(slot,mat,set,t,e); return r?["",`Melhor rota: barras em ${r.barC}, vende em ${r.itemC}: ${sgn(r.p1)}`]:["k","Sem rota: faltam preços"]; })(),["k",`Sem foco: ${sgn(m.p0)}`],["k",`${m.cnt} × barra a ${fmt(m.bar.p)} (${m.bar.n} cid.)`],["k",`Venda da peça: ${fmt(m.item.p)} (${m.item.n} cid.)`],["k",`Custo de foco ${fmt(m.fc)}, ${dec(m.spf)} pratas por ponto`]]);
 }
 
 /* ================= refining calculator ================= */
@@ -294,9 +302,25 @@ function calc(reset){
     .forEach(([a,b,c])=>{ const tr=L.insertRow(); const td=tr.insertCell(); td.append(a,el("small",{text:b})); tr.insertCell().textContent=sgn(c); });
   const tr=L.insertRow(); tr.className="total"; tr.insertCell().textContent="Lucro por barra"; const tc=tr.insertCell(); tc.textContent=sgn(p); tc.className=p>=0?"gain":"loss";
   if(useF){ const t2=L.insertRow(); const a=t2.insertCell(); a.append(`Com ${fmt(pool)} de foco`,el("small",{text:`${fmt(bars)} barras, ${dec(m.spf)} pratas por ponto de foco`})); const b=t2.insertCell(); b.textContent=sgn(bars*p); b.className=p>=0?"gain":"loss"; }
+  renderRoute(t,e,p);
   drawHistory($("histRef"),$("histRefNote"),idOf(t,R.ref,e),R.city); $("histRefTitle").textContent=`${R.refName} T${t}.${e} em ${R.city}, últimos 30 dias`;
   v.textContent = m.p0>0 ? `Dá lucro até sem foco (${sgn(m.p0)} por barra). Vale comprar ${R.rawName.toLowerCase()} por ordem de compra e refinar em volume.`
     : m.p1>0 ? `Só compensa com foco: sem ele você perde ${fmt(-m.p0)} por barra.` : `Com estes preços não compensa refinar, nem com foco. Olhe outro tier na tabela.`;
+}
+
+function renderRoute(t,e,pNow){
+  const R=RES[st.res], box=$("route"); box.textContent=""; const r=refRoute(st.res,t,e);
+  box.append(el("h3",{class:"orn",text:"Onde comprar e vender"}));
+  if(!r){ box.append(el("p",{class:"small muted",text:"Faltam preços em alguma cidade para montar a rota."})); return; }
+  const useF=st.focus===1, pr=useF?r.p1:r.p0, sellTxt=st.sell==="instant"?"ordem de compra mais alta":"anúncio mais alto";
+  const ol=el("ol");
+  [[`Compre ${R.rawName.toLowerCase()} T${t}.${e} em ${r.rawC}`,fmt(r.raw.p)+" cada"],[`Compre ${R.prevName.toLowerCase()} ${t===4?"T3":`T${t-1}.${e}`} em ${r.prevC}`,fmt(r.prev.p)],[`Refine em ${R.city}`,"cidade com bônus"],[`Venda em ${r.barC}`,`${fmt(r.bar.p)}, ${sellTxt}`]]
+    .forEach(([a,b])=>ol.append(el("li",{},document.createTextNode(a+": "),el("span",{class:"num",text:b}))));
+  box.append(ol);
+  const diff=pr-pNow, warn=routeWarn([r.rawC,r.prevC,R.city,r.barC]);
+  box.append(el("p",{class:"small"},document.createTextNode(`Lucro por barra nessa rota: `),el("strong",{class:pr>=0?"gain":"loss",text:sgn(pr)}),document.createTextNode(` ${useF?"com":"sem"} foco, ${diff>=0?`${fmt(diff)} a mais`:`${fmt(-diff)} a menos`} que a conta acima.${warn?" Atenção: "+warn+".":""}`)));
+  const b=el("button",{type:"button",class:"linkbtn",text:"Usar os preços da rota na calculadora"}); b.addEventListener("click",()=>{ $("pRaw").value=Math.round(r.raw.p); $("pPrev").value=Math.round(r.prev.p); $("pBar").value=Math.round(r.bar.p); $("sRaw").textContent=`mais barato, em ${r.rawC}`; $("sPrev").textContent=`mais barato, em ${r.prevC}`; $("sBar").textContent=`mais alto, em ${r.barC}`; calc(false); });
+  box.append(b, el("p",{class:"tiny muted",text:"O anúncio mais alto pode demorar a vender, e cada cidade a mais é frete e risco. A conta acima usa o preço típico das cidades, que é mais conservador."}));
 }
 
 /* ================= recommendations ================= */
@@ -311,17 +335,17 @@ function recItem(title, lines){ const li=el("li"); li.append(el("strong",{text:t
 function renderRecs(){
   const r=bestRefining(), box=$("recRefino"); box.textContent="";
   if(!r.length) box.append(el("li",{class:"empty",text:"Com os preços de agora, nenhum refino dá lucro com segurança."}));
-  r.slice(0,3).forEach(x=>{ const R=RES[x.res]; box.append(recItem(`${R.refName} T${x.t}.${x.e} em ${R.city}`,[`${sgn(x.m.p1)} por barra, uns ${fmtS(x.day)} com 10.000 de foco`,`Custo de foco ${x.m.fc} por barra${refFCE(x.res)>0?"":", sem spec"}. Sem foco: ${sgn(x.m.p0)}`])); });
+  r.slice(0,3).forEach(x=>{ const R=RES[x.res]; const rt=refRoute(x.res,x.t,x.e); box.append(recItem(`${R.refName} T${x.t}.${x.e} em ${R.city}`,[`${sgn(x.m.p1)} por barra, uns ${fmtS(x.day)} com 10.000 de foco`,rt?`Compre ${R.rawName.toLowerCase()} em ${rt.rawC} e venda em ${rt.barC}: ${sgn(rt.p1)} por barra${routeWarn([rt.rawC,R.city,rt.barC])?"; "+routeWarn([rt.rawC,R.city,rt.barC]):""}`:null,`Custo de foco ${x.m.fc} por barra${refFCE(x.res)>0?"":", sem spec"}. Sem foco: ${sgn(x.m.p0)}`])); });
   const cbox=$("recCraft"); cbox.textContent="";
   const lines=Object.keys(PF.craft).filter(k=>PF.craft[k].lv>0);
   if(!lines.length){ cbox.append(el("li",{class:"empty",text:"Marque na sua ficha as peças que você fabrica para ver o melhor craft."})); }
   else{ const c=bestCraft();
     if(!c.length) cbox.append(el("li",{class:"empty",text: lines.every(k=>loadedFam.has(k)) ? "Com os preços de agora, nenhuma das suas linhas dá lucro com segurança." : "Buscando preços das peças…"}));
-    c.slice(0,3).forEach(x=>{ const k=x.slot+"_"+x.mat; cbox.append(recItem(`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e} em ${CRAFT_CITY[k]}`,[`${sgn(x.m.p1)} por peça, uns ${fmtS(x.day)} com 10.000 de foco`,`Custo de foco ${fmt(x.m.fc)} por peça. Venda típica ${fmt(x.m.item.p)}`])); }); }
+    c.slice(0,3).forEach(x=>{ const k=x.slot+"_"+x.mat; cbox.append(recItem(`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e} em ${CRAFT_CITY[k]}`,[`${sgn(x.m.p1)} por peça, uns ${fmtS(x.day)} com 10.000 de foco`,`Custo de foco ${fmt(x.m.fc)} por peça. Venda típica ${fmt(x.m.item.p)}`,(()=>{ const r=craftRoute(x.slot,x.mat,x.s,x.t,x.e); return r?`Barras em ${r.barC}, venda em ${r.itemC}: ${sgn(r.p1)} por peça`:null; })()])); }); }
   for(const [c,id] of [["brumas","recBrumas"],["corrompidas","recCorr"]]){
     const b=rankBuilds(c,true).slice(0,3), bx=$(id); bx.textContent="";
     if(!b.length) bx.append(el("li",{class:"empty",text:"Nenhuma build da lista usa as armas da sua ficha."}));
-    b.forEach(x=>{ const gaps=armorGaps(x); bx.append(recItem(`${x.w} (${LINE_NAME[x.l]}, spec ${LV_W[wl(x.l)].toLowerCase()})`,[x.g.length?x.g.join(", "):"Equipamento: veja no MetaCorrupted",x.f||null,`Patch 3: ${x.p[1]}`,gaps.length?`Atenção: sem spec em ${gaps.join(" e ")} na sua ficha`:null])); });
+    b.forEach(x=>{ const gaps=armorGaps(x); bx.append(recItem(`${nm(x.w)} (${LINE_NAME[x.l]}, spec ${LV_W[wl(x.l)].toLowerCase()})`,[x.g.length?x.g.map(nm).join(", "):"Equipamento: veja no MetaCorrupted",nmFood(x.f)||null,`Patch 3: ${x.p[1]}`,gaps.length?`Atenção: sem spec em ${gaps.join(" e ")} na sua ficha`:null])); });
   }
   const tb=$("recColeta"); tb.textContent="";
   const hr=tb.createTHead().insertRow(); ["Recurso","Seu tier",".0",".1",".2",".3","Onde aparece"].forEach(h=>hr.append(el("th",{text:h})));
@@ -362,6 +386,16 @@ function renderHero(){
   $("heroOthers").append(el("span",{class:"muted",text:"Com o custo de foco da sua ficha e o preço típico das cidades. Confira o preço no jogo antes de comprar."}));
 }
 
+/* ================= nomes em português ou inglês ================= */
+let LANG = store.get("lang")||"pt";
+function expandAlts(g){ const alts=g.split(/\s+ou\s+/).map(a=>a.trim()), last=alts[alts.length-1].split(" ").pop(); return alts.map(a=>(!/\s/.test(a)&&alts.length>1)?`${a} ${last}`:a); }
+const FOOD_PT = [[/Deadwater Eel Stew|Eel Stew/g,"Guisado de Enguia"],[/Roasted Puremist Snapper|Puremist Snapper/g,"Pargo Neblina-pura"],[/Beef Sandwich/g,"Sanduíche de Carne"],[/Beef Stew/g,"Guisado de Carne"],[/Pork Omelette/g,"Omelete de Porco"],[/Omelette/g,"Omelete"],[/Roast Pork/g,"Porco Assado"],[/\bPork\b/g,"Porco Assado"],[/\bStew\b/g,"Guisado"],[/Gigantify/g,"Crescimento"]];
+function nm(en){ if(LANG==="en"||!GEAR||!en) return en; return expandAlts(en).map(a=>{ const k=gearKey(a); return k&&GEAR.p[k]?GEAR.p[k]:a; }).join(" ou "); }
+const nmKey = (k,en) => LANG==="pt"&&GEAR&&GEAR.p[k] ? GEAR.p[k] : en;
+const nmFood = f => (LANG==="en"||!f) ? f : FOOD_PT.reduce((s,[rx,pt])=>s.replace(rx,pt),f);
+function setLang(l){ LANG=l; store.set("lang",l); document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===l)));
+  renderBuilds(); renderRecs(); ["p-mercado","p-encantar","p-custo","p-matchup"].forEach(id=>{ if(!$(id).hidden) ({"p-mercado":renderBM,"p-encantar":renderEN,"p-custo":renderBC,"p-matchup":renderMU})[id](); }); }
+
 /* ================= builds table ================= */
 function renderBuilds(){
   const only=$("bOnlyMine").checked, list=rankBuilds(st.bc,only), tb=$("bTable"); tb.textContent="";
@@ -369,9 +403,9 @@ function renderBuilds(){
   const body=tb.createTBody();
   if(!list.length){ const td=body.insertRow().insertCell(); td.colSpan=5; td.textContent="Nenhuma build desta lista usa as armas da sua ficha. Desmarque o filtro para ver todas."; return; }
   for(const b of list){ const tr=body.insertRow();
-    const a=tr.insertCell(); a.append(b.w); if(b.mc) a.append(" ",el("span",{class:"spec",text:`tier ${b.mc}`}));
+    const a=tr.insertCell(); a.append(nm(b.w)); if(b.mc) a.append(" ",el("span",{class:"spec",text:`tier ${b.mc}`}));
     const lv=wl(b.l), c2=tr.insertCell(); c2.textContent=`${LINE_NAME[b.l]}: ${LV_W[lv].toLowerCase()}`; if(lv>=2) c2.className="gain";
-    const gaps=armorGaps(b), g=tr.insertCell(); g.append(b.g.length?b.g.join(", "):"Veja na fonte"); if(b.f) g.append(el("small",{class:"blk",text:b.f})); if(gaps.length) g.append(el("small",{class:"blk loss",text:`Sem spec em ${gaps.join(" e ")}`}));
+    const gaps=armorGaps(b), g=tr.insertCell(); g.append(b.g.length?b.g.map(nm).join(", "):"Veja na fonte"); if(b.f) g.append(el("small",{class:"blk",text:nmFood(b.f)})); if(gaps.length) g.append(el("small",{class:"blk loss",text:`Sem spec em ${gaps.join(" e ")}`}));
     tr.insertCell().textContent = b.src==="pesquisa" ? "Pesquisa, não conferida" : b.src==="MetaCorrupted" ? "MetaCorrupted" : `AOG, ${b.pop} salvos`;
     const p=tr.insertCell(); p.className=`chg ${b.p[0]}`; p.textContent=b.p[1];
   }
@@ -486,6 +520,7 @@ function renderCookDetail(){
   [["Volta pelo retorno",`${dec(rr*100)}% dos ingredientes`,m.cost*rr],["Taxa da estação","estimada pela nutrição",-m.fee],["Venda",`${m.q} × ${fmt(m.item.p)} menos taxas`,m.net]].forEach(([a,b,c])=>{ const tr=L.insertRow(); const td=tr.insertCell(); td.append(a,el("small",{text:b})); tr.insertCell().textContent=sgn(c); });
   const tr=L.insertRow(); tr.className="total"; tr.insertCell().textContent="Lucro por fornada"; const tc=tr.insertCell(); tc.textContent=sgn(m.p1); tc.className=m.p1>=0?"gain":"loss";
   const t2=L.insertRow(); const a=t2.insertCell(); a.append("Com 10.000 de foco",el("small",{text:`custo de foco ${fmt(m.fc)} por fornada, ${dec(m.spf)} pratas por ponto`})); const b=t2.insertCell(); b.textContent=sgn(m.day); b.className=m.day>=0?"gain":"loss";
+  const sc=bestCity(m.id,st.sell==="instant"?1:0,"max"); if(sc){ const t3=L.insertRow(); const a3=t3.insertCell(); a3.append(`Melhor cidade para vender`,el("small",{text:`${sc.c}, ${fmt(sc.p)} cada`})); t3.insertCell().textContent=sgn(m.q*(sc.p-m.item.p)*(1-taxOf())); }
   drawHistory($("histCook"),$("histCookNote"),m.id,COOK_CITY[m.kind]);
   if(window.gsap&&!RM) gsap.from(box.querySelectorAll(".ledger tr"),{autoAlpha:0,x:-10,stagger:.03,duration:.3,clearProps:"all"});
 }

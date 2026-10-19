@@ -25,6 +25,7 @@ $("ckBuilds").addEventListener("change",renderCook);
 $("fee").addEventListener("input",()=>recompute(false));
 ["cSlot","cMat","cSet"].forEach(id=>$(id).addEventListener("change",renderCraft));
 $("reload").addEventListener("click",()=>loadLive(true));
+document.querySelectorAll("[data-lang]").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.lang===LANG)); b.addEventListener("click",()=>setLang(b.dataset.lang)); });
 $("muFind").addEventListener("input",renderMU); $("muMine").addEventListener("change",renderMU);
 function applyMeta(){ if(DATA.ouro){ $("goldV").textContent=fmt(DATA.ouro); $("premV").textContent=fmtS(DATA.ouro*3750); } if(DATA.janela) $("when").textContent=DATA.janela; }
 async function loadCraftFamilies(){ const keys=Object.keys(PF.craft).filter(k=>PF.craft[k].lv>0); for(const k of keys){ const [s,m]=k.split("_"); await ensureFamily(s,m); } renderRecs(); renderHero(); }
@@ -33,7 +34,7 @@ function recompute(reset){ $("resNote").textContent=RES[st.res].note; renderHeat
 loadProfile(); renderProfile(); renderWho(); renderActs("all");
 stallIntro();
 (async()=>{
-  try{ const [p,c,z]=await Promise.all([need("precos"),need("cook"),need("zones")]); DATA=p; COOK=c; ZONES=z; }catch(e){ $("when").textContent="Não consegui abrir os dados do site"; }
+  try{ const [p,c,z,g]=await Promise.all([need("precos"),need("cook"),need("zones"),need("gear")]); DATA=p; COOK=c; ZONES=z; GEAR=g; }catch(e){ $("when").textContent="Não consegui abrir os dados do site"; }
   applyMeta();
   const hash=location.hash.slice(1), start=tabs.find(b=>b.id==="t-"+hash)?"t-"+hash:(store.get("tab")||"t-voce"); recompute(true); if($(start)) showTab(start,true);
   loadBuilds(); loadLive();
