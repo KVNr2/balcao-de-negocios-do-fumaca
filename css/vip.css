@@ -833,3 +833,18 @@ dialog.mu-dlg{width:min(760px,96vw)}
 .patchl .bm2t td{white-space:normal!important}
 .patchl .bm2t thead th{text-align:left!important}
 .patchl .bm2t tbody tr.bm-row td.num{text-align:left}
+
+/* ===== Minha ficha: progresso e seções mais compactas ===== */
+.pf-prog{margin:14px 0 18px;padding:14px 18px;border:1px solid var(--line-soft);border-radius:14px;background:rgba(255,255,255,.02)}
+.pf-prog-t{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:8px}
+.pf-prog-t b{font:700 13px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--parch-2)}
+.pf-prog-t span{font:700 15px var(--f-body);color:#52d38a}
+.pf-bar{height:10px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+.pf-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2f9d63,#52d38a);border-radius:99px;transition:width .4s}
+.pf-prog p{margin:8px 0 0}
+.sheet.secnode{padding:0}
+details.secnode>summary{padding:14px 20px}
+details.secnode>summary h3{font-size:20px}
+.secsum::after{content:"";display:inline-block;width:70px;height:6px;margin-left:10px;border-radius:99px;vertical-align:middle;background:linear-gradient(90deg,#52d38a var(--p,0%),rgba(255,255,255,.12) var(--p,0%))}
+details.spsubn>summary{padding-top:8px;padding-bottom:8px}
+#p-ficha .semsync{padding:12px 16px}
