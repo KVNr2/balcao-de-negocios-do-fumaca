@@ -26,48 +26,87 @@ function buildSlots(b){
   if(slots.w&&/^2H_/.test(slots.w[0].key)) delete slots.o;
   return slots;
 }
+/* fontes além da lista antiga: builds do AlbionOnlineGrind ("g:id") e builds do ZvZ ("z:arma:n") */
+let BC_GB=null, BC_ZV=null;
+async function bcLoadSources(){
+  if(!BC_GB){ try{ BC_GB=await need("builds-grind"); }catch(e){ BC_GB={builds:[],conteudos:[]}; } }
+  if(!BC_ZV){ try{ BC_ZV=await need("zvz"); }catch(e){ BC_ZV={armas:{}}; } }
+}
+const bcCode = id => String(id||"").replace(/^T\d_/,"").replace(/@\d$/,"");
+function bcSlotsFor(value){
+  if(/^\d+$/.test(value)){ const b=BUILDS[+value]; return b?{slots:buildSlots(b),title:nm(b.w),src:b.src}:null; }
+  const slots={}; const add=(slot,key,label)=>{ (slots[slot]||(slots[slot]=[])); if(key&&!slots[slot].some(x=>x.key===key)) slots[slot].push({key,label}); };
+  if(value.startsWith("g:")){ const b=(BC_GB.builds||[]).find(x=>x.id===value.slice(2)); if(!b) return null;
+    add("w",bcCode(b.w),codeName(bcCode(b.w)));
+    for(const sl of ["h","a","s","c","o"]) for(const id of b[sl]||[]){ const c=bcCode(id); add(sl,c,codeName(c)); }
+    for(const sl of ["p","f"]) for(const id of b[sl]||[]){ const k=String(id).replace(/@\d$/,""); add(sl,k,KB_CONS_PT[bcCode(k)]||codeName(bcCode(k))); }
+    if(slots.w&&/^2H_/.test(slots.w[0].key)) delete slots.o;
+    return {slots,title:b.t||codeName(bcCode(b.w))}; }
+  if(value.startsWith("z:")){ const [,w,i]=value.split(":"); const v=((BC_ZV.armas[w]||{}).variantes||[])[+i]; if(!v) return null;
+    add("w",w,codeName(w));
+    for(const [k,sl] of [["cabeca","h"],["peito","a"],["botas","s"],["capa","c"],["off","o"]]) if(v[k]) add(sl,v[k].c,codeName(v[k].c));
+    for(const [k,sl] of [["pocao","p"],["comida","f"]]) if(v[k]) add(sl,`T${v[k].t}_${v[k].c}`,KB_CONS_PT[v[k].c]||codeName(v[k].c));
+    if(/^2H_/.test(w)) delete slots.o;
+    return {slots,title:`${codeName(w)} (ZvZ, ${v.n} jogadores)`}; }
+  return null;
+}
+/* tier equivalente: T8 = 8.0, 7.1, 6.2, 5.3 e 4.4. Em empate de preço vale a ordem 4.4 primeiro, depois do maior tier para o menor */
+function bcEquivs(sum){ const out=[]; const push=(t,e)=>{ if(t>=4&&t<=8&&e>=0&&e<=4) out.push([t,e]); }; push(sum-4,4); for(let e=0;e<=3;e++) push(sum-e,e); return out; }
 const priceIn = (id,city) => { const r=BMP[id]&&BMP[id][city]; return r&&r[0]>0?r[0]:null; };
 function cheapest(id){ let best=null; for(const c of SHOP_LOCS){ const p=priceIn(id,c); if(p&&(!best||p<best.p)) best={p,c}; } return best; }
 function setupBC(){
-  const sel=$("bcBuild"); if(sel.dataset.ready===BUILDS.length+LANG) return; sel.textContent=""; sel.dataset.ready=BUILDS.length+LANG;
+  const sel=$("bcBuild"); const rk=`${BUILDS.length}|${LANG}|${((BC_GB||{}).builds||[]).length}|${Object.keys((BC_ZV||{}).armas||{}).length}`; if(sel.dataset.ready===rk) return; sel.textContent=""; sel.dataset.ready=rk;
   const mine=new Set(LINES.filter(([k])=>wl(k)>=2).map(([k])=>k));
   const own=el("optgroup",{label:"Seu set"}); own.append(el("option",{value:"custom",text:"Montar peça por peça"})); sel.append(own);
   for(const c of ["brumas","corrompidas","barato","pve"]){ const og=el("optgroup",{label:CONTENT_PT[c]});
     BUILDS.map((b,i)=>[b,i]).filter(([b])=>b.c===c&&gearKey(b.w)).sort((x,y)=>(mine.has(y[0].l)-mine.has(x[0].l))||((y[0].pop||0)-(x[0].pop||0))).forEach(([b,i])=>og.append(el("option",{value:String(i),text:`${nm(b.w)}${mine.has(b.l)?" (sua linha)":""}`})));
     if(og.children.length) sel.append(og); }
+  if(BC_ZV&&BC_ZV.armas){ const og=el("optgroup",{label:"Builds do ZvZ (lutas recentes)"});
+    Object.entries(BC_ZV.armas).filter(([,a])=>(a.variantes||[]).length).sort((x,y)=>(y[1].mortes||0)-(x[1].mortes||0)).forEach(([w,a])=>a.variantes.forEach((v,i)=>og.append(el("option",{value:`z:${w}:${i}`,text:`${codeName(w)} · ${v.n} ${v.n===1?"jogador":"jogadores"}`}))));
+    if(og.children.length) sel.append(og); }
+  if(BC_GB&&BC_GB.builds){ for(const c of BC_GB.conteudos||[]){ const og=el("optgroup",{label:`Grind · ${c.nome}`});
+    BC_GB.builds.filter(b=>b.k===c.k).sort((x,y)=>(y.pop||0)-(x.pop||0)).forEach(b=>og.append(el("option",{value:`g:${b.id}`,text:`${b.t} (${b.pop} votos)`})));
+    if(og.children.length) sel.append(og); } }
   const saved=store.get("bcBuild"); if(saved&&sel.querySelector(`option[value="${saved}"]`)) sel.value=saved; else { const first=sel.querySelector('option:not([value="custom"])'); if(first) sel.value=first.value; }
-  const tier=$("bcTier"), ench=$("bcEnch"); if(!tier.options.length){ [4,5,6,7,8].forEach(t=>tier.append(el("option",{value:String(t),text:`T${t}`}))); tier.value=store.get("bcTier")||"6"; [0,1,2,3,4].forEach(e=>ench.append(el("option",{value:String(e),text:`.${e}`}))); ench.value=store.get("bcEnch")||"1"; }
+  for(const [id,def,tipo] of [["bcFT","8","t"],["bcFE","0","e"],["bcPT","8","t"],["bcPE","0","e"]]){ const x=$(id); if(!x.options.length){ if(tipo==="t") for(let t=1;t<=8;t++) x.append(el("option",{value:String(t),text:`T${t}`})); else [0,1,2,3].forEach(e=>x.append(el("option",{value:String(e),text:`.${e}`}))); x.value=store.get(id)||def; } }
+  if(!$("bcCons").dataset.ok){ $("bcCons").dataset.ok="1"; $("bcCons").value=store.get("bcCons")||"off"; }
+  const tier=$("bcTier"), ench=$("bcEnch"); if(!tier.options.length){ [4,5,6,7,8].forEach(t=>tier.append(el("option",{value:String(t),text:`T${t}`}))); tier.value=store.get("bcTier")||"6"; ench.append(el("option",{value:"eq",text:"Equivalente (o mais barato)"})); [0,1,2,3,4].forEach(e=>ench.append(el("option",{value:String(e),text:`.${e}`}))); ench.value=store.get("bcEnch")||"eq"; }
 }
 async function renderBC(){
   const note=$("bcNote"), tb=$("bcTable");
   if(!GEAR){ note.textContent="Abrindo a lista de peças…"; try{ GEAR=await need("gear"); }catch(e){ note.textContent="Não consegui abrir a lista de peças."; return; } }
-  setupBC(); const sel=$("bcBuild"); if(!sel.value) return;
-  const custom=sel.value==="custom", b=custom?null:BUILDS[+sel.value], t=+$("bcTier").value, e=+$("bcEnch").value; store.set("bcBuild",sel.value); store.set("bcTier",String(t)); store.set("bcEnch",String(e));
-  let slots; if(custom){ slots={}; for(const s of SLOT_ORDER){ if(s==="o"&&BC_CUSTOM.w&&/^2H_/.test(BC_CUSTOM.w)) continue; slots[s]=BC_CUSTOM[s]?[{key:BC_CUSTOM[s],label:enOf(BC_CUSTOM[s])}]:[]; } } else slots=buildSlots(b);
-  const key=`${sel.value}|${t}|${e}`;
+  await bcLoadSources(); setupBC(); const sel=$("bcBuild"); if(!sel.value) return;
+  const custom=sel.value==="custom", eq=$("bcEnch").value==="eq", t=+$("bcTier").value, e=eq?0:+$("bcEnch").value; store.set("bcBuild",sel.value); store.set("bcTier",String(t)); store.set("bcEnch",eq?"eq":String(e));
+  const info=custom?null:bcSlotsFor(sel.value); if(!custom&&!info){ note.textContent="Não achei esta build."; return; }
+  const cons=$("bcCons").value; store.set("bcCons",cons); const cv={f:[+$("bcFT").value,+$("bcFE").value],p:[+$("bcPT").value,+$("bcPE").value]}; for(const id of ["bcFT","bcFE","bcPT","bcPE"]) store.set(id,$(id).value);
+  document.querySelectorAll(".bcConsX").forEach(x=>x.hidden=cons!=="custom");
+  const equivs=eq?bcEquivs(t):[[t,e]];
+  let slots; if(custom){ slots={}; for(const s of SLOT_ORDER){ if(s==="o"&&BC_CUSTOM.w&&/^2H_/.test(BC_CUSTOM.w)) continue; slots[s]=BC_CUSTOM[s]?[{key:BC_CUSTOM[s],label:enOf(BC_CUSTOM[s])}]:[]; } } else slots=info.slots;
+  const stateKey=()=>[$("bcBuild").value,$("bcTier").value,$("bcEnch").value,$("bcCons").value,$("bcFT").value,$("bcFE").value,$("bcPT").value,$("bcPE").value].join("|"); const key=stateKey();
   $("bcCopy").hidden=custom;
   if(bcLast!==sel.value){ bcSel={}; bcLast=sel.value; }
-  const idOfSlot=(slot,k)=>slot==="f"||slot==="p"?k:`T${t}_${k}`+(e?`@${e}`:"");
-  const ids=[]; for(const s in slots) for(const c of slots[s]) ids.push(idOfSlot(s,c.key));
+  const idOfSlot=(slot,k,tt=t,ee=e)=>slot==="f"||slot==="p"?(cons==="custom"?`T${cv[slot][0]}_${bcCode(k)}`+(cv[slot][1]?`@${cv[slot][1]}`:""):k):`T${tt}_${k}`+(ee?`@${ee}`:"");
+  const ids=[]; for(const s in slots) if(!((s==="f"||s==="p")&&cons==="off")) for(const c of slots[s]) for(const [tt,ee] of equivs) ids.push(idOfSlot(s,c.key,tt,ee));
   note.textContent="Procurando as peças nas cidades…"; tb.textContent="";
   try{ await bmFetch([...new Set(ids)],SHOP_LOCS); }catch(err){ note.textContent="Não consegui consultar os preços agora."; return; }
-  if(`${$("bcBuild").value}|${$("bcTier").value}|${$("bcEnch").value}`!==key) return;
-  $("bcTitle").textContent=custom?`Seu set em T${t}.${e}`:`${nm(b.w)} em T${t}.${e}`;
+  if(stateKey()!==key) return;
+  const tl=eq?`T${t} equivalente`:`T${t}.${e}`; $("bcTitle").textContent=custom?`Seu set em ${tl}`:`${info.title} em ${tl}`;
   const hr=tb.createTHead().insertRow(); ["Parte","Peça","Mais barato","Onde",""].forEach(h=>hr.append(el("th",{text:h})));
-  const body=tb.createTBody(); let total=0, missing=0, cons=0; const chosen={};
-  for(const s of SLOT_ORDER){ const list=slots[s]; if(!list) continue;
+  const body=tb.createTBody(); let total=0, missing=0, consTot=0; const chosen={};
+  for(const s of SLOT_ORDER){ const list=slots[s]; if(!list) continue; if((s==="f"||s==="p")&&cons==="off") continue;
     if(custom){ const tr=body.insertRow(); tr.insertCell().textContent=SLOT_PT[s]; const c1=tr.insertCell(); const opts=slotOptions(s);
       const ss=el("select",{"aria-label":`Escolher ${SLOT_PT[s].toLowerCase()}`}); ss.append(el("option",{value:"",text:"escolha…"})); opts.forEach(o=>ss.append(el("option",{value:o.key,text:o.label}))); ss.value=BC_CUSTOM[s]||"";
       ss.addEventListener("change",()=>{ if(ss.value) BC_CUSTOM[s]=ss.value; else delete BC_CUSTOM[s]; saveCustom(); renderBC(); }); c1.append(ss);
       if(!list.length){ tr.insertCell().textContent="—"; tr.insertCell().textContent=""; tr.insertCell(); continue; } }
-    const pick=list.find(c=>c.key===bcSel[s])||list[0]; chosen[s]=idOfSlot(s,pick.key);
+    const pick=list.find(c=>c.key===bcSel[s])||list[0]; let escolha=[t,e]; chosen[s]=idOfSlot(s,pick.key);
+    if(eq&&s!=="f"&&s!=="p"){ let best=null; for(const [tt,ee] of equivs){ const ch0=cheapest(idOfSlot(s,pick.key,tt,ee)); if(ch0&&(!best||ch0.p<best.p)) best={p:ch0.p,tt,ee}; } if(best){ escolha=[best.tt,best.ee]; chosen[s]=idOfSlot(s,pick.key,best.tt,best.ee); } else escolha=equivs[0]; }
     let tr, c1; if(custom){ tr=body.rows[body.rows.length-1]; } else { tr=body.insertRow(); tr.insertCell().textContent=SLOT_PT[s]; c1=tr.insertCell(); }
     if(custom){} else if(list.length>1){ const ss=el("select",{"aria-label":`Escolher ${SLOT_PT[s].toLowerCase()}`}); list.forEach(c=>ss.append(el("option",{value:c.key,text:nmKey(c.key,c.label)}))); ss.value=pick.key; ss.addEventListener("change",()=>{ bcSel[s]=ss.value; renderBC(); }); c1.append(ss); } else c1.textContent=nmKey(pick.key,pick.label);
     const ch=cheapest(chosen[s]); const c2=tr.insertCell(); c2.className="num"; c2.textContent=ch?fmt(ch.p):"—"; tr.insertCell().textContent=ch?ch.c:"sem anúncio";
-    const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=s==="f"||s==="p"?"por unidade":"";
-    if(s==="f"||s==="p"){ if(ch) cons+=ch.p; } else if(ch) total+=ch.p; else missing++; }
+    const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=s==="f"||s==="p"?"por unidade":(eq?`T${escolha[0]}.${escolha[1]}`:"");
+    if(s==="f"||s==="p"){ if(ch) consTot+=ch.p; } else if(ch) total+=ch.p; else missing++; }
   const tr=body.insertRow(); tr.className="total"; tr.insertCell().textContent="Set"; tr.insertCell().textContent=missing?`${missing} peça${missing>1?"s":""} sem anúncio`:"comprando cada peça onde é mais barata";
-  const tc=tr.insertCell(); tc.className="num"; tc.textContent=fmt(total); tr.insertCell().textContent=cons?`+ ${fmt(cons)} de comida e poção`:""; tr.insertCell();
+  const tc=tr.insertCell(); tc.className="num"; tc.textContent=fmt(total); tr.insertCell().textContent=consTot?`+ ${fmt(consTot)} de comida e poção`:""; tr.insertCell();
   // uma cidade só
   const gearSlots=Object.keys(chosen).filter(s=>s!=="f"&&s!=="p"), rows=[];
   for(const c of SHOP_LOCS){ let sum=0, miss=0; for(const s of gearSlots){ const p=priceIn(chosen[s],c); if(p) sum+=p; else miss++; } rows.push({c,sum,miss}); }
@@ -75,7 +114,7 @@ async function renderBC(){
   const box=$("bcWhere"); box.textContent="";
   rows.slice(0,3).forEach((r,i)=>box.append(recItem(`${i===0?"Melhor cidade: ":""}${r.c}`,[r.miss===gearSlots.length?"Nenhuma peça anunciada":`${fmt(r.sum)} pelas ${gearSlots.length-r.miss} peças que tem lá`,r.miss?`Faltam ${r.miss}: compre ${r.miss>1?"essas":"essa"} em outra cidade`:`O set inteiro numa viagem só; ${r.sum>total?`${fmtS(r.sum-total)} a mais que caçar peça por peça`:"o mesmo que caçar peça por peça"}`])));
   const bmIdx=missing===0&&total>0?el("li",{},el("strong",{text:"Quanto dá para perder"}),el("span",{text:`Com 1 milhão de pratas, este set morre ${Math.floor(1e6/total)} vezes antes de acabar o dinheiro.`})):null; if(bmIdx) box.append(bmIdx);
-  note.textContent=`Menor preço de venda anunciado nas cidades reais, Caerleon e Brecilien, qualidade normal, anúncios de até 3 dias. Comida e poção estão por unidade. ${custom?"O seu set fica salvo neste navegador.":b.src==="pesquisa"?"Esta build é de pesquisa, sem conferência.":""}`;
+  note.textContent=`Menor preço de venda anunciado nas cidades reais, Caerleon e Brecilien, qualidade normal, anúncios de até 3 dias. Comida e poção estão por unidade. ${cons==="off"?"Comida e poção não entram na conta. ":""}${eq?`No modo equivalente, cada peça usa a versão mais barata entre ${equivs.map(x=>x.join(".")).join(", ")}; se o preço empatar, vale a ordem 4.4 e depois do maior tier para o menor. `:""}${custom?"O seu set fica salvo neste navegador.":info.src==="pesquisa"?"Esta build é de pesquisa, sem conferência.":""}`;
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.03,clearProps:"opacity,transform"});
 }
 
@@ -211,5 +250,12 @@ async function renderFZ(){
 document.querySelectorAll("[data-fz]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-fz]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); fzKind=b.dataset.fz; renderFZ(); }));
 $("fzFocus").addEventListener("change",renderFZ);
 $("fzPlots").addEventListener("input",()=>{ if(FARM&&FZ_LOADED) renderFZ(); });
-["bcBuild","bcTier","bcEnch"].forEach(id=>$(id).addEventListener("change",renderBC));
-$("bcCopy").addEventListener("click",()=>{ const sel=$("bcBuild"); if(sel.value==="custom") return; const slots=buildSlots(BUILDS[+sel.value]); BC_CUSTOM={}; for(const s in slots){ const pick=slots[s].find(c=>c.key===bcSel[s])||slots[s][0]; if(pick) BC_CUSTOM[s]=pick.key; } saveCustom(); sel.value="custom"; renderBC(); });
+["bcBuild","bcTier","bcEnch","bcCons","bcFT","bcFE","bcPT","bcPE"].forEach(id=>$(id).addEventListener("change",renderBC));
+$("bcCopy").addEventListener("click",()=>{ const sel=$("bcBuild"); if(sel.value==="custom") return; const r=bcSlotsFor(sel.value); if(!r) return; const slots=r.slots; BC_CUSTOM={}; for(const s in slots){ const pick=slots[s].find(c=>c.key===bcSel[s])||slots[s][0]; if(pick) BC_CUSTOM[s]=pick.key; } saveCustom(); sel.value="custom"; renderBC(); });
+
+/* ir para o Custo da build já com a build e o tier escolhidos (usado pelos botões das abas Builds e Build ZvZ) */
+function bcIr(value,tier){
+  store.set("bcBuild",value); store.set("bcTier",String(tier)); store.set("bcEnch","eq");
+  const sel=$("bcBuild"); sel.dataset.ready=""; if($("bcTier").options.length){ $("bcTier").value=String(tier); $("bcEnch").value="eq"; }
+  bcLast=""; showTab("t-custo");
+}

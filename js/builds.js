@@ -137,6 +137,14 @@ function kbPanel(b){
   R.append(g); box.append(R);
   return box;
 }
+/* botão "montar e ver o custo": escolhe o tier equivalente e leva para a aba Custo da build */
+function custoCtl(value){
+  const w=el("div",{class:"cst-ctl"}); const sel=el("select",{"aria-label":"Tier para calcular o custo"});
+  [4,5,6,7,8].forEach(t=>sel.append(el("option",{value:String(t),text:`T${t} equivalente`}))); try{ sel.value=store.get("cstTier")||"8"; }catch(e){}
+  sel.addEventListener("change",()=>store.set("cstTier",sel.value));
+  const bt=el("button",{type:"button",class:"bc-more bc-cost",text:"Ver o custo desta build"}); bt.addEventListener("click",()=>bcIr(value,+sel.value));
+  w.append(sel,bt); return w;
+}
 function buildCard(b){
   const open=bOpen===b.id; const wc=b.wc;
   const card=el("article",{class:"bcard"+(open?" open":"")});
@@ -153,7 +161,7 @@ function buildCard(b){
   card.append(gbStrip(b));
   const btn=el("button",{type:"button",class:"bc-more","aria-expanded":String(open),text:open?"Esconder build completa":"Ver build completa"});
   btn.addEventListener("click",()=>{ bOpen=open?null:b.id; renderBuilds(); });
-  card.append(btn);
+  const act=el("div",{class:"bc-act"}); act.append(btn,custoCtl("g:"+b.id)); card.append(act);
   if(open) card.append(kbPanel(b));
   return card;
 }

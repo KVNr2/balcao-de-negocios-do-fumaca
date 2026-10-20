@@ -11,12 +11,12 @@ const zNome = c => { buildIdx(); return codeName(c); };
 const zPct = (n,t) => t?Math.round(n*1000/t)/10:0;
 function zFonte(){ return ZVZ.papeis; }
 function zDados(){ if(!zAli) return ZVZ.papeis; const a=ZVZ.aliancas.find(x=>x.nome===zAli); return a?a.papeis:ZVZ.papeis; }
-function zVariante(w,v,top){
+function zVariante(w,v,idx){
   const box=el("div",{class:"zvar"}); const row=el("div",{class:"zgear"});
   const mk=(code,t,e,tt)=>{ const w_=el("div",{class:"zg",title:zNome(code)+(e?"."+e:"")}); w_.append(zimg(code,t,e,"nico zi")); w_.append(el("span",{class:"zg-t",text:`${t}.${e||0}`})); return w_; };
   row.append(mk(w,v.arma.t,v.arma.e));
   for(const [k] of ZSLOT){ if(v[k]) row.append(mk(v[k].c,v[k].t,v[k].e)); }
-  box.append(row,el("p",{class:"muted small",text:`${v.n} ${v.n===1?"jogador usou":"jogadores usaram"} este conjunto de elmo, peito e botas ${v.ip?"· IP médio "+v.ip:""}`}));
+  box.append(row,custoCtl(`z:${w}:${idx}`),el("p",{class:"muted small",text:`${v.n} ${v.n===1?"jogador usou":"jogadores usaram"} este conjunto de elmo, peito e botas ${v.ip?"· IP médio "+v.ip:""}`}));
   return box;
 }
 function zCard(w,n,total,role){
@@ -25,7 +25,7 @@ function zCard(w,n,total,role){
   const mid=el("div",{class:"zc-mid"}); mid.append(el("strong",{text:zNome(w)}),el("span",{class:"muted small",text:`${n} ${n===1?"jogador":"jogadores"} · ${zPct(n,total)}% de ${ROLE_Z(role)}`}));
   const bar=el("div",{class:"zbar"}); bar.append(el("i",{style:`width:${Math.min(100,zPct(n,total)*2.2)}%`})); mid.append(bar); top.append(mid); card.append(top);
   if(info&&info.variantes.length){ const det=el("details",{class:"zdet"}); det.append(el("summary",{text:`Build completa (${info.mortes} mortes e abates analisados)`}));
-    info.variantes.forEach(v=>det.append(zVariante(w,v))); card.append(det); }
+    info.variantes.forEach((v,i)=>det.append(zVariante(w,v,i))); card.append(det); }
   else card.append(el("p",{class:"muted small",text:"Sem build completa nas mortes recentes."}));
   return card;
 }
