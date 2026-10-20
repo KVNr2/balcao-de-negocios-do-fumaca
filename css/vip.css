@@ -570,3 +570,15 @@ b.c,h4.c{color:#b784e8}
 .of-xcard.cost .of-xline b{color:#ef6a62}
 .of-xcard.res .of-xline b{color:#52d38a}
 @media(max-width:1300px){.of-drow .of-xp{grid-template-columns:1fr}}
+/* fundo da linha: verde com lucro, vermelho com prejuízo */
+.of2t tbody tr.of-row.is-gain td{background:#10261b;border-top-color:rgba(63,184,120,.28);border-bottom-color:rgba(63,184,120,.28)}
+.of2t tbody tr.of-row.is-loss td{background:#2a1413;border-top-color:rgba(217,83,79,.3);border-bottom-color:rgba(217,83,79,.3)}
+.of2t tbody tr.of-row.is-gain td:last-child{border-right-color:rgba(63,184,120,.28)}
+.of2t tbody tr.of-row.is-loss td:last-child{border-right-color:rgba(217,83,79,.3)}
+.of2t tbody tr.of-row.is-gain:hover td,.of2t tbody tr.of-row.is-gain.open td{background:#16341f}
+.of2t tbody tr.of-row.is-loss:hover td,.of2t tbody tr.of-row.is-loss.open td{background:#381a18}
+.of2t tbody tr.of-row.is-gain td:first-child{background:#10261b}
+.of2t tbody tr.of-row.is-loss td:first-child{background:#2a1413}
+.of2t tbody tr.of-row.is-gain:hover td:first-child,.of2t tbody tr.of-row.is-gain.open td:first-child{background:#16341f}
+.of2t tbody tr.of-row.is-loss:hover td:first-child,.of2t tbody tr.of-row.is-loss.open td:first-child{background:#381a18}
+.of-tile,.of-chev{background:rgba(0,0,0,.28)}
