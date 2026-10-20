@@ -338,6 +338,10 @@ function renderHeat(){
     (t,e,m)=>[["v",`${sgn(m.p1)} por ${R.u} com foco`],["",`${R.refName} T${t}.${e} em ${R.city}`],(()=>{ const r=refRoute(st.res,t,e); return r?["",`Melhor rota: compra em ${r.rawC}, vende em ${r.barC}: ${sgn(r.p1)}`]:["k","Sem rota: faltam preços"]; })(),["k",`Sem foco: ${sgn(m.p0)}`],["k",`${R.rawName}: ${fmt(m.raw.p)} (${m.raw.n} cid.) × ${N[t]}`],["k",`Barra anterior: ${fmt(m.prev.p)} (${m.prev.n} cid.)`],["k",`Venda: ${fmt(m.bar.p)} (${m.bar.n} cid.)`],["k",`Custo de foco ${m.fc}, ${dec(m.spf)} pratas por ponto`]]);
   { const h=$("contaTitle"); if(h) h.textContent=`A conta de ${R.art} ${R.u}`; const fl=$("focusLbl"); if(fl) fl.textContent=`Custo de foco por ${R.u}`; }
   $("matTitle").textContent=`${R.refName}: lucro por ${R.u}, com foco, em ${R.city}`;
+  { const top=$("heatTop"); if(top){ top.textContent=""; const all=[]; for(let t=4;t<=8;t++) for(let e=0;e<=4;e++){ const m=model(st.res,t,e); if(m&&m.p1!=null) all.push({t,e,m}); } all.sort((a,b)=>b.m.p1-a.m.p1);
+      top.append(el("span",{class:"ht-l",text:"Melhores combinações agora"}));
+      all.slice(0,5).forEach((x,i)=>{ const b=el("button",{type:"button",class:"ht-chip "+(x.m.p1>0?"gain":x.m.p1<0?"loss":"flat"),title:"Abrir na calculadora"}); b.append(el("b",{text:`${i+1}. T${x.t}.${x.e}`}),el("span",{text:sgn(x.m.p1)}),el("small",{text:`${dec(x.m.spf!=null?x.m.spf:0)} por foco`}));
+        b.addEventListener("click",()=>{ $("tier").value=x.t; $("ench").value=x.e; calc(true); $("calcTitle").scrollIntoView({behavior:RM?"auto":"smooth",block:"start"}); }); top.append(b); }); } }
 }
 async function renderCraft(){
   const slot=$("cSlot").value, mat=$("cMat").value, set=+$("cSet").value, key=slot+"_"+mat;
@@ -631,7 +635,7 @@ const ACTS=[
 const RISK={h:"risco alto",m:"risco médio",l:"risco baixo"}, MAXV=8;
 $("ticks").innerHTML=[0,2,4,6,8].map(v=>`<span style="left:${v/MAXV*100}%">${v}M</span>`).join("");
 function renderActs(f){ const box=$("rows"); box.textContent="";
-  ACTS.filter(a=>f==="all"||a.tags.includes(f)).forEach(a=>{ const row=el("div",{class:"row",tabIndex:0}); const lbl=el("div",{class:"lbl",text:a.n}); const sub=el("span"); sub.append(el("span",{class:`risk ${a.r}`,text:RISK[a.r],style:"display:inline"})); if(a.d) sub.append(`  ${a.d}`); lbl.append(sub);
+  ACTS.filter(a=>f==="all"||a.tags.includes(f)).forEach(a=>{ const row=el("div",{class:"row r-"+a.r,tabIndex:0}); const lbl=el("div",{class:"lbl",text:a.n}); const sub=el("span"); sub.append(el("span",{class:`risk ${a.r} rk-chip`,text:RISK[a.r],style:"display:inline"})); if(a.d) sub.append(`  ${a.d}`); lbl.append(sub);
     const plot=el("div",{class:"plot"}); [2,4,6].forEach(v=>{const g=el("span",{class:"grid"}); g.style.left=(v/MAXV*100)+"%"; plot.append(g);}); const bar=el("span",{class:"bar"}); bar.style.left=(a.lo/MAXV*100)+"%"; bar.style.width=((a.hi-a.lo)/MAXV*100)+"%"; plot.append(bar);
     row.append(lbl,plot,el("div",{class:"val num",text:`${dec(a.lo)} a ${dec(a.hi)}M`})); box.append(row);
     bindTip(row,()=>[["v",`${dec(a.lo)} a ${dec(a.hi)} milhões por hora`],["",a.n],["k",RISK[a.r]+(a.d?", "+a.d.toLowerCase():"")],["k","Estimativa bruta da AlbionCodex, abr/2026"]]); }); }

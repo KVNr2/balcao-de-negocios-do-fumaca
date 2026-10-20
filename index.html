@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="b310f437">
+<html lang="pt-BR" data-v="32b0dd91">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=b310f437">
-<link rel="stylesheet" href="css/vip.css?v=b310f437">
-<link rel="stylesheet" href="css/souk.css?v=b310f437">
+<link rel="stylesheet" href="css/balcao.css?v=32b0dd91">
+<link rel="stylesheet" href="css/vip.css?v=32b0dd91">
+<link rel="stylesheet" href="css/souk.css?v=32b0dd91">
 </head>
 <body>
 <div class="wrap app">
@@ -210,6 +210,7 @@
     <div class="sheet">
       <h2 id="matTitle">Lucro por barra</h2>
       <p class="small muted">Lucro de refinar uma unidade (barra, tecido ou couro, conforme o recurso) com foco, já tirando taxas, com o custo de foco da sua ficha. Embaixo, quanto cada ponto de foco rende a mais do que refinar sem foco. Clique numa célula para abrir na calculadora.</p>
+      <div class="heat-top" id="heatTop"></div>
       <div class="tablebox"><table class="heat" id="heat"></table></div>
       <div class="legend" aria-hidden="true"><span>Prejuízo</span><span class="sw"><i style="background:var(--d-r3)"></i><i style="background:var(--d-r2)"></i><i style="background:var(--d-r1)"></i><i style="background:var(--d-neutral)"></i><i style="background:var(--d-b1)"></i><i style="background:var(--d-b2)"></i><i style="background:var(--d-b3)"></i><i style="background:var(--d-b4)"></i></span><span>Lucro</span><span>Contorno escuro: preço de uma cidade só</span></div>
     </div>
@@ -440,26 +441,26 @@
   <section class="panel" id="p-patch" role="tabpanel" aria-labelledby="t-patch" hidden>
     <div class="block">
       <h2>Dragonfire Patch 3, 12/10/2026</h2>
-      <div class="tbl"><table>
+      <div class="tbl bm2 patchl"><table class="bm2t lst">
         <thead><tr><th>Área</th><th>O que mudou</th></tr></thead>
         <tbody>
-          <tr><td>Evento</td><td>+15% de fama e loot por 7 dias, até ~19/10</td></tr>
-          <tr><td>Ancient Lands</td><td>Portais pequenos da zona amarela aparecem mais, abrem antes e duram mais, mas pagam 30% menos. Portais grandes surgem 50% mais e o baú do Fire Drake melhorou. Monstros com menos vida e dano.</td></tr>
-          <tr><td>Dragões</td><td>No mundo aberto, só recuperam vida até o último marco de 20% e dão 150% mais Might. Luta da Maeve ficou mais tolerante.</td></tr>
-          <tr><td>Buffs</td><td>Twin Slayers (Ring of Death 36, era 27, área dobrada), espadas (Heroic Strike 4s, era 3,5s), adagas (Bloodthirsty Blade 2,5%, era 4%), Great Fire Staff, Stillgaze Staff, Hellfire Hands, Mage Cowl, Dragonslayer Hood, Mage Robe (Purging Shield 30s, era 35s)</td></tr>
-          <tr><td>Nerfs</td><td>Bestas (Explosive Bolt 119, era 130), Rotcaller (35s, era 30s), Flamewalker (45s, era 40s), Holy Staffs (Smite em PvP 115, era 136), Quarterstaffs (Cartwheel 7 de energia, era 5), Phantom Twinblade, metamorfos (Tether Shift 16 de energia, escudo 88), Cowl of Purity (18m, era 21m), Armor of Valor (Requite 21, era 27)</td></tr>
+          <tr class="bm-row is-warn"><td>Evento</td><td>+15% de fama e loot por 7 dias, até ~19/10</td></tr>
+          <tr class="bm-row is-flat"><td>Ancient Lands</td><td>Portais pequenos da zona amarela aparecem mais, abrem antes e duram mais, mas pagam 30% menos. Portais grandes surgem 50% mais e o baú do Fire Drake melhorou. Monstros com menos vida e dano.</td></tr>
+          <tr class="bm-row is-flat"><td>Dragões</td><td>No mundo aberto, só recuperam vida até o último marco de 20% e dão 150% mais Might. Luta da Maeve ficou mais tolerante.</td></tr>
+          <tr class="bm-row is-gain"><td>Buffs</td><td>Twin Slayers (Ring of Death 36, era 27, área dobrada), espadas (Heroic Strike 4s, era 3,5s), adagas (Bloodthirsty Blade 2,5%, era 4%), Great Fire Staff, Stillgaze Staff, Hellfire Hands, Mage Cowl, Dragonslayer Hood, Mage Robe (Purging Shield 30s, era 35s)</td></tr>
+          <tr class="bm-row is-loss"><td>Nerfs</td><td>Bestas (Explosive Bolt 119, era 130), Rotcaller (35s, era 30s), Flamewalker (45s, era 40s), Holy Staffs (Smite em PvP 115, era 136), Quarterstaffs (Cartwheel 7 de energia, era 5), Phantom Twinblade, metamorfos (Tether Shift 16 de energia, escudo 88), Cowl of Purity (18m, era 21m), Armor of Valor (Requite 21, era 27)</td></tr>
         </tbody></table></div>
     </div>
     <div class="block">
       <h3 class="orn">O que mudou desde que vocês pararam</h3>
-      <div class="tbl"><table>
+      <div class="tbl bm2 patchl"><table class="bm2t lst">
         <thead><tr><th>Data</th><th>Update</th><th>Efeito na prata</th></tr></thead>
         <tbody>
-          <tr><td class="num">28/10/2024</td><td>Horizons</td><td>Portais S.A.F.E., acampamentos dinâmicos e recompensa crescendo com a qualidade da região</td></tr>
-          <tr><td class="num">06/2025</td><td>The Depths</td><td>PvP instanciado 2v2 e 3v3 sem perder o equipamento vestido</td></tr>
-          <tr><td class="num">13/04/2026</td><td>Radiant Wilds</td><td>Revisão visual do mundo, quase nada na economia</td></tr>
-          <tr><td class="num">31/08/2026</td><td>Dragonfire</td><td>Ancient Lands, Dragon Sanctuary, ataques de dragão, montaria Firewing Drake</td></tr>
-          <tr><td class="num">12/10/2026</td><td>Dragonfire Patch 3</td><td>Balanceamento de armas e ajustes nas Ancient Lands</td></tr>
+          <tr class="bm-row is-flat"><td class="num">28/10/2024</td><td>Horizons</td><td>Portais S.A.F.E., acampamentos dinâmicos e recompensa crescendo com a qualidade da região</td></tr>
+          <tr class="bm-row is-flat"><td class="num">06/2025</td><td>The Depths</td><td>PvP instanciado 2v2 e 3v3 sem perder o equipamento vestido</td></tr>
+          <tr class="bm-row is-flat"><td class="num">13/04/2026</td><td>Radiant Wilds</td><td>Revisão visual do mundo, quase nada na economia</td></tr>
+          <tr class="bm-row is-flat"><td class="num">31/08/2026</td><td>Dragonfire</td><td>Ancient Lands, Dragon Sanctuary, ataques de dragão, montaria Firewing Drake</td></tr>
+          <tr class="bm-row is-warn"><td class="num">12/10/2026</td><td>Dragonfire Patch 3</td><td>Balanceamento de armas e ajustes nas Ancient Lands</td></tr>
         </tbody></table></div>
     </div>
   </section>
@@ -615,6 +616,7 @@
   </div>
 </div>
 </div>
+<dialog id="muDlg" class="dlg dlg2 mu-dlg" aria-label="Ficha da arma"><button type="button" class="linkbtn dlg-x" id="muClose" aria-label="Fechar">✕</button><div class="mu-body" id="muBody"></div></dialog>
 <dialog id="itemDlg" class="dlg dlg2" aria-labelledby="dlgTitle">
   <button type="button" class="linkbtn dlg-x" id="dlgClose" aria-label="Fechar">✕</button>
   <div class="dlg-grid">
@@ -637,17 +639,17 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=b310f437"></script>
-<script src="js/base.js?v=b310f437"></script>
-<script src="js/fx.js?v=b310f437"></script>
-<script src="js/biz.js?v=b310f437"></script>
-<script src="js/builds.js?v=b310f437"></script>
-<script src="js/zvz.js?v=b310f437"></script>
-<script src="js/novos.js?v=b310f437"></script>
-<script src="js/guia.js?v=b310f437"></script>
-<script src="js/ui.js?v=b310f437"></script>
-<script src="js/oficina.js?v=b310f437"></script>
-<script src="js/versao.js?v=b310f437"></script>
-<script src="js/main.js?v=b310f437"></script>
+<script src="js/icons.js?v=32b0dd91"></script>
+<script src="js/base.js?v=32b0dd91"></script>
+<script src="js/fx.js?v=32b0dd91"></script>
+<script src="js/biz.js?v=32b0dd91"></script>
+<script src="js/builds.js?v=32b0dd91"></script>
+<script src="js/zvz.js?v=32b0dd91"></script>
+<script src="js/novos.js?v=32b0dd91"></script>
+<script src="js/guia.js?v=32b0dd91"></script>
+<script src="js/ui.js?v=32b0dd91"></script>
+<script src="js/oficina.js?v=32b0dd91"></script>
+<script src="js/versao.js?v=32b0dd91"></script>
+<script src="js/main.js?v=32b0dd91"></script>
 </body>
 </html>
