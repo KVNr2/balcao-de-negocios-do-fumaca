@@ -621,3 +621,28 @@ b.c,h4.c{color:#b784e8}
 .mu-sks{grid-column:1/-1;margin-top:6px}
 .mu-sks:not(:has(img)){display:none}
 .mu-hd h3{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+/* Mercado Negro no estilo do Craft: linhas em cartão, verde no lucro e vermelho no prejuízo */
+.bm2{overflow:auto;max-height:calc(100vh - 180px);overscroll-behavior-x:contain;padding-bottom:10px;scrollbar-width:thin;scrollbar-color:var(--saffron) var(--night-2)}
+.bm2t{border-collapse:separate;border-spacing:0 10px;width:max-content;min-width:100%}
+.bm2t thead th{position:sticky;top:0;z-index:2;background:var(--cloth);font:600 11.5px var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--smoke);padding:8px 14px;border:0;text-align:center;white-space:nowrap}
+.bm2t thead th:first-child{text-align:left}
+.bm2t tbody tr.bm-row td{padding:14px;border:0;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);background:var(--night-2);text-align:center;white-space:nowrap;vertical-align:middle;transition:background .12s}
+.bm2t tbody tr.bm-row td:first-child{border-left:4px solid var(--smoke);border-radius:12px 0 0 12px;text-align:left;padding-left:16px;min-width:260px}
+.bm2t tbody tr.bm-row td:last-child{border-right:1px solid var(--line-soft);border-radius:0 12px 12px 0}
+.bm2t tbody tr.bm-row.is-gain td{background:#10261b;border-top-color:rgba(63,184,120,.28);border-bottom-color:rgba(63,184,120,.28)}
+.bm2t tbody tr.bm-row.is-loss td{background:#2a1413;border-top-color:rgba(217,83,79,.3);border-bottom-color:rgba(217,83,79,.3)}
+.bm2t tbody tr.bm-row.is-gain td:first-child{border-left-color:#3fb878}
+.bm2t tbody tr.bm-row.is-loss td:first-child{border-left-color:#d9534f}
+.bm2t tbody tr.bm-row.is-gain:hover td{background:#16341f}
+.bm2t tbody tr.bm-row.is-loss:hover td{background:#381a18}
+.bm2t tbody tr.bm-row:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+.bm2t .cell-ic{display:flex;align-items:center;gap:14px}
+.bm2t .cell-ic img{width:52px;height:52px;border-radius:10px;background:var(--cloth);border:1px solid var(--line-soft)}
+.bm2t .cell-tx{font:700 17px/1.2 var(--f-body);color:var(--parch);white-space:normal}
+.bm2t td.num{font-variant-numeric:tabular-nums;font-size:16px}
+.bm2t td.bm-profit{font:700 22px var(--f-body)}
+.bm2t td.bm-profit small{display:block;font:600 12px var(--f-body);margin-top:2px}
+.bm2t td.bm-profit.gain{color:#52d38a}.bm2t td.bm-profit.loss{color:#ef6a62}
+.bm2t td.num:nth-child(5){color:#ef6a62}
+.bm2t td.num:nth-child(4){color:#6db4f2}
+.bm2t .mn-craft{padding:8px 14px}
