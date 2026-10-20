@@ -82,6 +82,9 @@ function gbPrep(){
   buildIdx(); if(!GB||!W2LINE) return;
   for(const b of GB){ if(b.wc) continue; b.wc=b.w.replace(/^T\d_/,"").replace(/@\d$/,""); b.l=W2LINE[b.wc]||""; b.nome=codeName(b.wc); }
 }
+const SPEC_MIN = 70;
+/* spec da arma específica da build (não a maestria da linha): vem de PF.sp["c:linha"].s[código da arma] */
+const gbSpec = b => b.l ? (+(((PF.sp||{})["c:"+b.l]||{}).s||{})[b.wc]||0) : 0;
 function gbGaps(b){ const miss=new Set(); for(const sl of ["h","a","s"]) for(const id of (b[sl]||[]).slice(0,1)){ const m=/^T\d_(?:HEAD|ARMOR|SHOES)_(PLATE|LEATHER|CLOTH)/.exec(id); const t=m&&({PLATE:"placa",LEATHER:"couro",CLOTH:"pano"})[m[1]]; if(t&&armorLv(t)<1) miss.add(t); } return [...miss]; }
 function gbStrip(b){
   const row=el("div",{class:"bgear"});
@@ -96,9 +99,9 @@ function buildCard(b){
   const top=el("div",{class:"bc-top"});
   const wi=fullImg(b.w,"nico zbig"); top.append(wi||el("span",{class:"btile"}));
   const mid=el("div",{class:"bc-mid"}); const h=el("h4"); h.append(b.t||b.nome); mid.append(h);
-  const nv=b.l?Math.max(PF.armas[b.l]||0,spMax((PF.sp||{})["c:"+b.l])):0; const lv=b.l?wl(b.l):0;
+  const nv=gbSpec(b); const lv=nv>=SPEC_MIN?3:nv>0?2:0;
   const meta=el("div",{class:"bc-meta"}); meta.append(el("span",{class:"tag",text:contName(b.k)}));
-  if(b.l) meta.append(el("span",{class:"tag"+(lv>=2?" good":""),text:nv?`${LINE_NAME[b.l]}: nível ${nv}`:`${LINE_NAME[b.l]}: sem spec`}));
+  if(b.l) meta.append(el("span",{class:"tag"+(lv>=2?" good":""),text:nv?`${b.nome}: spec ${nv}`:`${b.nome}: sem spec`}));
   const gaps=gbGaps(b); if(gaps.length) meta.append(el("span",{class:"tag bad",text:`Sem spec em ${gaps.join(" e ")}`}));
   (b.tg||[]).slice(0,3).forEach(t=>meta.append(el("span",{class:"tag mute",text:t})));
   mid.append(meta); top.append(mid);
@@ -122,17 +125,17 @@ function renderBuilds(){
   const cc=$("bCont"); cc.textContent="";
   const mk=(k,t,n)=>{ const b=el("button",{type:"button","aria-pressed":String(bCont===k),text:`${t} (${n})`,title:k?"Quantidade de builds salvas no site; aqui aparecem as mais votadas":""}); b.addEventListener("click",()=>{ bCont=k; bLine=""; bOpen=null; renderBuilds(); }); cc.append(b); };
   mk("","Todos",GB.length+" mais votadas"); for(const c of GBC) mk(c.k,c.nome,c.total.toLocaleString("pt-BR"));
-  let list=GB.filter(b=>(!bCont||b.k===bCont)&&(!only||(b.l&&wl(b.l)>=1)));
+  let list=GB.filter(b=>(!bCont||b.k===bCont)&&(!only||gbSpec(b)>=SPEC_MIN));
   const present=new Set(list.map(b=>b.l));
   const grid=$("bWeapons"); grid.textContent="";
   const all=el("button",{type:"button",class:"bw all","aria-pressed":String(!bLine),text:"Todas"}); all.addEventListener("click",()=>{ bLine=""; renderBuilds(); }); grid.append(all);
   for(const [l,code] of Object.entries(LINE_ICON)){ if(!present.has(l)&&bLine!==l) continue; const b=el("button",{type:"button",class:"bw","aria-pressed":String(bLine===l),title:LINE_NAME[l]}); b.append(itemImg(code,[8,7,6,5,4,3])); b.addEventListener("click",()=>{ bLine=bLine===l?"":l; renderBuilds(); }); grid.append(b); }
   if(bLine) list=list.filter(b=>b.l===bLine);
   if(bSort==="nome") list=list.slice().sort((a,b)=>a.nome.localeCompare(b.nome,"pt"));
-  else if(bSort==="spec") list=list.slice().sort((a,b)=>((b.l?wl(b.l):0)-(a.l?wl(a.l):0))||(b.pop-a.pop));
+  else if(bSort==="spec") list=list.slice().sort((a,b)=>(gbSpec(b)-gbSpec(a))||(b.pop-a.pop));
   else list=list.slice().sort((a,b)=>b.pop-a.pop);
   $("bCount").textContent=list.length?`${list.length} ${list.length===1?"build":"builds"} · dados de ${(GB_DATE||"").split("-").reverse().join("/")}`:"";
-  if(!list.length){ host.append(el("p",{class:"empty",text:only?"Nenhuma build deste conteúdo usa as armas da sua ficha. Desmarque o filtro para ver todas.":"Nenhuma build nesta seleção."})); return; }
+  if(!list.length){ host.append(el("p",{class:"empty",text:only?"Nenhuma build deste conteúdo usa uma arma sua com spec 70 ou mais. Desmarque o filtro para ver todas.":"Nenhuma build nesta seleção."})); return; }
   for(const b of list.slice(0,60)) host.append(buildCard(b));
   if(list.length>60) host.append(el("p",{class:"muted small",text:`Mostrando as 60 mais votadas de ${list.length}. Use os filtros para ver as outras.`}));
 }
