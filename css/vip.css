@@ -876,3 +876,21 @@ details.spsubn>summary{padding-top:8px;padding-bottom:8px}
 /* ícone do tópico no lugar da estrela */
 h2.has-ic::before,h3.has-ic::before{display:none!important}
 .hic{width:1.05em;height:1.05em;margin-right:.5em;vertical-align:-.14em;flex:none;stroke:var(--saffron);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ===== listas "Para você" com ícones dos itens ===== */
+ol.recs li.has-ic{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;align-items:start}
+.rec-ic img{width:56px;height:56px;border-radius:12px;background:var(--cloth);border:1px solid var(--line-soft);display:block}
+.rec-b{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rec-ics{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.rec-ics img{width:38px;height:38px;border-radius:9px;background:var(--cloth);border:1px solid var(--line-soft)}
+
+.vc-tile{position:relative;padding-right:70px}
+.vc-ic{position:absolute;top:12px;right:12px}
+.vc-ic[hidden]{display:none}
+.vc-ic img{width:44px;height:44px;border-radius:10px;background:var(--cloth);border:1px solid var(--line-soft);display:block}
+
+.deal{position:relative}
+.deal .hero-ic{position:absolute;top:18px;right:22px}
+.deal .hero-ic img{width:84px;height:84px;border-radius:16px;background:var(--cloth);border:1px solid var(--line);display:block}
+.deal .answer{padding-right:110px}
+@media (max-width:560px){.deal .hero-ic{position:static;display:block;margin-bottom:8px}.deal .answer{padding-right:0}}
