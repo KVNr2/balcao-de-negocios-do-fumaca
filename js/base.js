@@ -11,9 +11,9 @@ const el = (tag, props={}, ...kids) => { const e=document.createElement(tag); fo
 
 /* ================= game constants ================= */
 const RES = {
-  metal:{raw:"ORE",ref:"METALBAR",city:"Thetford",rawName:"Minério",refName:"Barra de metal",prevName:"Barra",note:"Thetford tem o bônus de refino de minério. O minério vem barato de Fort Sterling, Martlock e Bridgewatch."},
-  cloth:{raw:"FIBER",ref:"CLOTH",city:"Lymhurst",rawName:"Fibra (linho)",refName:"Tecido",prevName:"Tecido",note:"Lymhurst tem o bônus de refino de fibra."},
-  leather:{raw:"HIDE",ref:"LEATHER",city:"Martlock",rawName:"Pelego",refName:"Couro",prevName:"Couro",note:"Martlock tem o bônus de refino de pelego."}
+  metal:{raw:"ORE",ref:"METALBAR",city:"Thetford",rawName:"Minério",refName:"Barra de metal",prevName:"Barra",u:"barra",up:"barras",art:"uma",note:"Thetford tem o bônus de refino de minério. O minério vem barato de Fort Sterling, Martlock e Bridgewatch."},
+  cloth:{raw:"FIBER",ref:"CLOTH",city:"Lymhurst",rawName:"Fibra (linho)",refName:"Tecido",prevName:"Tecido",u:"tecido",up:"tecidos",art:"um",note:"Lymhurst tem o bônus de refino de fibra."},
+  leather:{raw:"HIDE",ref:"LEATHER",city:"Martlock",rawName:"Pelego",refName:"Couro",prevName:"Couro",u:"couro",up:"couros",art:"um",note:"Martlock tem o bônus de refino de pelego."}
 };
 const N = {4:2,5:3,6:4,7:5,8:5};
 const FOCUS_REF = [[54,94,164,287],[94,164,287,503],[164,287,503,880],[287,503,880,1539],[503,880,1539,2694]];
@@ -320,8 +320,9 @@ function drawHeat(tbl, get, onPick, tipFor){
 function renderHeat(){
   const R=RES[st.res];
   drawHeat($("heat"),(t,e)=>model(st.res,t,e),(t,e)=>{ $("tier").value=t; $("ench").value=e; calc(true); $("calcTitle").scrollIntoView({behavior:"smooth",block:"start"}); },
-    (t,e,m)=>[["v",`${sgn(m.p1)} por barra com foco`],["",`${R.refName} T${t}.${e} em ${R.city}`],(()=>{ const r=refRoute(st.res,t,e); return r?["",`Melhor rota: compra em ${r.rawC}, vende em ${r.barC}: ${sgn(r.p1)}`]:["k","Sem rota: faltam preços"]; })(),["k",`Sem foco: ${sgn(m.p0)}`],["k",`${R.rawName}: ${fmt(m.raw.p)} (${m.raw.n} cid.) × ${N[t]}`],["k",`Barra anterior: ${fmt(m.prev.p)} (${m.prev.n} cid.)`],["k",`Venda: ${fmt(m.bar.p)} (${m.bar.n} cid.)`],["k",`Custo de foco ${m.fc}, ${dec(m.spf)} pratas por ponto`]]);
-  $("matTitle").textContent=`${R.refName}: lucro por barra, com foco, em ${R.city}`;
+    (t,e,m)=>[["v",`${sgn(m.p1)} por ${R.u} com foco`],["",`${R.refName} T${t}.${e} em ${R.city}`],(()=>{ const r=refRoute(st.res,t,e); return r?["",`Melhor rota: compra em ${r.rawC}, vende em ${r.barC}: ${sgn(r.p1)}`]:["k","Sem rota: faltam preços"]; })(),["k",`Sem foco: ${sgn(m.p0)}`],["k",`${R.rawName}: ${fmt(m.raw.p)} (${m.raw.n} cid.) × ${N[t]}`],["k",`Barra anterior: ${fmt(m.prev.p)} (${m.prev.n} cid.)`],["k",`Venda: ${fmt(m.bar.p)} (${m.bar.n} cid.)`],["k",`Custo de foco ${m.fc}, ${dec(m.spf)} pratas por ponto`]]);
+  { const h=$("contaTitle"); if(h) h.textContent=`A conta de ${R.art} ${R.u}`; const fl=$("focusLbl"); if(fl) fl.textContent=`Custo de foco por ${R.u}`; }
+  $("matTitle").textContent=`${R.refName}: lucro por ${R.u}, com foco, em ${R.city}`;
 }
 async function renderCraft(){
   const slot=$("cSlot").value, mat=$("cMat").value, set=+$("cSet").value, key=slot+"_"+mat;
@@ -354,12 +355,12 @@ function calc(reset){
   const useF=st.focus===1, rr=useF?m.r1:m.r0, p=useF?m.p1:m.p0, pool=+$("focusPool").value||0, bars=useF?Math.floor(pool/m.fc):0;
   [["Insumos",`${N[t]} × ${fmt(m.raw.p)} + ${fmt(m.prev.p)}`,-m.inputs],["Volta pelo retorno",`${dec(rr*100)}% dos insumos`,m.inputs*rr],["Taxa da estação",`valor de item ${IV(t,e)}`,-m.fee],["Venda",`${fmt(m.bar.p)} menos ${dec(m.tax*100)}% de taxas`,m.net]]
     .forEach(([a,b,c])=>{ const tr=L.insertRow(); const td=tr.insertCell(); td.append(a,el("small",{text:b})); tr.insertCell().textContent=sgn(c); });
-  const tr=L.insertRow(); tr.className="total"; tr.insertCell().textContent="Lucro por barra"; const tc=tr.insertCell(); tc.textContent=sgn(p); tc.className=p>=0?"gain":"loss";
-  if(useF){ const t2=L.insertRow(); const a=t2.insertCell(); a.append(`Com ${fmt(pool)} de foco`,el("small",{text:`${fmt(bars)} barras, ${dec(m.spf)} pratas por ponto de foco`})); const b=t2.insertCell(); b.textContent=sgn(bars*p); b.className=p>=0?"gain":"loss"; }
+  const tr=L.insertRow(); tr.className="total"; tr.insertCell().textContent=`Lucro por ${R.u}`; const tc=tr.insertCell(); tc.textContent=sgn(p); tc.className=p>=0?"gain":"loss";
+  if(useF){ const t2=L.insertRow(); const a=t2.insertCell(); a.append(`Com ${fmt(pool)} de foco`,el("small",{text:`${fmt(bars)} ${R.up}, ${dec(m.spf)} pratas por ponto de foco`})); const b=t2.insertCell(); b.textContent=sgn(bars*p); b.className=p>=0?"gain":"loss"; }
   renderRoute(t,e,p);
   drawHistory($("histRef"),$("histRefNote"),idOf(t,R.ref,e),R.city); $("histRefTitle").textContent=`${R.refName} T${t}.${e} em ${R.city}, últimos 30 dias`;
-  v.textContent = m.p0>0 ? `Dá lucro até sem foco (${sgn(m.p0)} por barra). Vale comprar ${R.rawName.toLowerCase()} por ordem de compra e refinar em volume.`
-    : m.p1>0 ? `Só compensa com foco: sem ele você perde ${fmt(-m.p0)} por barra.` : `Com estes preços não compensa refinar, nem com foco. Olhe outro tier na tabela.`;
+  v.textContent = m.p0>0 ? `Dá lucro até sem foco (${sgn(m.p0)} por ${R.u}). Vale comprar ${R.rawName.toLowerCase()} por ordem de compra e refinar em volume.`
+    : m.p1>0 ? `Só compensa com foco: sem ele você perde ${fmt(-m.p0)} por ${R.u}.` : `Com estes preços não compensa refinar, nem com foco. Olhe outro tier na tabela.`;
 }
 
 function renderRoute(t,e,pNow){
@@ -372,7 +373,7 @@ function renderRoute(t,e,pNow){
     .forEach(([a,b])=>ol.append(el("li",{},document.createTextNode(a+": "),el("span",{class:"num",text:b}))));
   box.append(ol);
   const diff=pr-pNow, warn=routeWarn([r.rawC,r.prevC,R.city,r.barC]);
-  box.append(el("p",{class:"small"},document.createTextNode(`Lucro por barra nessa rota: `),el("strong",{class:pr>=0?"gain":"loss",text:sgn(pr)}),document.createTextNode(` ${useF?"com":"sem"} foco, ${diff>=0?`${fmt(diff)} a mais`:`${fmt(-diff)} a menos`} que a conta acima.${warn?" Atenção: "+warn+".":""}`)));
+  box.append(el("p",{class:"small"},document.createTextNode(`Lucro por ${R.u} nessa rota: `),el("strong",{class:pr>=0?"gain":"loss",text:sgn(pr)}),document.createTextNode(` ${useF?"com":"sem"} foco, ${diff>=0?`${fmt(diff)} a mais`:`${fmt(-diff)} a menos`} que a conta acima.${warn?" Atenção: "+warn+".":""}`)));
   const b=el("button",{type:"button",class:"linkbtn",text:"Usar os preços da rota na calculadora"}); b.addEventListener("click",()=>{ $("pRaw").value=Math.round(r.raw.p); $("pPrev").value=Math.round(r.prev.p); $("pBar").value=Math.round(r.bar.p); $("sRaw").textContent=`mais barato, em ${r.rawC}`; $("sPrev").textContent=`mais barato, em ${r.prevC}`; $("sBar").textContent=`mais alto, em ${r.barC}`; calc(false); });
   box.append(b, el("p",{class:"tiny muted",text:"O anúncio mais alto pode demorar a vender, e cada cidade a mais é frete e risco. A conta acima usa o preço típico das cidades, que é mais conservador."}));
 }
@@ -389,7 +390,7 @@ function recItem(title, lines){ const li=el("li"); li.append(el("strong",{text:t
 function renderRecs(){
   const r=bestRefining(), box=$("recRefino"); box.textContent="";
   if(!r.length) box.append(el("li",{class:"empty",text:"Com os preços de agora, nenhum refino dá lucro com segurança."}));
-  r.slice(0,3).forEach(x=>{ const R=RES[x.res]; const rt=refRoute(x.res,x.t,x.e); box.append(recItem(`${R.refName} T${x.t}.${x.e} em ${R.city}`,[`${sgn(x.m.p1)} por barra, uns ${fmtS(x.day)} com 10.000 de foco`,rt?`Compre ${R.rawName.toLowerCase()} em ${rt.rawC} e venda em ${rt.barC}: ${sgn(rt.p1)} por barra${routeWarn([rt.rawC,R.city,rt.barC])?"; "+routeWarn([rt.rawC,R.city,rt.barC]):""}`:null,`Custo de foco ${x.m.fc} por barra${refFCE(x.res)>0?"":", sem spec"}. Sem foco: ${sgn(x.m.p0)}`])); });
+  r.slice(0,3).forEach(x=>{ const R=RES[x.res]; const rt=refRoute(x.res,x.t,x.e); box.append(recItem(`${R.refName} T${x.t}.${x.e} em ${R.city}`,[`${sgn(x.m.p1)} por ${R.u}, uns ${fmtS(x.day)} com 10.000 de foco`,rt?`Compre ${R.rawName.toLowerCase()} em ${rt.rawC} e venda em ${rt.barC}: ${sgn(rt.p1)} por ${R.u}${routeWarn([rt.rawC,R.city,rt.barC])?"; "+routeWarn([rt.rawC,R.city,rt.barC]):""}`:null,`Custo de foco ${x.m.fc} por ${R.u}${refFCE(x.res)>0?"":", sem spec"}. Sem foco: ${sgn(x.m.p0)}`])); });
   const cbox=$("recCraft"); cbox.textContent="";
   const lines=Object.keys(PF.craft).filter(k=>PF.craft[k].lv>0);
   if(!lines.length){ cbox.append(el("li",{class:"empty",text:"Marque na sua ficha as peças que você fabrica para ver o melhor craft."})); }
@@ -432,7 +433,7 @@ function renderHero(){
   if(!best){ ans.textContent=`${who}, nenhum refino ou craft da sua ficha dá lucro seguro com os preços de agora.`; $("heroOthers").textContent=""; return; }
   const x=best.x, b=el("b");
   const n=el("span",{class:"num",text:sgn(x.m.p1)});
-  if(best.kind==="ref"){ const R=RES[x.res]; b.textContent=`${R.refName.toLowerCase()} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais refinando `,b,` em ${R.city}: `,n,` por barra, uns ${fmtS(x.day)} com 10.000 de foco.`); }
+  if(best.kind==="ref"){ const R=RES[x.res]; b.textContent=`${R.refName.toLowerCase()} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais refinando `,b,` em ${R.city}: `,n,` por ${R.u}, uns ${fmtS(x.day)} com 10.000 de foco.`); }
   else if(best.kind==="cook"){ b.textContent=x.name; ans.append(`${who} o seu foco rende mais ${x.kind==="f"?"cozinhando":"preparando"} `,b,` em ${COOK_CITY[x.kind]}: `,n,` por fornada, uns ${fmtS(x.day)} com 10.000 de foco.`); }
   else{ b.textContent=`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais fabricando `,b,` em ${CRAFT_CITY[x.slot+"_"+x.mat]}: `,n,` por peça, uns ${fmtS(x.day)} com 10.000 de foco.`); }
   if(window.gsap&&!RM){ const o={v:0}; gsap.to(o,{v:x.m.p1,duration:1.1,ease:"power2.out",onUpdate:()=>n.textContent=sgn(o.v)}); }
