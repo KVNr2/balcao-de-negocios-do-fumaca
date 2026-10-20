@@ -102,7 +102,9 @@ function gbStrip(b){
 }
 /* Build completa em formato de killboard: uma casa por peça, com ícone grande, nome e tier; alternativas logo abaixo. */
 const KB_CONS_PT={POTION_ACID:"Poção Ácida",POTION_BERSERK:"Poção de Fúria",POTION_CLEANSE:"Poção de Purificação",POTION_CLEANSE2:"Poção de Purificação",POTION_COOLDOWN:"Poção de Recarga",POTION_ENERGY:"Poção de Energia",POTION_GATHER:"Poção de Coleta",POTION_HEAL:"Poção de Cura",POTION_LAVA:"Poção de Lava",POTION_MOB_RESET:"Poção de Reinício de Monstros",POTION_REVIVE:"Poção de Ressurreição",POTION_SLOWFIELD:"Poção Lentidão",POTION_STONESKIN:"Poção Pele de Pedra",POTION_TORNADO:"Poção Tornado",MEAL_OMELETTE:"Omelete",MEAL_OMELETTE_AVALON:"Omelete de Avalon",MEAL_OMELETTE_DRAGONAREA:"Omelete de Dragão",MEAL_OMELETTE_FISH:"Omelete de Peixe",MEAL_PIE:"Torta",MEAL_PIE_FISH:"Torta de Peixe",MEAL_ROAST:"Assado",MEAL_ROAST_FISH:"Assado de Peixe",MEAL_SANDWICH:"Sanduíche",MEAL_SANDWICH_AVALON:"Sanduíche de Avalon",MEAL_SANDWICH_FISH:"Sanduíche de Peixe",MEAL_SOUP:"Sopa",MEAL_STEW:"Ensopado",MEAL_STEW_AVALON:"Ensopado de Avalon",MEAL_STEW_FISH:"Ensopado de Peixe"};
-const itemNome = c => KB_CONS_PT[c]||codeName(c);
+/* nomes de itens que o dicionário de códigos não tem (ferramentas, mochilas, montarias…) vêm do catálogo, carregado sob demanda */
+let CATN=null, CATN_P=null; const catLoad=()=>CATN_P||(CATN_P=need("catalog").then(c=>{ CATN=new Map(); for(const r of c.i){ const k=r[0].replace(/^T\d+_/,""); if(!CATN.has(k)) CATN.set(k,r); } return CATN; }).catch(()=>null));
+const itemNome = c => { if(KB_CONS_PT[c]) return KB_CONS_PT[c]; if(CODE2EN&&CODE2EN[c]) return codeName(c); if(CATN&&CATN.has(c)){ const r=CATN.get(c); return (LANG==="en"?r[6]:r[5])||r[6]||codeName(c); } if(!CATN_P) catLoad(); return codeName(c); };
 function idInfo(id){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id||""); return m?{c:m[2],t:+m[1],e:+(m[3]||0)}:null; }
 const SPELL = id => `https://render.albiononline.com/v1/spell/${id}.png`;
 /* nome e descrição das habilidades (data/skills.json) no idioma escolhido em "Nomes" */
@@ -174,7 +176,8 @@ function buildCard(b){
   if(open) card.append(kbPanel(b));
   return card;
 }
-const contName = k => { const c=(GBC||[]).find(x=>x.k===k); return c?c.nome:k; };
+const CONT_EXTRA = {COLETA:"Coleta"};   // tipos de conteúdo que só existem nas Nossas builds
+const contName = k => { const c=(GBC||[]).find(x=>x.k===k); return c?c.nome:(CONT_EXTRA[k]||k); };
 let GBC = null;
 function renderBuilds(){
   const host=$("bList"); if(!host) return; host.textContent="";
