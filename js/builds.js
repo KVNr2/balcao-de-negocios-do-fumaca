@@ -200,7 +200,8 @@ function renderBuilds(){
   else list=list.slice().sort((a,b)=>b.pop-a.pop);
   $("bCount").textContent=list.length?`${list.length} ${list.length===1?"build":"builds"} · dados de ${(GB_DATE||"").split("-").reverse().join("/")}`:"";
   if(!list.length){ host.append(el("p",{class:"empty",text:only?"Nenhuma build deste conteúdo usa uma arma sua com spec 70 ou mais. Desmarque o filtro para ver todas.":"Nenhuma build nesta seleção."})); return; }
-  for(const b of list.slice(0,60)) host.append(buildCard(b));
-  if(list.length>60) host.append(el("p",{class:"muted small",text:`Mostrando as 60 mais votadas de ${list.length}. Use os filtros para ver as outras.`}));
+  const pg=pgSlice("bList",list,[bCont,bLine,only,bSort].join("|"),renderBuilds);
+  for(const b of pg.items) host.append(buildCard(b));
+  host.append(pg.bar);
 }
 let GB_DATE = "";

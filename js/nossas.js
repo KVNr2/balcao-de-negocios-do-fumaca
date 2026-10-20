@@ -71,7 +71,7 @@ function nbRender(){
   box.append(wg);
   const ord=a=>a.slice().sort((x,y)=>nbSort==="novas"?String(y.data||"").localeCompare(String(x.data||"")):(nbVotesOf(y)-nbVotesOf(x)));
   const flt=a=>a.filter(b=>(!nbCont||nbConts(b).includes(nbCont))&&(!nbLine||b.l===nbLine));
-  const sec=(title,sub,list,empty)=>{ const s=el("section",{class:"nb-sec"}); s.append(el("h3",{class:"orn",text:title}),el("p",{class:"muted small",text:sub})); const l=el("div",{class:"blist"}); if(!list.length) l.append(el("p",{class:"empty",text:empty})); list.forEach(b=>l.append(nbCard(b))); s.append(l); box.append(s); };
+  const sec=(title,sub,list,empty)=>{ const s=el("section",{class:"nb-sec"}); s.append(el("h3",{class:"orn",text:title}),el("p",{class:"muted small",text:sub})); const l=el("div",{class:"blist"}); if(!list.length) l.append(el("p",{class:"empty",text:empty})); const pg=pgSlice("nb:"+title,list,[nbCont,nbLine,nbSort].join("|"),nbRender); pg.items.forEach(b=>l.append(nbCard(b))); s.append(l,pg.bar); box.append(s); };
   sec("Nossas builds",(NB_CLOUD?"Builds publicadas por todos que usam o site. Seu voto conta para todo mundo, um por navegador.":"Escolhidas pelo Balcão do Fumaça. A contagem de votos vem do arquivo da build; o seu voto soma +1 só para você."),ord(flt((NB_REPO||[]))),NB_REPO?"Ainda não há builds publicadas nesta seleção.":"Carregando…");
   { const n=flt(NB_ALL).length; cnt.textContent=n?`${n} ${n===1?"build":"builds"}`:""; }
   const mine=NB_ALL.filter(b=>b.local); if(mine.length) sec("Suas builds",(NB_CLOUD?"Salvas só neste navegador porque a publicação falhou. Clique em Publicar para todos.":"Salvas só neste navegador. Baixe o arquivo e envie para a pasta builds/ do site para publicar."),ord(flt(mine)),"");
