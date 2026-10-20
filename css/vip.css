@@ -289,18 +289,19 @@ img.kb-i{width:72px;height:72px;object-fit:fill}
 img.kb-is{width:24px;height:24px;object-fit:fill}
 
 /* build completa no formato do AlbionOnlineGrind */
-.kx{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px;border-top:1px solid var(--line);margin-top:10px;padding-top:14px;align-items:start}
-.kx h4{margin:0 0 10px}
-.kx-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px}
-.kx-hd{color:var(--muted,#9aa0ad);font-size:.85rem;margin-bottom:8px}.kx-rec{color:var(--saffron)}
-.kx-it{display:flex;gap:10px;align-items:flex-start}
-img.kx-i{width:56px;height:56px;object-fit:fill;flex:none}
-.kx-tx{display:grid;gap:3px;min-width:0}.kx-tx b{font-size:.9rem;line-height:1.2}.kx-t{color:var(--saffron);font-size:.75rem}
-.kx-sps{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
-img.kx-sp{width:30px;height:30px;border-radius:50%;background:#14161c}
-.kx-g{display:grid;grid-template-columns:repeat(3,100px);gap:24px 12px;padding-bottom:12px}
-.kx-c{position:relative;width:100px;height:100px}.kx-c.vazio{background:#101218;border:1px dashed #23262f;border-radius:10px;opacity:.35}
-img.kx-big{width:100px;height:100px;object-fit:fill}
-.kx-ov{position:absolute;left:-4px;right:-4px;bottom:-14px;display:flex;justify-content:center;gap:0}
-img.kx-sm{width:32px;height:32px;border-radius:50%;background:#14161c;border:2px solid #2b2e38;box-shadow:0 2px 6px #000a}
-@media (max-width:780px){.kx{grid-template-columns:1fr}.kx-r{order:-1}.kx-cols{gap:8px}img.kx-i{width:44px;height:44px}.kx-g{grid-template-columns:repeat(3,84px)}.kx-c,img.kx-big{width:84px;height:84px}img.kx-sm{width:26px;height:26px}}
+.kx{display:grid;grid-template-columns:minmax(0,860px) auto;justify-content:start;gap:48px;border-top:1px solid var(--line);margin-top:10px;padding-top:16px;align-items:start}
+.kx h4{margin:0 0 12px;font-size:1.15rem}
+.kx-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:16px}
+.kx-hd{color:var(--muted,#9aa0ad);font-size:1rem;margin-bottom:10px}.kx-rec{color:var(--saffron)}
+.kx-it{display:flex;gap:14px;align-items:flex-start}
+img.kx-i{width:80px;height:80px;object-fit:fill;flex:none}
+.kx-tx{display:grid;gap:4px;min-width:0}.kx-tx b{font-size:1.05rem;line-height:1.2}.kx-t{color:var(--saffron);font-size:.85rem}
+.kx-sps{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+img.kx-sp{width:42px;height:42px;border-radius:50%;background:#14161c}
+.kx-g{display:grid;grid-template-columns:repeat(3,132px);gap:34px 16px;padding-bottom:16px}
+.kx-c{position:relative;width:132px;height:132px}.kx-c.vazio{background:#101218;border:1px dashed #23262f;border-radius:12px;opacity:.35}
+img.kx-big{width:132px;height:132px;object-fit:fill}
+.kx-ov{position:absolute;left:-6px;right:-6px;bottom:-20px;display:flex;justify-content:center;gap:0}
+img.kx-sm{width:44px;height:44px;border-radius:50%;background:#14161c;border:2px solid #2b2e38;box-shadow:0 2px 8px #000b}
+@media (max-width:1000px){.kx{grid-template-columns:1fr;gap:24px}.kx-r{order:-1}}
+@media (max-width:640px){.kx-cols{gap:10px}img.kx-i{width:56px;height:56px}.kx-tx b{font-size:.9rem}img.kx-sp{width:32px;height:32px}.kx-g{grid-template-columns:repeat(3,92px);gap:28px 10px}.kx-c,img.kx-big{width:92px;height:92px}img.kx-sm{width:32px;height:32px}}
