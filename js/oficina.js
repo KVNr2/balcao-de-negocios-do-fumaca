@@ -65,7 +65,7 @@ function setupOf(){
   ["Suas armas","Armaduras","Consumíveis","Refino","Outras armas"].forEach(g=>{ if(groups[g]) sel.append(groups[g]); });
   sel.value=store.get("ofCat")||sel.options[0].value;
   const tb=$("ofTier"); ["Todos",1,2,3,4,5,6,7,8].forEach((t,i)=>tb.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String(i===0),text:i?`T${t}`:t})));
-  const eb=$("ofEnch"); ["Todos",0,1,2,3].forEach((e,i)=>eb.append(el("button",{type:"button","data-e":String(i?e:-1),"aria-pressed":String(i===0),text:i?`.${e}`:e})));
+  const eb=$("ofEnch"); ["Todos",0,1,2,3,4].forEach((e,i)=>eb.append(el("button",{type:"button","data-e":String(i?e:-1),"aria-pressed":String(i===0),text:i?`.${e}`:e})));
   const seg=(box,attr,key)=>box.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); OF[key]=attr==="t"||attr==="e"?+b.dataset[attr]:b.dataset[attr]; renderOf(); });
   seg(tb,"t","tier"); seg(eb,"e","ench"); seg($("ofRR"),"rr","rr"); seg($("ofBuy"),"buy","buy"); seg($("ofSell"),"sell","sell");
   const cs=$("ofCity"); cs.append(el("option",{value:"",text:"Automático (melhor cidade)"})); SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c})));
