@@ -1,5 +1,6 @@
 /* ================= Builds: "Builds da comunidade" x "Nossas builds" (pasta builds/) ================= */
 let nbLine="", NB_REPO=null, NB_ALL=[], nbOpen=null, nbCont="", nbSort="votos", nbSrc="com";
+const NB_EXTRAS=[["t","Ferramenta"],["gh","Chapéu de coleta"],["ga","Traje de coleta"],["gs","Botas de coleta"],["gk","Mochila de coleta"],["gb","Bolsa"],["m","Montaria"]];
 const NB_SLOTS=[["w","Arma"],["o","Secundária"],["h","Elmo"],["a","Peito"],["s","Botas"],["c","Capa"],["p","Poção"],["f","Comida"]];
 function nbMine(){ try{ return JSON.parse(store.get("nb:mine")||"[]"); }catch(e){ return []; } }
 function nbSaveMine(a){ try{ store.set("nb:mine",JSON.stringify(a)); }catch(e){} }
@@ -79,7 +80,8 @@ const nbId=t=>(t||"build").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
 
 /* ---------- formulário de criação ---------- */
 let NB_CAT=null, NB_REFRESH=null;
-const NB_FILTER={ w:r=>r[1]==="weapons", o:r=>r[1]==="offhands", h:r=>r[1]==="head", a:r=>r[1]==="armors", s:r=>r[1]==="shoes", c:r=>r[1]==="capes", p:r=>r[1]==="consumables"&&r[2]==="potions", f:r=>r[1]==="consumables"&&r[2]==="food" };
+const NB_FILTER={ t:r=>r[1]==="gathering"&&/_TOOL_/.test(r[0]), gh:r=>r[1]==="gathering"&&/_HEAD_GATHERER_/.test(r[0]), ga:r=>r[1]==="gathering"&&/_ARMOR_GATHERER_/.test(r[0]), gs:r=>r[1]==="gathering"&&/_SHOES_GATHERER_/.test(r[0]), gk:r=>r[1]==="gathering"&&/_BACKPACK_GATHERER_/.test(r[0]), gb:r=>r[1]==="bags", m:r=>r[1]==="mounts",
+  w:r=>r[1]==="weapons", o:r=>r[1]==="offhands", h:r=>r[1]==="head", a:r=>r[1]==="armors", s:r=>r[1]==="shoes", c:r=>r[1]==="capes", p:r=>r[1]==="consumables"&&r[2]==="potions", f:r=>r[1]==="consumables"&&r[2]==="food" };
 async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
   /* tela própria dentro da aba, com botão para voltar à lista */
   const host=$("nbBox"); host.textContent=""; const dlg={close:()=>{ nbRender(); const a=$("p-builds"); if(a) a.scrollIntoView({block:"start"}); }};
@@ -110,7 +112,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
   const g1=el("div",{class:"nb-g"}); g1.append(fld("Nome da build",nome),fld("Autor",au),); body.append(g1); { const l1=el("div",{class:"nb-f nb-wide"}); l1.append(el("span",{text:"Conteúdo (escolha um ou mais)"}),K.box); const l2=el("div",{class:"nb-f nb-wide"}); l2.append(el("span",{text:"Características (opcional, aparecem como etiquetas no cartão)"}),T.box); body.append(l1,l2); } body.append(fld("Descrição",ds));
   body.append(el("h4",{text:"Peças e habilidades"}),el("p",{class:"muted small",text:"Clique em uma casa para escolher a peça e as habilidades dela. Use Set 1 / Set 2 para montar uma alternativa (no Set 2 só a mão secundária muda)."}));
   let SKD={i:{},s:{}}; try{ SKD=await skLoad()||SKD; }catch(e){}
-  let sk=SETS[0].sk; const setBar=el("div",{class:"seg nb-sets",role:"group","aria-label":"Set"}); const wrap=el("div",{class:"nb-vg"}); const grid=el("div",{class:"kx-g nb-kg"}); const pick=el("div",{class:"nb-pick"}); wrap.append(grid); body.append(setBar,wrap,pick);
+  let sk=SETS[0].sk; const setBar=el("div",{class:"seg nb-sets",role:"group","aria-label":"Set"}); const wrap=el("div",{class:"nb-vg"}); const grid=el("div",{class:"kx-g nb-kg"}); const pick=el("div",{class:"nb-pick"}); const exBox=el("div",{class:"nb-ex"}); wrap.append(grid); body.append(setBar,wrap,exBox,pick);
   const code=id=>String(id||"").replace(/^T\d+_/,"").replace(/@\d$/,"");
   /* todas as habilidades que a peça realmente tem no jogo (data/skills.json, gerado do ao-bin-dumps) */
   const spellOpts=(s,id)=>{ const o=(SKD.i||{})[code(id)]; return o||[]; };
@@ -129,7 +131,13 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
       if(sel[s]){ const x=el("span",{class:"nb-x",role:"button",tabindex:"0",title:"Remover "+lab.toLowerCase(),"aria-label":"Remover "+lab.toLowerCase(),text:"✕"});
         const rm=ev=>{ ev.stopPropagation(); ev.preventDefault(); delete sel[s]; delete sk[s]; if(curPick&&curPick[0]===s){ curPick=null; pick.textContent=""; } draw(); };
         x.addEventListener("click",rm); x.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" ") rm(ev); }); cell.append(x); }
-      cell.addEventListener("click",()=>openPick(s,lab)); grid.append(cell); }); drawSets(); };
+      cell.addEventListener("click",()=>openPick(s,lab)); grid.append(cell); }); drawSets(); drawEx(); };
+  /* coleta e extras: ferramenta, set de coleta, bolsa e montaria (iguais nos dois sets; edite no Set 1) */
+  const drawEx=()=>{ exBox.textContent=""; exBox.append(el("h4",{text:"Coleta e extras"}),el("p",{class:"muted small",text:cs===1?"Iguais ao Set 1.":"Ferramenta, set de coleta, bolsa e montaria. São os mesmos nos dois sets."}));
+    const row=el("div",{class:"nb-exg"}); NB_EXTRAS.forEach(([x,lab])=>{ const id=SETS[0].sel[x]; const c=el("button",{type:"button",class:"nb-xc"+(id?" on":"")+(cs===1?" nb-lock2":""),title:lab,disabled:cs===1});
+      if(id){ const im=fullImg(id,"nico nb-xi"); if(im) c.append(im); const cn=el("small",{text:itemNome(idInfo(id).c)}); c.append(cn); if(NB_CAT){ const bare=id.replace(/@\d$/,""); const r=NB_CAT.i.find(z=>z[0]===bare)||NB_CAT.i.find(z=>z[0].endsWith("_"+idInfo(id).c)); if(r) cn.textContent=(LANG==="en"?r[6]:r[5])||r[6]||cn.textContent; } if(cs!==1){ const rx=el("span",{class:"nb-x nb-x2",role:"button",tabindex:"0",title:"Remover "+lab.toLowerCase(),"aria-label":"Remover "+lab.toLowerCase(),text:"✕"}); const rm=ev=>{ ev.stopPropagation(); ev.preventDefault(); delete SETS[0].sel[x]; if(curPick&&curPick[0]===x){ curPick=null; pick.textContent=""; } draw(); }; rx.addEventListener("click",rm); rx.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" ") rm(ev); }); c.append(rx); } }
+      else c.append(el("span",{class:"nb-plus",text:"+"}),el("small",{text:lab}));
+      c.addEventListener("click",()=>openPick(x,lab)); row.append(c); }); exBox.append(row); };
   const openPick=(s,lab)=>{ curPick=[s,lab]; pick.textContent=""; if(matchMedia("(max-width:1100px)").matches) pick.scrollIntoView({block:"nearest",behavior:"smooth"}); const q=el("input",{type:"search",placeholder:`Buscar ${lab.toLowerCase()}…`}), t=el("select",{"aria-label":"Tier"}), e=el("select",{"aria-label":"Encantamento"}), res=el("div",{class:"nb-res"}), spk=el("div",{class:"nb-sk"});
     [4,5,6,7,8].forEach(n=>t.append(el("option",{value:n,text:"T"+n}))); t.value="8"; [0,1,2,3,4].forEach(n=>e.append(el("option",{value:n,text:n?"."+n:"sem encanto"})));
     const head=el("div",{class:"nb-ph"}); head.append(el("b",{text:lab}),q,t,e); if(sel[s]){ const cl=el("button",{type:"button",class:"bc-more",text:"Remover peça"}); cl.addEventListener("click",()=>{ delete sel[s]; delete sk[s]; pick.textContent=""; draw(); }); head.append(cl); }
@@ -163,6 +171,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
     const skl=(st,x)=>{ const l=st.sk[x]||[], n=x==="w"?4:2; if(!st.sel[x]||!l.some(Boolean)) return null; const a=Array.from({length:n},(_,i)=>l[i]||"").filter(Boolean); return a; };
     for(const x of ["w","h","a","s"]){ if(x==="w"){ const a=skl(S1,"w"); if(a) K2.w=a;  } else { const a=[S1,S2].filter(st=>st.sel[x]).map(st=>skl(st,x)||[]); if(a.some(l=>l.length)) K2[x]=a; } }
     if(Object.keys(K2).length) b.sk=K2;
+    { const X={}; for(const [x] of NB_EXTRAS) if(S1.sel[x]) X[x]=S1.sel[x]; if(Object.keys(X).length) b.x=X; }
     try{ store.set("nbAuthor",au.value.trim()); }catch(e){} const fim=()=>{ nbOpen=b.id; nbRender(); setTimeout(()=>{ const c=document.querySelector("#nbBox .bcard.open"); if(c) c.scrollIntoView({block:"center",behavior:"smooth"}); },100); };
     if(NB_CLOUD){ save.disabled=true; save.textContent="Publicando…"; const o={...b}; delete o.id; delete o.votos; nbApi("nb_builds",{method:"POST",body:JSON.stringify({id:b.id,data:o}),headers:{Prefer:"return=minimal"}}).then(async r=>{ if(!r.ok) throw 0; NB_REPO=null; await nbLoad(); fim(); }).catch(()=>{ const a=nbMine(); a.unshift(b); nbSaveMine(a); err.hidden=false; err.textContent="Não consegui publicar agora; a build ficou salva só no seu navegador. Use \"Publicar para todos\" depois."; save.disabled=false; save.textContent="Salvar build"; nbRender(); }); return; }
     const a=nbMine(); a.unshift(b); nbSaveMine(a); fim(); });
