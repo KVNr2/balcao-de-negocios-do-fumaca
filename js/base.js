@@ -528,13 +528,17 @@ function renderSpecs(){
       const icons=[], combate=g.sec==="combate";
       const mk=key=>{ const im=itemImg(specCode(g,key), combate?tierOrder(tierFromMastery(spMastery(g.k))):null); icons.push(im); return im; };
       const upd=()=>{ const base=spSummary(g); sumS.textContent=base+(combate&&base!=="sem spec"?` · usa até T${tierFromMastery(spMastery(g.k))}`:""); sumS.classList.toggle("on",base!=="sem spec"); refreshSubs();
-        if(combate){ const t=tierFromMastery(spMastery(g.k)); icons.forEach(im=>im._tier(t)); } };
+        if(combate){ const t=tierFromMastery(spMastery(g.k)); icons.forEach(im=>im._tier(t)); lockRows(); } };
+      /* sem maestria (abaixo do T4) não dá para usar item nenhuma da linha: some o nome e o ícone, a não ser que o item já tenha nível */
+      const rows=[], hint=el("p",{class:"tiny muted splock",text:"Digite a maestria da linha para liberar as armas e peças. Sem maestria não dá para usar nenhuma delas.",hidden:true});
+      const lockRows=()=>{ if(!combate) return; const open=tierFromMastery(spMastery(g.k))>=4, sv=spGet(g.k).s||{}; let hid=0; for(const r of rows){ const hide=!open&&!(+sv[r.key]>0); r.el.style.display=hide?"none":""; if(hide) hid++; } hint.hidden=!hid; };
       sm.prepend(mk(repKey(g)));
       let built=false;
       d.addEventListener("toggle",()=>{ if(!d.open||built) return; built=true;
         body.append(tagIn("Maestria",numIn(spMastery(g.k),g.mmax,`Maestria de ${g.nome}`,x=>{ spSetMastery(g.k,x); saveProfile(); upd(); },"—"),mk(repKey(g))));
         for(const [key,pt,en] of g.it){ const label=LANG==="en"?en:pt;
-          body.append(tagIn(label,numIn(+(spGet(g.k).s||{})[key]||0,g.max,`${g.nome}: ${label}`,x=>{ const st=spEnsure(g.k); st.s=st.s||{}; if(x) st.s[key]=x; else delete st.s[key]; saveProfile(); upd(); },"—"),mk(key))); }
+          const row=tagIn(label,numIn(+(spGet(g.k).s||{})[key]||0,g.max,`${g.nome}: ${label}`,x=>{ const st=spEnsure(g.k); st.s=st.s||{}; if(x) st.s[key]=x; else delete st.s[key]; saveProfile(); upd(); },"—"),mk(key)); rows.push({el:row,key}); body.append(row); }
+        if(combate){ body.append(hint); lockRows(); }
         if(g.k.startsWith("a:")){ const kk=g.k.slice(2); body.append(tagIn("Foco T6.0 no jogo",numIn((PF.craft[kk]||{}).obs||0,99999,`Custo de foco no jogo para ${g.nome} T6.0`,x=>{ spEnsure(g.k).obs=x; saveProfile(); upd(); },"—"))); }
       });
       upd(); grid.append(d); }
