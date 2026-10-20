@@ -1048,5 +1048,14 @@ img.nb-xi{width:52px;height:52px}
 @media (max-width:640px){.pager{justify-content:center}.pg-info{width:100%;text-align:center}}
 .kx-alb{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft,rgba(255,255,255,.1))}
 .kx-alb select{width:auto;min-height:34px}.kx-alb textarea{width:100%}
-.bc-act .kx-alb{display:contents}.bc-act .kx-alb .muted{flex-basis:100%}
 .zcard .kx-alb{margin:8px 0 0;padding-top:0;border-top:0}
+/* ações do card: tudo junto à esquerda, sem espalhar */
+.bc-act{justify-content:flex-start;gap:8px}
+.bc-act .kx-alb{display:flex;align-items:center;gap:8px;margin:0;padding:0;border:0;flex-wrap:wrap}
+.bc-act .kx-alb .muted{flex-basis:100%}
+.bc-act .kx-alb select{min-height:40px;height:40px}
+/* duas colunas de cards em telas largas; card aberto e avisos ocupam a linha toda */
+@media (min-width:1000px){
+  .blist,#zList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+  .blist>.bcard.open,.blist>.pager,.blist>.empty,.blist>p,#zList>.pager,#zList>.block,#zList>.empty,#zList>p,#zList>.zcard:has(details[open]){grid-column:1/-1}
+}
