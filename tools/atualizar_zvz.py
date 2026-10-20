@@ -130,14 +130,14 @@ def coletar_albionbb():
     API = "https://api.albionbb.com/us"; GI = "https://gameinfo.albiononline.com/api/gameinfo"
     h = {"Origin": "https://albionbb.com", "Referer": "https://albionbb.com/"}
     lista = json.loads(get(f"{API}/battles?minPlayers=200", extra=h))
-    ids = [str(x["albionId"]) for x in lista if (x.get("totalPlayers") or 0) >= MIN_JOGADORES][:30]
+    ids = [str(x["albionId"]) for x in sorted(lista, key=lambda x: x.get("startedAt") or "", reverse=True) if (x.get("totalPlayers") or 0) >= MIN_JOGADORES][:10]
     def um(bid):
         try: j = json.loads(get(f"{API}/battles/{bid}", extra=h))
         except Exception: return None
         pl = [{"allianceName": p.get("allianceName") or "", "kills": p.get("kills") or 0, "deaths": p.get("deaths") or 0,
                "weapon": (p.get("weapon") or {}).get("name"), "role": p.get("role") or ""} for p in (j.get("players") or []) if (p.get("weapon") or {}).get("name")]
         evs = []
-        for off in range(0, 306, 51):
+        for off in range(0, 1600, 51):
             try: pag = json.loads(get(f"{GI}/events/battle/{bid}?offset={off}&limit=51"))
             except Exception: break
             if not pag: break
@@ -154,22 +154,10 @@ def coletar_albionbb():
 # ---------- agregação ----------
 def main():
     fonte = "AtlasChill (battleboard, lutas com 200+ jogadores)"
-    # O AtlasChill bloqueia o Actions: o arquivo data/zvz.json vindo dele (instantâneo gravado no repositório)
-    # só é substituído pela reserva (AlbionBB) quando passar de 48 h.
-    try:
-        atual = json.load(open(OUT))
-        idade = datetime.datetime.utcnow() - datetime.datetime.strptime(atual["atualizado"], "%Y-%m-%dT%H:%MZ")
-        if atual.get("fonte", "").startswith("AtlasChill") and idade < datetime.timedelta(hours=48):
-            print("instantâneo do AtlasChill com", round(idade.total_seconds() / 3600), "h; mantido"); return
-    except Exception: pass
     bats = []
-    try: bats = coletar_atlas()
-    except Exception as e: print("::warning::AtlasChill falhou:", e)
-    print("lutas lidas no AtlasChill:", len(bats))
-    if len(bats) < 5:
-        print("::warning::poucas lutas no AtlasChill; tentando AlbionBB")
-        try: bats = coletar_albionbb(); fonte = "AlbionBB e API oficial (lutas com 200+ jogadores; o AtlasChill bloqueou o acesso automático)"
-        except Exception as e: print("::error::reserva falhou", e); sys.exit(1)
+    # O AtlasChill usa a API oficial do jogo; ele bloqueia o Actions, então lemos a mesma base direto (lista AlbionBB + eventos oficiais)
+    try: bats = coletar_albionbb(); fonte = "API oficial do Albion + AlbionBB (mesma base do AtlasChill; 10 últimas lutas com 200+ jogadores, Americas)"
+    except Exception as e: print("::error::coleta falhou", e); sys.exit(1)
     if len(bats) < 5: print("::error::poucas lutas lidas:", len(bats)); sys.exit(1)
 
     papeis = collections.defaultdict(collections.Counter); venc = collections.defaultdict(collections.Counter)
