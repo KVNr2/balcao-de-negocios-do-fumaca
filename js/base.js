@@ -555,6 +555,19 @@ $("pfCopy").addEventListener("click",()=>{ const code=btoa(unescape(encodeURICom
 $("pfPasteBtn").addEventListener("click",()=>{ $("pfPasteBox").hidden=!$("pfPasteBox").hidden; $("pfPaste").value=""; $("pfPaste").focus(); });
 $("pfPasteApply").addEventListener("click",()=>{ try{ const o=JSON.parse(decodeURIComponent(escape(atob($("pfPaste").value.trim())))); if(typeof o!=="object"||!o.armas) throw 0; PF=Object.assign(EMPTY(),migrate(o)); saveProfile(); renderProfile(); $("pfPasteBox").hidden=true; $("pfPasteMsg").textContent=""; }catch(e){ $("pfPasteMsg").textContent="Esse código não é uma ficha válida. Copie de novo pelo botão Copiar minha ficha."; } });
 /* Buscar do Albion: o programa do PC abre o site de volta com a ficha depois do "#" (não vai para servidor nenhum). */
+/* A sincronização só existe no Windows (programa do PC). Celular e outros sistemas veem um aviso e preenchem a ficha na mão. */
+const AF_OS = (()=>{ const ua=navigator.userAgent||"", uad=navigator.userAgentData;
+  if(/Android/i.test(ua)) return "android";
+  if(/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && (navigator.maxTouchPoints||0)>1)) return "ios";
+  if(uad && uad.mobile) return "mobile";
+  if(/Windows/i.test(ua)) return "windows";
+  if(/Mac/i.test(ua)) return "mac";
+  if(/Linux|X11|CrOS/i.test(ua)) return "linux";
+  return "windows"; })();
+if(AF_OS!=="windows"){ document.body.classList.add("sem-sync"); const cel=["android","ios","mobile"].includes(AF_OS);
+  $("pfSemTit").textContent=cel?"Sincronizar ainda não funciona no celular":"Sincronizar só funciona no Windows";
+  $("pfSemTxt").textContent=cel?"Por enquanto não há suporte para sincronizar a ficha pelo celular. Nesse aparelho você digita tudo manualmente: abra cada seção abaixo (Combate, Craft, Coleta, Refino, Cozinha e alquimia, Fazenda) e preencha os níveis do seu Destiny Board. A ficha fica salva neste navegador.":"O programa de sincronia é feito para Windows. Neste sistema você digita os níveis manualmente: abra cada seção abaixo e preencha os do seu Destiny Board. A ficha fica salva neste navegador.";
+  $("pfSemSync").hidden=false; }
 $("pfAlbion").href="albion-ficha://iniciar?voltar="+encodeURIComponent(location.origin+location.pathname);
 async function lerFichaDoAlbion(txt){ txt=decodeURIComponent(txt);
   if(txt.startsWith("gz.")){ const bin=Uint8Array.from(atob(txt.slice(3).replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
