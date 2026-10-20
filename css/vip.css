@@ -401,3 +401,49 @@ img.kx-sm{flex:0 1 52px;width:52px;min-width:0;aspect-ratio:1;height:auto;border
 .of-pill.buy{color:#52d38a;border-color:#2e8a58;background:rgba(46,138,88,.16)}
 .of-hs{font:500 10.5px var(--f-body);letter-spacing:.03em;color:var(--smoke);text-transform:uppercase}
 .of-hs b{color:var(--parch-2);font-weight:700}
+/* cartões do painel (cidade, estratégia, taxas, chaves) */
+.of-card{background:linear-gradient(180deg,var(--cloth-2),var(--cloth));border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.of-card.open{border-color:var(--saffron)}
+.of-chead{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:8px;box-sizing:border-box}
+.of-chead:focus-visible{outline:2px solid var(--saffron);outline-offset:3px;border-radius:8px}
+.of-ct{font:600 11px var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--smoke)}
+.of-chead{position:relative}
+.of-cs{position:absolute;right:0;top:0;font:700 11.5px var(--f-body);color:var(--saffron);text-align:right}
+.of-cb{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line-soft);padding-top:9px}
+.of-ico{flex:none;width:36px;height:36px;border-radius:9px;border:1px solid var(--line);display:grid;place-items:center;color:var(--saffron);background:var(--night-2)}
+.of-lines{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;font-size:13.5px;color:var(--parch)}
+.of-lines b{font:700 11.5px var(--f-body);letter-spacing:.05em;text-transform:uppercase}
+b.v,h4.v{color:#4fc3d9}
+b.c,h4.c{color:#b784e8}
+.of-chv{color:var(--smoke);transition:transform .15s}
+.of-card:not(.open) .of-chv{transform:rotate(180deg)}
+.of-pop{display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid var(--line-soft);padding-top:10px}
+.of-pop[hidden]{display:none}
+.of-pc h4{margin:0 0 6px;text-align:center;font:700 11.5px var(--f-body);letter-spacing:.12em;text-transform:uppercase}
+.of-pc h4 small{font-weight:400;color:var(--smoke);text-transform:none;letter-spacing:0}
+.of-pc>div{display:flex;flex-direction:column;gap:3px}
+.of-opt{font:500 13px var(--f-body);text-align:left;background:none;color:var(--parch-2);border:1px solid transparent;border-radius:8px;padding:7px 9px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.of-opt:hover{background:var(--night-2)}
+.of-opt.v.on{background:rgba(79,195,217,.14);border-color:rgba(79,195,217,.5);color:#7fdcec;font-weight:600}
+.of-opt.c.on{background:rgba(183,132,232,.15);border-color:rgba(183,132,232,.5);color:#cfa7f0;font-weight:600}
+.of-man{width:100%;margin-top:6px}
+.of-sl{gap:8px}
+.of-slh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.of-slh input{width:84px;text-align:right;font:700 17px var(--f-body);color:var(--saffron);background:none;border:0;border-bottom:1px solid var(--line);padding:2px 0}
+.of-big{font:700 18px var(--f-body);color:var(--saffron)}
+.of-sl input[type=range]{width:100%;accent-color:var(--saffron)}
+.of-sl>input[type=number]{width:100%}
+.of-sw{display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,var(--cloth-2),var(--cloth));border:1px solid var(--line);border-radius:12px;padding:10px 14px;cursor:pointer;position:relative}
+.of-swi{flex:none;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--night-2);color:var(--smoke);border:1px solid var(--line-soft)}
+.of-sw:has(input:checked) .of-swi{color:#cfa7f0;border-color:rgba(183,132,232,.6);background:rgba(183,132,232,.12)}
+.of-swt{flex:1;font:600 15px var(--f-body);color:var(--parch)}
+.of-sw input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.of-track{flex:none;width:46px;height:26px;border-radius:999px;border:2px solid var(--line);position:relative;transition:border-color .15s}
+.of-track::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--smoke);transition:transform .15s,background .15s}
+.of-sw input:checked~.of-track{border-color:#b784e8}
+.of-sw input:checked~.of-track::after{transform:translateX(20px);background:#b784e8}
+.of-sw:has(input:focus-visible){outline:2px solid var(--saffron)}
+.of-chead{display:grid;grid-template-columns:1fr auto;align-items:center;row-gap:8px}
+.of-cs{position:static}
+.of-cb{grid-column:1/-1}
+.of-pop .of-opt{min-width:0;overflow-wrap:anywhere}
