@@ -17,23 +17,26 @@ let bMode = "";
 const ROLE_RX = [[/heal|cura|reden|hallow|holy|vida|sacr/i,"Curandeiro"],[/tank|front|heavy|frente|stop|mace|martelo|hammer/i,"Frente"],[/rdps|range|kite|dist|ranged|bow|arco/i,"Dano à distância"],[/mdps|melee|dive|brawl|corpo|perto/i,"Dano corpo a corpo"]];
 const roleOf = s => { const t=s||""; for(const [rx,n] of ROLE_RX) if(rx.test(t)) return n; return ""; };
 const TIERV = {S:3,A:2,B:1};
-/* Sinergia por contagem: em cada composição que tem a arma da build (peso 1) ou outra arma da mesma linha (peso 0,5),
-   conta quantas vezes cada arma, cada função e cada tipo de armadura aparecem junto dela. */
+/* Sinergia: só conta composições que usam EXATAMENTE a arma da build. Primeiro vê em qual conteúdo (modo) ela mais aparece;
+   depois, nesse conteúdo, conta quais outras armas jogam junto. Pouca amostra = nenhuma recomendação. */
+const SYN_MIN_COMPS = 3, SYN_MIN_PAR = 2, SYN_MIN_PCT = 0.3;
 function synergyOf(b){
-  const wc=weaponOf(b); const res={n:0,partners:{},lines:{},roles:{},comps:[]};
+  const wc=weaponOf(b); const res={wc,porModo:{},modo:"",n:0,total:0,partners:{},roles:{},comps:[],ok:false};
   if(!wc||!COMPS) return res;
-  for(const c of COMPS.comps){
-    if(bMode&&!(c.modos||[]).includes(bMode)) continue;
-    let hit=c.slots.findIndex(s=>s.arma===wc), w=1;
-    if(hit<0){ hit=c.slots.findIndex(s=>W2LINE[s.arma]===b.l); w=0.5; }
-    if(hit<0) continue;
-    res.n+=w; res.comps.push({c,hit,w});
-    const seen=new Set([c.slots[hit].arma]);
-    const r=roleOf(c.slots[hit].papel); if(r) res.roles[r]=(res.roles[r]||0)+w;
-    c.slots.forEach((s,i)=>{ if(i===hit||seen.has(s.arma)) return; seen.add(s.arma);
-      res.partners[s.arma]=(res.partners[s.arma]||0)+w; const l=W2LINE[s.arma]; if(l) res.lines[l]=(res.lines[l]||0)+w; });
+  const uses=COMPS.comps.filter(c=>c.slots.some(s=>s.arma===wc));
+  for(const c of uses) for(const m of (c.modos||[])) if(m) res.porModo[m]=(res.porModo[m]||0)+1;
+  const best=Object.entries(res.porModo).sort((x,y)=>y[1]-x[1])[0];
+  res.modo=bMode||(best?best[0]:"");
+  res.total=res.modo?COMPS.comps.filter(c=>(c.modos||[]).includes(res.modo)).length:0;
+  for(const c of uses){
+    if(res.modo&&!(c.modos||[]).includes(res.modo)) continue;
+    const hit=c.slots.findIndex(s=>s.arma===wc); res.n++; res.comps.push({c,hit,w:1});
+    const r=roleOf(c.slots[hit].papel); if(r) res.roles[r]=(res.roles[r]||0)+1;
+    const seen=new Set([wc]);
+    c.slots.forEach(s=>{ if(seen.has(s.arma)) return; seen.add(s.arma); res.partners[s.arma]=(res.partners[s.arma]||0)+1; });
   }
-  res.comps.sort((x,y)=>(y.w-x.w)||((TIERV[y.c.tier]||0)-(TIERV[x.c.tier]||0))||(x.c.slots.length-y.c.slots.length));
+  res.comps.sort((x,y)=>((TIERV[y.c.tier]||0)-(TIERV[x.c.tier]||0))||(x.c.slots.length-y.c.slots.length));
+  res.ok=res.n>=SYN_MIN_COMPS;
   return res;
 }
 const fmtN = n => Number.isInteger(n)?String(n):n.toFixed(1).replace(".",",");
@@ -56,21 +59,25 @@ function synergyPanel(b){
   const box=el("div",{class:"bsyn"});
   if(!COMPS){ box.textContent="Abrindo as composições…"; return box; }
   box.append(el("h4",{text:"Combina com"}));
-  const gs=el("div",{class:"seg sm wrap",role:"group","aria-label":"Modo de jogo"});
-  MODOS.forEach(([k,t])=>{ const n=k?COMPS.comps.filter(c=>(c.modos||[]).includes(k)).length:COMPS.comps.length; const bt=el("button",{type:"button",text:k?`${t} (${n})`:t,"aria-pressed":String(bMode===k)}); if(k&&!n) bt.classList.add("dim"); bt.addEventListener("click",()=>{ bMode=k; renderBuilds(); }); gs.append(bt); });
-  box.append(gs);
   const s=synergyOf(b);
-  if(!s.n){ box.append(el("p",{class:"small muted",text:`Nenhuma composição ${bMode?"de "+(MODO_PT[bMode]||bMode)+" ":""}usa ${b.nome} nem outra arma da linha ${(LINE_NAME[b.l]||"outras")}. Esta build serve melhor solo ou em grupo pequeno.`})); return box; }
-  const exact=s.comps.filter(x=>x.w===1).length;
-  box.append(el("p",{class:"small",text:exact?`${b.nome} aparece em ${exact} de ${COMPS.comps.filter(c=>!bMode||(c.modos||[]).includes(bMode)).length} composições do Top Comps${s.comps.length>exact?`, e outras ${s.comps.length-exact} usam armas parecidas (mesma linha, contam meio ponto)`:""}. A sinergia vem de quantas vezes cada arma joga ao lado dela:`:`Nenhuma composição usa exatamente ${b.nome}, mas ${s.comps.length} usam outra arma da linha ${(LINE_NAME[b.l]||"outras")}. A sinergia vem de quantas vezes cada arma joga ao lado delas:`}));
+  const gs=el("div",{class:"seg sm wrap",role:"group","aria-label":"Conteúdo"});
+  const chips=[["","Onde mais é usada"]].concat(MODOS.filter(m=>m[0]&&s.porModo[m[0]]).sort((x,y)=>s.porModo[y[0]]-s.porModo[x[0]]));
+  chips.forEach(([k,t])=>{ const bt=el("button",{type:"button",text:k?`${t} (${s.porModo[k]})`:t,"aria-pressed":String(bMode===k)}); bt.addEventListener("click",()=>{ bMode=k; renderBuilds(); }); gs.append(bt); });
+  if(chips.length>1) box.append(gs);
+  const nome=codeName(s.wc);
+  if(!s.modo){ box.append(el("p",{class:"small muted",text:`Nenhuma composição do Top Comps usa ${nome}. Sem dados suficientes, não há recomendação de sinergia para esta build.`})); return box; }
+  const cont=MODO_PT[s.modo]||s.modo;
+  if(!s.ok){ box.append(el("p",{class:"small muted",text:`${nome} aparece em apenas ${s.n} composição(ões) de ${cont}. É pouco para recomendar sinergia, então não vou sugerir nada para esta build.`})); return box; }
+  box.append(el("p",{class:"small",text:`${nome} é mais usada em ${cont}: aparece em ${s.n} de ${s.total} composições. Estas são as armas que jogam com ela nessas composições:`}));
   const roles=Object.entries(s.roles).sort((x,y)=>y[1]-x[1]);
-  if(roles.length){ const rr=el("div",{class:"bc-meta"}); rr.append(el("small",{class:"muted",text:"Função nas composições:"})); roles.forEach(([r,n])=>rr.append(el("span",{class:"tag",text:`${r} ×${fmtN(n)}`}))); box.append(rr); }
-  const top=Object.entries(s.partners).sort((x,y)=>y[1]-x[1]).slice(0,8);
-  const row=el("div",{class:"cc-row sum"});
-  for(const [arma,n] of top){ const pct=Math.round(100*n/s.n); const t=tile(arma,codeName(arma),`${fmtN(n)} de ${fmtN(s.n)} (${pct}%)`); const has=(GB||[]).some(x=>x.wc===arma); if(has){ t.classList.add("link"); t.title="Ver as builds de "+codeName(arma); t.tabIndex=0; t.addEventListener("click",()=>goBuild(arma)); t.addEventListener("keydown",e=>{ if(e.key==="Enter") goBuild(arma); }); } row.append(t); }
-  box.append(row);
-  const ln=Object.entries(s.lines).sort((x,y)=>y[1]-x[1]).slice(0,5);
-  if(ln.length){ const lr=el("div",{class:"bc-meta"}); lr.append(el("small",{class:"muted",text:"Linhas que mais acompanham:"})); ln.forEach(([l,n])=>lr.append(el("span",{class:"tag",text:`${LINE_NAME[l]||l} ×${fmtN(n)}`}))); box.append(lr); }
+  if(roles.length){ const rr=el("div",{class:"bc-meta"}); rr.append(el("small",{class:"muted",text:"Função nas composições:"})); roles.forEach(([r,n])=>rr.append(el("span",{class:"tag",text:`${r} ×${n}`}))); box.append(rr); }
+  const top=Object.entries(s.partners).filter(([,n])=>n>=SYN_MIN_PAR&&n/s.n>=SYN_MIN_PCT).sort((x,y)=>y[1]-x[1]).slice(0,8);
+  if(!top.length) box.append(el("p",{class:"small muted",text:"As composições são variadas e nenhuma arma se repete o bastante ao lado dela. Sem recomendação."}));
+  else {
+    const row=el("div",{class:"cc-row sum"});
+    for(const [arma,n] of top){ const pct=Math.round(100*n/s.n); const t=tile(arma,codeName(arma),`${n} de ${s.n} (${pct}%)`); const has=(GB||[]).some(x=>x.wc===arma); if(has){ t.classList.add("link"); t.title="Ver as builds de "+codeName(arma); t.tabIndex=0; t.addEventListener("click",()=>goBuild(arma)); t.addEventListener("keydown",e=>{ if(e.key==="Enter") goBuild(arma); }); } row.append(t); }
+    box.append(row);
+  }
   box.append(el("h4",{text:"Composições de exemplo"}));
   const list=el("div",{class:"cc-list"}); s.comps.slice(0,4).forEach(r=>list.append(compCard(r))); box.append(list);
   box.append(el("p",{class:"tiny muted",text:`Fonte: Albion Online Builds, Top Comps. Os dados são atualizados todo dia (última vez em ${COMPS.atualizado.split("-").reverse().join("/")}).`}));
