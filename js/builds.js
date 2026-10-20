@@ -140,7 +140,7 @@ function kbPanel(b){
         const lado=sl.length>=4; const sp=el("div",{class:"kx-ov"+(lado?" kx-left":"")}); sl.forEach(x=>sp.append(spellImg(x,"kx-sm"))); cell.append(sp); } }
     g.append(cell); });
   R.append(g); box.append(R);
-  if(b.x&&Object.keys(b.x).length){ const X=el("section",{class:"kx-x"}); X.append(el("h4",{text:"Coleta e extras"})); const xg=el("div",{class:"kx-xg"});
+  if(b.x&&Object.keys(b.x).length){ const X=el("section",{class:"kx-x"}); X.append(el("h4",{text:"Extras"})); const xg=el("div",{class:"kx-xg"});
     [["t","Ferramenta"],["gh","Chapéu de coleta"],["ga","Traje de coleta"],["gs","Botas de coleta"],["gk","Mochila de coleta"],["gb","Bolsa"],["m","Montaria"]].forEach(([k,lab])=>{ const id=b.x[k]; if(!id) return; const i=idInfo(id); if(!i) return; const it=el("div",{class:"kx-xi"}); const im=fullImg(id,"nico kx-i"); if(im) it.append(im); const tx=el("div",{class:"kx-tx"}); const nb=el("b",{text:itemNome(i.c),title:`T${i.t}${i.e?"."+i.e:""}`}); tx.append(el("small",{class:"muted",text:lab}),nb); it.append(tx); xg.append(it);
       need("catalog").then(c=>{ const bare=id.replace(/@\d$/,""); const r=c.i.find(z=>z[0]===bare)||c.i.find(z=>z[0].endsWith("_"+i.c)); if(r){ const n=(LANG==="en"?r[6]:r[5])||r[6]; if(n) nb.textContent=n; } }).catch(()=>{}); });
     X.append(xg); box.append(X); }
