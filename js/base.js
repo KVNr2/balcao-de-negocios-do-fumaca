@@ -681,23 +681,32 @@ async function renderCook(){
     const d=tr.insertCell(); d.className="num"; d.textContent=dec(m.spf);
     const e=tr.insertCell(); e.className="num"; e.textContent=fmt(m.item.p);
     const f=tr.insertCell(); f.className="tiny muted"; f.textContent=m.thin?"pouca oferta":"";
-    const pick=()=>{ ckSel=m.id; renderCookDetail(); $("ckDetail").scrollIntoView({behavior:RM?"auto":"smooth",block:"start"}); };
-    tr.addEventListener("click",pick); tr.addEventListener("keydown",ev=>{ if(ev.key==="Enter") pick(); });
+    const dr=document.createElement("tr"); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dc.colSpan=6; dr.append(dc); tr.after(dr); tr.dataset.id=m.id;
+    const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open)); ckSel=open?m.id:null;
+      if(open){ dc.textContent=""; try{ dc.append(cookPanel(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes: "+(e&&e.message||e)})); } setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8) dr.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"}); }catch(e){} },60); } };
+    tr.setAttribute("aria-expanded","false"); tr.addEventListener("click",toggle); tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } });
+    if(ckSel===m.id) toggle();
   }
-  if(ckSel) renderCookDetail();
+  { const w=tb.parentNode; if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }
 }
-function renderCookDetail(){
-  const m=cookModel(ckSel); const box=$("ckDetail"); if(!m||m.miss){ box.hidden=true; return; } box.hidden=false;
-  $("ckTitle").textContent=`${m.name} em ${COOK_CITY[m.kind]}`;
-  const L=$("ckLedger"); L.textContent="";
-  for(const x of m.parts){ const tr=L.insertRow(); const td=tr.insertCell(); td.append(withIcon(x.iid,COOK.n[x.iid]||x.iid,el("small",{text:`${x.c} × ${fmt(x.p.p)}`}))); tr.insertCell().textContent=sgn(-x.c*x.p.p); }
-  const rr=rrr(0.15,true,st.daily);
-  [["Volta pelo retorno",`${dec(rr*100)}% dos ingredientes`,m.cost*rr],["Taxa da estação","estimada pela nutrição",-m.fee],["Venda",`${m.q} × ${fmt(m.item.p)} menos taxas`,m.net]].forEach(([a,b,c])=>{ const tr=L.insertRow(); const td=tr.insertCell(); td.append(a,el("small",{text:b})); tr.insertCell().textContent=sgn(c); });
-  const tr=L.insertRow(); tr.className="total"; tr.insertCell().textContent="Lucro por fornada"; const tc=tr.insertCell(); tc.textContent=sgn(m.p1); tc.className=m.p1>=0?"gain":"loss";
-  const t2=L.insertRow(); const a=t2.insertCell(); a.append("Com 10.000 de foco",el("small",{text:`custo de foco ${fmt(m.fc)} por fornada, ${dec(m.spf)} pratas por ponto`})); const b=t2.insertCell(); b.textContent=sgn(m.day); b.className=m.day>=0?"gain":"loss";
-  const sc=bestCity(m.id,st.sell==="instant"?1:0,"max"); if(sc){ const t3=L.insertRow(); const a3=t3.insertCell(); a3.append(`Melhor cidade para vender`,el("small",{text:`${sc.c}, ${fmt(sc.p)} cada`})); t3.insertCell().textContent=sgn(m.q*(sc.p-m.item.p)*(1-taxOf())); }
-  drawHistory($("histCook"),$("histCookNote"),m.id,COOK_CITY[m.kind]);
-  if(window.gsap&&!RM) gsap.from(box.querySelectorAll(".ledger tr"),{autoAlpha:0,x:-10,stagger:.03,duration:.3,clearProps:"all"});
+/* detalhe da receita: mesmo desenho do Mercado Negro (compras em vermelho, venda e lucro em verde) */
+function cookPanel(m){
+  const d=el("div",{class:"of-xp"}), left=el("div",{class:"of-xl"}), right=el("div",{class:"of-xs"}), city=COOK_CITY[m.kind];
+  left.append(el("h4",{class:"of-xh",text:`${m.name} em ${city}`}));
+  const hd=el("div",{class:"of-xr of-xhd"}); ["Stats","Item","Valor","Tempo","Cidade","Qtd"].forEach(x=>hd.append(el("span",{text:x}))); left.append(hd);
+  const row=(kind,lab,id,nm,sub,val,qty,where)=>{ const r=el("div",{class:"of-xr "+kind}); r.append(el("span",{class:"of-pill "+kind,text:lab}));
+    const it=el("span",{class:"of-xi"}); it.append(el("i",{class:"of-dot"+(kind==="buy"?" red":"")}),iconImg(id,34)); const n=el("span",{class:"of-xn"}); n.append(el("b",{text:nm})); if(sub) n.append(el("small",{text:sub})); it.append(n); r.append(it);
+    r.append(el("b",{class:"of-xv",text:fmt(val)}),el("span",{class:"of-xt",text:"—"}),el("span",{class:"of-xc",text:where}),el("span",{class:"of-xq",text:qty})); return r; };
+  left.append(row("sale","VENDA INST",m.id,m.name,"preço típico",m.item.p,`${m.q}x`,city));
+  for(const x of m.parts) left.append(row("buy","COMPRA INST",x.iid,COOK.n[x.iid]||x.iid,"preço típico nas cidades",x.p.p,`${fmt(x.c)}x`,city));
+  const hist=el("div",{class:"hist"}), hh=el("div",{class:"hist-h"}); hh.append(el("span",{text:"Histórico de 30 dias"})); const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("viewBox","0 0 520 150"); svg.setAttribute("role","img"); const hn=el("p",{class:"tiny muted"}); hist.append(hh,svg,hn); left.append(hist);
+  const card=(cls,title,lines,tot)=>{ const c=el("div",{class:"of-xcard "+cls}); c.append(el("h4",{class:"of-xh",text:title})); for(const [k,v] of lines){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{text:v})); c.append(l); } if(tot){ const l=el("div",{class:"of-xline of-xtot"}); l.append(el("span",{text:tot[0]}),el("b",{text:tot[1]})); c.append(l); } return c; };
+  const rr=rrr(0.15,true,st.daily), bruto=m.q*m.item.p;
+  right.append(card("cost","Custos detalhados (−)",[["Ingredientes",fmt(m.cost)],[`Retorno de recursos (${dec(rr*100)}%)`,"−"+fmt(m.cost*rr)],["Taxa da estação",fmt(m.fee)]],["Custo da fornada",fmt(m.cost*(1-rr)+m.fee)]));
+  const lines=[[`Venda (${m.q} × ${fmt(m.item.p)})`,fmt(bruto)],[`Taxas de venda (${dec(taxOf()*100)}%)`,"−"+fmt(bruto-m.net)],["Líquido da venda",fmt(m.net)],["Foco por fornada",fmt(m.fc)],["Com 10.000 de foco",sgn(m.day)+" por dia"],["Por ponto de foco",dec(m.spf)+" pratas"]];
+  const sc=bestCity(m.id,st.sell==="instant"?1:0,"max"); if(sc) lines.push(["Melhor cidade para vender",`${sc.c}, ${fmt(sc.p)} cada`]);
+  right.append(card(m.p1<0?"res neg":"res",m.p1<0?"Resultado (−)":"Resultado (+)",lines,["Lucro por fornada",sgn(m.p1)]));
+  d.append(left,right); drawHistory(svg,hn,m.id,city); return d;
 }
 function bestCook(){ if(!COOK_LOADED) return []; const out=[]; for(const id in COOK.r){ const k=COOK.r[id][1]; if(((PF[k==="f"?"cozinha":"alquimia"]||{}).lv||0)===0) continue; const m=cookModel(id); if(m&&!m.miss&&!m.thin&&m.p1>0) out.push(m); } return out.sort((a,b)=>b.day-a.day); }
 function renderCookRecs(){

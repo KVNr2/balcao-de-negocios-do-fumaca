@@ -26,7 +26,7 @@ document.querySelectorAll("[data-res]").forEach(b=>b.addEventListener("click",()
 document.querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click",()=>{ const g=b.dataset.g; document.querySelectorAll(`[data-g="${g}"]`).forEach(x=>x.setAttribute("aria-pressed",String(x===b))); st[g]= g==="sell"?b.dataset.v:parseFloat(b.dataset.v); recompute(g==="sell"); }));
 $("bSort").addEventListener("change",e=>{ bSort=e.target.value; renderBuilds(); });
 $("bOnlyMine").addEventListener("change",renderBuilds);
-document.querySelectorAll("[data-ck]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-ck]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); ckKind=b.dataset.ck; ckSel=null; $("ckDetail").hidden=true; renderCook(); }));
+document.querySelectorAll("[data-ck]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-ck]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); ckKind=b.dataset.ck; ckSel=null; renderCook(); }));
 $("ckBuilds").addEventListener("change",renderCook);
 ["tier","ench"].forEach(id=>$(id).addEventListener("change",()=>calc(true)));
 ["pRaw","pPrev","pBar","focusCost","focusPool"].forEach(id=>$(id).addEventListener("input",()=>calc(false)));
