@@ -87,7 +87,21 @@ def modal(c):
 
 def main():
     html = get(f"{BB}/?minPlayers=100")
-    ids = list(dict.fromkeys(re.findall(r"/battles/(\d+)", html)))[:MAX_BATALHAS]
+    ids = []
+    m = re.search(r'<script[^>]*id="__NUXT_DATA__"[^>]*>(.*?)</script>', html, re.S)
+    if m:
+        def achar(o, d=0):
+            if d > 6: return
+            if isinstance(o, dict):
+                if "albionId" in o and "totalPlayers" in o:
+                    if (o["totalPlayers"] or 0) >= 100: ids.append(str(o["albionId"]))
+                    return
+                for x in o.values(): achar(x, d + 1)
+            elif isinstance(o, list):
+                for x in o: achar(x, d + 1)
+        achar(devalue(json.loads(m.group(1))))
+    if not ids: ids = re.findall(r"/battles/(\d+)", html)
+    ids = list(dict.fromkeys(ids))[:MAX_BATALHAS]
     print("batalhas na lista:", len(ids), "html", len(html))
     if not ids: print("::error::lista vazia; trecho:", html[:300].replace("\n"," ")); sys.exit(1)
     with ThreadPoolExecutor(5) as ex: bats = [b for b in ex.map(batalha, ids) if b]
