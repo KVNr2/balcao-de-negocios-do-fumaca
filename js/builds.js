@@ -111,7 +111,7 @@ function spellImg(id,cls){ const im=el("img",{class:cls||"kx-sp",alt:"",loading:
 function kxItem(id,skills){
   const i=idInfo(id); const row=el("div",{class:"kx-it"}); if(!i) return row;
   const im=fullImg(id,"nico kx-i"); if(im) row.append(im);
-  const tx=el("div",{class:"kx-tx"}); tx.append(el("b",{text:itemNome(i.c)})); tx.append(el("small",{class:"kx-t",text:`T${i.t}${i.e?"."+i.e:""}`}));
+  const tx=el("div",{class:"kx-tx"}); tx.append(el("b",{text:itemNome(i.c),title:`T${i.t}${i.e?"."+i.e:""}`}));
   if(skills&&skills.length){ const sp=el("div",{class:"kx-sps"}); skills.forEach(x=>sp.append(spellImg(x))); tx.append(sp); }
   row.append(tx); return row;
 }
