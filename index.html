@@ -489,6 +489,7 @@
     <div class="row-ctl">
       <label class="f">Mercadoria<select id="bmGroup"></select></label>
       <div class="seg" role="group" aria-label="Tier" id="bmTier"></div>
+      <div class="seg" role="group" aria-label="Qualidade" id="bmQual"></div>
       <div class="seg" role="group" aria-label="Como ganhar">
         <button type="button" data-bm="craft" aria-pressed="true">Fabricar e vender</button>
         <button type="button" data-bm="flip" aria-pressed="false">Comprar barato e revender</button>
@@ -504,7 +505,7 @@
         <div class="hist"><div class="hist-h"><span>O que o Mercado Negro pagou em 30 dias</span></div><svg id="histBm" viewBox="0 0 520 150" role="img" aria-label="Histórico de preço no Mercado Negro"></svg><p class="tiny muted" id="histBmNote"></p></div>
       </div>
     </div>
-    <p class="tiny muted">Qualidade normal. Ordens do Mercado Negro aceitam qualidade igual ou melhor, então uma peça boa também serve na ordem normal. Fabricar usa o bônus de 15% da cidade indicada; o artefato entra pelo preço cheio, porque ele não volta no retorno de recursos.</p>
+    <p class="tiny muted">Cada linha é uma ordem do Mercado Negro com uma qualidade mínima: ela aceita a qualidade indicada ou melhor, e o preço muda bastante de uma qualidade para outra. Em "Comprar barato e revender", a peça pode vir de uma qualidade maior se for a mais barata. Fabricar não escolhe a qualidade: o jogo sorteia, e as mais altas são raras, então o lucro de fabricar nas qualidades altas é otimista. Fabricar usa o bônus de 15% da cidade indicada; o artefato entra pelo preço cheio, porque ele não volta no retorno de recursos.</p>
   </section>
 
   <!-- MATCHUPS -->
@@ -575,6 +576,7 @@
     <div class="row-ctl">
       <div class="f"><span>Tier</span><div class="seg" role="group" aria-label="Tier" id="mkTier"></div></div>
       <div class="f"><span>Encantamento</span><div class="seg" role="group" aria-label="Encantamento" id="mkEnch"></div></div>
+      <div class="f"><span>Qualidade</span><div class="seg" role="group" aria-label="Qualidade" id="mkQual"></div></div>
     </div>
     <p class="small muted" id="mkNote"></p>
     <div class="tbl"><table id="mkTable" class="mktable"></table></div>
