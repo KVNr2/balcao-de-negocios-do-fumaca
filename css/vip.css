@@ -1000,3 +1000,6 @@ button.nb-skcard.on{border-color:var(--gain,#5ec98c);background:rgba(94,201,140,
 button.nb-chip{padding:5px 11px;border-radius:999px;border:1px solid var(--line-soft,rgba(255,255,255,.14));background:rgba(255,255,255,.04);color:var(--parch-2,#cdbf9f);font:500 12.5px Inter,sans-serif;cursor:pointer}
 button.nb-chip:hover{border-color:var(--saffron,#e8ab45)}
 button.nb-chip[aria-pressed=true]{background:rgba(232,171,69,.2);border-color:var(--saffron,#e8ab45);color:var(--saffron,#e8ab45);font-weight:600}
+.nb-sets{margin:4px 0 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button.nb-cell.nb-off{background:repeating-linear-gradient(45deg,#101218,#101218 8px,#14161c 8px,#14161c 16px);border:1px dashed #2b2e38;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#8a8272;cursor:not-allowed;opacity:.7}
+button.nb-cell.nb-off .nb-plus{font-size:26px;opacity:.6}
