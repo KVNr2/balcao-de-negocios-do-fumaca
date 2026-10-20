@@ -74,21 +74,21 @@ async function ensureOf(cat){
     OF.loaded.add(cat); return true;
   }catch(e){ return false; }
 }
-const OF2 = {manS:0, manB:0, qty:10, hs:{}, qual:0, tax:true, rrMan:null, open:new Set()};
+const OF2 = {ov:{}, manS:0, manB:0, qty:10, hs:{}, qual:0, tax:true, rrMan:null, open:new Set()};
 function bestIn(tbl,id,field,want,only){ const r=tbl[id.includes("_LEVEL")?id.split("@")[0]:id]; if(!r) return null; let b=null; for(const [c,v] of Object.entries(r)){ if(only&&c!==only) continue; const p=v[field]; if(!(p>0)) continue; if(!b||(want==="min"?p<b.p:p>b.p)) b={p,c,t:v[field+2]||snapTime()}; } return b; }
 const sellBM = () => OF.sellC.has("Black Market");
 const sellLocs = () => { const l=[]; if(!OF.sellC.size||[...OF.sellC].some(c=>c!=="Black Market")) l.push(...SHOP_LOCS); if(sellBM()) l.push("Black Market"); return l; };
 const ofSig = () => [...OF.sellC].sort().join(",")+"|"+OF.sellS+"|"+OF.buyS+"|"+OF.city;
 const avgOf = (id,c) => { const h=OF2.hs[nk(id)+"|"+c]; return h&&h.avg>0?h.avg:0; };
-function pickBuy(id){
+function pickBuy(id,ov){
   if(OF.buyS==="manual"&&OF2.manB>0) return {p:OF2.manB,c:OF.city||"Manual",t:0,mode:"manual"};
   const r=DATA.itens[id.includes("_LEVEL")?id.split("@")[0]:id]||{}; let best=null;
-  for(const c of (OF.city?[OF.city]:SHOP_LOCS)){ const v=r[c]; let p=0,t=0,mode="inst";
+  for(const c of (ov?[ov]:OF.city?[OF.city]:SHOP_LOCS)){ const v=r[c]; let p=0,t=0,mode="inst";
     if(OF.buyS==="medio"){ p=avgOf(id,c); mode="medio"; } else if(OF.buyS==="ordem"){ p=v?v[1]:0; t=v?v[3]:0; mode="ordem"; } else { p=v?v[0]:0; t=v?v[2]:0; }
     if(p>0&&(!best||p<best.p)) best={p,c,t:t||snapTime(),mode}; }
   return best; }
-function pickSell(id){
-  const cands=OF.sellC.size?[...OF.sellC]:SHOP_LOCS;
+function pickSell(id,ov){
+  const cands=ov?[ov]:OF.sellC.size?[...OF.sellC]:SHOP_LOCS;
   if(OF.sellS==="manual"&&OF2.manS>0) return {p:OF2.manS,c:cands[0]||"Manual",t:0,mode:"manual"};
   const tbl=OF2.qual>1?PQ[OF2.qual]:DATA.itens, r=tbl[id.includes("_LEVEL")?id.split("@")[0]:id]||{}; let best=null;
   for(const c of cands){ const v=r[c]; let p=0,t=0,mode="ordem";
@@ -105,16 +105,16 @@ function ofRR(it){ return OF2.rrMan!=null?OF2.rrMan:ofRRbase(it); }
 function ofN(){ return OF2.qty>0?OF2.qty:10; }
 /* custo e lucro de N receitas: o retorno é aplicado ao total de cada material e arredondado para cima, como se compra no jogo */
 function ofModel(it){
-  const sale=pickSell(it.id); if(!sale) return null;
-  const N=ofN(); let mat=0, miss=0; const rr=ofRR(it), parts=[];
-  for(const g of it.ing){ const b=pickBuy(g.id); if(!b){ miss++; parts.push({...g,b:null}); continue; }
-    const unit=b.p*(b.mode==="ordem"?1.025:1), total=g.n*N, need=g.art?total:Math.ceil(total*(1-rr)-1e-9), ret=total-need, sub=need*unit;
-    mat+=sub; parts.push({...g,b,unit,total,need,ret,pay:need,sub,retVal:ret*unit}); }
+  const ovS=OF2.ov["s|"+it.id]; const sale=(ovS&&pickSell(it.id,ovS))||pickSell(it.id); if(!sale) return null;
+  const N=ofN(); let mat=0, buyFee=0, miss=0; const rr=ofRR(it), parts=[];
+  for(const g of it.ing){ const ovB=OF2.ov["b|"+it.id+"|"+g.id]; const b=(ovB&&pickBuy(g.id,ovB))||pickBuy(g.id); if(!b){ miss++; parts.push({...g,b:null}); continue; }
+    const unit=b.p, total=g.n*N, need=g.art?total:Math.ceil(total*(1-rr)-1e-9), ret=total-need, base=need*unit, bf=b.mode==="ordem"?base*0.025:0;
+    mat+=base; buyFee+=bf; parts.push({...g,b,unit,total,need,ret,pay:need,sub:base+bf,retVal:ret*unit}); }
   if(miss) return {it,sale,parts,miss};
-  const fee=it.fee*feeVal()/100*N, cost=mat+fee;
-  const tax=OF2.tax?((st.prem?0.04:0.08)+(sale.mode==="ordem"?0.025:0)):0, gross=N*it.q*sale.p, net=gross*(1-tax), profit=net-cost;
+  const fee=it.fee*feeVal()/100*N, cost=mat+buyFee+fee;
+  const tax=OF2.tax?((st.prem?0.04:0.08)+(sale.mode==="ordem"?0.025:0)):0, gross=N*it.q*sale.p, taxV=gross*tax, net=gross-taxV, costReal=cost+taxV, profit=gross-costReal;
   const fc1=Math.max(1,Math.round(it.focus*Math.pow(0.5,(it.fce||0)/10000)));
-  return {it,N,sale,parts,cost,mat,net,gross,taxV:gross-net,profit,pct:cost>0?profit/cost:0,rr,fee,fc:fc1*N,fc1,units:N*it.q};
+  return {it,N,sale,parts,cost,costReal,mat,buyFee,net,gross,taxV,profit,pct:costReal>0?profit/costReal:0,rr,fee,fc:fc1*N,fc1,units:N*it.q};
 }
 /* preços na qualidade escolhida para o item fabricado */
 async function ensureOfQ(items){
@@ -160,26 +160,30 @@ function chip(g){
   d.append(t); return d;
 }
 const ofQN = q => (q>1?QNAME[q]:"Normal").toUpperCase();
+function ofCitySel(opts,cur,onPick){
+  const sel=el("select",{class:"of-csel","aria-label":"Cidade"}); opts.forEach(c=>sel.append(el("option",{value:c,text:c}))); sel.value=cur;
+  sel.addEventListener("click",ev=>ev.stopPropagation()); sel.addEventListener("change",()=>onPick(sel.value)); return sel; }
 function ofDetail(m){
-  const d=el("div",{class:"of-det"});
-  const t=el("table",{class:"ledger of-mat"}); const h=t.createTHead().insertRow(); ["Material","Por receita",`Total (${m.N} receitas)`,"Devolve","Compra","Preço","Onde","Subtotal"].forEach(x=>h.append(el("th",{text:x})));
-  const b=t.createTBody();
-  for(const g of m.parts){ const tr=b.insertRow(); const c0=tr.insertCell(); c0.append(withIcon(g.id.replace(/_LEVEL(\d)$/,"_LEVEL$1@$1"),el("span",{text:g.nm})));
-    tr.insertCell().textContent=fmt(g.n); tr.insertCell().textContent=fmt(g.total);
-    const rc=tr.insertCell(); rc.className=g.art?"":"gain"; rc.textContent=g.art?"não volta":fmt(g.ret);
-    tr.insertCell().textContent=fmt(g.need);
-    const pc=tr.insertCell(); pc.className="num"; pc.textContent=fmt(g.unit);
-    const cc=tr.insertCell(); cc.append(g.b.c," ",ageSpan(g.b.t)||"");
-    const sc=tr.insertCell(); sc.className="num"; sc.textContent=fmt(g.sub); }
-  const tl=el("div",{class:"of-sum"});
-  const add=(k,v,cls)=>tl.append(el("span",{text:k}),el("b",{class:cls||"",text:v}));
-  add(`Receitas a fabricar`,fmt(m.N)+(m.it.q>1?` (${fmt(m.units)} unidades)`:"")); add(`Retorno de recursos usado`,ofPct(m.rr));
-  add("Materiais comprados",fmt(m.mat)); add("Taxa da estação",fmt(m.fee)); add("Custo total",fmt(m.cost),"loss");
-  add(`Venda bruta (${fmt(m.sale.p)} em ${m.sale.c})`,fmt(m.gross)); add(OF2.tax?`Taxas de venda (${st.prem?"Premium":"sem Premium"})`:"Taxas de venda (desligadas)",`−${fmt(m.taxV)}`); add("Receita líquida",fmt(m.net));
-  add("Lucro total",sgn(m.profit),m.profit>=0?"gain":"loss"); add("Lucro por receita",sgn(m.profit/m.N));
-  add("Valor do que volta",fmt(m.parts.reduce((a,g)=>a+(g.retVal||0),0)),"gain");
-  add("Foco gasto",fmt(m.fc)); add("Lucro por ponto de foco",fmt(m.profit/m.fc));
-  d.append(t,tl); return d;
+  const d=el("div",{class:"of-xp"}); const left=el("div",{class:"of-xl"});
+  left.append(el("h4",{class:"of-xh",text:"Preços & quantidades"}));
+  const hd=el("div",{class:"of-xr of-xhd"}); ["Stats","Item","Valor","Tempo","Cidade","Qtd"].forEach(x=>hd.append(el("span",{text:x}))); left.append(hd);
+  const row=(kind,id,nmText,pr,locs,onPick,qty,sub,q)=>{
+    const r=el("div",{class:"of-xr "+kind});
+    const lab=kind==="sale"?({ordem:"ORDEM VENDA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"VENDA INST"):({ordem:"ORDEM COMPRA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"COMPRA INST");
+    r.append(el("span",{class:"of-pill "+kind,text:lab}));
+    const it_=el("span",{class:"of-xi"}); it_.append(el("i",{class:"of-dot"+(kind==="buy"?" red":"")}),iconImg(nk(id),34,q||1)); const nm=el("span",{class:"of-xn"}); nm.append(el("b",{text:nmText})); if(sub) nm.append(el("small",{text:sub})); it_.append(nm); r.append(it_);
+    r.append(el("b",{class:"of-xv",text:fmt(pr.p)}),el("span",{class:"of-xt"},ageSpan(pr.t)||"—"));
+    const cc=el("span",{class:"of-xc"}); cc.append(locs.length>1?ofCitySel(locs,pr.c,onPick):pr.c); r.append(cc,el("span",{class:"of-xq",text:fmt(qty)+"x"})); return r; };
+  const sellLocsFor=()=>(OF.sellC.size?[...new Set([...OF.sellC,...sellLocs()])]:sellLocs()).filter(c=>pickSell(m.it.id,c));
+  const redo=()=>renderOf();
+  left.append(row("sale",m.it.id,m.it.name,m.sale,sellLocsFor(),c=>{ OF2.ov["s|"+m.it.id]=c; redo(); },m.units,"",OF2.qual>1?OF2.qual:1));
+  for(const g of m.parts){ const locs=SHOP_LOCS.filter(c=>pickBuy(g.id,c));
+    left.append(row("buy",g.id,g.nm,g.b,locs,c=>{ OF2.ov["b|"+m.it.id+"|"+g.id]=c; redo(); },g.need,g.art?`${fmt(g.total)} · artefato não volta`:`${fmt(g.total)} na receita · volta ${fmt(g.ret)}`)); }
+  const right=el("div",{class:"of-xs"});
+  const card=(cls,title,lines,tot)=>{ const c=el("div",{class:"of-xcard "+cls}); c.append(el("h4",{class:"of-xh",text:title})); for(const [k,v,cc] of lines){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{class:cc||"",text:v})); c.append(l); } if(tot){ const l=el("div",{class:"of-xline of-xtot"}); l.append(el("span",{text:tot[0]}),el("b",{text:tot[1]})); c.append(l); } return c; };
+  right.append(card("cost","Custos detalhados (−)",[["Matérias primas",fmt(m.mat)],["Taxa de nutrição",fmt(m.fee)],["Taxa de compra (pedidos)",fmt(m.buyFee)],["Taxa de venda"+(OF2.tax?(st.prem?" (Premium)":""):" (desligada)"),fmt(m.taxV)]],["Custo total real",fmt(m.costReal)]));
+  right.append(card("res","Resultado (+)",[[`Receitas a fabricar`,fmt(m.N)+(m.it.q>1?` (${fmt(m.units)} un.)`:"")],["Retorno de recursos",ofPct(m.rr)],["Valor do que volta",fmt(m.parts.reduce((a,g)=>a+(g.retVal||0),0)),"gain"],["Venda bruta",fmt(m.gross)],["Lucro por receita",sgn(m.profit/m.N)],["Foco gasto",fmt(m.fc)],["Lucro por ponto de foco",fmt(m.profit/m.fc)]],["Lucro total",sgn(m.profit)]));
+  d.append(left,right); return d;
 }
 async function renderOf(){
   const note=$("ofNote"), tb=$("ofTable");
@@ -199,7 +203,8 @@ async function renderOf(){
   OF2.sample=items[0];
   const rows=items.map(ofModel).filter(Boolean), ok=rows.filter(m=>!m.miss).sort((a,b)=>b.profit-a.profit), LIM=agg?120:60, shown=ok.slice(0,LIM);
   ofSyncRR();
-  tb.textContent=""; const hr=tb.createTHead().insertRow(); [["Item",""],["Custo","Materiais comprados com o retorno + taxa da estação"],["Venda","Receita líquida depois das taxas"],["Lucro","Lucro total das receitas"],["Venda e compra","O número no ícone é a quantidade: unidades a vender e materiais a comprar"]].forEach(([h,t])=>hr.append(el("th",{text:h,title:t})));
+  tb.textContent=""; const hr=tb.createTHead().insertRow(); [["Item",""],["Custo","Custo total real: materiais, taxa da estação, taxas de compra e de venda"],["Venda","Venda bruta, antes das taxas"],["Lucro","Lucro total das receitas"],["Venda e compra","O número no ícone é a quantidade: unidades a vender e materiais a comprar"]].forEach(([h,t])=>hr.append(el("th",{text:h,title:t})));
+  const fitW=()=>{ const w=tb.parentNode; if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }; fitW(); if(!OF2.rs){ OF2.rs=1; addEventListener("resize",()=>{ const w=$("ofTable").parentNode; w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }); }
   const body=tb.createTBody(); let oldest=Infinity, newest=0;
   const stamp=t=>{ if(t>0){ oldest=Math.min(oldest,t); newest=Math.max(newest,t); } };
   const qIc=OF2.qual>1&&isG?OF2.qual:1; OF2.rows=[];
@@ -208,7 +213,7 @@ async function renderOf(){
     const c0=tr.insertCell(); c0.className="itemcell"; const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▾"});
     const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}faz em ${m.it.city}`})); head.append(iconImg(m.it.id,52,qIc),nmb,chev); c0.append(head); c0.querySelector("img").classList.add("of-itic");
     const stat=(cls,v,lab)=>{ const c=tr.insertCell(); c.className="of-stat "+cls; c.append(el("b",{text:v}),el("small",{text:lab})); return c; };
-    stat("loss",fmtS(m.cost),"CUSTO"); stat("sale",fmtS(m.net),"VENDA");
+    stat("loss",fmtS(m.costReal),"CUSTO"); stat("sale",fmtS(m.gross),"VENDA");
     const c3=tr.insertCell(); c3.className="of-stat "+(m.profit>=0?"gain":"loss"); c3.append(el("b",{text:(m.profit>=0?"+":"−")+fmtS(Math.abs(m.profit))}),el("span",{class:"of-pct",text:`${m.pct>=0?"+":""}${dec(m.pct*100)}%`}));
     const c5=tr.insertCell(); const flow=el("div",{class:"of-flow"}); flow.append(ofBlock(m.it.id,qIc,m.sale,"sale",m.units,m));
     m.parts.forEach(g=>flow.append(ofBlock(g.id,1,g.b,"buy",g.need,m,g))); c5.append(flow);
@@ -266,7 +271,7 @@ const OF_BS=[["auto","Automático"],["inst","Compra Inst."],["medio","Valor Méd
 function ofOpt(text,on,cls,fn){ const b=el("button",{type:"button",class:"of-opt "+cls+(on?" on":"")}); b.append(text); if(on) b.append(el("span",{class:"of-ck",text:"✓"})); b.addEventListener("click",fn); return b; }
 function ofCards(){
   const sl=$("ofSellList"); if(!sl) return;
-  const redo=()=>{ ofCards(); renderOf(); };
+  const redo=()=>{ OF2.ov={}; ofCards(); renderOf(); };
   sl.textContent=""; ["Black Market",...SHOP_LOCS].forEach(c=>sl.append(ofOpt(c,OF.sellC.has(c),"v",()=>{ OF.sellC.has(c)?OF.sellC.delete(c):OF.sellC.add(c); redo(); })));
   const bl=$("ofBuyList"); bl.textContent=""; [["","Automático"],...SHOP_LOCS.map(c=>[c,c])].forEach(([v,t])=>bl.append(ofOpt(t,OF.city===v,"c",()=>{ OF.city=v; redo(); })));
   const ss=$("ofSellS"); ss.textContent=""; OF_SS.forEach(([v,t])=>ss.append(ofOpt(t,OF.sellS===v,"v",()=>{ OF.sellS=v; redo(); })));
