@@ -36,7 +36,7 @@ const bcCode = id => String(id||"").replace(/^T\d_/,"").replace(/@\d$/,"");
 function bcSlotsFor(value){
   if(/^\d+$/.test(value)){ const b=BUILDS[+value]; return b?{slots:buildSlots(b),title:nm(b.w),src:b.src}:null; }
   const slots={}; const add=(slot,key,label)=>{ (slots[slot]||(slots[slot]=[])); if(key&&!slots[slot].some(x=>x.key===key)) slots[slot].push({key,label}); };
-  if(value.startsWith("g:")){ const b=(BC_GB.builds||[]).find(x=>x.id===value.slice(2)); if(!b) return null;
+  if(value.startsWith("g:")||value.startsWith("n:")){ const b=(value[0]==="n"?(window.NB_ALL||[]):(BC_GB.builds||[])).find(x=>x.id===value.slice(2)); if(!b) return null;
     add("w",bcCode(b.w),codeName(bcCode(b.w)));
     for(const sl of ["h","a","s","c","o"]) for(const id of b[sl]||[]){ const c=bcCode(id); add(sl,c,codeName(c)); }
     for(const sl of ["p","f"]) for(const id of b[sl]||[]){ const k=String(id).replace(/@\d$/,""); add(sl,k,KB_CONS_PT[bcCode(k)]||codeName(bcCode(k))); }
@@ -55,7 +55,7 @@ function bcEquivs(sum){ const out=[]; const push=(t,e)=>{ if(t>=4&&t<=8&&e>=0&&e
 const priceIn = (id,city) => { const r=BMP[id]&&BMP[id][city]; return r&&r[0]>0?r[0]:null; };
 function cheapest(id){ let best=null; for(const c of SHOP_LOCS){ const p=priceIn(id,c); if(p&&(!best||p<best.p)) best={p,c}; } return best; }
 function setupBC(){
-  const sel=$("bcBuild"); const rk=`${BUILDS.length}|${LANG}|${((BC_GB||{}).builds||[]).length}|${Object.keys((BC_ZV||{}).armas||{}).length}`; if(sel.dataset.ready===rk) return; sel.textContent=""; sel.dataset.ready=rk;
+  const sel=$("bcBuild"); const rk=`${BUILDS.length}|${LANG}|${(window.NB_ALL||[]).length}|${((BC_GB||{}).builds||[]).length}|${Object.keys((BC_ZV||{}).armas||{}).length}`; if(sel.dataset.ready===rk) return; sel.textContent=""; sel.dataset.ready=rk;
   const mine=new Set(LINES.filter(([k])=>wl(k)>=2).map(([k])=>k));
   const own=el("optgroup",{label:"Seu set"}); own.append(el("option",{value:"custom",text:"Montar peça por peça"})); sel.append(own);
   for(const c of ["brumas","corrompidas","barato","pve"]){ const og=el("optgroup",{label:CONTENT_PT[c]});
@@ -64,6 +64,7 @@ function setupBC(){
   if(BC_ZV&&BC_ZV.armas){ const og=el("optgroup",{label:"Builds do ZvZ (lutas recentes)"});
     Object.entries(BC_ZV.armas).filter(([,a])=>(a.variantes||[]).length).sort((x,y)=>(y[1].mortes||0)-(x[1].mortes||0)).forEach(([w,a])=>a.variantes.forEach((v,i)=>og.append(el("option",{value:`z:${w}:${i}`,text:`${codeName(w)} · ${v.n} ${v.n===1?"jogador":"jogadores"}`}))));
     if(og.children.length) sel.append(og); }
+  if((window.NB_ALL||[]).length){ const og=el("optgroup",{label:"Nossas builds"}); NB_ALL.forEach(b=>og.append(el("option",{value:`n:${b.id}`,text:b.t}))); sel.append(og); }
   if(BC_GB&&BC_GB.builds){ for(const c of BC_GB.conteudos||[]){ const og=el("optgroup",{label:`Grind · ${c.nome}`});
     BC_GB.builds.filter(b=>b.k===c.k).sort((x,y)=>(y.pop||0)-(x.pop||0)).forEach(b=>og.append(el("option",{value:`g:${b.id}`,text:`${b.t} (${b.pop} votos)`})));
     if(og.children.length) sel.append(og); } }

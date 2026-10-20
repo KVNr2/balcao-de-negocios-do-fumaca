@@ -39,7 +39,7 @@ const GUIA = {
     "Em Onde coletar, escolha o recurso (minério, fibra, pelego, madeira ou pedra). Os mapas dizem onde o recurso existe, não onde ele está agora: nenhum site mostra isso em tempo real. Os hotspots aparecem no mapa dentro do jogo."],
   "p-builds": ["As builds mais votadas de cada tipo de conteúdo.",
     "Ver armas, peças, comida e poção de cada build, com as que combinam com a sua ficha primeiro.",
-    "Escolha o tipo de conteúdo (Mists, Hellgate, ZvZ, Gank e outros) e abra uma build. Para saber quanto custa montar, use o botão da build ou a página Custo da build."],
+    "Em \"Builds da comunidade\", escolha o tipo de conteúdo e abra uma build. Em \"Nossas builds\", veja as builds do site, vote com a seta e crie a sua em \"Criar build\": dê um nome, escolha o conteúdo e clique em cada casa para escolher a peça. Sua build fica salva neste navegador; use \"Baixar arquivo\" para enviar à pasta builds/ do site e publicar. Para saber quanto custa montar, use o botão \"Ver custo\"."],
   "p-custo": ["Quanto custa montar uma build hoje.",
     "Ver o preço de cada peça da build, a cidade onde cada uma sai mais barata e a melhor cidade para comprar tudo de uma vez só. Os preços aparecem em vermelho porque são custo.",
     "Escolha uma build pronta, o tier e o encantamento (\"Equivalente\" usa a versão mais barata). Se uma parte tiver opções, escolha na própria linha. Para mudar peças, use \"Editar esta build peça por peça\". À direita, veja as melhores cidades para comprar o set e quanto dá para perder antes de acabar o dinheiro."],

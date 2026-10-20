@@ -1,0 +1,104 @@
+/* ================= Builds: "Builds da comunidade" x "Nossas builds" (pasta builds/) ================= */
+let NB_REPO=null, NB_ALL=[], nbOpen=null, nbCont="", nbSort="votos", nbSrc="com";
+const NB_SLOTS=[["w","Arma"],["o","Secundária"],["h","Elmo"],["a","Peito"],["s","Botas"],["c","Capa"],["p","Poção"],["f","Comida"]];
+function nbMine(){ try{ return JSON.parse(store.get("nb:mine")||"[]"); }catch(e){ return []; } }
+function nbSaveMine(a){ try{ store.set("nb:mine",JSON.stringify(a)); }catch(e){} }
+function nbVotes(){ try{ return new Set(JSON.parse(store.get("nb:votes")||"[]")); }catch(e){ return new Set(); } }
+function nbVote(id){ const v=nbVotes(); v.has(id)?v.delete(id):v.add(id); try{ store.set("nb:votes",JSON.stringify([...v])); }catch(e){} }
+async function nbLoad(){
+  if(NB_REPO) return;
+  NB_REPO=[]; try{ const r=await fetch(`builds/index.json?v=${VER}`); const idx=r.ok?await r.json():[];
+    const all=await Promise.all(idx.map(f=>fetch(`builds/${f}?v=${VER}`).then(x=>x.ok?x.json():null).catch(()=>null)));
+    NB_REPO=all.filter(b=>b&&b.id&&b.w).map(b=>({...b,repo:true})); }catch(e){}
+  nbRefreshAll();
+}
+function nbRefreshAll(){ NB_ALL=[...(NB_REPO||[]),...nbMine().filter(m=>!(NB_REPO||[]).some(r=>r.id===m.id)).map(b=>({...b,local:true}))]; window.NB_ALL=NB_ALL; }
+nbRefreshAll();
+const nbVotesOf=b=>(+b.votos||0)+(nbVotes().has(b.id)?1:0);
+
+function nbCard(b){
+  const open=nbOpen===b.id, card=el("article",{class:"bcard"+(open?" open":"")});
+  const top=el("div",{class:"bc-top"}); const wi=fullImg(b.w,"nico zbig"); top.append(wi||el("span",{class:"btile"}));
+  const mid=el("div",{class:"bc-mid"}); mid.append(el("h4",{text:b.t}));
+  const meta=el("div",{class:"bc-meta"}); meta.append(el("span",{class:"tag",text:b.k?contName(b.k):"Outro"})); meta.append(el("span",{class:"tag mute",text:"por "+(b.au||"Balcão do Fumaça")}));
+  if(b.local) meta.append(el("span",{class:"tag bad",text:"Só no seu navegador"}));
+  (b.tg||[]).slice(0,3).forEach(t=>meta.append(el("span",{class:"tag mute",text:t}))); mid.append(meta); top.append(mid);
+  const voted=nbVotes().has(b.id), vb=el("button",{type:"button",class:"nb-vote"+(voted?" on":""),"aria-pressed":String(voted),title:voted?"Tirar meu voto":"Votar nesta build"});
+  vb.append(el("span",{class:"nb-arrow",text:"▲"}),el("b",{text:String(nbVotesOf(b))}),el("small",{text:"votos"}));
+  vb.addEventListener("click",()=>{ nbVote(b.id); nbRender(); }); const rt=el("div",{class:"bc-r"}); rt.append(vb); top.append(rt); card.append(top);
+  if(b.desc) card.append(el("p",{class:"nb-desc small",text:b.desc}));
+  card.append(gbStrip(b));
+  const btn=el("button",{type:"button",class:"bc-more","aria-expanded":String(open),text:open?"Esconder build completa":"Ver build completa"});
+  btn.addEventListener("click",()=>{ nbOpen=open?null:b.id; nbRender(); });
+  const act=el("div",{class:"bc-act"}); act.append(btn,custoCtl("n:"+b.id));
+  if(b.local){ const dl=el("button",{type:"button",class:"bc-more",text:"Baixar arquivo"}); dl.addEventListener("click",()=>nbExport(b));
+    const cp=el("button",{type:"button",class:"bc-more",text:"Copiar código"}); cp.addEventListener("click",()=>{ navigator.clipboard&&navigator.clipboard.writeText(nbJson(b)); cp.textContent="Copiado"; setTimeout(()=>cp.textContent="Copiar código",1500); });
+    const rm=el("button",{type:"button",class:"bc-more nb-del",text:"Apagar"}); rm.addEventListener("click",()=>{ if(!confirm("Apagar esta build do seu navegador?")) return; nbSaveMine(nbMine().filter(x=>x.id!==b.id)); nbRefreshAll(); nbRender(); });
+    act.append(dl,cp,rm); }
+  card.append(act); if(open) card.append(kbPanel(b)); return card;
+}
+const nbJson=b=>{ const o={...b}; delete o.local; delete o.repo; return JSON.stringify(o,null,2); };
+function nbExport(b){ const a=el("a",{href:URL.createObjectURL(new Blob([nbJson(b)],{type:"application/json"})),download:b.id+".json"}); document.body.append(a); a.click(); a.remove();
+  alert("Arquivo baixado. Para publicar: coloque-o na pasta builds/ do site e acrescente o nome em builds/index.json (veja builds/LEIA-ME.md)."); }
+
+function nbRender(){
+  const box=$("nbBox"); if(!box) return; box.textContent=""; nbLoad(); nbRefreshAll();
+  const bar=el("div",{class:"nb-bar"}); const mk=el("button",{type:"button",class:"bc-more nb-new",text:"+ Criar build"}); mk.addEventListener("click",()=>nbForm());
+  const imp=el("button",{type:"button",class:"bc-more",text:"Colar código"}); imp.addEventListener("click",()=>{ const t=prompt("Cole aqui o código da build:"); if(!t) return; try{ const b=JSON.parse(t); if(!b.w||!b.t) throw 0; b.id=b.id||nbId(b.t); const a=nbMine(); if(!a.some(x=>x.id===b.id)) a.unshift(b); nbSaveMine(a); nbRender(); }catch(e){ alert("Código inválido."); } });
+  const sort=el("select",{"aria-label":"Ordem"}); [["votos","Mais votadas"],["novas","Mais novas"]].forEach(([v,t])=>sort.append(el("option",{value:v,text:t}))); sort.value=nbSort; sort.addEventListener("change",()=>{ nbSort=sort.value; nbRender(); });
+  const cont=el("select",{"aria-label":"Conteúdo"}); cont.append(el("option",{value:"",text:"Todos os conteúdos"})); (GBC||[]).forEach(c=>cont.append(el("option",{value:c.k,text:c.nome}))); cont.value=nbCont; cont.addEventListener("change",()=>{ nbCont=cont.value; nbRender(); });
+  bar.append(mk,imp,cont,sort); box.append(bar);
+  const ord=a=>a.slice().sort((x,y)=>nbSort==="novas"?String(y.data||"").localeCompare(String(x.data||"")):(nbVotesOf(y)-nbVotesOf(x)));
+  const flt=a=>a.filter(b=>!nbCont||b.k===nbCont);
+  const sec=(title,sub,list,empty)=>{ const s=el("section",{class:"nb-sec"}); s.append(el("h3",{class:"orn",text:title}),el("p",{class:"muted small",text:sub})); const l=el("div",{class:"blist"}); if(!list.length) l.append(el("p",{class:"empty",text:empty})); list.forEach(b=>l.append(nbCard(b))); s.append(l); box.append(s); };
+  sec("Nossas builds","Escolhidas pelo Balcão do Fumaça. A contagem de votos vem do arquivo da build; o seu voto soma +1 só para você.",ord(flt((NB_REPO||[]))),NB_REPO?"Ainda não há builds publicadas nesta seleção.":"Carregando…");
+  const mine=NB_ALL.filter(b=>b.local); if(mine.length) sec("Suas builds","Salvas só neste navegador. Baixe o arquivo e envie para a pasta builds/ do site para publicar.",ord(flt(mine)),"");
+}
+const nbId=t=>(t||"build").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40)+"-"+Math.random().toString(36).slice(2,6);
+
+/* ---------- formulário de criação ---------- */
+let NB_CAT=null;
+const NB_FILTER={ w:r=>r[1]==="weapons", o:r=>r[1]==="offhands", h:r=>r[1]==="head", a:r=>r[1]==="armors", s:r=>r[1]==="shoes", c:r=>r[1]==="capes", p:r=>r[1]==="consumables"&&r[2]==="potions", f:r=>r[1]==="consumables"&&r[2]==="food" };
+async function nbForm(){
+  const dlg=el("dialog",{class:"dlg dlg2 nb-dlg","aria-label":"Criar build"}); const x=el("button",{type:"button",class:"linkbtn dlg-x","aria-label":"Fechar",text:"✕"}); x.addEventListener("click",()=>dlg.close()); dlg.addEventListener("close",()=>dlg.remove());
+  const body=el("div",{class:"nb-form"}); dlg.append(x,body); document.body.append(dlg); dlg.showModal();
+  body.append(el("h3",{class:"orn",text:"Criar build"}));
+  if(!NB_CAT){ body.append(el("p",{class:"muted small",text:"Abrindo o catálogo de itens…"})); try{ NB_CAT=await need("catalog"); }catch(e){ body.textContent="Não consegui abrir o catálogo."; return; } body.lastChild.remove(); }
+  const sel={}; const fld=(lab,node)=>{ const l=el("label",{class:"nb-f"}); l.append(el("span",{text:lab}),node); return l; };
+  const nome=el("input",{type:"text",maxlength:"80",placeholder:"Ex.: Lamina Aclarada para Fame Farm"}), au=el("input",{type:"text",maxlength:"40",placeholder:"Seu nome"}); try{ au.value=store.get("nbAuthor")||""; }catch(e){}
+  const k=el("select"); k.append(el("option",{value:"",text:"Outro"})); (GBC||[]).forEach(c=>k.append(el("option",{value:c.k,text:c.nome})));
+  const tg=el("input",{type:"text",placeholder:"PvE, Solo, Fame Farm (separe por vírgula)"}), ds=el("textarea",{rows:"3",maxlength:"400",placeholder:"Como jogar, rotação, observações…"});
+  const g1=el("div",{class:"nb-g"}); g1.append(fld("Nome da build",nome),fld("Autor",au),fld("Conteúdo",k),fld("Tags",tg)); body.append(g1,fld("Descrição",ds));
+  body.append(el("h4",{text:"Peças"})); const slots=el("div",{class:"nb-slots"}); body.append(slots); const pick=el("div",{class:"nb-pick"}); body.append(pick);
+  const draw=()=>{ slots.textContent=""; NB_SLOTS.forEach(([s,lab])=>{ const b=el("button",{type:"button",class:"nb-slot"+(sel[s]?" on":"")}); const im=sel[s]&&fullImg(sel[s],"nico nb-si"); b.append(im||el("span",{class:"nb-empty",text:"+"}),el("small",{text:lab})); if(sel[s]) b.title=itemNome(idInfo(sel[s]).c); b.addEventListener("click",()=>openPick(s,lab)); slots.append(b); }); };
+  const openPick=(s,lab)=>{ pick.textContent=""; const q=el("input",{type:"search",placeholder:`Buscar ${lab.toLowerCase()}…`}), t=el("select",{"aria-label":"Tier"}), e=el("select",{"aria-label":"Encantamento"}), res=el("div",{class:"nb-res"});
+    [4,5,6,7,8].forEach(n=>t.append(el("option",{value:n,text:"T"+n}))); t.value="8"; [0,1,2,3,4].forEach(n=>e.append(el("option",{value:n,text:n?"."+n:"sem encanto"})));
+    const head=el("div",{class:"nb-ph"}); head.append(el("b",{text:lab}),q,t,e); if(sel[s]){ const cl=el("button",{type:"button",class:"bc-more",text:"Remover"}); cl.addEventListener("click",()=>{ delete sel[s]; pick.textContent=""; draw(); }); head.append(cl); } pick.append(head,res);
+    const rows=NB_CAT.i.filter(NB_FILTER[s]); const by=new Map(); for(const r of rows){ const c=r[0].replace(/^T\d+_/,""); if(!by.has(c)) by.set(c,{c,nome:LANG==="en"?r[6]:r[5],en:r[6],pt:r[5],tiers:new Set(),ench:0}); const o=by.get(c); o.tiers.add(r[3]); if(r[4]&&!/consumables/.test(r[1])) o.ench=1; }
+    const list=[...by.values()].sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
+    const show=()=>{ res.textContent=""; const f=q.value.trim().toLowerCase(); const out=list.filter(o=>!f||o.pt.toLowerCase().includes(f)||o.en.toLowerCase().includes(f)||o.c.toLowerCase().includes(f)).slice(0,60);
+      if(!out.length) res.append(el("p",{class:"muted small",text:"Nada encontrado."}));
+      out.forEach(o=>{ const b=el("button",{type:"button",class:"nb-it"}); const tt=Math.max(...[...o.tiers].filter(n=>n<=+t.value),...[...o.tiers].slice(0,1)); b.append(fullImg(`T${tt}_${o.c}`,"nico nb-ri")||"",el("span",{text:o.nome}));
+        b.addEventListener("click",()=>{ const ts=[...o.tiers].sort((a,b)=>a-b); const tier=ts.includes(+t.value)?+t.value:ts[ts.length-1]; const en=o.ench?+e.value:0; sel[s]=`T${tier}_${o.c}${en?"@"+en:""}`; pick.textContent=""; draw(); }); res.append(b); }); };
+    [q,t,e].forEach(n=>n.addEventListener("input",show)); show(); q.focus(); };
+  draw();
+  const err=el("p",{class:"nb-err small",hidden:true}), save=el("button",{type:"button",class:"bc-more nb-new",text:"Salvar build"});
+  save.addEventListener("click",()=>{ if(!nome.value.trim()||!sel.w){ err.hidden=false; err.textContent="Dê um nome à build e escolha pelo menos a arma."; return; }
+    const b={id:nbId(nome.value),t:nome.value.trim(),au:au.value.trim()||"Visitante",k:k.value,tg:tg.value.split(",").map(s=>s.trim()).filter(Boolean).slice(0,6),desc:ds.value.trim(),data:new Date().toISOString().slice(0,10),votos:0};
+    for(const [s] of NB_SLOTS) if(sel[s]) b[s]= s==="w"?sel[s]:[sel[s]]; if(b.w&&!b.w.startsWith) b.w=b.w[0];
+    try{ store.set("nbAuthor",au.value.trim()); }catch(e){} const a=nbMine(); a.unshift(b); nbSaveMine(a); dlg.close(); nbOpen=b.id; nbRender(); });
+  body.append(err,el("div",{class:"nb-act"}),save);
+}
+
+/* ---------- troca entre comunidade e nossas ---------- */
+function nbInit(){
+  const p=$("p-builds"); if(!p||p._nb) return; p._nb=1;
+  const seg=el("div",{class:"seg nb-src",id:"bSrc",role:"group","aria-label":"Origem das builds"}); const box=el("div",{id:"nbBox",hidden:true});
+  const first=p.querySelector(".aside"); first.after(seg); seg.after(box);
+  const hide=[...p.querySelectorAll(".row-ctl,.bfilters,#bList")];
+  const set=v=>{ nbSrc=v; try{ store.set("bSrc",v); }catch(e){} seg.textContent="";
+    [["com","Builds da comunidade"],["nos","Nossas builds"]].forEach(([k,t])=>{ const b=el("button",{type:"button","aria-pressed":String(v===k),text:t}); b.addEventListener("click",()=>set(k)); seg.append(b); });
+    hide.forEach(h=>h.hidden=v==="nos"); box.hidden=v!=="nos"; first.hidden=v==="nos"; if(v==="nos") nbRender(); };
+  set((()=>{ try{ return store.get("bSrc")==="nos"?"nos":"com"; }catch(e){ return "com"; } })());
+}
+nbInit();
