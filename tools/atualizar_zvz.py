@@ -154,6 +154,14 @@ def coletar_albionbb():
 # ---------- agregação ----------
 def main():
     fonte = "AtlasChill (battleboard, lutas com 200+ jogadores)"
+    # O AtlasChill bloqueia o Actions: o arquivo data/zvz.json vindo dele (instantâneo gravado no repositório)
+    # só é substituído pela reserva (AlbionBB) quando passar de 48 h.
+    try:
+        atual = json.load(open(OUT))
+        idade = datetime.datetime.utcnow() - datetime.datetime.strptime(atual["atualizado"], "%Y-%m-%dT%H:%MZ")
+        if atual.get("fonte", "").startswith("AtlasChill") and idade < datetime.timedelta(hours=48):
+            print("instantâneo do AtlasChill com", round(idade.total_seconds() / 3600), "h; mantido"); return
+    except Exception: pass
     bats = []
     try: bats = coletar_atlas()
     except Exception as e: print("::warning::AtlasChill falhou:", e)
