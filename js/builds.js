@@ -122,6 +122,24 @@ function kxItem(id,skills){
   if(skills&&skills.length){ const sp=el("div",{class:"kx-sps"}); skills.forEach(x=>sp.append(spellImg(x))); tx.append(sp); }
   row.append(tx); return row;
 }
+/* carregamento do Albion (Loadouts > Colar texto): JSON no mesmo formato que o jogo gera em "Copiar como texto" */
+function albionLoadout(b,set){
+  const pick=(arr,i)=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[i]||arr[0]||""; };
+  const w=set&&b.w2?b.w2:b.w, x=b.x||{};
+  const slots=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o,set)],["h",pick(b.h,set)],["a",pick(b.a,set)],["s",pick(b.s,set)],["c",pick(b.c,set)],["gb",x.gb||""],["m",x.m||""],["p",pick(b.p,set)],["f",pick(b.f,set)]];
+  const equipment=[]; for(const [k,id] of slots){ if(!id) continue; const gear=["w","o","h","a","s","c"].includes(k), food=k==="p"||k==="f";
+    const e={item:id,quality:gear?3:1}; if(k==="p") e.stack=10; e.pref=gear?[1,1,2]:food?[0,0,1,1]:[0,0,0]; equipment.push(e); }
+  return JSON.stringify({version:1,name:String(b.t||b.nome||"Build").slice(0,40),icon:13,color:12,equipment});
+}
+function albionBar(b){
+  const bar=el("div",{class:"kx-alb"}); let set=0;
+  const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
+  if(hasAlt){ const sel=el("select",{"aria-label":"Set para o Albion"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; }); bar.append(sel); }
+  const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
+  const msg=el("span",{class:"muted small",role:"status"});
+  btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
+  bar.append(btn,msg); return bar;
+}
 function kbPanel(b){
   const sk=b.sk||{}; const box=el("div",{class:"kx"});
   /* esquerda: habilidades e passivas, recomendado x alternativa */
@@ -146,6 +164,7 @@ function kbPanel(b){
     [["t","Ferramenta"],["gh","Chapéu de coleta"],["ga","Traje de coleta"],["gs","Botas de coleta"],["gk","Mochila de coleta"],["gb","Bolsa"],["m","Montaria"]].forEach(([k,lab])=>{ const id=b.x[k]; if(!id) return; const i=idInfo(id); if(!i) return; const it=el("div",{class:"kx-xi"}); const im=fullImg(id,"nico kx-i"); if(im) it.append(im); const tx=el("div",{class:"kx-tx"}); const nb=el("b",{text:itemNome(i.c),title:`T${i.t}${i.e?"."+i.e:""}`}); tx.append(el("small",{class:"muted",text:lab}),nb); it.append(tx); xg.append(it);
       need("catalog").then(c=>{ const bare=id.replace(/@\d$/,""); const r=c.i.find(z=>z[0]===bare)||c.i.find(z=>z[0].endsWith("_"+i.c)); if(r){ const n=(LANG==="en"?r[6]:r[5])||r[6]; if(n) nb.textContent=n; } }).catch(()=>{}); });
     X.append(xg); box.append(X); }
+  box.append(albionBar(b));
   return box;
 }
 /* botão "montar e ver o custo": escolhe o tier equivalente e leva para a aba Custo da build */
