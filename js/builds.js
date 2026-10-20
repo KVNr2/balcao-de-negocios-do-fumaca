@@ -19,7 +19,7 @@ function gearStrip(b){
   for(const {n,x} of items){ if(!x||seen.has(x.k)) continue; seen.add(x.k); const im=itemImg(x.k,[4,5,6,7,8,3]); im.title=nm(n); im.alt=nm(n); row.append(im); }
   return row;
 }
-const GRP_PT = {"":"Todos os modos","5v5":"5v5 e 3v3","zvz":"ZvZ","avalon":"Avalon","gank":"Gank e bomba"};
+const GRP_PT = {"":"Todos os modos","5v5":"5v5 e 3v3","zvz":"7v7, 20v20 e ZvZ","avalon":"Avalon","gank":"Gank e bomba"};
 let bGroup = "";
 const ROLE_RX = [[/heal|cura|reden|hallow|holy|vida|sacr/i,"Curandeiro"],[/tank|front|heavy|frente|stop|mace|martelo|hammer/i,"Frente"],[/rdps|range|kite|dist|ranged|bow|arco/i,"Dano à distância"],[/mdps|melee|dive|brawl|corpo|perto/i,"Dano corpo a corpo"]];
 const roleOf = s => { const t=s||""; for(const [rx,n] of ROLE_RX) if(rx.test(t)) return n; return ""; };

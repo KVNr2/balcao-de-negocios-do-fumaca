@@ -22,12 +22,13 @@ def get(url, tries=3):
 
 def code(s): return re.sub(r"\s+", "_", s.strip()).upper()
 
-GRUPOS = [("hellgate 5v5", "5v5"), ("ancient lands 5v5", "5v5"), ("crystal", "5v5"), ("depths", "5v5"), ("hellgate 2v2", "5v5"),
-          ("zvz", "zvz"), ("small fight", "zvz"), ("avalon", "avalon"), ("roaming", "avalon"), ("gank", "gank"), ("bomb", "gank"), ("pve", "pve")]
 def grupo(modos):
     t = " ".join(modos).lower()
-    for k, g in GRUPOS:
-        if k in t: return g
+    if "pve" in t: return "pve"
+    if re.search(r"\b(7|10|15|20|30|40)\s?v\s?\d+|zvz|small fight|large|grandes", t): return "zvz"   # 7v7, 20v20, ZvZ e small fight
+    if re.search(r"\b[2-6]\s?v\s?[2-6]\b|hellgate|crystal|depths|ancient lands", t): return "5v5"
+    if "avalon" in t or "roaming" in t: return "avalon"
+    if "gank" in t or "bomb" in t: return "gank"
     return "outro"
 
 def parse(slug, html):
