@@ -966,3 +966,12 @@ button.nb-spb img.kx-sm{display:block;width:44px;flex:none}
 button.nb-spb:hover{opacity:1}button.nb-spb.on{opacity:1;border-color:var(--saffron,#e8ab45)}
 .nb-ph input,.nb-ph select{width:auto!important;min-width:120px}.nb-ph input{flex:1 1 200px}
 .nb-form>p.muted{margin:0 0 6px}
+.nb-spph{display:flex;align-items:center;justify-content:center;width:52px;height:52px;flex:none;border-radius:50%;border:2px dashed #3a3e4b;background:#14161c;color:#8a8272;font:300 24px/1 Inter,sans-serif}
+.nb-kg .kx-ov:not(.kx-left) .nb-spph{width:52px;margin:0 2px}
+.nb-skg{margin:10px 0}.nb-skg h5{margin:0 0 6px;font:600 12.5px Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--saffron,#e8ab45)}
+.nb-skc{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px;align-items:start}
+button.nb-skcard{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:10px;border-radius:10px;border:1px solid var(--line-soft,rgba(255,255,255,.1));background:rgba(255,255,255,.03);color:inherit;cursor:pointer;font:inherit}
+button.nb-skcard:hover{border-color:var(--saffron,#e8ab45)}
+button.nb-skcard.on{border-color:var(--gain,#5ec98c);background:rgba(94,201,140,.08)}
+.nb-skic img.kx-sm{display:block;width:52px;flex:none}
+.nb-sktx{display:flex;flex-direction:column;gap:3px;min-width:0}.nb-sktx b{font-size:13.5px}.nb-sktx small{font-size:12px;line-height:1.35;color:var(--parch-2,#cdbf9f);white-space:pre-line}
