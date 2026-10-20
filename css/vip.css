@@ -760,6 +760,6 @@ dialog.dlg2{width:min(1180px,96vw);padding:0;background:var(--night-2);border:1p
 .lst.bm2t tbody tr.bm-row td:first-child{min-width:0}
 
 /* custo em vermelho nas listas */
-.bm2t td.cost{color:#ef6a62;font-weight:700}
+.bm2t td.cost{color:#fff;font:700 18px var(--f-body)}   /* custo encantando na lista: branco (é o valor da peça depois de encantar); no detalhe os custos ficam em vermelho */
 #enTable td.bm-profit{font:700 22px var(--f-body)}
 #enTable td.bm-profit.gain{color:#52d38a}#enTable td.bm-profit.loss{color:#ef6a62}
