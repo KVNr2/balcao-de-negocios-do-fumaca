@@ -201,3 +201,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 /* janela do item no celular: a tabela de cidades rola para o lado em vez de cortar */
 #dlgCities{overflow-x:auto;-webkit-overflow-scrolling:touch}
 @media (max-width:560px){ table.dlgt{font-size:14px} table.dlgt th,table.dlgt td{padding:5px 5px;white-space:nowrap} dialog.dlg{padding:16px 14px} }
+/* linha da ficha: nome em cima e resumo embaixo, para nomes longos não encostarem no resumo */
+details.spg summary{grid-template-columns:auto auto minmax(0,1fr);grid-template-areas:"c i n" "c i s";row-gap:3px;column-gap:12px}
+details.spg summary::before{grid-area:c;align-self:center}
+details.spg summary>.nico,details.spg summary>img{grid-area:i;align-self:center}
+details.spg summary>.spn{grid-area:n;align-self:end;white-space:normal}
+details.spg summary>.sps{grid-area:s;justify-self:start;align-self:start;text-align:left;max-width:none}
