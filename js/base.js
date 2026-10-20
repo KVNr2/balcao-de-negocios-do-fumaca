@@ -525,7 +525,7 @@ function spSummary(g){ const st=spGet(g.k), s=st.s||{}, m=spMastery(g.k), vals=g
 function renderSpecs(){
   if(!SPECS) return;
   for(const [sec,box] of SP_SECS){ const root=$(box); if(!root) continue; root.textContent=""; let sub=null, grid=null; const subs=[];
-    const refreshSubs=()=>{ for(const sn of subs){ const on=sn._gs.filter(x=>spSummary(x)!=="sem spec").length; sn._cnt.textContent=on?`${on} de ${sn._gs.length} com spec`:""; sn._cnt.classList.toggle("on",!!on); } refreshSec(); };
+    const refreshSubs=()=>{ for(const sn of subs){ const on=sn._gs.filter(x=>spSummary(x)!=="sem spec").length; sn._cnt.textContent=on?`${on} de ${sn._gs.length} com spec`:""; sn._cnt.classList.toggle("on",!!on); sn._cnt.style.setProperty("--p",(sn._gs.length?Math.round(on/sn._gs.length*100):0)+"%"); } refreshSec(); };
     for(const g of SPECS.g.filter(x=>x.sec===sec)){
       if(g.sub!==sub){ sub=g.sub; const sn=el("details",{class:"spsubn"}), ss=el("summary"); const lab=el("span",{text:sub}), cnt=el("span",{class:"secsum"}); ss.append(lab,cnt); sn.append(ss); grid=el("div",{class:"spgroups"}); sn.append(grid); root.append(sn); sn._cnt=cnt; sn._grid=grid; subs.push(sn); sn._gs=[]; }
       const curSub=subs[subs.length-1]; curSub._gs.push(g);
