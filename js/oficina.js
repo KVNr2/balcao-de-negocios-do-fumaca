@@ -206,7 +206,7 @@ async function renderOf(){
   for(const m of shown){ const key=m.it.id; const tr=body.insertRow(); tr.dataset.id=m.it.id; tr.dataset.city=m.sale.c; tr.className="clickrow of-row "+(m.profit>=0?"is-gain":"is-loss"); tr.tabIndex=0; tr.setAttribute("aria-expanded","false");
     stamp(m.sale.t); m.parts.forEach(g=>stamp(g.b&&g.b.t));
     const c0=tr.insertCell(); c0.className="itemcell"; const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▾"});
-    const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}faz em ${m.it.city}`})); head.append(nmb,chev); c0.append(head);
+    const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}faz em ${m.it.city}`})); head.append(iconImg(m.it.id,52,qIc),nmb,chev); c0.append(head); c0.querySelector("img").classList.add("of-itic");
     const stat=(cls,v,lab)=>{ const c=tr.insertCell(); c.className="of-stat "+cls; c.append(el("b",{text:v}),el("small",{text:lab})); return c; };
     stat("loss",fmtS(m.cost),"CUSTO"); stat("sale",fmtS(m.net),"VENDA");
     const c3=tr.insertCell(); c3.className="of-stat "+(m.profit>=0?"gain":"loss"); c3.append(el("b",{text:(m.profit>=0?"+":"−")+fmtS(Math.abs(m.profit))}),el("span",{class:"of-pct",text:`${m.pct>=0?"+":""}${dec(m.pct*100)}%`}));

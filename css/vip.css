@@ -513,3 +513,23 @@ b.c,h4.c{color:#b784e8}
 .of-pop .of-opt{overflow-wrap:normal;font-size:12.5px;padding:7px 8px}
 .of2t .itemcell{min-width:280px;max-width:320px;width:300px}
 .of2t .ihead{gap:16px}
+/* nome em uma linha, ícone ao lado e rolagem lateral com a coluna do item fixa */
+.of2-main .tbl{overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:10px;scrollbar-width:thin;scrollbar-color:var(--saffron) var(--night-2)}
+.of2-main .tbl::-webkit-scrollbar{height:12px}
+.of2-main .tbl::-webkit-scrollbar-track{background:var(--night-2);border-radius:6px}
+.of2-main .tbl::-webkit-scrollbar-thumb{background:var(--saffron);border-radius:6px;border:2px solid var(--night-2)}
+.of2t{width:max-content;min-width:100%}
+.of2t .inm strong{white-space:nowrap}
+.of2t .itemcell{width:auto;min-width:300px;max-width:none}
+.of2t .ihead{justify-content:flex-start}
+.of2t .ihead .inm{flex:1}
+.of-itic{flex:none;width:52px;height:52px;border-radius:10px;background:var(--cloth);border:1px solid var(--line-soft)}
+.of2t tbody tr.of-row td:first-child{position:sticky;left:0;z-index:1;background:var(--night-2);box-shadow:8px 0 10px -8px rgba(0,0,0,.6)}
+.of2t tbody tr.of-row:hover td:first-child{background:color-mix(in srgb,var(--night-2) 80%,var(--parch) 8%)}
+.of2t tbody tr.of-row.open td:first-child{background:color-mix(in srgb,var(--night-2) 85%,var(--saffron) 8%)}
+.of2t thead th:first-child{left:0;z-index:3}
+.of-drow .of-det{position:sticky;left:0;max-width:calc(100vw - 340px)}
+.of2t td.itemcell{min-width:380px;max-width:none;width:380px}
+.of2t .ihead{width:100%}
+.of2t .ihead .of-chev{margin-left:auto}
+.of2t .ihead .inm{flex:1;min-width:0}
