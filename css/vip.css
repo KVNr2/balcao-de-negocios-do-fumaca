@@ -1046,3 +1046,5 @@ img.nb-xi{width:52px;height:52px}
 .pg-nav button:disabled{opacity:.35;cursor:default}
 .pg-size{display:flex;align-items:center;gap:8px}.pg-size select{width:auto;min-width:64px;min-height:34px}
 @media (max-width:640px){.pager{justify-content:center}.pg-info{width:100%;text-align:center}}
+.kx-alb{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft,rgba(255,255,255,.1))}
+.kx-alb select{width:auto;min-height:34px}.kx-alb textarea{width:100%}
