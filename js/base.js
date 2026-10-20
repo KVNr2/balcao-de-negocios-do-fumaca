@@ -541,7 +541,11 @@ function renderSpecs(){
       sm.append(nmS,sumS); d.append(sm); const body=el("div",{class:"spgrid"}); d.append(body);
       const icons=[], combate=g.sec==="combate";
       const mk=key=>{ const im=itemImg(specCode(g,key), combate?tierOrder(tierFromMastery(spMastery(g.k))):null); icons.push(im); return im; };
-      const upd=()=>{ const base=spSummary(g); sumS.textContent=base+(combate&&base!=="sem spec"?` · usa até T${tierFromMastery(spMastery(g.k))}`:""); sumS.classList.toggle("on",base!=="sem spec"); refreshSubs();
+      const upd=()=>{ const base=spSummary(g); sumS.classList.toggle("on",base!=="sem spec"); sumS.title=base;
+        { const sv=spGet(g.k).s||{}, vals=g.it.map(([k])=>+sv[k]||0).filter(v=>v>0), m=spMastery(g.k); sumS.textContent="";
+          const chip=(t,c)=>sumS.append(el("span",{class:"spchip "+(c||""),text:t}));
+          if(base==="sem spec"){ chip("sem spec","off"); } else { if(m) chip("Maestria "+m,"m"); if(vals.length) chip(`${vals.length}/${g.it.length} itens`,"n"); if(vals.length) chip("Maior "+Math.max(...vals),"mx"); if(combate&&m) chip("Usa até T"+tierFromMastery(m),"t"); if(g.k.startsWith("a:")&&(m||vals.length)){ const [slot,mat]=g.k.slice(2).split("_"); chip("Foco T6.0: "+fmt(craftFocus(slot,mat,6,0,1)),"f"); } }
+          d.style.setProperty("--p",(g.it.length?Math.round(vals.length/g.it.length*100):0)+"%"); d.classList.toggle("has",base!=="sem spec"); } refreshSubs();
         if(combate){ const t=tierFromMastery(spMastery(g.k)); icons.forEach(im=>im._tier(t)); lockRows(); } };
       /* sem maestria (abaixo do T4) não dá para usar item nenhuma da linha: some o nome e o ícone, a não ser que o item já tenha nível */
       const rows=[], hint=el("p",{class:"tiny muted splock",text:"Digite a maestria da linha para liberar as armas e peças. Sem maestria não dá para usar nenhuma delas.",hidden:true});
