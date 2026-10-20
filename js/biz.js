@@ -31,7 +31,8 @@ const bmKeys=g=>Object.keys(BM).filter(k=>BM[k][1]===g);
 async function ensureBM(g){
   if(BM_LOADED.has(g)) return true;
   const keys=bmKeys(g), gear=[], extra=new Set();
-  for(const k of keys) for(let t=4;t<=8;t++){ for(let e=0;e<=4;e++) gear.push(bmId(k,t,e)); if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
+  for(const k of keys) for(let t=2;t<=8;t++){ if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) gear.push(bmId(k,t,e)); if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
+  for(const t of [2,3]) for(const r of ["METALBAR","PLANKS","LEATHER","CLOTH"]) extra.add(`T${t}_${r}`);
   try{
     await bmFetch(gear,["Black Market",...SHOP_LOCS],true);
     if(!PLANKS_LOADED){ const pl=[]; for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) pl.push(`T${t}_PLANKS`+(e?`_LEVEL${e}@${e}`:"")); await fetchIds(pl,DATA.itens); PLANKS_LOADED=true; }
@@ -39,6 +40,8 @@ async function ensureBM(g){
     BM_LOADED.add(g); return true;
   }catch(e){ return false; }
 }
+/* T2 e T3 não estão na tabela de foco: estimativa pela razão entre tiers (cerca de 1,75 por tier) */
+const bmFocT=(t,e)=>t>=4?FOCUS_CRAFT[t-4][e]:Math.round(429/Math.pow(1.75,4-t));
 function bmFCE(key){ return itemFCE(key); }   // armas, armaduras e mão secundária, pela spec de craft da ficha
 /* q: qualidade da ordem do Mercado Negro (1 a 5). A ordem aceita essa qualidade ou melhor, então para revender
    vale a peça mais barata entre as qualidades q a 5. */
@@ -54,7 +57,7 @@ function bmModel(key,t,e,focus=$("bmFocus").checked,q=1){
   let art=0; if(!miss&&r[4]){ const p=typical(`T${t}_${r[4][0]}`,0); if(!p) miss="artefato"; else { art=p.p*r[4][1]; parts.push({id:`T${t}_${r[4][0]}`,nm:(r[4][0].startsWith("ALCHEMY")?"Ingrediente raro":"Artefato")+` T${t}`,q:r[4][1],p:p.p,art:true}); } }
   const rr=rrr(0.15,focus,st.daily), fee=cnt*IV(t,e)*0.1125*feeVal()/100;
   const cost=miss?null:res*(1-rr)+art+fee;
-  const fc=Math.max(1,Math.round(r[5]*FOCUS_CRAFT[t-4][e]/429*Math.pow(0.5,bmFCE(key)/10000)));
+  const fc=Math.max(1,Math.round(r[5]*bmFocT(t,e)/429*Math.pow(0.5,bmFCE(key)/10000)));
   return {key,t,e,q,id,name:r[0],city:r[2],bm,net,buyC,buy,flip:net!=null&&buyC?net-buyC:null,cost,craft:net!=null&&cost!=null?net-cost:null,parts,res,art,fee,rr,fc,thin,miss,focus};
 }
 function bmGroupDefault(){ const mine=LINES.filter(([k])=>wl(k)>=2).sort((a,b)=>wl(b[0])-wl(a[0])); return mine.length?mine[0][0]:"martelo"; }
@@ -64,7 +67,7 @@ function setupBM(){
   const og1=el("optgroup",{label:"Suas armas"}), og2=el("optgroup",{label:"Outras armas"}), og3=el("optgroup",{label:"Armaduras e mão secundária"});
   for(const [k,n] of BM_GROUPS){ const o=el("option",{value:k,text:n}); (k.startsWith("a_")||k==="mao"?og3:mine.has(k)?og1:og2).append(o); }
   [og1,og2,og3].forEach(g=>{ if(g.children.length) sel.append(g); }); sel.value=store.get("bmGroup")||bmGroupDefault();
-  const ts=$("bmTier"); ["Todos",4,5,6,7,8].forEach((t,i)=>ts.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String(i===0),text:i?`T${t}`:t})));
+  const ts=$("bmTier"); ["Todos",2,3,4,5,6,7,8].forEach((t,i)=>ts.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String(i===0),text:i?`T${t}`:t})));
   ts.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ts.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmTierSel=+b.dataset.t; renderBM(); });
   const qs=$("bmQual"); ["Todas",1,2,3,4,5].forEach((q,i)=>qs.append(el("button",{type:"button","data-q":String(i?q:0),"aria-pressed":String(i===0),text:i?QNAME[q]:q})));
   qs.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; qs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmQualSel=+b.dataset.q; renderBM(); });
@@ -76,7 +79,7 @@ async function renderBM(){
   if(!BM){ $("bmNote").textContent="Abrindo o livro do Mercado Negro…"; try{ BM=await need("bm"); }catch(e){ $("bmNote").textContent="Não consegui abrir os dados do Mercado Negro."; return; } }
   setupBM(); const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
   if(!BM_LOADED.has(g)){ tb.textContent=""; note.textContent="Consultando as ordens do Mercado Negro…"; const ok=await ensureBM(g); if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; } if($("bmGroup").value!==g) return; }
-  const rows=[]; for(const k of bmKeys(g)) for(let t=4;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; for(let e=0;e<=4;e++) for(let q=1;q<=5;q++){ if(bmQualSel&&q!==bmQualSel) continue; if(!bmHas(bmId(k,t,e),q)) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } }
+  const rows=[]; for(const k of bmKeys(g)) for(let t=2;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) for(let q=1;q<=5;q++){ if(bmQualSel&&q!==bmQualSel) continue; if(!bmHas(bmId(k,t,e),q)) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } }
   const val=m=>bmMode==="flip"?m.flip:m.craft;
   const ok=rows.filter(m=>val(m)!=null).sort((a,b)=>val(b)-val(a)), shown=ok.slice(0,100);
   tb.textContent=""; const hr=tb.createTHead().insertRow();
@@ -90,7 +93,7 @@ async function renderBM(){
     const v=val(m), c3=tr.insertCell(); c3.className="num bm-profit "+(v>=0?"gain":"loss"); c3.textContent=sgn(v); c3.append(el("small",{text:(m.cost||m.buy&&m.buy.p)?`${v>=0?"+":""}${dec(v/(bmMode==="flip"?m.buy.p:m.cost)*100)}%`:""}));
     if(bmMode!=="flip"){ const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=`${m.city}${m.thin?", pouca oferta":""}`; }
     const cv=tr.insertCell(); cv.className="num vol"; cv.textContent=volTxt(bmVolOf(m.id,m.q)); tr.dataset.id=m.id; tr.dataset.q=String(m.q);
-    const cg=tr.insertCell(); const gb=el("button",{type:"button",class:"btn mn-craft",title:"Abrir no Craft: fabricar este item e vender para o Mercado Negro",text:"Craft ➜"}); gb.addEventListener("click",ev=>{ ev.stopPropagation(); ofFromBM(g,m); }); gb.addEventListener("keydown",ev=>ev.stopPropagation()); cg.append(gb);
+    const cg=tr.insertCell(); const gb=el("button",{type:"button",class:"btn mn-craft",title:"Abrir no Craft: fabricar este item e vender para o Mercado Negro",text:"Craft ➜"}); if(m.t<4){ gb.disabled=true; gb.title="O Craft calcula a partir do T4"; } gb.addEventListener("click",ev=>{ ev.stopPropagation(); ofFromBM(g,m); }); gb.addEventListener("keydown",ev=>ev.stopPropagation()); cg.append(gb);
     const dr=body.insertRow(); dr.className="of-drow"; dr.hidden=true; const dc=dr.insertCell(); dc.colSpan=9;
     const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open)); if(open){ dc.textContent=""; try{ dc.append(bmPanel(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes: "+(e&&e.message||e)})); } setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8) dr.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"}); }catch(e){} },60); } };
     tr.setAttribute("aria-expanded","false"); tr.addEventListener("click",ev=>{ if(ev.target.closest("a,button")) return; toggle(); }); tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } }); }
