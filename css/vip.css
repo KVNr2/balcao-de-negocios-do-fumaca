@@ -384,3 +384,20 @@ img.kx-sm{flex:0 1 52px;width:52px;min-width:0;aspect-ratio:1;height:auto;border
 .of2t td{padding-left:10px;padding-right:10px}
 .of-2c{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .of-g label.f select{width:100%}
+/* blocos visuais de venda e compra */
+.of-col{display:flex;flex-direction:column;gap:8px}
+.of-blk{display:flex;align-items:center;gap:10px;min-width:250px}
+.of-tile{position:relative;flex:none;width:54px;height:54px;border-radius:9px;background:var(--night-2);border:1px solid var(--line-soft);display:grid;place-items:center}
+.of-tile img.ico{width:48px;height:48px;border-radius:7px}
+.of-badge{position:absolute;right:-3px;bottom:-5px;min-width:26px;text-align:center;font:700 12px var(--f-body);background:#14110f;color:var(--parch);border:1px solid var(--line);border-radius:6px;padding:1px 5px;font-variant-numeric:tabular-nums}
+.of-bi{display:flex;flex-direction:column;gap:3px;min-width:0}
+.of-city{font:700 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--parch);display:flex;align-items:center;gap:6px}
+.of-dot{width:9px;height:9px;border-radius:50%;background:#46c37b;flex:none}
+.of-dot.red{background:#e0544c}
+.of-pr{display:flex;align-items:center;gap:7px}
+.of-pr b{font-size:15px;font-variant-numeric:tabular-nums}
+.of-pill{font:700 10px var(--f-body);letter-spacing:.05em;border-radius:4px;padding:2px 6px;border:1px solid}
+.of-pill.sale{color:#6db4f2;border-color:#3b79b3;background:rgba(59,121,179,.16)}
+.of-pill.buy{color:#52d38a;border-color:#2e8a58;background:rgba(46,138,88,.16)}
+.of-hs{font:500 10.5px var(--f-body);letter-spacing:.03em;color:var(--smoke);text-transform:uppercase}
+.of-hs b{color:var(--parch-2);font-weight:700}
