@@ -382,3 +382,5 @@ img.kx-sm{flex:0 1 52px;width:52px;min-width:0;aspect-ratio:1;height:auto;border
 .of-sum{width:100%;max-width:460px}
 .of2-grid{grid-template-columns:250px minmax(0,1fr)}
 .of2t td{padding-left:10px;padding-right:10px}
+.of-2c{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.of-g label.f select{width:100%}

@@ -113,11 +113,12 @@ function setupOf(){
   const groups={}; for(const c of ofCats()){ (groups[c.grp]||(groups[c.grp]=el("optgroup",{label:c.grp}))).append(el("option",{value:c.k,text:c.label})); }
   ["Todos","Suas armas","Armaduras","Consumíveis","Refino","Outras armas"].forEach(g=>{ if(groups[g]) sel.append(groups[g]); });
   sel.value=store.get("ofCat")||sel.options[0].value;
-  const tb=$("ofTier"); ["Todos",1,2,3,4,5,6,7,8].forEach((t,i)=>tb.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String(i===0),text:i?`T${t}`:t})));
-  const eb=$("ofEnch"); ["Todos",0,1,2,3,4].forEach((e,i)=>eb.append(el("button",{type:"button","data-e":String(i?e:-1),"aria-pressed":String(i===0),text:i?`.${e}`:e})));
-  const qb=$("ofQual"); ["Auto",1,2,3,4,5].forEach((q,i)=>qb.append(el("button",{type:"button","data-q":String(i?q:0),"aria-pressed":String(i===0),title:i?QNAME[q]:"Qualidade normal",text:i?q:q})));
-  const seg=(box,attr,key,store_)=>box.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); (store_||OF)[key]=["t","e","q"].includes(attr)?+b.dataset[attr]:b.dataset[attr]; renderOf(); });
-  seg(tb,"t","tier"); seg(eb,"e","ench"); seg(qb,"q","qual",OF2); seg($("ofBuy"),"buy","buy"); seg($("ofSell"),"sell","sell");
+  const fill=(box,opts)=>opts.forEach(([v,t])=>box.append(el("option",{value:String(v),text:t})));
+  fill($("ofTier"),[[0,"Todos"],...[1,2,3,4,5,6,7,8].map(t=>[t,`T${t}`])]);
+  fill($("ofEnch"),[[-1,"Todos"],...[0,1,2,3,4].map(e=>[e,`.${e}`])]);
+  fill($("ofQual"),[[0,"Automática (normal)"],...[1,2,3,4,5].map(q=>[q,`${q} · ${QNAME[q]}`])]);
+  const bind=(id,key,num,store_)=>$(id).addEventListener("change",()=>{ (store_||OF)[key]=num?+$(id).value:$(id).value; renderOf(); });
+  bind("ofTier","tier",1); bind("ofEnch","ench",1); bind("ofQual","qual",1,OF2); bind("ofBuy","buy"); bind("ofSell","sell");
   $("ofRRp").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; OF2.rrMan=null; OF.rr=b.dataset.rr; renderOf(); });
   $("ofRRs").addEventListener("input",()=>{ OF2.rrMan=+$("ofRRs").value/100; $("ofRRv").textContent=dec(OF2.rrMan*100)+"%"; renderOf(); });
   $("ofFocus").addEventListener("change",()=>{ OF2.rrMan=null; OF.rr=$("ofFocus").checked?"focus":"auto"; renderOf(); });
