@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Atualiza data/zvz.json com o que as maiores lutas recentes estão usando.
-Fonte principal: AtlasChill (https://atlaschill.com/albion/en/battleboard?minPlayers=200). A página da lista e a de cada luta
+Fonte principal: AtlasChill (https://atlaschill.com/albion/pt-BR/battleboard?minPlayers=200). A página da lista e a de cada luta
 trazem no HTML os jogadores (arma, aliança, kills/mortes) e os eventos de morte com o equipamento completo de quem matou e de quem morreu.
 Reserva: AlbionBB + API oficial, se o AtlasChill não responder. A função (tank, curandeiro...) vem da tabela tools/roles_armas.json.
 Se algo falhar ou vierem poucas lutas, NÃO sobrescreve o arquivo atual."""
@@ -70,7 +70,7 @@ def array_apos(txt, chave):
     return melhor
 
 def lista_atlas(servidor):
-    html = get(f"{ATLAS}/en/battleboard?server={servidor}&minPlayers={MIN_JOGADORES}")
+    html = get(f"{ATLAS}/pt-BR/battleboard?server={servidor}&minPlayers={MIN_JOGADORES}")
     f = fluxo(html)
     achados = re.findall(r'\{"id":(\d{8,}),"startTime":"([^"]+)"', f)
     ids = list(dict.fromkeys(i for i, _ in achados))[:MAX_POR_SERVIDOR]
@@ -87,7 +87,7 @@ def norm_equip(eq):
 def luta_atlas(par):
     servidor, bid = par
     try:
-        html = get(f"{ATLAS}/en/battleboard/{bid}/{servidor}")
+        html = get(f"{ATLAS}/pt-BR/battleboard/{bid}/{servidor}")
     except Exception as e:
         print("::warning::luta", bid, e); return None
     f = fluxo(html)
