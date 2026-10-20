@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="0b331fa4">
+<html lang="pt-BR" data-v="abedd100">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=0b331fa4">
-<link rel="stylesheet" href="css/vip.css?v=0b331fa4">
-<link rel="stylesheet" href="css/souk.css?v=0b331fa4">
+<link rel="stylesheet" href="css/balcao.css?v=abedd100">
+<link rel="stylesheet" href="css/vip.css?v=abedd100">
+<link rel="stylesheet" href="css/souk.css?v=abedd100">
 </head>
 <body>
 <div class="wrap app">
@@ -277,6 +277,7 @@
             <label class="f">Vender<select id="ofSell"><option value="ordem">Por ordem de venda</option><option value="inst">Na hora</option><option value="bm">Mercado Negro</option></select></label>
             <label class="f">Comprar materiais<select id="ofBuy"><option value="inst">Na hora</option><option value="ordem">Por ordem de compra</option></select></label></div>
           <div class="of-g"><h3>Parâmetros</h3>
+            <label class="f">Quantidade a fabricar <small class="muted">vazio: média vendida por dia no destino</small><input id="ofQty" type="number" min="1" step="1" placeholder="Automática"></label>
             <label class="f">Taxa da estação <small class="muted">pratas por 100 de nutrição</small><input id="ofFee" type="number" min="0" step="10"></label>
             <div class="of-pre" id="ofFeeP"><button type="button" data-f="500">500</button><button type="button" data-f="650">650</button><button type="button" data-f="800">800</button><button type="button" data-f="1000">1000</button></div>
             <div class="f"><span>Taxa de retorno <b id="ofRRv">—</b></span><input type="range" id="ofRRs" min="0" max="70" step="0.1" value="24.8" aria-label="Taxa de retorno de recursos"></div>
@@ -627,17 +628,17 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=0b331fa4"></script>
-<script src="js/base.js?v=0b331fa4"></script>
-<script src="js/fx.js?v=0b331fa4"></script>
-<script src="js/biz.js?v=0b331fa4"></script>
-<script src="js/builds.js?v=0b331fa4"></script>
-<script src="js/zvz.js?v=0b331fa4"></script>
-<script src="js/novos.js?v=0b331fa4"></script>
-<script src="js/guia.js?v=0b331fa4"></script>
-<script src="js/ui.js?v=0b331fa4"></script>
-<script src="js/oficina.js?v=0b331fa4"></script>
-<script src="js/versao.js?v=0b331fa4"></script>
-<script src="js/main.js?v=0b331fa4"></script>
+<script src="js/icons.js?v=abedd100"></script>
+<script src="js/base.js?v=abedd100"></script>
+<script src="js/fx.js?v=abedd100"></script>
+<script src="js/biz.js?v=abedd100"></script>
+<script src="js/builds.js?v=abedd100"></script>
+<script src="js/zvz.js?v=abedd100"></script>
+<script src="js/novos.js?v=abedd100"></script>
+<script src="js/guia.js?v=abedd100"></script>
+<script src="js/ui.js?v=abedd100"></script>
+<script src="js/oficina.js?v=abedd100"></script>
+<script src="js/versao.js?v=abedd100"></script>
+<script src="js/main.js?v=abedd100"></script>
 </body>
 </html>
