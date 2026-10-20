@@ -572,10 +572,22 @@ async function irParaSincronia(){ if(irSync) return; irSync=true; const alvo="ht
   st.textContent="Abrindo o programa… se o Windows perguntar, permita abrir o AlbionSpecs e aceite o aviso de Administrador.";
   while(Date.now()-t0<30000){
     const ok=await new Promise(res=>{ const im=new Image(); im.onload=()=>res(true); im.onerror=()=>res(false); im.src=alvo+"ping.gif?"+Date.now(); });
-    if(ok){ location.href=alvo; return; }
+    if(ok){ afSet(); location.href=alvo; return; }
     await new Promise(r=>setTimeout(r,700)); }
   st.textContent="Não consegui falar com o programa. Ele está instalado? Baixe em \"Primeira vez? Baixe o programa\", dê dois cliques nele e clique em Sincronizar de novo."; irSync=false; }
-$("pfAlbion").addEventListener("click",()=>{ setTimeout(irParaSincronia,1200); });
+/* primeira vez neste navegador: baixa o programa e explica tudo na própria página (o protocolo albion-ficha:// só existe depois de abrir o programa uma vez) */
+const afOk = () => { try{ return localStorage.getItem("afProg")==="1"; }catch(e){ return false; } };
+const afSet = () => { try{ localStorage.setItem("afProg","1"); }catch(e){} };
+function afBaixar(){ const a=el("a",{href:"programa/AlbionSpecs.exe",download:"AlbionSpecs.exe"}); document.body.append(a); a.click(); a.remove(); }
+let afInfo=false;
+function afMostrarPrimeira(){ $("pfPrimeira").hidden=false; $("pfPrimeira").scrollIntoView({behavior:RM?"auto":"smooth",block:"center"});
+  if(!afInfo){ afInfo=true; fetch("programa/versao.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{ $("pfSha").textContent=j.sha256||"indisponível"; $("pfVer").textContent=j.versao||"?"; }).catch(()=>{ $("pfSha").textContent="indisponível agora"; $("pfVer").textContent="?"; }); } }
+$("pfAlbion").addEventListener("click",ev=>{
+  if(afOk()){ setTimeout(irParaSincronia,1200); return; }
+  ev.preventDefault(); afMostrarPrimeira(); afBaixar();
+  $("pfStatus").textContent="Baixando o AlbionSpecs.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Sincronizar de novo."; });
+$("pfJaTenho").addEventListener("click",()=>{ afSet(); $("pfPrimeira").hidden=true; location.href=$("pfAlbion").href; setTimeout(irParaSincronia,1200); });
+$("pfFechaPrim").addEventListener("click",()=>{ $("pfPrimeira").hidden=true; });
 aplicarFichaDoAlbion(); window.addEventListener("hashchange",aplicarFichaDoAlbion);
 $("pfExample").addEventListener("click",()=>{ PF=OLERAN(); saveProfile(); renderProfile(); });
 $("pfClear").addEventListener("click",()=>{ PF=EMPTY(); saveProfile(); renderProfile(); });
