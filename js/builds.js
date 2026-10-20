@@ -123,21 +123,25 @@ function kxItem(id,skills){
   row.append(tx); return row;
 }
 /* carregamento do Albion (Loadouts > Colar texto): JSON no mesmo formato que o jogo gera em "Copiar como texto" */
-function albionLoadout(b,set){
+/* mesma força de item em outro tier: 8.0 = 7.1 = 6.2 = 5.3 = 4.4 (soma tier+encanto). Se não existe equivalente, a peça fica como está */
+function albionEquiv(id,tier){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id||""); if(!m||!tier) return {id,ok:true}; const t=+m[1], e=+(m[3]||0), ne=t+e-tier;
+  if(t===tier&&!e||t<4) return {id,ok:true}; if(ne<0||ne>4) return {id,ok:false}; return {id:`T${tier}_${m[2]}${ne?"@"+ne:""}`,ok:true}; }
+function albionLoadout(b,set,tier){
   const pick=(arr,i)=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[i]||arr[0]||""; };
   const w=set&&b.w2?b.w2:b.w, x=b.x||{};
   const slots=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o,set)],["h",pick(b.h,set)],["a",pick(b.a,set)],["s",pick(b.s,set)],["c",pick(b.c,set)],["gb",x.gb||""],["m",x.m||""],["p",pick(b.p,set)],["f",pick(b.f,set)]];
-  const equipment=[]; for(const [k,id] of slots){ if(!id) continue; const gear=["w","o","h","a","s","c"].includes(k), food=k==="p"||k==="f";
+  const equipment=[]; let miss=0; for(let [k,id] of slots){ if(!id) continue; if(tier&&["w","o","h","a","s","c"].includes(k)){ const q=albionEquiv(id,tier); if(!q.ok) miss++; id=q.id; } const gear=["w","o","h","a","s","c"].includes(k), food=k==="p"||k==="f";
     const e={item:id,quality:1}; if(k==="p") e.stack=10; e.pref=gear?[1,1,2]:food?[0,0,1,1]:[0,0,0]; equipment.push(e); }
-  return JSON.stringify({version:1,name:String(b.t||b.nome||"Build").slice(0,40),icon:13,color:12,equipment});
+  albionLoadout.miss=miss; return JSON.stringify({version:1,name:String(b.t||b.nome||"Build").slice(0,40)+(tier?" T"+tier:""),icon:13,color:12,equipment});
 }
 function albionBar(b){
-  const bar=el("div",{class:"kx-alb"}); let set=0;
+  const bar=el("div",{class:"kx-alb"}); let set=0, tier=0;
   const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
   if(hasAlt){ const sel=el("select",{"aria-label":"Set para o Albion"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; }); bar.append(sel); }
+  const tsel=el("select",{"aria-label":"Montar como","title":"Troca cada peça pela equivalente em outro tier (8.0 = 7.1 = 6.2 = 5.3 = 4.4)"}); tsel.append(el("option",{value:"0",text:"Peças como estão"})); [8,7,6,5,4].forEach(t=>tsel.append(el("option",{value:String(t),text:`Equivalente a T${t}`}))); tsel.addEventListener("change",()=>{ tier=+tsel.value; }); bar.append(tsel);
   const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
   const msg=el("span",{class:"muted small",role:"status"});
-  btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
+  btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set,tier); const mi=albionLoadout.miss; try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."+(mi?` ${mi} ${mi===1?"peça não tem":"peças não têm"} equivalente nesse tier e ficou como está.`:""); }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
   bar.append(btn,msg); return bar;
 }
 function kbPanel(b){
