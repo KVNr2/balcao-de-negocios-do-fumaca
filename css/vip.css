@@ -606,3 +606,4 @@ b.c,h4.c{color:#b784e8}
 .oflist .of-row.is-gain:hover,.oflist .of-row.is-gain.open{background:#16341f}
 .oflist .of-row.is-loss:hover,.oflist .of-row.is-loss.open{background:#381a18}
 .oflist .itemcell,.oflist .inm{text-align:left}.oflist .inm{align-items:flex-start}
+.of2-main .tbl{max-height:calc(100vh - 150px);overflow:auto}.of-lh{top:0}
