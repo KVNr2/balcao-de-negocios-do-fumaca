@@ -130,7 +130,11 @@ function kbPanel(b){
   [null,["h",b.h,sk.h&&sk.h[0]],["c",b.c],["w",[b.w],sk.w],["a",b.a,sk.a&&sk.a[0]],["o",b.o],["p",b.p],["s",b.s,sk.s&&sk.s[0]],["f",b.f]].forEach(c=>{
     const cell=el("div",{class:"kx-c"+(c?"":" vazio")}); const ids=c&&c[1];
     if(ids&&ids[0]){ const im=fullImg(ids[0],"nico kx-big"); if(im) cell.append(im);
-      const sl=c[2]; if(sl&&sl.length){ const sp=el("div",{class:"kx-ov"}); sl.forEach(x=>sp.append(spellImg(x,"kx-sm"))); cell.append(sp); } }
+      const sl=c[2]; if(sl&&sl.length){
+        /* 4 habilidades (arma): 2 em cima e 2 embaixo; com 2 ou 3, todas embaixo */
+        const em=sl.length>=4?sl.slice(0,2):[], bx=sl.length>=4?sl.slice(2):sl;
+        if(em.length){ const t=el("div",{class:"kx-ov kx-top"}); em.forEach(x=>t.append(spellImg(x,"kx-sm"))); cell.append(t); }
+        const sp=el("div",{class:"kx-ov"}); bx.forEach(x=>sp.append(spellImg(x,"kx-sm"))); cell.append(sp); } }
     g.append(cell); });
   R.append(g); box.append(R);
   return box;
