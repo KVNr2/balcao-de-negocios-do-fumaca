@@ -951,3 +951,18 @@ details.spg:not([open])>summary:hover{background:rgba(255,255,255,.03)}
 .nb-bar select{width:auto;min-width:190px}
 .nb-form{max-width:900px}.nb-back{margin-bottom:8px}.nb-btns{display:none}
 .nb-form .nb-new{margin-right:8px}
+/* criar build: grade "Visão geral" clicável */
+.nb-vg{display:flex;justify-content:center;margin:10px 0 6px}
+.nb-kg{margin:0 auto}
+button.nb-cell{padding:0;border:0;background:none;cursor:pointer;color:inherit;font:inherit}
+button.nb-cell.nb-add{background:#101218;border:1px dashed #3a3e4b;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--parch-2,#cdbf9f)}
+button.nb-cell.nb-add:hover{border-color:var(--saffron,#e8ab45)}
+.nb-plus{font:300 38px/1 Inter,sans-serif;opacity:.55}
+button.nb-cell:focus-visible{outline:2px solid var(--saffron,#e8ab45);outline-offset:3px;border-radius:12px}
+.nb-sk{margin:6px 0 10px}.nb-skrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0}
+.nb-skl{min-width:64px;font-size:12px;color:var(--parch-2,#cdbf9f)}
+button.nb-spb{padding:0;border:2px solid transparent;border-radius:50%;background:none;cursor:pointer;opacity:.6}
+button.nb-spb img.kx-sm{display:block;width:44px;flex:none}
+button.nb-spb:hover{opacity:1}button.nb-spb.on{opacity:1;border-color:var(--saffron,#e8ab45)}
+.nb-ph input,.nb-ph select{width:auto!important;min-width:120px}.nb-ph input{flex:1 1 200px}
+.nb-form>p.muted{margin:0 0 6px}
