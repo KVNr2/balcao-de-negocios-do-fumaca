@@ -117,9 +117,9 @@ async function renderEN(){
   rows.sort((a,b)=>((b.save??-1e15)-(a.save??-1e15)));
   tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Peça","Passo","Peça de base","Material","Custo encantando","Sem encantar","Economia"].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
-  for(const m of rows.slice(0,40)){ const tr=body.insertRow(); tr.insertCell().textContent=nmKey(m.key,m.name); tr.insertCell().textContent=`.${m.e-1} → .${m.e}`;
+  for(const m of rows.slice(0,40)){ const tr=body.insertRow(); tr.insertCell().append(withIcon(bmId(m.key,m.t,m.e),nmKey(m.key,m.name))); { const sc=tr.insertCell(); sc.append(withIcon(bmId(m.key,m.t,m.e-1),`.${m.e-1} → .${m.e}`)); }
     const c1=tr.insertCell(); c1.className="num"; c1.append(fmt(m.base.p)," ",el("span",{class:"age",text:m.base.how}));
-    const c2=tr.insertCell(); c2.className="num"; c2.textContent=`${m.n} × ${fmt(m.mat.p)}`;
+    const c2=tr.insertCell(); c2.className="num"; c2.append(withIcon(`T${m.t}_${EN_MAT[m.e][0]}`,`${m.n} × ${fmt(m.mat.p)}`));
     const c3=tr.insertCell(); c3.className="num"; c3.textContent=fmt(m.cost);
     const c4=tr.insertCell(); c4.className="num"; if(m.alt){ c4.append(fmt(m.alt.p)," ",el("span",{class:"age",text:m.alt.how})); } else c4.textContent="—";
     const c5=tr.insertCell(); c5.className="num "+(m.save==null?"":m.save>=0?"gain":"loss"); c5.textContent=m.save==null?"—":sgn(m.save); }
