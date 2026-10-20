@@ -199,7 +199,7 @@ const repKey = g => (g.it.find(x=>/_SET1$/.test(x[0]))||g.it[0])[0];
 /* armaduras do craft: 1, 2, 3 são os sets básicos (…_SET1); as de facção/artefato têm o código sem SET (HEAD_PLATE_UNDEAD) */
 const specCode = (g,key) => g.k.startsWith("a:") ? (/^\d+$/.test(key)?`${g.k.slice(2)}_SET${key}`:`${g.k.slice(2)}_${key}`) : key;
 /* Ícones: primeiro a cópia local (pasta icons/, listada em js/icons.js); o que não estiver lá vem do Albion Market. */
-const ICON_LOCAL = id => (typeof ICONS_LOCAL!=="undefined" && ICONS_LOCAL.has(id)) ? `icons/${id}.png` : "";
+const ICON_LOCAL = id => (typeof ICONS_LOCAL!=="undefined" && ICONS_LOCAL.has(id)) ? `icons/${id}.webp` : "";
 const ICON_REMOTE = id => `https://albionmarket.gg/icon/${encodeURIComponent(id)}/1/200`;
 const ICON = id => ICON_LOCAL(id) || ICON_REMOTE(id);
 /* se a cópia local falhar por qualquer motivo, tenta o Albion Market antes de desistir */
