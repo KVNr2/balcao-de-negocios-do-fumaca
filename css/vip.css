@@ -949,3 +949,5 @@ details.spg:not([open])>summary:hover{background:rgba(255,255,255,.03)}
 .nb-it:hover{border-color:var(--saffron,#e8ab45)}.nb-ri{width:40px;height:40px;flex:none}
 .nb-err{color:#e87a6a}.nb-act{margin-top:8px}
 .nb-bar select{width:auto;min-width:190px}
+.nb-form{max-width:900px}.nb-back{margin-bottom:8px}.nb-btns{display:none}
+.nb-form .nb-new{margin-right:8px}

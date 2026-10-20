@@ -70,10 +70,12 @@ const nbId=t=>(t||"build").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
 /* ---------- formulário de criação ---------- */
 let NB_CAT=null;
 const NB_FILTER={ w:r=>r[1]==="weapons", o:r=>r[1]==="offhands", h:r=>r[1]==="head", a:r=>r[1]==="armors", s:r=>r[1]==="shoes", c:r=>r[1]==="capes", p:r=>r[1]==="consumables"&&r[2]==="potions", f:r=>r[1]==="consumables"&&r[2]==="food" };
-async function nbForm(){
-  const dlg=el("dialog",{class:"dlg dlg2 nb-dlg","aria-label":"Criar build"}); const x=el("button",{type:"button",class:"linkbtn dlg-x","aria-label":"Fechar",text:"✕"}); x.addEventListener("click",()=>dlg.close()); dlg.addEventListener("close",()=>dlg.remove());
-  const body=el("div",{class:"nb-form"}); dlg.append(x,body); document.body.append(dlg); dlg.showModal();
-  body.append(el("h3",{class:"orn",text:"Criar build"}));
+async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
+  /* tela própria dentro da aba, com botão para voltar à lista */
+  const host=$("nbBox"); host.textContent=""; const dlg={close:()=>{ nbRender(); const a=$("p-builds"); if(a) a.scrollIntoView({block:"start"}); }};
+  const body=el("div",{class:"nb-form"}); host.append(body);
+  const back=el("button",{type:"button",class:"bc-more nb-back",text:"← Voltar para as builds"}); back.addEventListener("click",()=>dlg.close());
+  body.append(back,el("h3",{class:"orn",text:"Criar build"})); window.scrollTo({top:0,behavior:"smooth"});
   if(!NB_CAT){ body.append(el("p",{class:"muted small",text:"Abrindo o catálogo de itens…"})); try{ NB_CAT=await need("catalog"); }catch(e){ body.textContent="Não consegui abrir o catálogo."; return; } body.lastChild.remove(); }
   const sel={}; const fld=(lab,node)=>{ const l=el("label",{class:"nb-f"}); l.append(el("span",{text:lab}),node); return l; };
   const nome=el("input",{type:"text",maxlength:"80",placeholder:"Ex.: Lamina Aclarada para Fame Farm"}), au=el("input",{type:"text",maxlength:"40",placeholder:"Seu nome"}); try{ au.value=store.get("nbAuthor")||""; }catch(e){}
@@ -97,10 +99,11 @@ async function nbForm(){
   save.addEventListener("click",()=>{ if(!nome.value.trim()||!sel.w){ err.hidden=false; err.textContent="Dê um nome à build e escolha pelo menos a arma."; return; }
     const b={id:nbId(nome.value),t:nome.value.trim(),au:au.value.trim()||"Visitante",k:k.value,tg:tg.value.split(",").map(s=>s.trim()).filter(Boolean).slice(0,6),desc:ds.value.trim(),data:new Date().toISOString().slice(0,10),votos:0};
     for(const [s] of NB_SLOTS) if(sel[s]) b[s]= s==="w"?sel[s]:[sel[s]]; if(b.w&&!b.w.startsWith) b.w=b.w[0];
-    try{ store.set("nbAuthor",au.value.trim()); }catch(e){} const fim=()=>{ dlg.close(); nbOpen=b.id; nbRender(); };
+    try{ store.set("nbAuthor",au.value.trim()); }catch(e){} const fim=()=>{ nbOpen=b.id; nbRender(); setTimeout(()=>{ const c=document.querySelector("#nbBox .bcard.open"); if(c) c.scrollIntoView({block:"center",behavior:"smooth"}); },100); };
     if(NB_CLOUD){ save.disabled=true; save.textContent="Publicando…"; const o={...b}; delete o.id; delete o.votos; nbApi("nb_builds",{method:"POST",body:JSON.stringify({id:b.id,data:o}),headers:{Prefer:"return=minimal"}}).then(async r=>{ if(!r.ok) throw 0; NB_REPO=null; await nbLoad(); fim(); }).catch(()=>{ const a=nbMine(); a.unshift(b); nbSaveMine(a); err.hidden=false; err.textContent="Não consegui publicar agora; a build ficou salva só no seu navegador. Use \"Publicar para todos\" depois."; save.disabled=false; save.textContent="Salvar build"; nbRender(); }); return; }
     const a=nbMine(); a.unshift(b); nbSaveMine(a); fim(); });
-  body.append(err,el("div",{class:"nb-act"}),save);
+  const cancel=el("button",{type:"button",class:"bc-more",text:"Cancelar"}); cancel.addEventListener("click",()=>dlg.close());
+  body.append(err,el("div",{class:"nb-act nb-btns"}),save,cancel);
 }
 
 /* ---------- troca entre comunidade e nossas ---------- */
@@ -108,7 +111,7 @@ function nbInit(){
   const p=$("p-builds"); if(!p||p._nb) return; p._nb=1;
   const seg=el("div",{class:"seg nb-src",id:"bSrc",role:"group","aria-label":"Origem das builds"}); const box=el("div",{id:"nbBox",hidden:true});
   const first=p.querySelector(".aside"); first.after(seg); seg.after(box);
-  const hide=[...p.querySelectorAll(".row-ctl,.bfilters,#bList")];
+  const hide=[...p.querySelectorAll(".row-ctl,.bfilters,#bList,.cols")];
   const set=v=>{ nbSrc=v; try{ store.set("bSrc",v); }catch(e){} seg.textContent="";
     [["com","Builds da comunidade"],["nos","Nossas builds"]].forEach(([k,t])=>{ const b=el("button",{type:"button","aria-pressed":String(v===k),text:t}); b.addEventListener("click",()=>set(k)); seg.append(b); });
     hide.forEach(h=>h.hidden=v==="nos"); box.hidden=v!=="nos"; first.hidden=v==="nos"; if(v==="nos") nbRender(); };
