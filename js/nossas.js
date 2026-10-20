@@ -106,10 +106,10 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
         const rm=ev=>{ ev.stopPropagation(); ev.preventDefault(); delete sel[s]; delete sk[s]; if(curPick&&curPick[0]===s){ curPick=null; pick.textContent=""; } draw(); };
         x.addEventListener("click",rm); x.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" ") rm(ev); }); cell.append(x); }
       cell.addEventListener("click",()=>openPick(s,lab)); grid.append(cell); }); };
-  const openPick=(s,lab)=>{ curPick=[s,lab]; pick.textContent=""; pick.scrollIntoView({block:"nearest",behavior:"smooth"}); const q=el("input",{type:"search",placeholder:`Buscar ${lab.toLowerCase()}…`}), t=el("select",{"aria-label":"Tier"}), e=el("select",{"aria-label":"Encantamento"}), res=el("div",{class:"nb-res"}), spk=el("div",{class:"nb-sk"});
+  const openPick=(s,lab)=>{ curPick=[s,lab]; pick.textContent=""; if(matchMedia("(max-width:1100px)").matches) pick.scrollIntoView({block:"nearest",behavior:"smooth"}); const q=el("input",{type:"search",placeholder:`Buscar ${lab.toLowerCase()}…`}), t=el("select",{"aria-label":"Tier"}), e=el("select",{"aria-label":"Encantamento"}), res=el("div",{class:"nb-res"}), spk=el("div",{class:"nb-sk"});
     [4,5,6,7,8].forEach(n=>t.append(el("option",{value:n,text:"T"+n}))); t.value="8"; [0,1,2,3,4].forEach(n=>e.append(el("option",{value:n,text:n?"."+n:"sem encanto"})));
     const head=el("div",{class:"nb-ph"}); head.append(el("b",{text:lab}),q,t,e); if(sel[s]){ const cl=el("button",{type:"button",class:"bc-more",text:"Remover peça"}); cl.addEventListener("click",()=>{ delete sel[s]; delete sk[s]; pick.textContent=""; draw(); }); head.append(cl); }
-    const ok=el("button",{type:"button",class:"bc-more",text:"Fechar"}); ok.addEventListener("click",()=>{ pick.textContent=""; }); head.append(ok); pick.append(head,spk,res);
+    const ok=el("button",{type:"button",class:"bc-more",text:"Fechar"}); ok.addEventListener("click",()=>{ pick.textContent=""; }); head.append(ok); pick.append(head,res,spk);
     const drawSk=()=>{ spk.textContent=""; if(!sel[s]||!["w","h","a","s"].includes(s)) return; const o=spellOpts(s,sel[s]); if(!o.some(x=>x.length)){ spk.append(el("p",{class:"muted small",text:"Não tenho a lista de habilidades desta peça."})); return; }
       spk.append(el("b",{class:"small",text:"Escolha as habilidades"}));
       o.forEach((list,i)=>{ if(!list.length) return; const grp=el("div",{class:"nb-skg"}); grp.append(el("h5",{class:"nb-skl",text:posLab(s,i)+(s==="w"&&i<3?" (habilidade "+(i+1)+")":"")}));
@@ -123,7 +123,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
     const list=[...by.values()].filter(o=>o.pt&&o.en).sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
     let mat=""; const matBar=el("div",{class:"seg nb-mat",role:"group","aria-label":"Material"});
     const drawMat=()=>{ matBar.textContent=""; [["","Todos"],["cloth","Tecido"],["leather","Couro"],["plate","Placa"]].forEach(([k,t2])=>{ const b2=el("button",{type:"button","aria-pressed":String(mat===k),text:t2}); b2.addEventListener("click",()=>{ mat=k; drawMat(); show(); }); matBar.append(b2); }); };
-    if(["h","a","s"].includes(s)){ drawMat(); pick.insertBefore(matBar,spk); }
+    if(["h","a","s"].includes(s)){ drawMat(); pick.insertBefore(matBar,res); }
     const show=()=>{ res.textContent=""; const f=q.value.trim().toLowerCase(); const out=list.filter(o=>(!mat||o.mat===mat)&&(!f||o.pt.toLowerCase().includes(f)||o.en.toLowerCase().includes(f)||o.c.toLowerCase().includes(f))).slice(0,80);
       if(!out.length) res.append(el("p",{class:"muted small",text:"Nada encontrado."}));
       out.forEach(o=>{ const b=el("button",{type:"button",class:"nb-it"}); const tt=Math.max(...[...o.tiers].filter(n=>n<=+t.value),...[...o.tiers].slice(0,1)); b.append(fullImg(`T${tt}_${o.c}`,"nico nb-ri")||"",el("span",{text:o.nome}));
@@ -140,6 +140,9 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
     const a=nbMine(); a.unshift(b); nbSaveMine(a); fim(); });
   const cancel=el("button",{type:"button",class:"bc-more",text:"Cancelar"}); cancel.addEventListener("click",()=>dlg.close());
   body.append(err,el("div",{class:"nb-act nb-btns"}),save,cancel);
+  /* duas colunas: montagem à esquerda, escolha de peça e habilidades à direita */
+  { const lay=el("div",{class:"nb-lay"}), Lc=el("div",{class:"nb-L"}), Rc=el("aside",{class:"nb-R","aria-label":"Escolher peça e habilidades"});
+    [...body.children].forEach(c=>{ if(c===back||c.tagName==="H3") return; (c===pick?Rc:Lc).append(c); }); lay.append(Lc,Rc); body.append(lay); }
 }
 
 /* ---------- troca entre comunidade e nossas ---------- */
