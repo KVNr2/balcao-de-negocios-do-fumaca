@@ -15,7 +15,7 @@ function applySort(tb){
   const cmp=(x,y)=>{ let d = (x.n!=null&&y.n!=null) ? x.n-y.n : (x.n!=null ? -1 : y.n!=null ? 1 : x.s.localeCompare(y.s,"pt-BR",{numeric:true})); return st.dir*d; };
   tb._sorting=true;
   if(tb.tBodies.length>1){   // um tbody por item (linha + painel de detalhe): ordena os tbodies inteiros
-    const bodies=[...tb.tBodies]; bodies.sort((a,b)=>cmp(cellValue(a.rows[0]&&a.rows[0].cells[st.col]),cellValue(b.rows[0]&&b.rows[0].cells[st.col]))); bodies.forEach(x=>tb.append(x));
+    const bodies=[...tb.tBodies]; bodies.sort((a,b)=>cmp(cellValue(a.rows[0]&&a.rows[0].cells[st.col]),cellValue(b.rows[0]&&b.rows[0].cells[st.col]))); if(bodies.some((x,i)=>x!==tb.tBodies[i])) bodies.forEach(x=>tb.append(x));
   } else {
     const body=tb.tBodies[0], rows=[...body.rows], fixed=rows.filter(r=>r.classList.contains("total"));
     // linha de detalhe (.of-drow) anda sempre junto da linha anterior
@@ -40,7 +40,8 @@ function makeSortable(tb){
     const col=th.cellIndex, cur=SORT[tb.id]; const numeric=[...tb.rows].some(r=>r.parentNode.tagName==="TBODY"&&cellValue(r.cells[col]).n!=null);
     SORT[tb.id]={col,dir: cur&&!cur.auto&&cur.col===col ? -cur.dir : (numeric?-1:1)}; applySort(tb); });
   tb.addEventListener("keydown",ev=>{ if((ev.key==="Enter"||ev.key===" ")&&ev.target.matches("thead th")){ ev.preventDefault(); ev.target.click(); } });
-  new MutationObserver(()=>{ if(tb._sorting) return; autoSort(tb); if(tb.tHead) [...tb.tHead.rows[0].cells].forEach(th=>{ if(th.textContent.trim()){ th.tabIndex=0; th.classList.add("sortable"); } }); applySort(tb); }).observe(tb,{childList:true});
+  const mo=new MutationObserver(()=>{ if(tb._sorting) return; autoSort(tb); if(tb.tHead) [...tb.tHead.rows[0].cells].forEach(th=>{ if(th.textContent.trim()){ th.tabIndex=0; th.classList.add("sortable"); } }); applySort(tb); mo.takeRecords(); });
+  mo.observe(tb,{childList:true});
 }
 document.querySelectorAll(".tbl table[id]").forEach(makeSortable);
 
