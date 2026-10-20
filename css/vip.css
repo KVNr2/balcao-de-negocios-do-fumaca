@@ -318,3 +318,4 @@ img.kx-sm{flex:0 1 52px;width:52px;min-width:0;aspect-ratio:1;height:auto;border
 .v-dot{width:10px;height:10px;border-radius:50%;background:#58c27d;box-shadow:0 0 10px #58c27d}.v-st.novo .v-dot{background:#e0a030;box-shadow:0 0 10px #e0a030}
 .v-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
 .v-card{display:grid;gap:6px;padding:14px 16px;border-radius:14px;background:#14161c;border:1px solid #23262f}.v-card b{font-size:1.05rem}
+.v-pend{display:grid;gap:8px}.v-list{margin:0;padding-left:18px;display:grid;gap:4px;font-size:.88rem;color:var(--muted,#9aa0ad)}
