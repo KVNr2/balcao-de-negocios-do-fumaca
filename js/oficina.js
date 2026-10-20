@@ -286,7 +286,7 @@ document.addEventListener("input",ev=>{ if(ev.target.id==="ofManS"){ OF2.manS=+e
 
 /* ================= mercado: todos os itens do jogo ================= */
 let CATALOG = null;                 // data/catalog.json: c: categorias, i: [id, categoria, subcategoria, tier, encantável, nome PT, nome EN]
-const MK = {cat:"crafting", sub:"resources", tier:0, ench:0, qual:1, q:"", only:true};   // qual: qualidade dos preços e dos ícones (1 a 5); q é o texto da busca
+const MK = {cat:"crafting", sub:"resources", tier:0, ench:-1, qual:1, q:"", only:true};   // qual: qualidade dos preços e dos ícones (1 a 5); q é o texto da busca
 const SUB_PT = {resources:"Recursos brutos",refinedresources:"Recursos refinados",fish:"Peixes",alchemy:"Ingredientes de alquimia",cityresources:"Recursos de cidade",tokens:"Fichas",food:"Comidas",potions:"Poções",tomes:"Tomos",silverbag:"Sacos de prata",
   plate_armor:"Placa",leather_armor:"Couro",cloth_armor:"Pano",plate_helmet:"Placa",leather_helmet:"Couro",cloth_helmet:"Pano",plate_shoes:"Placa",leather_shoes:"Couro",cloth_shoes:"Pano",shieldtype:"Escudos",booktype:"Livros",torchtype:"Tochas",
   bags:"Bolsas",satchels:"Bolsas de lado",labourers:"Trabalhadores e diários",luxurygoods:"Artigos de luxo",maps:"Mapas",trash:"Sucata",killtrophy:"Troféus",lootitem:"Saque",farm:"Sementes e colheitas",pasture:"Animais",kennel:"Montarias da fazenda",herbgarden:"Ervas",farmingproducts:"Produtos",
@@ -307,7 +307,7 @@ function setupMk(){
   for(const c of order) if(CATALOG.c[c]) sel.append(el("option",{value:c,text:CATALOG.c[c]}));
   sel.value=store.get("mkCat2")||"crafting"; MK.cat=sel.value; if(MK.cat!=="crafting") MK.sub="";
   const tb=$("mkTier"); ["Todos",1,2,3,4,5,6,7,8].forEach((t,i)=>tb.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String(i===0),text:i?`T${t}`:t})));
-  const eb=$("mkEnch"); ["Todos",0,1,2,3,4].forEach((e,i)=>eb.append(el("button",{type:"button","data-e":String(i?e:-1),"aria-pressed":String(i===1),text:i?`.${e}`:e})));
+  const eb=$("mkEnch"); ["Todos",0,1,2,3,4].forEach((e,i)=>eb.append(el("button",{type:"button","data-e":String(i?e:-1),"aria-pressed":String(i===0),text:i?`.${e}`:e})));
   const seg=(box,attr,key)=>box.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); MK[key]=+b.dataset[attr]; renderMk(); });
   const qb=$("mkQual"); [1,2,3,4,5].forEach(q=>qb.append(el("button",{type:"button","data-q":String(q),"aria-pressed":String(q===MK.qual),text:QNAME[q]})));
   seg(tb,"t","tier"); seg(eb,"e","ench"); seg(qb,"q","qual");
@@ -344,13 +344,14 @@ async function renderMk(){
   tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Item","Maior venda","Menor venda","Maior compra","Menor compra","Diferença"].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
   const cellP=(tr,o,cls)=>{ const c=tr.insertCell(); c.className="mkp "+(cls||""); if(!o){ c.textContent="—"; return; } c.append(el("b",{class:"city",text:o.c}),el("span",{class:"num",text:fmt(o.p)}),ageSpan(o.t)||""); };
-  for(const x of rows){ const tr=body.insertRow(); tr.className="clickrow"; const nm_=mkName(x.r);
-    const c0=el("div",{class:"itemcell"}); tr.append(c0); const hd=el("div",{class:"ihead"}); hd.append(iconImg(x.id,36,mq)); const nb=el("span",{class:"inm"}); nb.append(el("strong",{text:nm_}),el("small",{text:`${x.r[3]?`T${x.r[3]}.${x.e}`:"sem tier"}${mq>1?` · ${QNAME[mq]}`:""}, ${CATALOG.c[x.r[1]]||""}${x.r[2]&&subName(x.r[2])!==CATALOG.c[x.r[1]]?`: ${subName(x.r[2])}`:""}`})); hd.append(nb); c0.append(hd);
+  for(const x of rows){ const sp=x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0, spp=x.x.smin?sp/x.x.smin.p:0; const tr=body.insertRow(); tr.className="clickrow bm-row mk-row "+(sp>0&&spp>=0.1?"is-gain":"is-flat"); tr.tabIndex=0; const nm_=mkName(x.r);
+    const c0=tr.insertCell(); c0.className="itemcell"; const hd=el("div",{class:"ihead"}); const ii=iconImg(x.id,76,mq); ii.classList.add("ic-row"); hd.append(ii); const nb=el("span",{class:"inm"}); nb.append(el("strong",{text:nm_}),el("small",{text:`${x.r[3]?`T${x.r[3]}.${x.e}`:"sem tier"}${mq>1?` · ${QNAME[mq]}`:""}, ${CATALOG.c[x.r[1]]||""}${x.r[2]&&subName(x.r[2])!==CATALOG.c[x.r[1]]?`: ${subName(x.r[2])}`:""}`})); hd.append(nb); c0.append(hd);
     cellP(tr,x.x.smax); cellP(tr,x.x.smin,"gain"); cellP(tr,x.x.bmax,"gain"); cellP(tr,x.x.bmin);
-    const d=tr.insertCell(); d.className="num"; d.textContent=x.x.smax&&x.x.smin?fmt(x.x.smax.p-x.x.smin.p):"—"; d.title="Maior venda menos menor venda: o espaço para comprar numa cidade e vender em outra";
-    tr.addEventListener("click",()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`,mq)); }
+    const d=tr.insertCell(); d.className="num"; d.className="num bm-profit "+(sp>0&&spp>=0.1?"gain":""); d.textContent=x.x.smax&&x.x.smin?fmt(sp):"—"; if(x.x.smax&&x.x.smin) d.append(el("small",{text:`${sp>=0?"+":""}${dec(spp*100)}%`})); d.title="Maior venda menos menor venda: o espaço para comprar numa cidade e vender em outra";
+    const op=()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`,mq); tr.addEventListener("click",op); tr.addEventListener("keydown",ev=>{ if(ev.key==="Enter") op(); }); }
   note.textContent = !total ? "Nenhum item com esse filtro." : `${total} ${total>1?"itens":"item"}${search?` com "${q}"`:` em ${CATALOG.c[MK.cat]}${MK.sub?` · ${subName(MK.sub)}`:""}`}${total>180?"; mostrando os 180 primeiros, use tier, encantamento ou a busca para filtrar":""}. ${rows.length<slice.length?`${slice.length-rows.length} sem anúncio nos últimos 3 dias ficaram de fora. `:""}${mq>1?`Qualidade ${QNAME[mq].toLowerCase()}: só entram itens com anúncio nessa qualidade (recursos e comida só existem na Normal). `:""}Clique num item para ver todas as cidades e o histórico.`;
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.2,stagger:.006,clearProps:"opacity,transform"});
+  const wr=tb.parentNode; wr.id="mkWrap"; hbar(wr);
 }
 
 /* quadro de detalhe de um item */
