@@ -166,7 +166,7 @@ async function renderEN(){
     const c4=tr.insertCell(); c4.className="num"; if(m.alt){ c4.append(fmt(m.alt.p)," ",el("span",{class:"age",text:m.alt.how})); } else c4.textContent="—";
     const c5=tr.insertCell(); c5.className="num "+(m.save==null?"":m.save>=0?"gain":"loss"); c5.textContent=m.save==null?"—":sgn(m.save); }
   const pos=rows.filter(m=>m.save>0).length;
-  note.textContent=rows.length?`${pos} de ${rows.length} passos saem mais baratos encantando${t?` em T${t}`:" (todos os tiers)"}. Peça de base pela opção mais barata entre comprar e fabricar sem foco; o material pela mediana das cidades.`:`Sem preços suficientes${t?` em T${t}`:""} para comparar.`;
+  note.textContent=rows.length?`${pos} de ${rows.length} passos saem mais baratos encantando${t?` em T${t}`:" (todos os tiers)"}. ${rows.length>(t?40:80)?` Mostrando as ${t?40:80} de maior economia de ${fmt(rows.length)} registros: não são todos.`:""} Peça de base pela opção mais barata entre comprar e fabricar sem foco; o material pela mediana das cidades.`:`Sem preços suficientes${t?` em T${t}`:""} para comparar.`;
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
 }
 

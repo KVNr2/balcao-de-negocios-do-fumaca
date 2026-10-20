@@ -226,7 +226,7 @@ async function renderOf(){
   }
   const pos=ok.filter(m=>m.profit>0).length, faltam=rows.length-ok.length, rrs=ok[0]?ok[0].rr:0;
   $("ofAge").textContent=isFinite(oldest)?`Preços coletados há ${fmtAge(newest)}${oldest!==newest?` (mais antigo: ${fmtAge(oldest)})`:""}`:"";
-  note.textContent=ok.length?`${ok.length} itens com preço; ${pos} dão lucro. Retorno de recursos: ${dec(rrs*100)}%${OF2.rrMan==null&&OF.rr==="auto"?" (cidade com bônus, sem foco)":""}.${ok.length>LIM?` Mostrando os ${LIM} primeiros.`:""}${sellBM()?" Mercado Negro: vale a melhor ordem de compra de lá, só com a taxa de venda.":""}${faltam?` ${faltam} sem preço de algum material.`:""} Clique numa linha para ver os materiais e o retorno.`:"Nenhum item com preço suficiente nesse filtro.";
+  note.textContent=ok.length?`${ok.length} itens com preço; ${pos} dão lucro. Retorno de recursos: ${dec(rrs*100)}%${OF2.rrMan==null&&OF.rr==="auto"?" (cidade com bônus, sem foco)":""}.${ok.length>LIM?` Mostrando os ${LIM} de maior lucro de ${fmt(ok.length)} registros: não são todos.`:` Mostrando todos os ${fmt(ok.length)} registros, do maior para o menor lucro.`}${sellBM()?" Mercado Negro: vale a melhor ordem de compra de lá, só com a taxa de venda.":""}${faltam?` ${faltam} sem preço de algum material.`:""} Clique numa linha para ver os materiais e o retorno.`:"Nenhum item com preço suficiente nesse filtro.";
   if(window.gsap&&!RM) gsap.from(body.querySelectorAll(".of-row"),{opacity:0,x:-8,duration:.22,stagger:.01,clearProps:"opacity,transform"});
   hbar(tb.parentNode); fillVolumes(shown);
 }
@@ -286,7 +286,7 @@ document.addEventListener("input",ev=>{ if(ev.target.id==="ofManS"){ OF2.manS=+e
 
 /* ================= mercado: todos os itens do jogo ================= */
 let CATALOG = null;                 // data/catalog.json: c: categorias, i: [id, categoria, subcategoria, tier, encantável, nome PT, nome EN]
-const MK = {cat:"", sub:"", city:"", tier:0, ench:-1, qual:1, q:"", only:true};   // qual: qualidade dos preços e dos ícones (1 a 5); q é o texto da busca
+const MK = {limit:180, cat:"", sub:"", city:"", tier:0, ench:-1, qual:1, q:"", only:true};   // qual: qualidade dos preços e dos ícones (1 a 5); q é o texto da busca
 const SUB_PT = {resources:"Recursos brutos",refinedresources:"Recursos refinados",fish:"Peixes",alchemy:"Ingredientes de alquimia",cityresources:"Recursos de cidade",tokens:"Fichas",food:"Comidas",potions:"Poções",tomes:"Tomos",silverbag:"Sacos de prata",
   plate_armor:"Placa",leather_armor:"Couro",cloth_armor:"Pano",plate_helmet:"Placa",leather_helmet:"Couro",cloth_helmet:"Pano",plate_shoes:"Placa",leather_shoes:"Couro",cloth_shoes:"Pano",shieldtype:"Escudos",booktype:"Livros",torchtype:"Tochas",
   bags:"Bolsas",satchels:"Bolsas de lado",labourers:"Trabalhadores e diários",luxurygoods:"Artigos de luxo",maps:"Mapas",trash:"Sucata",killtrophy:"Troféus",lootitem:"Saque",farm:"Sementes e colheitas",pasture:"Animais",kennel:"Montarias da fazenda",herbgarden:"Ervas",farmingproducts:"Produtos",
@@ -306,14 +306,14 @@ function setupMk(){
   const order=["crafting","weapons","armors","head","shoes","offhands","capes","consumables","farming","gathering","mounts","bags","artefacts","furniture","other","vanity"];
   sel.append(el("option",{value:"",text:"Todas"})); for(const c of order) if(CATALOG.c[c]) sel.append(el("option",{value:c,text:CATALOG.c[c]}));
   { const sv=store.get("mkCat2"); sel.value=sv==null?"":sv; if(sel.value!==(sv==null?"":sv)) sel.value=""; } MK.cat=sel.value; MK.sub="";
-  const fillSel=(id,opts,val,key)=>{ const x=$(id); opts.forEach(([v,t])=>x.append(el("option",{value:String(v),text:t}))); x.value=String(val); x.addEventListener("change",()=>{ MK[key]=id==="mkCity"?x.value:+x.value; renderMk(); }); };
+  const fillSel=(id,opts,val,key)=>{ const x=$(id); opts.forEach(([v,t])=>x.append(el("option",{value:String(v),text:t}))); x.value=String(val); x.addEventListener("change",()=>{ MK[key]=id==="mkCity"?x.value:+x.value; MK.limit=180; renderMk(); }); };
   fillSel("mkTier",[[0,"Todos"],...[1,2,3,4,5,6,7,8].map(t=>[t,`T${t}`])],MK.tier,"tier");
   fillSel("mkEnch",[[-1,"Todos"],...[0,1,2,3,4].map(e=>[e,`.${e}`])],MK.ench,"ench");
   fillSel("mkQual",[1,2,3,4,5].map(q=>[q,QNAME[q]]),MK.qual,"qual");
   fillSel("mkCity",[["","Todas as cidades"],...SHOP_LOCS.map(c=>[c,c])],"","city");
-  sel.addEventListener("change",()=>{ MK.cat=sel.value; MK.sub=""; store.set("mkCat2",sel.value); fillSubs(); renderMk(); });
-  $("mkSub").addEventListener("change",()=>{ MK.sub=$("mkSub").value; renderMk(); });
-  let tmr=null; $("mkFind").addEventListener("input",()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ MK.q=$("mkFind").value.trim().toLowerCase(); renderMk(); },250); });
+  sel.addEventListener("change",()=>{ MK.limit=180; MK.cat=sel.value; MK.sub=""; store.set("mkCat2",sel.value); fillSubs(); renderMk(); });
+  $("mkSub").addEventListener("change",()=>{ MK.limit=180; MK.sub=$("mkSub").value; renderMk(); });
+  let tmr=null; $("mkFind").addEventListener("input",()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ MK.limit=180; MK.q=$("mkFind").value.trim().toLowerCase(); renderMk(); },250); });
   $("mkOnly").addEventListener("change",()=>{ MK.only=$("mkOnly").checked; renderMk(); });
   fillSubs();
 }
@@ -335,13 +335,13 @@ async function renderMk(){
   else if(!MK.cat){ const rank={weapons:0,armors:1,head:1,shoes:1,offhands:2,capes:2,crafting:3,consumables:3,farming:4,mounts:4,bags:4,gathering:5,artefacts:6,other:7,furniture:8,vanity:9}; base.sort((a,b)=>((rank[a[1]]??9)-(rank[b[1]]??9))||mkName(a).localeCompare(mkName(b),"pt-BR")||(a[3]-b[3])); }
   else base.sort((a,b)=>subName(a[2]).localeCompare(subName(b[2]),"pt-BR")||mkName(a).localeCompare(mkName(b),"pt-BR")||(a[3]-b[3]));
   const list=[]; for(const r of base){ const es = MK.ench<0 ? (r[4]||isLevelRes(r)?[0,1,2,3,4]:[0]) : (MK.ench===0||r[4]||isLevelRes(r)?[MK.ench]:[]); for(const e of es) list.push({r,e,id:mkId(r,e)}); }
-  const total=list.length, slice=list.slice(0,180);
+  const total=list.length, slice=list.slice(0,MK.limit);
   const mq=MK.qual, seen=id=>mq>1?`${mq}|${id}`:id;
   const want=slice.map(x=>x.id).filter(id=>!MK_SEEN.has(seen(id)));
   if(want.length){ note.textContent=`Consultando ${want.length} itens em todas as cidades${mq>1?`, qualidade ${QNAME[mq].toLowerCase()}`:""}…`; tb.textContent="";
     try{ await fetchIds(want,mq>1?PQ[mq]:DATA.itens,SHOP_LOCS,mq); want.forEach(id=>MK_SEEN.add(seen(id))); }catch(e){ note.textContent="Não consegui consultar os preços agora."; return; }
     if(MK.qual!==mq) return; }
-  const rows=slice.map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>!MK.only||x.x.smin||x.x.bmax);
+  const spr=x=>x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:-1; const rows=slice.map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>!MK.only||x.x.smin||x.x.bmax).sort((a,b)=>spr(b)-spr(a));
   const cities=MK.city?[MK.city]:SHOP_LOCS;
   tb.textContent=""; const hr=tb.createTHead().insertRow(); hr.append(el("th",{text:"Item"}));
   cities.forEach(c=>{ const th=el("th",{}); th.append(el("span",{class:"dot",style:`background:${CITY_COLOR[c]||"#999"}`}),c); hr.append(th); });
@@ -357,7 +357,9 @@ async function renderMk(){
     const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean); const tu=tr.insertCell(); tu.className="num"; tu.append(ts.length?(ageSpan(Math.max(...ts))||"—"):"—");
     const ac=tr.insertCell(); const bt=el("button",{type:"button",class:"btn mn-craft",text:"Detalhe"}); ac.append(bt);
     const op=()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`,mq); tr.addEventListener("click",op); tr.addEventListener("keydown",ev=>{ if(ev.key==="Enter"&&ev.target===tr) op(); }); }
-  note.textContent = !total ? "Nenhum item com esse filtro." : `${total} ${total>1?"itens":"item"}${search?` com "${q}"`:MK.cat?` em ${CATALOG.c[MK.cat]}${MK.sub?` · ${subName(MK.sub)}`:""}`:" em todas as categorias"}${total>180?"; mostrando os 180 primeiros, use categoria, tier, encantamento ou a busca para filtrar":""}. ${rows.length<slice.length?`${slice.length-rows.length} sem anúncio nos últimos 3 dias ficaram de fora. `:""}${mq>1?`Qualidade ${QNAME[mq].toLowerCase()}: só entram itens com anúncio nessa qualidade (recursos e comida só existem na Normal). `:""}Linha verde: tem diferença para lucrar; amarela: diferença zero. Na linha, o menor preço fica em verde e o maior em âmbar. Clique num item para ver as ofertas e o histórico.`;
+  const shownN=rows.length, more=total>slice.length;
+  note.textContent = !total ? "Nenhum item com esse filtro." : `${fmt(shownN)} ${shownN===1?"registro exibido":"registros exibidos"} de ${fmt(total)} ${search?`com "${q}"`:MK.cat?`em ${CATALOG.c[MK.cat]}${MK.sub?` · ${subName(MK.sub)}`:""}`:"em todas as categorias"}${more?`: não são todos. Foram consultados os ${fmt(slice.length)} primeiros do catálogo e a lista está ordenada pela maior diferença entre cidades, então pode haver diferenças maiores nos que não foram consultados`:", ordenados pela maior diferença entre cidades"}. ${rows.length<slice.length?`${slice.length-rows.length} sem anúncio nos últimos 3 dias ficaram de fora. `:""}${mq>1?`Qualidade ${QNAME[mq].toLowerCase()}: só entram itens com anúncio nessa qualidade (recursos e comida só existem na Normal). `:""}Linha verde: tem diferença para lucrar; amarela: diferença zero. Na linha, o menor preço fica em verde e o maior em âmbar. Clique num item para ver as ofertas e o histórico.`;
+  { let mb=$("mkMore"); if(!mb){ mb=el("button",{type:"button",id:"mkMore",class:"btn mn-craft"}); tb.parentNode.after(mb); mb.addEventListener("click",()=>{ MK.limit+=180; renderMk(); }); } mb.hidden=!more; mb.textContent=`Consultar mais 180 (${fmt(slice.length)} de ${fmt(total)})`; }
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.2,stagger:.006,clearProps:"opacity,transform"});
   const wr=tb.parentNode; wr.id="mkWrap"; hbar(wr);
 }
