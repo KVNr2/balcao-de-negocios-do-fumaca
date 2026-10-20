@@ -475,8 +475,11 @@ const tagIn = (t,inp,ic) => { const w=el("label",{class:"lvt"}), s=el("span",{te
 const bandTxt = n => ["sem spec","começando","média","alta"][band(n)];
 /* nó recolhível da ficha (igual aos das armas): ícone, nome e resumo; o corpo só é montado quando abre */
 function spNode(nome,ic,getSum,build){ const d=el("details",{class:"spg"}), sm=el("summary"), nmS=el("span",{class:"spn",text:nome}), sumS=el("span",{class:"sps"}); sm.append(ic,nmS,sumS); d.append(sm); const body=el("div",{class:"spgrid"}); d.append(body);
-  const upd=()=>{ const t=getSum(); sumS.textContent=t; sumS.classList.toggle("on",t!=="sem spec"); }; let built=false;
+  const upd=()=>{ const t=getSum(); sumS.textContent=t; sumS.classList.toggle("on",t!=="sem spec"); refreshSec(); }; let built=false;
   d.addEventListener("toggle",()=>{ if(!d.open||built) return; built=true; build(body,upd); }); upd(); return d; }
+/* resumo de cada seção da árvore da ficha: quantos nós têm spec */
+const SEC_BOX = {"Combate":"pfCombat","Craft":"pfCraftAll","Coleta":"pfGather","Refino":"pfRefine","Cozinha e alquimia":"pfCook","Fazenda":"pfFarm"};
+function refreshSec(){ for(const [n,id] of Object.entries(SEC_BOX)){ const box=$(id), out=document.querySelector(`.secsum[data-sec="${n}"]`); if(!box||!out) continue; const all=box.querySelectorAll("details.spg"), on=box.querySelectorAll("details.spg .sps.on"); out.textContent=all.length?(on.length?`${on.length} de ${all.length} com spec`:"sem spec"):""; out.classList.toggle("on",on.length>0); } }
 function renderProfile(){
   $("pfName").value=PF.nome||"";
   const g=$("pfGather"); g.textContent=""; const gg=el("div",{class:"spgroups"}); g.append(gg);
@@ -491,7 +494,7 @@ function renderProfile(){
       body.append(tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${RES[k].refName}`,x=>{ cur.m=x; saveProfile(); upd(); }),itemImg(RES[k].ref,[6,5,4,7,8,3,2,1])));
       for(let t=2;t<=8;t++) body.append(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${RES[k].refName} T${t}`,x=>{ if(x) cur.s[t]=x; else delete cur.s[t]; saveProfile(); upd(); }),itemImg(RES[k].ref,tierOrder(t))));
       body.append(tagIn("Foco T6.0 no jogo",numIn(cur.obs||0,99999,`Custo de foco no jogo para ${RES[k].refName} T6.0`,x=>{ cur.obs=x; saveProfile(); upd(); },"—"))); })); }
-  renderSpecs(); renderCookProfile();
+  renderSpecs(); renderCookProfile(); refreshSec();
 }
 function renderGatherHint(row,cur){ deriveLv(); const h=row.querySelector(".lvh"); if(h) h.textContent=cur.tier?`coleta até T${cur.tier}`:"sem spec"; }
 
@@ -515,14 +518,16 @@ function spSummary(g){ const st=spGet(g.k), s=st.s||{}, m=spMastery(g.k), vals=g
   return parts.length?parts.join(", "):"sem spec"; }
 function renderSpecs(){
   if(!SPECS) return;
-  for(const [sec,box] of SP_SECS){ const root=$(box); if(!root) continue; root.textContent=""; let sub=null, grid=null;
+  for(const [sec,box] of SP_SECS){ const root=$(box); if(!root) continue; root.textContent=""; let sub=null, grid=null; const subs=[];
+    const refreshSubs=()=>{ for(const sn of subs){ const on=sn._gs.filter(x=>spSummary(x)!=="sem spec").length; sn._cnt.textContent=on?`${on} de ${sn._gs.length} com spec`:""; sn._cnt.classList.toggle("on",!!on); } refreshSec(); };
     for(const g of SPECS.g.filter(x=>x.sec===sec)){
-      if(g.sub!==sub){ sub=g.sub; root.append(el("h4",{class:"spsub",text:sub})); grid=el("div",{class:"spgroups"}); root.append(grid); }
+      if(g.sub!==sub){ sub=g.sub; const sn=el("details",{class:"spsubn"}), ss=el("summary"); const lab=el("span",{text:sub}), cnt=el("span",{class:"secsum"}); ss.append(lab,cnt); sn.append(ss); grid=el("div",{class:"spgroups"}); sn.append(grid); root.append(sn); sn._cnt=cnt; sn._grid=grid; subs.push(sn); sn._gs=[]; }
+      const curSub=subs[subs.length-1]; curSub._gs.push(g);
       const d=el("details",{class:"spg"}), sm=el("summary"), nmS=el("span",{class:"spn",text:g.nome}), sumS=el("span",{class:"sps",text:spSummary(g)});
       sm.append(nmS,sumS); d.append(sm); const body=el("div",{class:"spgrid"}); d.append(body);
       const icons=[], combate=g.sec==="combate";
       const mk=key=>{ const im=itemImg(specCode(g,key), combate?tierOrder(tierFromMastery(spMastery(g.k))):null); icons.push(im); return im; };
-      const upd=()=>{ const base=spSummary(g); sumS.textContent=base+(combate&&base!=="sem spec"?` · usa até T${tierFromMastery(spMastery(g.k))}`:""); sumS.classList.toggle("on",base!=="sem spec");
+      const upd=()=>{ const base=spSummary(g); sumS.textContent=base+(combate&&base!=="sem spec"?` · usa até T${tierFromMastery(spMastery(g.k))}`:""); sumS.classList.toggle("on",base!=="sem spec"); refreshSubs();
         if(combate){ const t=tierFromMastery(spMastery(g.k)); icons.forEach(im=>im._tier(t)); } };
       sm.prepend(mk(repKey(g)));
       let built=false;
@@ -532,7 +537,8 @@ function renderSpecs(){
           body.append(tagIn(label,numIn(+(spGet(g.k).s||{})[key]||0,g.max,`${g.nome}: ${label}`,x=>{ const st=spEnsure(g.k); st.s=st.s||{}; if(x) st.s[key]=x; else delete st.s[key]; saveProfile(); upd(); },"—"),mk(key))); }
         if(g.k.startsWith("a:")){ const kk=g.k.slice(2); body.append(tagIn("Foco T6.0 no jogo",numIn((PF.craft[kk]||{}).obs||0,99999,`Custo de foco no jogo para ${g.nome} T6.0`,x=>{ spEnsure(g.k).obs=x; saveProfile(); upd(); },"—"))); }
       });
-      upd(); grid.append(d); } } }
+      upd(); grid.append(d); }
+    refreshSubs(); } }
 const MEAL_PT = {SOUP:"Sopa",SALAD:"Salada",SEAWEEDSALAD:"Salada de algas",PIE:"Torta",OMELETTE:"Omelete",STEW:"Guisado",SANDWICH:"Sanduíche",ROAST:"Assado",GRILLEDFISH:"Peixe grelhado"};
 function cookTypes(kind){ const m={}; for(const id in COOK.r){ const r=COOK.r[id]; if(r[1]!==kind||!r[3]) continue; const tp=cookType(id); if(!m[tp]) m[tp]= MEAL_PT[tp] || r[0].replace(/^Poção\s+((de|da|do)\s+)?/i,"").replace(/\s+(Menor|Maior)$/,""); } return m; }
 function renderCookProfile(){ const c=$("pfCook"); c.textContent=""; const cg=el("div",{class:"spgroups"}); c.append(cg);

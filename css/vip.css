@@ -169,3 +169,21 @@ img.ico.t{width:52px;height:52px}
 td.num .cell-ic{justify-content:flex-end}
 #enTable td,#ckTable td{vertical-align:middle}
 #enTable td:nth-child(2) .cell-tx{white-space:nowrap}
+
+/* seções da Minha ficha em nós recolhíveis */
+details.secnode{padding:0}
+details.secnode>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;padding:18px 20px;user-select:none}
+details.secnode>summary::-webkit-details-marker{display:none}
+details.secnode>summary h3{margin:0;flex:0 0 auto}
+details.secnode>summary::after{content:"";margin-left:auto;width:9px;height:9px;border-right:2px solid var(--muted,#8a94ab);border-bottom:2px solid var(--muted,#8a94ab);transform:rotate(45deg);transition:transform .2s;flex:none}
+details.secnode[open]>summary::after{transform:rotate(-135deg)}
+details.secnode>summary:hover{background:rgba(79,139,255,.06);border-radius:14px}
+.secsum{font-size:12px;color:var(--muted,#8a94ab);margin-left:4px}
+.secsum.on{color:#3ddc97}
+.secbody{padding:0 20px 20px}
+details.spsubn{margin:12px 0}
+details.spsubn>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 4px;font:600 13px/1 Rajdhani,Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--muted,#8a94ab)}
+details.spsubn>summary::-webkit-details-marker{display:none}
+details.spsubn>summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .2s}
+details.spsubn[open]>summary::after{transform:rotate(-135deg)}
+details.spsubn>.spgroups{margin-top:6px}
