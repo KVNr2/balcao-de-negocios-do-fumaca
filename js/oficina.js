@@ -228,7 +228,7 @@ async function renderOf(){
   $("ofAge").textContent=isFinite(oldest)?`Preços coletados há ${fmtAge(newest)}${oldest!==newest?` (mais antigo: ${fmtAge(oldest)})`:""}`:"";
   note.textContent=ok.length?`${ok.length} itens com preço; ${pos} dão lucro. Retorno de recursos: ${dec(rrs*100)}%${OF2.rrMan==null&&OF.rr==="auto"?" (cidade com bônus, sem foco)":""}.${ok.length>LIM?` Mostrando os ${LIM} primeiros.`:""}${sellBM()?" Mercado Negro: vale a melhor ordem de compra de lá, só com a taxa de venda.":""}${faltam?` ${faltam} sem preço de algum material.`:""} Clique numa linha para ver os materiais e o retorno.`:"Nenhum item com preço suficiente nesse filtro.";
   if(window.gsap&&!RM) gsap.from(body.querySelectorAll(".of-row"),{opacity:0,x:-8,duration:.22,stagger:.01,clearProps:"opacity,transform"});
-  fillVolumes(shown);
+  hbar(tb.parentNode); fillVolumes(shown);
 }
 const nk = id => id.replace(/_LEVEL(\d)$/,"_LEVEL$1@$1");
 const ofVolN_unused = m => { const h=OF2.hs[nk(m.it.id)+"|"+m.sale.c]; return OF2.qty>0?OF2.qty:Math.max(1,Math.round(h&&h.vol>0?h.vol:1)); };
@@ -398,4 +398,14 @@ async function ofFromBM(g,m){
   const t=document.getElementById("t-craft"); t.click();
   try{ ofCards(); }catch(e){}
   renderOf();
+}
+/* barra de rolagem lateral sempre visível (grudada no pé da tela), sincronizada com a lista */
+function hbar(wrap){
+  if(!wrap) return; let bar=wrap._hbar;
+  if(!bar){ bar=el("div",{class:"hbar","aria-hidden":"true"}); bar.append(el("div")); wrap.after(bar); wrap._hbar=bar; let lock=0;
+    bar.addEventListener("scroll",()=>{ if(lock){ lock=0; return; } lock=1; wrap.scrollLeft=bar.scrollLeft; });
+    wrap.addEventListener("scroll",()=>{ if(lock){ lock=0; return; } lock=1; bar.scrollLeft=wrap.scrollLeft; });
+    addEventListener("resize",()=>hbar(wrap)); }
+  const upd=()=>{ bar.firstChild.style.width=wrap.scrollWidth+"px"; bar.style.width=wrap.clientWidth+"px"; bar.hidden=wrap.scrollWidth<=wrap.clientWidth+2; };
+  upd(); setTimeout(upd,300); setTimeout(upd,1200);
 }
