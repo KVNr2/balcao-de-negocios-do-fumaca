@@ -643,8 +643,8 @@ b.c,h4.c{color:#b784e8}
 .bm2t td.bm-profit{font:700 22px var(--f-body)}
 .bm2t td.bm-profit small{display:block;font:600 12px var(--f-body);margin-top:2px}
 .bm2t td.bm-profit.gain{color:#52d38a}.bm2t td.bm-profit.loss{color:#ef6a62}
-.bm2t td.num:nth-child(5){color:#ef6a62}
-.bm2t td.num:nth-child(4){color:#6db4f2}
+#bmTable td.num:nth-child(5){color:#ef6a62}
+#bmTable td.num:nth-child(4){color:#6db4f2}
 .bm2t .mn-craft{padding:8px 14px}
 .bm2{--tblw:1100px}
 .bm2t tbody{display:table-row-group}
@@ -743,3 +743,18 @@ dialog.dlg2{width:min(1180px,96vw);padding:0;background:var(--night-2);border:1p
 .dlg-of .cc{display:flex;flex-direction:column;align-items:flex-end;font-weight:600}.dlg-of .cc small{font-weight:400;color:var(--smoke)}
 .dlg-hist{margin-top:20px}.dlg-hh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .dlg-hist svg{width:100%;height:auto;background:var(--cloth);border:1px solid var(--line-soft);border-radius:10px}
+
+/* ===== tom amarelo (zero) e tabelas no padrão de lista ===== */
+:root{--c-warn-bg:#2a2410;--c-warn-bd:rgba(224,179,63,.35);--c-warn:#f0c85a}
+.bm2t tbody tr.bm-row.is-warn td{background:var(--c-warn-bg);border-top-color:var(--c-warn-bd);border-bottom-color:var(--c-warn-bd)}
+.bm2t tbody tr.bm-row.is-warn td:first-child{border-left-color:#e0b33f}
+.bm2t tbody tr.bm-row.is-warn:hover td{background:#352d12}
+.bm2t td.bm-profit.warn{color:var(--c-warn)}
+.lst.bm2t tbody tr.bm-row td{text-align:left}
+.lst.bm2t tbody tr.bm-row td.num,.lst.bm2t thead th{text-align:center}
+.lst.bm2t thead th:first-child{text-align:left}
+.lst.bm2t .cell-ic img,.lst.bm2t td img.ico{width:var(--ic-detail);height:var(--ic-detail);border-radius:10px;background:var(--cloth);border:1px solid var(--line-soft)}
+.lst.bm2t td.num{font:600 16px var(--f-body);font-variant-numeric:tabular-nums}
+.lst.bm2t td.num.gain,.lst.bm2t td.num.loss{font:700 19px var(--f-body)}
+.lst.bm2t td.num.gain{color:var(--c-gain)}.lst.bm2t td.num.loss{color:var(--c-loss)}
+.lst.bm2t tbody tr.bm-row td:first-child{min-width:0}
