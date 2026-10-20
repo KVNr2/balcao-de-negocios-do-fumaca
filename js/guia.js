@@ -18,6 +18,7 @@ const GUIA = {
   "p-zvz": ["O que o ZvZ está usando agora.", "Ver, por função, as armas mais usadas nas maiores lutas recentes e a build completa de cada uma.", "Escolha a função e, se quiser, uma aliança. Abra a arma para ver elmo, peito, botas, capa, poção e comida."],
   "p-matchup": ["Fichas das armas que você mais encontra nas Brumas e Corrompidas.", "Saber o golpe perigoso de cada uma, quando entrar e o que guardar.", "Procure a arma pelo nome. Marque a caixa para destacar as fichas em que as suas armas se dão bem."],
   "p-patch": ["O que mudou no último patch.", "Ver quais armas subiram ou caíram.", "Só leitura."],
+  "p-versao": ["Qual versão do site está no ar e quando ela foi publicada.", "Conferir a versão que você está usando, a hora da publicação e quando cada base de dados foi atualizada.", "Se aparecer versão nova, use o botão para recarregar."],
   "p-fontes": ["De onde vêm os dados do site.", "Conferir as fontes e os sites de apoio.", "Só leitura."]
 };
 (function(){
