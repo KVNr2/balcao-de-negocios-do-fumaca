@@ -1,6 +1,6 @@
 /* ================= Builds: "Builds da comunidade" x "Nossas builds" (pasta builds/) ================= */
 let nbLine="", NB_REPO=null, NB_ALL=[], nbOpen=null, nbCont="", nbSort="votos", nbSrc="com";
-const NB_EXTRAS=[["t","Ferramenta"],["gh","Chapéu de coleta"],["ga","Traje de coleta"],["gs","Botas de coleta"],["gk","Mochila de coleta"],["gb","Bolsa"],["m","Montaria"]];
+const NB_EXTRAS=[["gb","Bolsa"],["m","Montaria"]];
 const NB_SLOTS=[["w","Arma"],["o","Secundária"],["h","Elmo"],["a","Peito"],["s","Botas"],["c","Capa"],["p","Poção"],["f","Comida"]];
 function nbMine(){ try{ return JSON.parse(store.get("nb:mine")||"[]"); }catch(e){ return []; } }
 function nbSaveMine(a){ try{ store.set("nb:mine",JSON.stringify(a)); }catch(e){} }
@@ -81,7 +81,8 @@ const nbId=t=>(t||"build").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
 /* ---------- formulário de criação ---------- */
 let NB_CAT=null, NB_REFRESH=null;
 const NB_FILTER={ t:r=>r[1]==="gathering"&&/_TOOL_/.test(r[0]), gh:r=>r[1]==="gathering"&&/_HEAD_GATHERER_/.test(r[0]), ga:r=>r[1]==="gathering"&&/_ARMOR_GATHERER_/.test(r[0]), gs:r=>r[1]==="gathering"&&/_SHOES_GATHERER_/.test(r[0]), gk:r=>r[1]==="gathering"&&/_BACKPACK_GATHERER_/.test(r[0]), gb:r=>r[1]==="bags", m:r=>r[1]==="mounts",
-  w:r=>r[1]==="weapons", o:r=>r[1]==="offhands", h:r=>r[1]==="head", a:r=>r[1]==="armors", s:r=>r[1]==="shoes", c:r=>r[1]==="capes"&&r[2]!=="other", p:r=>r[1]==="consumables"&&r[2]==="potions", f:r=>r[1]==="consumables"&&r[2]==="food" };
+  /* itens de coleta entram nas peças a que pertencem: ferramenta = arma, chapéu/traje/botas = elmo/peito/botas, mochila = capa */
+  w:r=>r[1]==="weapons"||(r[1]==="gathering"&&/_TOOL_/.test(r[0])), o:r=>r[1]==="offhands", h:r=>r[1]==="head"||(r[1]==="gathering"&&/_HEAD_GATHERER_/.test(r[0])), a:r=>r[1]==="armors"||(r[1]==="gathering"&&/_ARMOR_GATHERER_/.test(r[0])), s:r=>r[1]==="shoes"||(r[1]==="gathering"&&/_SHOES_GATHERER_/.test(r[0])), c:r=>(r[1]==="capes"&&r[2]!=="other")||(r[1]==="gathering"&&/_BACKPACK_GATHERER_/.test(r[0])), p:r=>r[1]==="consumables"&&r[2]==="potions", f:r=>r[1]==="consumables"&&r[2]==="food" };
 async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
   /* tela própria dentro da aba, com botão para voltar à lista */
   const host=$("nbBox"); host.textContent=""; const dlg={close:()=>{ nbRender(); const a=$("p-builds"); if(a) a.scrollIntoView({block:"start"}); }};
@@ -133,7 +134,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
         x.addEventListener("click",rm); x.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" ") rm(ev); }); cell.append(x); }
       cell.addEventListener("click",()=>openPick(s,lab)); grid.append(cell); }); drawSets(); drawEx(); };
   /* coleta e extras: ferramenta, set de coleta, bolsa e montaria (iguais nos dois sets; edite no Set 1) */
-  const drawEx=()=>{ exBox.textContent=""; exBox.append(el("h4",{text:"Coleta e extras"}),el("p",{class:"muted small",text:cs===1?"Iguais ao Set 1.":"Ferramenta, set de coleta, bolsa e montaria. São os mesmos nos dois sets."}));
+  const drawEx=()=>{ exBox.textContent=""; exBox.append(el("h4",{text:"Extras"}),el("p",{class:"muted small",text:cs===1?"Iguais ao Set 1.":"Bolsa e montaria. São as mesmas nos dois sets."}));
     const row=el("div",{class:"nb-exg"}); NB_EXTRAS.forEach(([x,lab])=>{ const id=SETS[0].sel[x]; const c=el("button",{type:"button",class:"nb-xc"+(id?" on":"")+(cs===1?" nb-lock2":""),title:lab,disabled:cs===1});
       if(id){ const im=fullImg(id,"nico nb-xi"); if(im) c.append(im); const cn=el("small",{text:itemNome(idInfo(id).c)}); c.append(cn); if(NB_CAT){ const bare=id.replace(/@\d$/,""); const r=NB_CAT.i.find(z=>z[0]===bare)||NB_CAT.i.find(z=>z[0].endsWith("_"+idInfo(id).c)); if(r) cn.textContent=(LANG==="en"?r[6]:r[5])||r[6]||cn.textContent; } if(cs!==1){ const rx=el("span",{class:"nb-x nb-x2",role:"button",tabindex:"0",title:"Remover "+lab.toLowerCase(),"aria-label":"Remover "+lab.toLowerCase(),text:"✕"}); const rm=ev=>{ ev.stopPropagation(); ev.preventDefault(); delete SETS[0].sel[x]; if(curPick&&curPick[0]===x){ curPick=null; pick.textContent=""; } draw(); }; rx.addEventListener("click",rm); rx.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" ") rm(ev); }); c.append(rx); } }
       else c.append(el("span",{class:"nb-plus",text:"+"}),el("small",{text:lab}));
@@ -151,10 +152,10 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
           b.append(ic,tx); b.addEventListener("click",()=>{ sk[s]=sk[s]||[]; sk[s][i]=sk[s][i]===v?undefined:v; draw(); drawSk(); }); cards.append(b); });
         grp.append(cards); spk.append(grp); }); };
     drawSk();
-    const rows=NB_CAT.i.filter(r=>NB_FILTER[s](r)&&/^T\d_/.test(r[0])); const by=new Map(); for(const r of rows){ const c=r[0].replace(/^T\d+_/,""), key=(s==="p"||s==="f")?r[0]:c; if(!by.has(key)) by.set(key,{c,nome:LANG==="en"?r[6]:r[5],en:r[6],pt:r[5],tiers:new Set(),ench:0,sub:r[2],mat:(/^(cloth|leather|plate)_/.exec(r[2])||[])[1]||""}); const o=by.get(key); o.tiers.add(r[3]); if(r[4]&&!/consumables/.test(r[1])) o.ench=1; }
+    const rows=NB_CAT.i.filter(r=>NB_FILTER[s](r)&&/^T\d_/.test(r[0])); const by=new Map(); for(const r of rows){ const c=r[0].replace(/^T\d+_/,""), key=(s==="p"||s==="f")?r[0]:c; if(!by.has(key)) by.set(key,{c,nome:LANG==="en"?r[6]:r[5],en:r[6],pt:r[5],tiers:new Set(),ench:0,sub:r[2],mat:(/^(cloth|leather|plate)_/.exec(r[2])||[])[1]||(r[1]==="gathering"?"gather":"")}); const o=by.get(key); o.tiers.add(r[3]); if(r[4]&&!/consumables/.test(r[1])) o.ench=1; }
     const list=[...by.values()].filter(o=>o.pt&&o.en).sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
     let mat=""; const matBar=el("div",{class:"seg nb-mat",role:"group","aria-label":"Material"});
-    const drawMat=()=>{ matBar.textContent=""; [["","Todos"],["cloth","Tecido"],["leather","Couro"],["plate","Placa"]].forEach(([k,t2])=>{ const b2=el("button",{type:"button","aria-pressed":String(mat===k),text:t2}); b2.addEventListener("click",()=>{ mat=k; drawMat(); show(); }); matBar.append(b2); }); };
+    const drawMat=()=>{ matBar.textContent=""; [["","Todos"],["cloth","Tecido"],["leather","Couro"],["plate","Placa"],["gather","Coleta"]].forEach(([k,t2])=>{ const b2=el("button",{type:"button","aria-pressed":String(mat===k),text:t2}); b2.addEventListener("click",()=>{ mat=k; drawMat(); show(); }); matBar.append(b2); }); };
     if(["h","a","s"].includes(s)){ drawMat(); pick.insertBefore(matBar,res); }
     let sub=""; const subs=[...new Set(list.map(o=>o.sub))].filter(Boolean); const sn=x=>typeof subName==="function"?subName(x):x.replace(/_/g," ");
     if(!["h","a","s"].includes(s)&&subs.length>1){ const ss=el("select",{"aria-label":"Tipo",class:"nb-sub"}); ss.append(el("option",{value:"",text:"Todos os tipos"})); subs.sort((a,b)=>sn(a).localeCompare(sn(b),"pt-BR")).forEach(x=>ss.append(el("option",{value:x,text:sn(x)}))); ss.addEventListener("change",()=>{ sub=ss.value; show(); }); head.append(ss); }
