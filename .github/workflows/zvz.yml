@@ -14,7 +14,12 @@ jobs:
         with:
           python-version: "3.12"
       - run: true
-      - run: python3 tools/atualizar_zvz.py
+      - name: Buscar lutas
+        run: python3 tools/atualizar_zvz.py 2>&1 | tee /tmp/zvz.log; test ${PIPESTATUS[0]} -eq 0
+        shell: bash
+      - name: Mostrar o fim do log se falhou
+        if: failure()
+        run: echo "::error::$(grep -v '^::' /tmp/zvz.log | tail -c 700 | tr '\n' ' ')"
       - name: Atualizar a versão dos arquivos e publicar se mudou
         run: |
           ./carimbo.sh
