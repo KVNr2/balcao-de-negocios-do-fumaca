@@ -28,15 +28,16 @@ const bmHas = (id,q) => { const v=bmRec(id,q)["Black Market"]; return !!(v&&v[1]
 const bmVolOf = (id,q) => { const v=BM_VOL[id]; return v==null ? null : typeof v==="number" ? -1 : (v[q]||0); };
 const bmId=(key,t,e)=>`T${t}_${key}`+(e?`@${e}`:"");
 const bmKeys=g=>g==="*"?Object.keys(BM):Object.keys(BM).filter(k=>BM[k][1]===g);
-async function ensureBM(g,only=0){
+const BM_PEND={}, BM_PL={};
+function ensureBM(g,only=0){ const lk=g==="*"?`*#${only}`:g; if(BM_LOADED.has(lk)) return Promise.resolve(true); return BM_PEND[lk]||(BM_PEND[lk]=ensureBM1(g,only).finally(()=>{ delete BM_PEND[lk]; })); }
+async function ensureBM1(g,only=0){
   const lk=g==="*"?`*#${only}`:g;
-  if(BM_LOADED.has(lk)) return true;
   const keys=bmKeys(g), gear=[], extra=new Set();
   for(const k of keys) for(let t=(only||2);t<=(only||8);t++){ if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) gear.push(bmId(k,t,e)); if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
   for(const t of [2,3]) for(const r of ["METALBAR","PLANKS","LEATHER","CLOTH"]) extra.add(`T${t}_${r}`);
   try{
     await bmFetch(gear,["Black Market",...SHOP_LOCS],true);
-    if(!PLANKS_LOADED){ const pl=[]; for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) pl.push(`T${t}_PLANKS`+(e?`_LEVEL${e}@${e}`:"")); await fetchIds(pl,DATA.itens); PLANKS_LOADED=true; }
+    if(!PLANKS_LOADED){ BM_PL.p=BM_PL.p||(async()=>{ const pl=[]; for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) pl.push(`T${t}_PLANKS`+(e?`_LEVEL${e}@${e}`:"")); await fetchIds(pl,DATA.itens); PLANKS_LOADED=true; })().finally(()=>{ BM_PL.p=null; }); await BM_PL.p; }
     if(extra.size) await fetchIds([...extra],DATA.itens,[...CITIES,"Caerleon"]);
     BM_LOADED.add(lk); return true;
   }catch(e){ return false; }
@@ -82,6 +83,7 @@ async function renderBM(partial){
   setupBM(); const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
   if(g==="*"&&!bmTierSel&&!partial){   // todas as mercadorias e todos os tiers: busca um tier por vez (do T8 ao T2) e mostra o que já chegou
     const falta=[8,7,6,5,4,3,2].filter(t=>!BM_LOADED.has(`*#${t}`));
+    falta.forEach(t=>{ ensureBM(g,t).catch(()=>{}); });   // dispara todos os tiers ao mesmo tempo; abaixo só espera na ordem
     for(let i=0;i<falta.length;i++){ const t=falta[i];
       note.textContent=i?`Consultando T${t} (${i+1} de ${falta.length}); mostrando o que já chegou. ${note.textContent}`:`Consultando as ordens do Mercado Negro, T${t} (1 de ${falta.length})…`;
       const ok=await ensureBM(g,t); if(tok!==BM_TOK) return;
