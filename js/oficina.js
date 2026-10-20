@@ -74,7 +74,7 @@ async function ensureOf(cat){
     OF.loaded.add(cat); return true;
   }catch(e){ return false; }
 }
-const OF2 = {manS:0, manB:0, qty:0, hs:{}, qual:0, tax:true, rrMan:null, open:new Set()};
+const OF2 = {manS:0, manB:0, qty:10, hs:{}, qual:0, tax:true, rrMan:null, open:new Set()};
 function bestIn(tbl,id,field,want,only){ const r=tbl[id.includes("_LEVEL")?id.split("@")[0]:id]; if(!r) return null; let b=null; for(const [c,v] of Object.entries(r)){ if(only&&c!==only) continue; const p=v[field]; if(!(p>0)) continue; if(!b||(want==="min"?p<b.p:p>b.p)) b={p,c,t:v[field+2]||snapTime()}; } return b; }
 const sellBM = () => OF.sellC.has("Black Market");
 const sellLocs = () => { const l=[]; if(!OF.sellC.size||[...OF.sellC].some(c=>c!=="Black Market")) l.push(...SHOP_LOCS); if(sellBM()) l.push("Black Market"); return l; };
@@ -102,17 +102,19 @@ function ofRRbase(it){ const fb=it.bonus===0.40?0.40:0.15;
   if(OF.rr==="none") return rrr(0,false,st.daily); if(OF.rr==="focus") return rrr(fb,true,st.daily); return rrr(fb,false,st.daily); }
 function ofRR(it){ return OF2.rrMan!=null?OF2.rrMan:ofRRbase(it); }
 /* quantidade que o jogo devolve: o arredondamento é por jogada, aqui usamos a média */
+function ofN(){ return OF2.qty>0?OF2.qty:10; }
+/* custo e lucro de N receitas: o retorno é aplicado ao total de cada material e arredondado para cima, como se compra no jogo */
 function ofModel(it){
   const sale=pickSell(it.id); if(!sale) return null;
-  let cost=0, miss=0, rr=ofRR(it); const parts=[];
+  const N=ofN(); let mat=0, miss=0; const rr=ofRR(it), parts=[];
   for(const g of it.ing){ const b=pickBuy(g.id); if(!b){ miss++; parts.push({...g,b:null}); continue; }
-    const unit=b.p*(b.mode==="ordem"?1.025:1), gross=g.n*unit, ret=g.art?0:g.n*rr, c=g.art?gross:gross*(1-rr);
-    cost+=c; parts.push({...g,b,unit,ret,pay:g.n-ret,sub:c,retVal:ret*unit}); }
+    const unit=b.p*(b.mode==="ordem"?1.025:1), total=g.n*N, need=g.art?total:Math.ceil(total*(1-rr)-1e-9), ret=total-need, sub=need*unit;
+    mat+=sub; parts.push({...g,b,unit,total,need,ret,pay:need,sub,retVal:ret*unit}); }
   if(miss) return {it,sale,parts,miss};
-  const fee=it.fee*feeVal()/100, mat=cost; cost+=fee;
-  const tax=OF2.tax?((st.prem?0.04:0.08)+(sale.mode==="ordem"?0.025:0)):0, gross=it.q*sale.p, net=gross*(1-tax), profit=net-cost;
-  const fc=Math.max(1,Math.round(it.focus*Math.pow(0.5,(it.fce||0)/10000)));
-  return {it,sale,parts,cost,mat,net,gross,taxV:gross-net,profit,pct:cost>0?profit/cost:0,rr,fee,fc};
+  const fee=it.fee*feeVal()/100*N, cost=mat+fee;
+  const tax=OF2.tax?((st.prem?0.04:0.08)+(sale.mode==="ordem"?0.025:0)):0, gross=N*it.q*sale.p, net=gross*(1-tax), profit=net-cost;
+  const fc1=Math.max(1,Math.round(it.focus*Math.pow(0.5,(it.fce||0)/10000)));
+  return {it,N,sale,parts,cost,mat,net,gross,taxV:gross-net,profit,pct:cost>0?profit/cost:0,rr,fee,fc:fc1*N,fc1,units:N*it.q};
 }
 /* preços na qualidade escolhida para o item fabricado */
 async function ensureOfQ(items){
@@ -143,7 +145,7 @@ function setupOf(){
   $("ofTax").addEventListener("change",()=>{ OF2.tax=$("ofTax").checked; renderOf(); });
   $("ofPrem").addEventListener("change",()=>{ document.querySelector(`[data-g="prem"][data-v="${$("ofPrem").checked?1:0}"]`).click(); renderOf(); });
   $("ofDaily").addEventListener("change",()=>{ document.querySelector(`[data-g="daily"][data-v="${$("ofDaily").checked?0.1:0}"]`).click(); renderOf(); });
-  $("ofQty").addEventListener("input",()=>{ OF2.qty=Math.max(0,Math.floor(+$("ofQty").value)||0); ofUpdateQty(); });
+  $("ofQty").addEventListener("input",()=>{ OF2.qty=Math.max(0,Math.floor(+$("ofQty").value)||0); renderOf(); });
   $("ofFee").value=$("ofFeeS").value=$("fee").value; const feeSet=v=>{ $("fee").value=v; $("fee").dispatchEvent(new Event("input")); $("ofFee").value=$("ofFeeS").value=v; renderOf(); }; $("ofFee").addEventListener("input",()=>feeSet($("ofFee").value)); $("ofFeeS").addEventListener("input",()=>feeSet($("ofFeeS").value));
   $("ofFeeP").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; feeSet(b.dataset.f); });
   $("ofPrem").checked=!!st.prem; $("ofDaily").checked=st.daily>0;
@@ -160,22 +162,23 @@ function chip(g){
 const ofQN = q => (q>1?QNAME[q]:"Normal").toUpperCase();
 function ofDetail(m){
   const d=el("div",{class:"of-det"});
-  const t=el("table",{class:"ledger of-mat"}); const h=t.createTHead().insertRow(); ["Material","Receita","Paga","Devolve","Preço","Onde","Subtotal"].forEach(x=>h.append(el("th",{text:x})));
+  const t=el("table",{class:"ledger of-mat"}); const h=t.createTHead().insertRow(); ["Material","Por receita",`Total (${m.N} receitas)`,"Devolve","Compra","Preço","Onde","Subtotal"].forEach(x=>h.append(el("th",{text:x})));
   const b=t.createTBody();
   for(const g of m.parts){ const tr=b.insertRow(); const c0=tr.insertCell(); c0.append(withIcon(g.id.replace(/_LEVEL(\d)$/,"_LEVEL$1@$1"),el("span",{text:g.nm})));
-    tr.insertCell().textContent=fmt(g.n); tr.insertCell().textContent=g.art?fmt(g.n):dec(g.pay);
-    const rc=tr.insertCell(); rc.className=g.art?"":"gain"; rc.textContent=g.art?"não volta":dec(g.ret);
+    tr.insertCell().textContent=fmt(g.n); tr.insertCell().textContent=fmt(g.total);
+    const rc=tr.insertCell(); rc.className=g.art?"":"gain"; rc.textContent=g.art?"não volta":fmt(g.ret);
+    tr.insertCell().textContent=fmt(g.need);
     const pc=tr.insertCell(); pc.className="num"; pc.textContent=fmt(g.unit);
     const cc=tr.insertCell(); cc.append(g.b.c," ",ageSpan(g.b.t)||"");
     const sc=tr.insertCell(); sc.className="num"; sc.textContent=fmt(g.sub); }
-  const lines=[["Materiais (já com o retorno de "+ofPct(m.rr)+")",m.mat],["Taxa da estação",m.fee]];
   const tl=el("div",{class:"of-sum"});
   const add=(k,v,cls)=>tl.append(el("span",{text:k}),el("b",{class:cls||"",text:v}));
-  for(const [k,v] of lines) add(k,fmt(v)); add("Custo total",fmt(m.cost),"loss");
-  add(`Venda bruta (${m.it.q>1?m.it.q+"× ":""}${fmt(m.sale.p)} em ${m.sale.c})`,fmt(m.gross)); add(OF2.tax?"Taxas de venda":"Taxas de venda (desligadas)",`−${fmt(m.taxV)}`); add("Receita líquida",fmt(m.net));
-  add("Lucro",sgn(m.profit),m.profit>=0?"gain":"loss");
-  const retVal=m.parts.reduce((a,g)=>a+(g.retVal||0),0); add("Valor do que volta",fmt(retVal),"gain");
-  add("Foco por fabricação",fmt(m.fc)); if(m.fc>0) add("Lucro por ponto de foco",fmt(m.profit/m.fc));
+  add(`Receitas a fabricar`,fmt(m.N)+(m.it.q>1?` (${fmt(m.units)} unidades)`:"")); add(`Retorno de recursos usado`,ofPct(m.rr));
+  add("Materiais comprados",fmt(m.mat)); add("Taxa da estação",fmt(m.fee)); add("Custo total",fmt(m.cost),"loss");
+  add(`Venda bruta (${fmt(m.sale.p)} em ${m.sale.c})`,fmt(m.gross)); add(OF2.tax?`Taxas de venda (${st.prem?"Premium":"sem Premium"})`:"Taxas de venda (desligadas)",`−${fmt(m.taxV)}`); add("Receita líquida",fmt(m.net));
+  add("Lucro total",sgn(m.profit),m.profit>=0?"gain":"loss"); add("Lucro por receita",sgn(m.profit/m.N));
+  add("Valor do que volta",fmt(m.parts.reduce((a,g)=>a+(g.retVal||0),0)),"gain");
+  add("Foco gasto",fmt(m.fc)); add("Lucro por ponto de foco",fmt(m.profit/m.fc));
   d.append(t,tl); return d;
 }
 async function renderOf(){
@@ -196,21 +199,22 @@ async function renderOf(){
   OF2.sample=items[0];
   const rows=items.map(ofModel).filter(Boolean), ok=rows.filter(m=>!m.miss).sort((a,b)=>b.profit-a.profit), LIM=agg?120:60, shown=ok.slice(0,LIM);
   ofSyncRR();
-  tb.textContent=""; const hr=tb.createTHead().insertRow(); [["Item",""],["Custos","Materiais com retorno + taxa da estação"],["Lucro","Por item fabricado"],["Venda (saída)","Onde vender o item pronto; o número no ícone é a quantidade a fabricar"],["Compra (entrada)","Onde comprar os materiais; o número no ícone é a quantidade necessária para a fabricação"]].forEach(([h,t])=>hr.append(el("th",{text:h,title:t})));
+  tb.textContent=""; const hr=tb.createTHead().insertRow(); [["Item",""],["Custo","Materiais comprados com o retorno + taxa da estação"],["Venda","Receita líquida depois das taxas"],["Lucro","Lucro total das receitas"],["Venda e compra","O número no ícone é a quantidade: unidades a vender e materiais a comprar"]].forEach(([h,t])=>hr.append(el("th",{text:h,title:t})));
   const body=tb.createTBody(); let oldest=Infinity, newest=0;
   const stamp=t=>{ if(t>0){ oldest=Math.min(oldest,t); newest=Math.max(newest,t); } };
   const qIc=OF2.qual>1&&isG?OF2.qual:1; OF2.rows=[];
   for(const m of shown){ const key=m.it.id; const tr=body.insertRow(); tr.dataset.id=m.it.id; tr.dataset.city=m.sale.c; tr.className="clickrow of-row "+(m.profit>=0?"is-gain":"is-loss");
     stamp(m.sale.t); m.parts.forEach(g=>stamp(g.b&&g.b.t));
-    const c0=tr.insertCell(); c0.className="itemcell"; const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▸"});
-    head.append(chev); const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}faz em ${m.it.city}`})); head.append(nmb); c0.append(head);
-    const c1=tr.insertCell(); c1.className="num"; c1.append(el("b",{class:"loss",text:fmt(m.cost)}),el("small",{class:"muted",text:`mat. ${fmtS(m.mat)} · taxa ${fmtS(m.fee)}`}));
-    const c3=tr.insertCell(); c3.className="num "+(m.profit>=0?"gain":"loss"); c3.append(el("b",{text:sgn(m.profit)}),el("small",{text:`${m.pct>=0?"+":""}${dec(m.pct*100)}%`}));
-    const c5=tr.insertCell(); c5.append(ofBlock(m.it.id,qIc,m.sale,"sale",1,m));
-    const c7=tr.insertCell(); const col=el("div",{class:"of-col"}); m.parts.forEach(g=>col.append(ofBlock(g.id,1,g.b,"buy",g.art?g.n:g.pay,m,g))); c7.append(col);
+    const c0=tr.insertCell(); c0.className="itemcell"; const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▾"});
+    const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}faz em ${m.it.city}`})); head.append(nmb,chev); c0.append(head);
+    const stat=(cls,v,lab)=>{ const c=tr.insertCell(); c.className="of-stat "+cls; c.append(el("b",{text:v}),el("small",{text:lab})); return c; };
+    stat("loss",fmtS(m.cost),"CUSTO"); stat("sale",fmtS(m.net),"VENDA");
+    const c3=tr.insertCell(); c3.className="of-stat "+(m.profit>=0?"gain":"loss"); c3.append(el("b",{text:(m.profit>=0?"+":"−")+fmtS(Math.abs(m.profit))}),el("span",{class:"of-pct",text:`${m.pct>=0?"+":""}${dec(m.pct*100)}%`}));
+    const c5=tr.insertCell(); const flow=el("div",{class:"of-flow"}); flow.append(ofBlock(m.it.id,qIc,m.sale,"sale",m.units,m));
+    m.parts.forEach(g=>flow.append(ofBlock(g.id,1,g.b,"buy",g.need,m,g))); c5.append(flow);
     OF2.rows.push({m,tr});
     const dr=body.insertRow(); dr.className="of-drow"; dr.hidden=true; const dc=dr.insertCell(); dc.colSpan=5;
-    const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; chev.textContent=open?"▾":"▸"; tr.classList.toggle("open",open); if(open){ if(!dc.firstChild) dc.append(ofDetail(m)); OF2.open.add(key); } else OF2.open.delete(key); };
+    const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; chev.textContent=open?"▴":"▾"; tr.classList.toggle("open",open); if(open){ if(!dc.firstChild) dc.append(ofDetail(m)); OF2.open.add(key); } else OF2.open.delete(key); };
     tr.addEventListener("click",ev=>{ if(ev.target.closest("a")) return; toggle(); });
     if(OF2.open.has(key)) toggle();
   }
@@ -221,10 +225,10 @@ async function renderOf(){
   fillVolumes(shown);
 }
 const nk = id => id.replace(/_LEVEL(\d)$/,"_LEVEL$1@$1");
-const ofVolN = m => { const h=OF2.hs[nk(m.it.id)+"|"+m.sale.c]; return OF2.qty>0?OF2.qty:Math.max(1,Math.round(h&&h.vol>0?h.vol:1)); };
+const ofVolN_unused = m => { const h=OF2.hs[nk(m.it.id)+"|"+m.sale.c]; return OF2.qty>0?OF2.qty:Math.max(1,Math.round(h&&h.vol>0?h.vol:1)); };
 /* bloco visual: ícone com a quantidade, cidade, tipo de preço, preço, idade e média/volume */
 function ofBlock(id,q,pr,kind,qty,m,g){
-  const w=el("div",{class:"of-blk"}); const tile=el("span",{class:"of-tile"}); tile.append(iconImg(nk(id),48,q)); const bd=el("span",{class:"of-badge",text:"1"}); bd.dataset.base=String(qty||1); bd.dataset.kind=kind; tile.append(bd);
+  const w=el("div",{class:"of-blk"}); const tile=el("span",{class:"of-tile"}); tile.append(iconImg(nk(id),48,q)); const bd=el("span",{class:"of-badge",text:fmt(qty)}); tile.append(bd);
   const inf=el("div",{class:"of-bi"}); const red=RED_CITIES.has(pr.c);
   inf.append(el("div",{class:"of-city"},el("i",{class:"of-dot"+(red?" red":"")}),pr.c));
   const lab=kind==="sale"?({ordem:"ORDEM VENDA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"VENDA INST"):({ordem:"ORDEM COMPRA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"COMPRA INST");
@@ -232,8 +236,7 @@ function ofBlock(id,q,pr,kind,qty,m,g){
   const hs=el("div",{class:"of-hs"},"VALOR MÉDIO: ",el("b",{class:"hs-avg",text:"…"})," | UND: ",el("b",{class:"hs-vol",text:"…"}));
   w.dataset.hk=nk(id)+"|"+pr.c; inf.append(hs); w.append(tile,inf);
   if(g&&g.art) tile.title="Artefato: não volta no retorno"; return w; }
-function ofUpdateQty(){ for(const {m,tr} of (OF2.rows||[])){ const N=ofVolN(m);
-  tr.querySelectorAll(".of-badge").forEach(b=>{ const base=+b.dataset.base; b.textContent=fmt(b.dataset.kind==="sale"?N:Math.ceil(base*N)); }); } }
+function ofUpdateQty(){}
 const fmtU = v => v==null?"…":v<0?"—":v<1?"<1":v<10?dec(v):fmt(Math.round(v));
 async function histFetch(keys){
   const todo=[...new Set(keys)].filter(k=>OF2.hs[k]==null); const ids=[...new Set(todo.map(k=>k.split("|")[0]))];
