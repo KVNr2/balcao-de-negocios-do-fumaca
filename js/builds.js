@@ -142,7 +142,7 @@ function custoCtl(value){
   const w=el("div",{class:"cst-ctl"}); const sel=el("select",{"aria-label":"Tier para calcular o custo"});
   [4,5,6,7,8].forEach(t=>sel.append(el("option",{value:String(t),text:`T${t} equivalente`}))); try{ sel.value=store.get("cstTier")||"8"; }catch(e){}
   sel.addEventListener("change",()=>store.set("cstTier",sel.value));
-  const bt=el("button",{type:"button",class:"bc-more bc-cost",text:"Ver o custo desta build"}); bt.addEventListener("click",()=>bcIr(value,+sel.value));
+  const bt=el("button",{type:"button",class:"bc-more bc-cost",text:"Ver custo"}); bt.addEventListener("click",()=>bcIr(value,+sel.value));
   w.append(sel,bt); return w;
 }
 function buildCard(b){

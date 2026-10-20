@@ -321,6 +321,10 @@ img.kx-sm{flex:0 1 52px;width:52px;min-width:0;aspect-ratio:1;height:auto;border
 .v-pend{display:grid;gap:8px}.v-list{margin:0;padding-left:18px;display:grid;gap:4px;font-size:.88rem;color:var(--muted,#9aa0ad)}
 
 /* botão de custo nas builds */
-.bc-act,.cst-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.bc-act{margin-top:2px}
-.cst-ctl select{background:#14161c;color:inherit;border:1px solid var(--line);border-radius:10px;padding:7px 10px;font:600 .85rem var(--f-body)}
+.bc-act{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:4px}
+.cst-ctl{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#14161c}
+.cst-ctl select{width:auto;flex:none;background:transparent;color:inherit;border:0;border-right:1px solid var(--line);padding:0 28px 0 12px;height:38px;font:600 .85rem var(--f-body);cursor:pointer}
+.cst-ctl .bc-more{white-space:nowrap;flex:none;border:0;border-radius:0;height:38px;padding:0 16px;background:transparent}
+.cst-ctl .bc-more:hover{background:#1d2028}
+.bc-act>.bc-more{height:40px}
 .zvar .cst-ctl{margin:6px 0}
