@@ -91,23 +91,39 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
   const k=el("select"); k.append(el("option",{value:"",text:"Outro"})); (GBC||[]).forEach(c=>k.append(el("option",{value:c.k,text:c.nome})));
   const tg=el("input",{type:"text",placeholder:"PvE, Solo, Fame Farm (separe por vírgula)"}), ds=el("textarea",{rows:"3",maxlength:"400",placeholder:"Como jogar, rotação, observações…"});
   const g1=el("div",{class:"nb-g"}); g1.append(fld("Nome da build",nome),fld("Autor",au),fld("Conteúdo",k),fld("Tags",tg)); body.append(g1,fld("Descrição",ds));
-  body.append(el("h4",{text:"Peças"})); const slots=el("div",{class:"nb-slots"}); body.append(slots); const pick=el("div",{class:"nb-pick"}); body.append(pick);
-  const draw=()=>{ slots.textContent=""; NB_SLOTS.forEach(([s,lab])=>{ const b=el("button",{type:"button",class:"nb-slot"+(sel[s]?" on":"")}); const im=sel[s]&&fullImg(sel[s],"nico nb-si"); b.append(im||el("span",{class:"nb-empty",text:"+"}),el("small",{text:lab})); if(sel[s]) b.title=itemNome(idInfo(sel[s]).c); b.addEventListener("click",()=>openPick(s,lab)); slots.append(b); }); };
-  const openPick=(s,lab)=>{ pick.textContent=""; const q=el("input",{type:"search",placeholder:`Buscar ${lab.toLowerCase()}…`}), t=el("select",{"aria-label":"Tier"}), e=el("select",{"aria-label":"Encantamento"}), res=el("div",{class:"nb-res"});
+  body.append(el("h4",{text:"Peças e habilidades"}),el("p",{class:"muted small",text:"Clique em uma casa para escolher a peça e as habilidades dela."}));
+  let GBD=[]; try{ GBD=(await need("builds-grind")).builds||[]; }catch(e){}
+  const sk={}; const wrap=el("div",{class:"nb-vg"}); const grid=el("div",{class:"kx-g nb-kg"}); const pick=el("div",{class:"nb-pick"}); wrap.append(grid); body.append(wrap,pick);
+  const code=id=>String(id||"").replace(/^T\d+_/,"").replace(/@\d$/,"");
+  /* habilidades já usadas por outras builds para o mesmo item: é de onde saem as opções */
+  const spellOpts=(s,id)=>{ const c=code(id), n=s==="w"?4:2, o=Array.from({length:n},()=>new Set());
+    for(const x of GBD){ const bs=x[s]; const it=s==="w"?x.w:(bs&&bs[0]); if(!it||code(it)!==c) continue; const l=s==="w"?(x.sk||{}).w:(((x.sk||{})[s]||[])[0]); (l||[]).slice(0,n).forEach((v,i)=>{ if(v) o[i].add(v); }); } return o.map(z=>[...z]); };
+  const POS={w:["Q","W","E","Passiva"]}; const posLab=(s,i)=>s==="w"?POS.w[i]:(i?"Passiva":"Habilidade");
+  const draw=()=>{ grid.textContent=""; [null,"h","c","w","a","o","p","s","f"].forEach(s=>{ const cell=el("button",{type:"button",class:"kx-c nb-cell"+(s?"":" vazio")+(s&&!sel[s]?" nb-add":"")}); if(!s){ grid.append(cell); cell.disabled=true; return; }
+      const lab=NB_SLOTS.find(x=>x[0]===s)[1]; cell.title=lab;
+      if(sel[s]){ const im=fullImg(sel[s],"nico kx-big"); if(im) cell.append(im); const l=(sk[s]||[]).filter(Boolean); if(l.length){ const ov=el("div",{class:"kx-ov"+(s==="w"&&l.length>=4?" kx-left":"")}); l.forEach(v=>ov.append(spellImg(v,"kx-sm"))); cell.append(ov); } }
+      else cell.append(el("span",{class:"nb-plus",text:"+"}),el("small",{text:lab}));
+      cell.addEventListener("click",()=>openPick(s,lab)); grid.append(cell); }); };
+  const openPick=(s,lab)=>{ pick.textContent=""; pick.scrollIntoView({block:"nearest",behavior:"smooth"}); const q=el("input",{type:"search",placeholder:`Buscar ${lab.toLowerCase()}…`}), t=el("select",{"aria-label":"Tier"}), e=el("select",{"aria-label":"Encantamento"}), res=el("div",{class:"nb-res"}), spk=el("div",{class:"nb-sk"});
     [4,5,6,7,8].forEach(n=>t.append(el("option",{value:n,text:"T"+n}))); t.value="8"; [0,1,2,3,4].forEach(n=>e.append(el("option",{value:n,text:n?"."+n:"sem encanto"})));
-    const head=el("div",{class:"nb-ph"}); head.append(el("b",{text:lab}),q,t,e); if(sel[s]){ const cl=el("button",{type:"button",class:"bc-more",text:"Remover"}); cl.addEventListener("click",()=>{ delete sel[s]; pick.textContent=""; draw(); }); head.append(cl); } pick.append(head,res);
+    const head=el("div",{class:"nb-ph"}); head.append(el("b",{text:lab}),q,t,e); if(sel[s]){ const cl=el("button",{type:"button",class:"bc-more",text:"Remover peça"}); cl.addEventListener("click",()=>{ delete sel[s]; delete sk[s]; pick.textContent=""; draw(); }); head.append(cl); }
+    const ok=el("button",{type:"button",class:"bc-more",text:"Fechar"}); ok.addEventListener("click",()=>{ pick.textContent=""; }); head.append(ok); pick.append(head,spk,res);
+    const drawSk=()=>{ spk.textContent=""; if(!sel[s]||!["w","h","a","s"].includes(s)) return; const o=spellOpts(s,sel[s]); if(!o.some(x=>x.length)){ spk.append(el("p",{class:"muted small",text:"Ainda não há habilidades conhecidas para esta peça."})); return; }
+      spk.append(el("b",{class:"small",text:"Habilidades"})); o.forEach((list,i)=>{ if(!list.length) return; const row=el("div",{class:"nb-skrow"}); row.append(el("span",{class:"nb-skl",text:posLab(s,i)})); list.forEach(v=>{ const b=el("button",{type:"button",class:"nb-spb"+((sk[s]||[])[i]===v?" on":""),title:v.replace(/^PASSIVE_/,"").replace(/_/g," ").toLowerCase()}); b.append(spellImg(v,"kx-sm")); b.addEventListener("click",()=>{ sk[s]=sk[s]||[]; sk[s][i]=sk[s][i]===v?undefined:v; draw(); drawSk(); }); row.append(b); }); spk.append(row); }); };
+    drawSk();
     const rows=NB_CAT.i.filter(NB_FILTER[s]); const by=new Map(); for(const r of rows){ const c=r[0].replace(/^T\d+_/,""); if(!by.has(c)) by.set(c,{c,nome:LANG==="en"?r[6]:r[5],en:r[6],pt:r[5],tiers:new Set(),ench:0}); const o=by.get(c); o.tiers.add(r[3]); if(r[4]&&!/consumables/.test(r[1])) o.ench=1; }
     const list=[...by.values()].sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
     const show=()=>{ res.textContent=""; const f=q.value.trim().toLowerCase(); const out=list.filter(o=>!f||o.pt.toLowerCase().includes(f)||o.en.toLowerCase().includes(f)||o.c.toLowerCase().includes(f)).slice(0,60);
       if(!out.length) res.append(el("p",{class:"muted small",text:"Nada encontrado."}));
       out.forEach(o=>{ const b=el("button",{type:"button",class:"nb-it"}); const tt=Math.max(...[...o.tiers].filter(n=>n<=+t.value),...[...o.tiers].slice(0,1)); b.append(fullImg(`T${tt}_${o.c}`,"nico nb-ri")||"",el("span",{text:o.nome}));
-        b.addEventListener("click",()=>{ const ts=[...o.tiers].sort((a,b)=>a-b); const tier=ts.includes(+t.value)?+t.value:ts[ts.length-1]; const en=o.ench?+e.value:0; sel[s]=`T${tier}_${o.c}${en?"@"+en:""}`; pick.textContent=""; draw(); }); res.append(b); }); };
-    [q,t,e].forEach(n=>n.addEventListener("input",show)); show(); q.focus(); };
+        b.addEventListener("click",()=>{ const ts=[...o.tiers].sort((a,b)=>a-b); const tier=ts.includes(+t.value)?+t.value:ts[ts.length-1]; const en=o.ench?+e.value:0; const nid=`T${tier}_${o.c}${en?"@"+en:""}`; if(!sel[s]||code(sel[s])!==o.c) delete sk[s]; sel[s]=nid; draw(); drawSk(); head.querySelector("b").textContent=lab; }); res.append(b); }); };
+    [q,t,e].forEach(n=>n.addEventListener("input",show)); show(); q.focus({preventScroll:true}); };
   draw();
   const err=el("p",{class:"nb-err small",hidden:true}), save=el("button",{type:"button",class:"bc-more nb-new",text:"Salvar build"});
   save.addEventListener("click",()=>{ if(!nome.value.trim()||!sel.w){ err.hidden=false; err.textContent="Dê um nome à build e escolha pelo menos a arma."; return; }
     const b={id:nbId(nome.value),t:nome.value.trim(),au:au.value.trim()||"Visitante",k:k.value,tg:tg.value.split(",").map(s=>s.trim()).filter(Boolean).slice(0,6),desc:ds.value.trim(),data:new Date().toISOString().slice(0,10),votos:0};
-    for(const [s] of NB_SLOTS) if(sel[s]) b[s]= s==="w"?sel[s]:[sel[s]]; if(b.w&&!b.w.startsWith) b.w=b.w[0];
+    for(const [s] of NB_SLOTS) if(sel[s]) b[s]= s==="w"?sel[s]:[sel[s]];
+    { const K={}; for(const s of ["w","h","a","s"]){ const l=(sk[s]||[]); if(!sel[s]||!l.some(Boolean)) continue; const arr=Array.from({length:s==="w"?4:2},(_,i)=>l[i]||""); K[s]=s==="w"?arr.filter(Boolean):[arr.filter(Boolean),[]]; } if(Object.keys(K).length) b.sk=K; }
     try{ store.set("nbAuthor",au.value.trim()); }catch(e){} const fim=()=>{ nbOpen=b.id; nbRender(); setTimeout(()=>{ const c=document.querySelector("#nbBox .bcard.open"); if(c) c.scrollIntoView({block:"center",behavior:"smooth"}); },100); };
     if(NB_CLOUD){ save.disabled=true; save.textContent="Publicando…"; const o={...b}; delete o.id; delete o.votos; nbApi("nb_builds",{method:"POST",body:JSON.stringify({id:b.id,data:o}),headers:{Prefer:"return=minimal"}}).then(async r=>{ if(!r.ok) throw 0; NB_REPO=null; await nbLoad(); fim(); }).catch(()=>{ const a=nbMine(); a.unshift(b); nbSaveMine(a); err.hidden=false; err.textContent="Não consegui publicar agora; a build ficou salva só no seu navegador. Use \"Publicar para todos\" depois."; save.disabled=false; save.textContent="Salvar build"; nbRender(); }); return; }
     const a=nbMine(); a.unshift(b); nbSaveMine(a); fim(); });
