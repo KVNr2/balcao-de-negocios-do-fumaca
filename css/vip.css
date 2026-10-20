@@ -586,3 +586,4 @@ b.c,h4.c{color:#b784e8}
 .of-xr{grid-template-columns:108px minmax(0,1fr) 78px 52px minmax(110px,140px) 66px}
 .of-xi{overflow:hidden}
 @media(max-width:1500px){.of-xr{grid-template-columns:108px minmax(0,1fr) 78px minmax(110px,140px) 66px}.of-xr>.of-xt{display:none}}
+.of-drow .of-xp{position:sticky;left:0}
