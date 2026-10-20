@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="e07a93d2">
+<html lang="pt-BR" data-v="f6b2a1c9">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -10,7 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l4 10 10 4-10 4-4 10-4-10-10-4 10-4z' fill='%23e8ab45'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=e07a93d2">
+<link rel="stylesheet" href="css/balcao.css?v=f6b2a1c9">
 <link rel="stylesheet" href="css/vip.css?v=5">
 </head>
 <body>
@@ -120,8 +120,8 @@
     <div class="block">
       <h2>Minha ficha</h2>
       <ol class="steps">
-        <li><b>Clique em Sincronizar</b> e entre com o seu personagem no Albion. O programa AlbionSpecs, no seu PC, lê o Destiny Board sozinho e traz os níveis para cá.</li>
-        <li><b>Confirme</b> quando o site perguntar. A ficha inteira (combate, craft, coleta e refino) é preenchida.</li>
+        <li><b>Clique em Sincronizar.</b> Na primeira vez o site baixa o programa AlbionSpecs e explica cada passo; nas próximas ele abre direto.</li>
+        <li><b>Entre com o seu personagem no Albion.</b> O programa lê o Destiny Board sozinho e o site volta para esta mesma página com os níveis já preenchidos.</li>
         <li><b>Pronto.</b> Todas as páginas usam a sua ficha. Ela fica salva só neste navegador; cada amigo usa o próprio programa e a própria ficha.</li>
       </ol>
       <div class="row-ctl">
@@ -144,6 +144,23 @@
       <div id="pfPasteBox" hidden class="pastebox">
         <label class="f">Cole aqui o código da ficha<textarea id="pfPaste" rows="3"></textarea></label>
         <div class="btnrow"><button type="button" class="btn" id="pfPasteApply">Usar esta ficha</button><span class="tiny muted" id="pfPasteMsg"></span></div>
+      </div>
+      <div id="pfPrimeira" class="primeira" hidden role="region" aria-label="Primeira vez: o que vai acontecer">
+        <h3>Primeira vez? Veja exatamente o que vai acontecer</h3>
+        <p>O download do <b>AlbionSpecs.exe</b> começou. Ele é um programa pequeno que lê o seu <b>Destiny Board</b> (os níveis de maestria e spec) e entrega para esta página. Nada além disso.</p>
+        <ol>
+          <li><b>Abra o arquivo baixado</b> (dois cliques). Ele se copia para a pasta <code>%LOCALAPPDATA%\FichaAlbion</code> e liga o botão Sincronizar. Não tem instalador, não pede cadastro e você pode apagar o arquivo baixado depois.</li>
+          <li><b>O Windows pode avisar "editor desconhecido"</b> (SmartScreen), porque o programa não tem assinatura paga. Clique em <i>Mais informações</i> e depois em <i>Executar assim mesmo</i>.</li>
+          <li><b>Volte aqui e clique em Sincronizar de novo.</b> O Windows vai pedir permissão de <b>Administrador</b>: é necessária para ouvir a rede do jogo, do mesmo jeito que o Albion Data Client faz.</li>
+          <li><b>Entre no personagem.</b> A leitura acontece quando o personagem loga; se o jogo já estiver aberto, deslogue e logue de novo.</li>
+        </ol>
+        <p class="tiny"><b>O que ele faz:</b> ouve só o tráfego local do Albion e pega os níveis do Destiny Board. <b>O que ele não faz:</b> não altera o jogo, não lê senhas, não mexe em outros arquivos, e não envia nada para a internet nem para nós: o resultado vai só para este navegador, no seu PC. A ficha fica salva só aqui.</p>
+        <p class="tiny muted">Quer conferir? Impressão digital (SHA-256) do arquivo: <code id="pfSha">carregando…</code> (versão <span id="pfVer">…</span>). No PowerShell: <code>Get-FileHash AlbionSpecs.exe</code>. <a href="programa/LEIA-ME.md">Como funciona</a>.</p>
+        <div class="btnrow">
+          <a class="btn ghost" href="programa/AlbionSpecs.exe" download="AlbionSpecs.exe">Baixar de novo</a>
+          <button type="button" class="btn ghost" id="pfJaTenho">Já tenho o programa</button>
+          <button type="button" class="btn ghost" id="pfFechaPrim">Fechar</button>
+        </div>
       </div>
       <p class="tiny" id="pfStatus" aria-live="polite"></p>
     </div>
@@ -207,9 +224,9 @@
           <label class="f">Foco para gastar<input id="focusPool" type="number" min="0" step="500" value="10000"><span class="hint">Premium gera 10.000 por dia</span></label>
         </div>
         <div class="form">
-          <div class="ctl">Foco<div class="seg" role="group" aria-label="Foco"><button type="button" data-g="focus" data-v="e07a93d2" aria-pressed="true">Com foco</button><button type="button" data-g="focus" data-v="95976267" aria-pressed="false">Sem foco</button></div></div>
-          <div class="ctl">Bônus diário<div class="seg" role="group" aria-label="Bônus diário"><button type="button" data-g="daily" data-v="e07a93d2" aria-pressed="true">Nenhum</button><button type="button" data-g="daily" data-v="0.1" aria-pressed="false">+10%</button><button type="button" data-g="daily" data-v="0.2" aria-pressed="false">+20%</button></div></div>
-          <div class="ctl">Conta<div class="seg" role="group" aria-label="Premium"><button type="button" data-g="prem" data-v="e07a93d2" aria-pressed="true">Premium</button><button type="button" data-g="prem" data-v="95976267" aria-pressed="false">Sem Premium</button></div></div>
+          <div class="ctl">Foco<div class="seg" role="group" aria-label="Foco"><button type="button" data-g="focus" data-v="f6b2a1c9" aria-pressed="true">Com foco</button><button type="button" data-g="focus" data-v="95976267" aria-pressed="false">Sem foco</button></div></div>
+          <div class="ctl">Bônus diário<div class="seg" role="group" aria-label="Bônus diário"><button type="button" data-g="daily" data-v="f6b2a1c9" aria-pressed="true">Nenhum</button><button type="button" data-g="daily" data-v="0.1" aria-pressed="false">+10%</button><button type="button" data-g="daily" data-v="0.2" aria-pressed="false">+20%</button></div></div>
+          <div class="ctl">Conta<div class="seg" role="group" aria-label="Premium"><button type="button" data-g="prem" data-v="f6b2a1c9" aria-pressed="true">Premium</button><button type="button" data-g="prem" data-v="95976267" aria-pressed="false">Sem Premium</button></div></div>
           <div class="ctl">Como vende<div class="seg" role="group" aria-label="Venda"><button type="button" data-g="sell" data-v="order" aria-pressed="true">Ordem de venda</button><button type="button" data-g="sell" data-v="instant" aria-pressed="false">Venda direta</button></div></div>
         </div>
       </div>
@@ -571,13 +588,13 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/base.js?v=e07a93d2"></script>
-<script src="js/fx.js?v=e07a93d2"></script>
-<script src="js/biz.js?v=e07a93d2"></script>
-<script src="js/novos.js?v=e07a93d2"></script>
-<script src="js/guia.js?v=e07a93d2"></script>
-<script src="js/ui.js?v=e07a93d2"></script>
-<script src="js/oficina.js?v=e07a93d2"></script>
-<script src="js/main.js?v=e07a93d2"></script>
+<script src="js/base.js?v=f6b2a1c9"></script>
+<script src="js/fx.js?v=f6b2a1c9"></script>
+<script src="js/biz.js?v=f6b2a1c9"></script>
+<script src="js/novos.js?v=f6b2a1c9"></script>
+<script src="js/guia.js?v=f6b2a1c9"></script>
+<script src="js/ui.js?v=f6b2a1c9"></script>
+<script src="js/oficina.js?v=f6b2a1c9"></script>
+<script src="js/main.js?v=f6b2a1c9"></script>
 </body>
 </html>
