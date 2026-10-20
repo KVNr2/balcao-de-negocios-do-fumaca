@@ -263,3 +263,13 @@ img.zbig{width:64px;height:64px}img.zi{width:46px;height:46px}
 .zwin{display:flex;flex-wrap:wrap;gap:10px}
 @media(max-width:600px){.zlist{grid-template-columns:1fr}}
 .zlist>.block{grid-column:1/-1}
+/* Builds: conteúdos e itens (AlbionOnlineGrind) */
+.seg.wrap{display:flex;flex-wrap:wrap;gap:4px;height:auto}.seg.wrap button{flex:0 0 auto}
+.seg button.dim{opacity:.45}
+.bgear{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;margin:8px 0}
+.bg{display:flex;flex-direction:column;align-items:center;gap:2px}.bg.cons{flex-direction:row;gap:3px;align-items:center;margin-left:6px;padding-left:8px;border-left:1px dashed rgba(255,255,255,.2)}
+img.bi{width:52px;height:52px}img.bi-s{width:30px;height:30px}.bg-alt{display:flex;gap:2px;opacity:.85}
+.tag.mute{opacity:.7}
+.seg.wrap{display:flex;flex-direction:row;flex-wrap:wrap;width:100%;gap:6px;border:0;background:none;overflow:visible;border-radius:0}
+.seg.wrap button,.seg.wrap button:last-child{border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13.5px;min-height:0!important}
+.bsyn .seg.wrap{margin:6px 0 10px}
