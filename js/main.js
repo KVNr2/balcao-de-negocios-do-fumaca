@@ -24,7 +24,8 @@ document.querySelector("nav.tabs").addEventListener("keydown",ev=>{ const i=tabs
 document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.goto)));
 document.querySelectorAll("[data-res]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-res]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); st.res=b.dataset.res; $("resNote").textContent=RES[st.res].note; renderHeat(); calc(true); }));
 document.querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click",()=>{ const g=b.dataset.g; document.querySelectorAll(`[data-g="${g}"]`).forEach(x=>x.setAttribute("aria-pressed",String(x===b))); st[g]= g==="sell"?b.dataset.v:parseFloat(b.dataset.v); recompute(g==="sell"); }));
-document.querySelectorAll("[data-bc]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-bc]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); st.bc=b.dataset.bc; renderBuilds(); }));
+$("bSort").addEventListener("change",e=>{ bSort=e.target.value; renderBuilds(); });
+document.querySelectorAll("[data-bc]").forEach(b=>b.addEventListener("click",()=>{ bOpen=null; bLine=""; document.querySelectorAll("[data-bc]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); st.bc=b.dataset.bc; renderBuilds(); }));
 $("bOnlyMine").addEventListener("change",renderBuilds);
 document.querySelectorAll("[data-ck]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-ck]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); ckKind=b.dataset.ck; ckSel=null; $("ckDetail").hidden=true; renderCook(); }));
 $("ckBuilds").addEventListener("change",renderCook);

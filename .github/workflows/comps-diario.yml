@@ -1,0 +1,27 @@
+name: Atualizar composições (diário)
+on:
+  schedule:
+    - cron: "17 7 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install beautifulsoup4
+      - run: python3 tools/atualizar_comps.py
+      - name: Atualizar a versão dos arquivos e publicar se mudou
+        run: |
+          ./carimbo.sh
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "comps-bot"
+            git config user.email "comps-bot@users.noreply.github.com"
+            git add data/comps.json index.html
+            git commit -m "Composições atualizadas automaticamente"
+            git push
+          fi
