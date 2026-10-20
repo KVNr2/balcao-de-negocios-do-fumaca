@@ -3,7 +3,7 @@
 const GUIA = {
   "p-voce": ["O resumo do seu dia no Albion, montado a partir da sua ficha.",
     "Ver de uma vez o que mais compensa fazer hoje: onde gastar o foco, o que refinar, fabricar e cozinhar, aonde ir coletar e quais builds combinam com as suas armas.",
-    "Primeiro preencha a página Minha ficha (leva alguns minutos e só precisa fazer uma vez). Depois é só abrir esta página quando entrar no jogo. Para atualizar os preços, use o botão laranja no alto."],
+    "Primeiro preencha a página Minha ficha (leva alguns minutos e só precisa fazer uma vez). Aqui você vê a \"Mercadoria do dia\" (o melhor uso do seu foco) e um resumo em cartões: Refino, Craft, Cozinha, Aonde ir, Builds, Coleta e Pesca. Clique num cartão para abrir o detalhe, ou em \"Mostrar tudo\" para ver tudo de uma vez. Para atualizar os preços, use o botão laranja no alto."],
   "p-ficha": ["A sua ficha de personagem, salva só no seu navegador.",
     "Digitar o seu Destiny Board: maestria e cada item de combate, craft, coleta, refino, cozinha, alquimia e fazenda. Todos os cálculos do site (custo de foco, recomendações, builds) usam esta ficha.",
     "Escreva o nome do personagem e abra cada grupo para digitar os níveis; o resumo ao lado mostra o que já está preenchido. O que você não souber, deixe em branco. Para usar em outro aparelho, copie o link da ficha e abra lá."],

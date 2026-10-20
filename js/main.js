@@ -55,3 +55,37 @@ stallIntro();
 
 $("muClose").addEventListener("click",()=>{ const d=$("muDlg"); if(d.close) d.close(); else d.removeAttribute("open"); });
 $("muDlg").addEventListener("click",ev=>{ if(ev.target===$("muDlg")) $("muClose").click(); });
+
+/* ================= Para você: resumo em cartões; clicar num tópico abre o detalhe ================= */
+(function(){
+  const panel=document.getElementById("p-voce"); if(!panel) return;
+  const T=[["recRefino","Refino","Metal, tecido e couro com o seu foco"],["recCraft","Craft","O que fabricar com o seu foco"],["recCook","Cozinha e alquimia","Comidas e poções"],["recGo","Aonde ir hoje","Pesca e coleta"],["recBrumas","Builds das Brumas","As que combinam com a sua ficha"],["recCorr","Builds das Corrompidas","As que combinam com a sua ficha"],["recColeta","Coleta","Preço da matéria-prima no seu tier"],["recPesca","Pesca","Peixes mais valiosos"]];
+  const blocks=T.map(([id])=>{ const e=document.getElementById(id); return e&&e.closest(".block"); });
+  if(blocks.some(b=>!b)) return;
+  const hero=panel.querySelector(".deal");
+  const wrap=document.createElement("div"); wrap.className="vc";
+  wrap.innerHTML='<div class="vc-h"><h2>Resumo do dia</h2><span class="tiny muted">Clique num tópico para ver o detalhe.</span><button type="button" class="btn ghost" id="vcAll" aria-pressed="false">Mostrar tudo</button></div><div class="vc-tiles" id="vcTiles"></div><div class="vc-detail" id="vcDetail"></div>';
+  (hero||panel.firstElementChild).after(wrap);
+  const tiles=wrap.querySelector("#vcTiles"), det=wrap.querySelector("#vcDetail"), allBtn=wrap.querySelector("#vcAll");
+  panel.querySelectorAll(":scope > .cols").forEach(c=>c.remove());   // os blocos vão para a área de detalhe
+  const btns=[];
+  const trunc=(s,n)=>s.length>n?s.slice(0,n-1).trimEnd()+"…":s;
+  T.forEach(([id,nome,sub],i)=>{
+    const b=blocks[i]; b.classList.add("vc-det"); b.dataset.vc=id; det.append(b);
+    const btn=document.createElement("button"); btn.type="button"; btn.className="vc-tile"; btn.dataset.vc=id; btn.setAttribute("aria-expanded","false");
+    btn.innerHTML='<span class="vc-n"></span><b class="vc-t"></b><span class="vc-s"></span><span class="vc-go">Ver detalhe ›</span>'; btn.querySelector(".vc-n").textContent=nome;
+    tiles.append(btn); btns.push(btn);
+    const upd=()=>{
+      btn.hidden=b.hidden; if(b.hidden) return;
+      const el=document.getElementById(id); let t="", s="";
+      if(el.tagName==="OL"){ const li=el.querySelector("li:not(.empty)"); if(li){ t=li.querySelector("strong")?li.querySelector("strong").textContent:""; const sp=li.querySelectorAll("span"); s=sp[0]?sp[0].textContent:""; } else { const e=el.querySelector("li"); s=e?e.textContent:""; } }
+      else { const tr=el.querySelector("tbody tr"); if(tr){ const c=[...tr.cells].map(x=>x.textContent.trim()).filter(Boolean); t=c[0]||""; s=c.slice(1,3).join(" · "); } }
+      btn.querySelector(".vc-t").textContent=trunc(t||"Sem dados ainda",60); btn.querySelector(".vc-s").textContent=trunc(s||sub,90);
+      btn.classList.toggle("gain",/\+\d/.test(s)||/\+\d/.test(t)); };
+    new MutationObserver(upd).observe(b,{childList:true,subtree:true,attributes:true,attributeFilter:["hidden"]}); upd();
+  });
+  const show=id=>{ btns.forEach(x=>{ const on=x.dataset.vc===id; x.classList.toggle("on",on); x.setAttribute("aria-expanded",String(on)); }); det.querySelectorAll(".vc-det").forEach(b=>b.classList.toggle("open",b.dataset.vc===id)); };
+  let cur=null;
+  tiles.addEventListener("click",ev=>{ const b=ev.target.closest(".vc-tile"); if(!b) return; const id=b.dataset.vc; cur=cur===id?null:id; wrap.classList.remove("all"); allBtn.setAttribute("aria-pressed","false"); show(cur); if(cur) setTimeout(()=>{ const d=det.querySelector(".vc-det.open"); if(d) d.scrollIntoView({block:"nearest",behavior:"smooth"}); },50); });
+  allBtn.addEventListener("click",()=>{ const on=allBtn.getAttribute("aria-pressed")!=="true"; allBtn.setAttribute("aria-pressed",String(on)); allBtn.textContent=on?"Recolher":"Mostrar tudo"; wrap.classList.toggle("all",on); cur=null; show(null); });
+})();
