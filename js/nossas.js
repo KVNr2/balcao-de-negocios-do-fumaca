@@ -1,5 +1,5 @@
 /* ================= Builds: "Builds da comunidade" x "Nossas builds" (pasta builds/) ================= */
-let NB_REPO=null, NB_ALL=[], nbOpen=null, nbCont="", nbSort="votos", nbSrc="com";
+let nbLine="", NB_REPO=null, NB_ALL=[], nbOpen=null, nbCont="", nbSort="votos", nbSrc="com";
 const NB_SLOTS=[["w","Arma"],["o","Secundária"],["h","Elmo"],["a","Peito"],["s","Botas"],["c","Capa"],["p","Poção"],["f","Comida"]];
 function nbMine(){ try{ return JSON.parse(store.get("nb:mine")||"[]"); }catch(e){ return []; } }
 function nbSaveMine(a){ try{ store.set("nb:mine",JSON.stringify(a)); }catch(e){} }
@@ -29,6 +29,7 @@ function nbCard(b){
   const top=el("div",{class:"bc-top"}); const wi=fullImg(b.w,"nico zbig"); top.append(wi||el("span",{class:"btile"}));
   const mid=el("div",{class:"bc-mid"}); mid.append(el("h4",{text:b.t}));
   const meta=el("div",{class:"bc-meta"}); meta.append(el("span",{class:"tag",text:b.k?contName(b.k):"Outro"})); meta.append(el("span",{class:"tag mute",text:"por "+(b.au||"Balcão do Fumaça")}));
+  { const nv=gbSpec(b), lv=nv>=SPEC_MIN?3:nv>0?2:0; if(b.l) meta.append(el("span",{class:"tag"+(lv>=2?" good":""),text:nv?`${b.nome}: spec ${nv}`:`${b.nome}: sem spec`})); const gaps=gbGaps(b); if(gaps.length) meta.append(el("span",{class:"tag bad",text:`Sem spec em ${gaps.join(" e ")}`})); }
   if(b.local) meta.append(el("span",{class:"tag bad",text:"Só no seu navegador"}));
   (b.tg||[]).slice(0,3).forEach(t=>meta.append(el("span",{class:"tag mute",text:t}))); mid.append(meta); top.append(mid);
   const voted=nbVotes().has(b.id), vb=el("button",{type:"button",class:"nb-vote"+(voted?" on":""),"aria-pressed":String(voted),title:voted?"Tirar meu voto":"Votar nesta build"});
@@ -57,12 +58,20 @@ function nbRender(){
   const bar=el("div",{class:"nb-bar"}); const mk=el("button",{type:"button",class:"bc-more nb-new",text:"+ Criar build"}); mk.addEventListener("click",()=>nbForm());
   const imp=el("button",{type:"button",class:"bc-more",text:"Colar código"}); imp.addEventListener("click",()=>{ const t=prompt("Cole aqui o código da build:"); if(!t) return; try{ const b=JSON.parse(t); if(!b.w||!b.t) throw 0; b.id=b.id||nbId(b.t); const a=nbMine(); if(!a.some(x=>x.id===b.id)) a.unshift(b); nbSaveMine(a); nbRender(); }catch(e){ alert("Código inválido."); } });
   const sort=el("select",{"aria-label":"Ordem"}); [["votos","Mais votadas"],["novas","Mais novas"]].forEach(([v,t])=>sort.append(el("option",{value:v,text:t}))); sort.value=nbSort; sort.addEventListener("change",()=>{ nbSort=sort.value; nbRender(); });
-  const cont=el("select",{"aria-label":"Conteúdo"}); cont.append(el("option",{value:"",text:"Todos os conteúdos"})); (GBC||[]).forEach(c=>cont.append(el("option",{value:c.k,text:c.nome}))); cont.value=nbCont; cont.addEventListener("change",()=>{ nbCont=cont.value; nbRender(); });
-  bar.append(mk,imp,cont,sort); box.append(bar);
+  const cnt=el("span",{class:"muted small",id:"nbCount"}); bar.append(mk,imp,sort,cnt); box.append(bar);
+  try{ buildIdx(); }catch(e){} for(const b of NB_ALL){ if(!b.wc&&b.w){ b.wc=b.w.replace(/^T\d_/,"").replace(/@\d$/,""); b.l=(typeof W2LINE!=="undefined"&&W2LINE[b.wc])||""; b.nome=codeName(b.wc); } }
+  const used=new Map(); NB_ALL.forEach(b=>used.set(b.k||"",(used.get(b.k||"")||0)+1));
+  const cc=el("div",{class:"seg wrap",role:"group","aria-label":"Conteúdo"}); const mkc=(k,t,n)=>{ const x=el("button",{type:"button","aria-pressed":String(nbCont===k),text:`${t} (${n})`}); x.addEventListener("click",()=>{ nbCont=k; nbLine=""; nbOpen=null; nbRender(); }); cc.append(x); };
+  mkc("","Todos",NB_ALL.length); [...used.keys()].forEach(k=>mkc(k,k?contName(k):"Outro",used.get(k))); box.append(cc);
+  const wg=el("div",{class:"bweapons",role:"group","aria-label":"Filtrar por arma"}); const inCont=NB_ALL.filter(b=>nbCont===""||(b.k||"")===nbCont); const present=new Set(inCont.map(b=>b.l));
+  const all=el("button",{type:"button",class:"bw all","aria-pressed":String(!nbLine),text:"Todas"}); all.addEventListener("click",()=>{ nbLine=""; nbRender(); }); wg.append(all);
+  for(const [l,code] of Object.entries(LINE_ICON)){ if(!present.has(l)&&nbLine!==l) continue; const x=el("button",{type:"button",class:"bw","aria-pressed":String(nbLine===l),title:LINE_NAME[l]}); x.append(itemImg(code,[8,7,6,5,4,3])); x.addEventListener("click",()=>{ nbLine=nbLine===l?"":l; nbRender(); }); wg.append(x); }
+  box.append(wg);
   const ord=a=>a.slice().sort((x,y)=>nbSort==="novas"?String(y.data||"").localeCompare(String(x.data||"")):(nbVotesOf(y)-nbVotesOf(x)));
-  const flt=a=>a.filter(b=>!nbCont||b.k===nbCont);
+  const flt=a=>a.filter(b=>(!nbCont||(b.k||"")===nbCont)&&(!nbLine||b.l===nbLine));
   const sec=(title,sub,list,empty)=>{ const s=el("section",{class:"nb-sec"}); s.append(el("h3",{class:"orn",text:title}),el("p",{class:"muted small",text:sub})); const l=el("div",{class:"blist"}); if(!list.length) l.append(el("p",{class:"empty",text:empty})); list.forEach(b=>l.append(nbCard(b))); s.append(l); box.append(s); };
   sec("Nossas builds",(NB_CLOUD?"Builds publicadas por todos que usam o site. Seu voto conta para todo mundo, um por navegador.":"Escolhidas pelo Balcão do Fumaça. A contagem de votos vem do arquivo da build; o seu voto soma +1 só para você."),ord(flt((NB_REPO||[]))),NB_REPO?"Ainda não há builds publicadas nesta seleção.":"Carregando…");
+  { const n=flt(NB_ALL).length; cnt.textContent=n?`${n} ${n===1?"build":"builds"}`:""; }
   const mine=NB_ALL.filter(b=>b.local); if(mine.length) sec("Suas builds",(NB_CLOUD?"Salvas só neste navegador porque a publicação falhou. Clique em Publicar para todos.":"Salvas só neste navegador. Baixe o arquivo e envie para a pasta builds/ do site para publicar."),ord(flt(mine)),"");
 }
 const nbId=t=>(t||"build").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40)+"-"+Math.random().toString(36).slice(2,6);
