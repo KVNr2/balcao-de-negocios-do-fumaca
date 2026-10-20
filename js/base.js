@@ -531,14 +531,17 @@ function renderSpecs(){
         if(combate){ const t=tierFromMastery(spMastery(g.k)); icons.forEach(im=>im._tier(t)); lockRows(); } };
       /* sem maestria (abaixo do T4) não dá para usar item nenhuma da linha: some o nome e o ícone, a não ser que o item já tenha nível */
       const rows=[], hint=el("p",{class:"tiny muted splock",text:"Digite a maestria da linha para liberar as armas e peças. Sem maestria não dá para usar nenhuma delas.",hidden:true});
-      const lockRows=()=>{ if(!combate) return; const open=tierFromMastery(spMastery(g.k))>=4, sv=spGet(g.k).s||{}; let hid=0; for(const r of rows){ const hide=!open&&!(+sv[r.key]>0); r.el.style.display=hide?"none":""; if(hide) hid++; } hint.hidden=!hid; };
+      /* nó de prévia: o que a maestria 1 libera (itens T4), só enquanto a maestria está zerada */
+      const unl=el("details",{class:"spunlock"}); { const us=el("summary",{text:`Itens liberados com a maestria 1 (T4): ${g.it.length}`}); const ug=el("div",{class:"spunl-grid"}); unl.append(us,ug); let ub=false;
+        unl.addEventListener("toggle",()=>{ if(!unl.open||ub) return; ub=true; for(const [key,pt,en] of g.it){ const label=LANG==="en"?en:pt, cell=el("div",{class:"spunl-it",title:label}); const im=itemImg(specCode(g,key),[4,5,6,3,7,8]); cell.append(im,el("span",{text:label})); ug.append(cell); } }); }
+      const lockRows=()=>{ if(!combate) return; const open=tierFromMastery(spMastery(g.k))>=4, sv=spGet(g.k).s||{}; let hid=0; unl.style.display=open?"none":""; for(const r of rows){ const hide=!open&&!(+sv[r.key]>0); r.el.style.display=hide?"none":""; if(hide) hid++; } hint.hidden=!hid; };
       sm.prepend(mk(repKey(g)));
       let built=false;
       d.addEventListener("toggle",()=>{ if(!d.open||built) return; built=true;
         body.append(tagIn("Maestria",numIn(spMastery(g.k),g.mmax,`Maestria de ${g.nome}`,x=>{ spSetMastery(g.k,x); saveProfile(); upd(); },"—"),mk(repKey(g))));
         for(const [key,pt,en] of g.it){ const label=LANG==="en"?en:pt;
           const row=tagIn(label,numIn(+(spGet(g.k).s||{})[key]||0,g.max,`${g.nome}: ${label}`,x=>{ const st=spEnsure(g.k); st.s=st.s||{}; if(x) st.s[key]=x; else delete st.s[key]; saveProfile(); upd(); },"—"),mk(key)); rows.push({el:row,key}); body.append(row); }
-        if(combate){ body.append(hint); lockRows(); }
+        if(combate){ body.append(hint); body.append(unl); lockRows(); }
         if(g.k.startsWith("a:")){ const kk=g.k.slice(2); body.append(tagIn("Foco T6.0 no jogo",numIn((PF.craft[kk]||{}).obs||0,99999,`Custo de foco no jogo para ${g.nome} T6.0`,x=>{ spEnsure(g.k).obs=x; saveProfile(); upd(); },"—"))); }
       });
       upd(); grid.append(d); }
