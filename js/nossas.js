@@ -151,12 +151,16 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
           b.append(ic,tx); b.addEventListener("click",()=>{ sk[s]=sk[s]||[]; sk[s][i]=sk[s][i]===v?undefined:v; draw(); drawSk(); }); cards.append(b); });
         grp.append(cards); spk.append(grp); }); };
     drawSk();
-    const rows=NB_CAT.i.filter(r=>NB_FILTER[s](r)&&/^T\d_/.test(r[0])); const by=new Map(); for(const r of rows){ const c=r[0].replace(/^T\d+_/,""); if(!by.has(c)) by.set(c,{c,nome:LANG==="en"?r[6]:r[5],en:r[6],pt:r[5],tiers:new Set(),ench:0,mat:(/^(cloth|leather|plate)_/.exec(r[2])||[])[1]||""}); const o=by.get(c); o.tiers.add(r[3]); if(r[4]&&!/consumables/.test(r[1])) o.ench=1; }
+    const rows=NB_CAT.i.filter(r=>NB_FILTER[s](r)&&/^T\d_/.test(r[0])); const by=new Map(); for(const r of rows){ const c=r[0].replace(/^T\d+_/,""); if(!by.has(c)) by.set(c,{c,nome:LANG==="en"?r[6]:r[5],en:r[6],pt:r[5],tiers:new Set(),ench:0,sub:r[2],mat:(/^(cloth|leather|plate)_/.exec(r[2])||[])[1]||""}); const o=by.get(c); o.tiers.add(r[3]); if(r[4]&&!/consumables/.test(r[1])) o.ench=1; }
     const list=[...by.values()].filter(o=>o.pt&&o.en).sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
     let mat=""; const matBar=el("div",{class:"seg nb-mat",role:"group","aria-label":"Material"});
     const drawMat=()=>{ matBar.textContent=""; [["","Todos"],["cloth","Tecido"],["leather","Couro"],["plate","Placa"]].forEach(([k,t2])=>{ const b2=el("button",{type:"button","aria-pressed":String(mat===k),text:t2}); b2.addEventListener("click",()=>{ mat=k; drawMat(); show(); }); matBar.append(b2); }); };
     if(["h","a","s"].includes(s)){ drawMat(); pick.insertBefore(matBar,res); }
-    const show=()=>{ res.textContent=""; const f=q.value.trim().toLowerCase(); const out=list.filter(o=>(!mat||o.mat===mat)&&(!f||o.pt.toLowerCase().includes(f)||o.en.toLowerCase().includes(f)||o.c.toLowerCase().includes(f))).slice(0,80);
+    let sub=""; const subs=[...new Set(list.map(o=>o.sub))].filter(Boolean); const sn=x=>typeof subName==="function"?subName(x):x.replace(/_/g," ");
+    if(!["h","a","s"].includes(s)&&subs.length>1){ const ss=el("select",{"aria-label":"Tipo",class:"nb-sub"}); ss.append(el("option",{value:"",text:"Todos os tipos"})); subs.sort((a,b)=>sn(a).localeCompare(sn(b),"pt-BR")).forEach(x=>ss.append(el("option",{value:x,text:sn(x)}))); ss.addEventListener("change",()=>{ sub=ss.value; show(); }); head.append(ss); }
+    const cnt=el("p",{class:"muted small nb-cnt"}); pick.insertBefore(cnt,res);
+    const show=()=>{ res.textContent=""; const f=q.value.trim().toLowerCase(); const out=list.filter(o=>(!mat||o.mat===mat)&&(!sub||o.sub===sub)&&(!f||o.pt.toLowerCase().includes(f)||o.en.toLowerCase().includes(f)||o.c.toLowerCase().includes(f)));
+      cnt.textContent=`${out.length} ${out.length===1?"item":"itens"}`;
       if(!out.length) res.append(el("p",{class:"muted small",text:"Nada encontrado."}));
       out.forEach(o=>{ const b=el("button",{type:"button",class:"nb-it"}); const tt=Math.max(...[...o.tiers].filter(n=>n<=+t.value),...[...o.tiers].slice(0,1)); b.append(fullImg(`T${tt}_${o.c}`,"nico nb-ri")||"",el("span",{text:o.nome}));
         b.addEventListener("click",()=>{ const ts=[...o.tiers].sort((a,b)=>a-b); const tier=ts.includes(+t.value)?+t.value:ts[ts.length-1]; const en=o.ench?+e.value:0; const nid=`T${tier}_${o.c}${en?"@"+en:""}`; if(!sel[s]||code(sel[s])!==o.c) delete sk[s]; sel[s]=nid; if(s==="w"&&/^T\d+_2H_/.test(nid)){ SETS.forEach(st=>{ delete st.sel.o; delete st.sk.o; }); } draw(); drawSk(); head.querySelector("b").textContent=lab; }); res.append(b); }); };

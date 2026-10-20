@@ -1034,3 +1034,4 @@ img.nb-xi{width:52px;height:52px}
 .nb-x2{top:-6px;right:-6px}
 .kx-x{grid-column:1/-1;margin-top:8px}.kx-xg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 .kx-xi{display:flex;align-items:center;gap:10px}.kx-xi img.kx-i{width:56px;height:56px}
+.nb-cnt{margin:2px 0 6px}.nb-sub{width:auto!important;min-width:150px}
