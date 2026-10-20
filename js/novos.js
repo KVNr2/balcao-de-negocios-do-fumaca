@@ -180,7 +180,7 @@ async function renderEN(){
   if(!EN_LOADED.has(g)){ tb.textContent=""; note.textContent="Consultando peças, runas, almas e relíquias…"; const ok=await ensureEnch(g); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("enGroup").value!==g) return; }
   const rows=[]; for(const k of bmKeys(g)) for(const tt of (t?[t]:[4,5,6,7,8])) for(const e of [1,2,3]){ const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); }
   rows.sort((a,b)=>((b.save??-1e15)-(a.save??-1e15)));
-  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Peça","Passo","Custo encantando","Economia"].forEach(h=>hr.append(el("th",{text:h})));
+  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Peça","Passo","Custo final","Economia"].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
   for(const m of rows.slice(0,t?40:80)){ const tr=body.insertRow(); tr.tabIndex=0; tr.className="clickrow"; tr.insertCell().append(withIcon(bmId(m.key,m.t,m.e),`${nmKey(m.key,m.name)} T${m.t}`)); { const sc=tr.insertCell(); sc.append(withIcon(bmId(m.key,m.t,m.e-1),`.${m.e-1} → .${m.e}`)); }
     const c3=tr.insertCell(); c3.className="num cost"; c3.textContent=fmt(m.cost);
