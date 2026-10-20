@@ -203,22 +203,22 @@ async function renderOf(){
   OF2.sample=items[0];
   const rows=items.map(ofModel).filter(Boolean), ok=rows.filter(m=>!m.miss).sort((a,b)=>b.profit-a.profit), LIM=agg?120:60, shown=ok.slice(0,LIM);
   ofSyncRR();
-  tb.textContent=""; const hr=tb.createTHead().insertRow(); [["Item",""],["Custo","Custo total real: materiais, taxa da estação, taxas de compra e de venda"],["Venda","Venda bruta, antes das taxas"],["Lucro","Lucro total das receitas"],["Venda e compra","O número no ícone é a quantidade: unidades a vender e materiais a comprar"]].forEach(([h,t])=>hr.append(el("th",{text:h,title:t})));
+  tb.textContent=""; const hr=el("div",{class:"of-lh"}); [["Item",""],["Custo","Custo total real: materiais, taxa da estação, taxas de compra e de venda"],["Venda","Venda bruta, antes das taxas"],["Lucro","Lucro total das receitas"],["Venda e compra","O número no ícone é a quantidade: unidades a vender e materiais a comprar"]].forEach(([h,t])=>hr.append(el("span",{text:h,title:t}))); tb.append(hr);
   const fitW=()=>{ const w=tb.parentNode; if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }; fitW(); if(!OF2.rs){ OF2.rs=1; addEventListener("resize",()=>{ const w=$("ofTable").parentNode; w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }); }
-  const body=tb.createTBody(); let oldest=Infinity, newest=0;
+  const body=tb; let oldest=Infinity, newest=0;
   const stamp=t=>{ if(t>0){ oldest=Math.min(oldest,t); newest=Math.max(newest,t); } };
   const qIc=OF2.qual>1&&isG?OF2.qual:1; OF2.rows=[];
-  for(const m of shown){ const key=m.it.id; const tr=body.insertRow(); tr.dataset.id=m.it.id; tr.dataset.city=m.sale.c; tr.className="clickrow of-row "+(m.profit>=0?"is-gain":"is-loss"); tr.tabIndex=0; tr.setAttribute("aria-expanded","false");
+  for(const m of shown){ const key=m.it.id; const item=el("div",{class:"of-item"}); body.append(item); const tr=el("div",{class:"of-row"}); item.append(tr); tr.dataset.id=m.it.id; tr.dataset.city=m.sale.c; tr.className="clickrow of-row "+(m.profit>=0?"is-gain":"is-loss"); tr.tabIndex=0; tr.setAttribute("aria-expanded","false");
     stamp(m.sale.t); m.parts.forEach(g=>stamp(g.b&&g.b.t));
-    const c0=tr.insertCell(); c0.className="itemcell"; const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▾"});
+    const c0=el("div",{class:"itemcell"}); tr.append(c0); const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▾"});
     const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}faz em ${m.it.city}`})); head.append(iconImg(m.it.id,52,qIc),nmb,chev); c0.append(head); c0.querySelector("img").classList.add("of-itic");
-    const stat=(cls,v,lab)=>{ const c=tr.insertCell(); c.className="of-stat "+cls; c.append(el("b",{text:v}),el("small",{text:lab})); return c; };
+    const stat=(cls,v,lab)=>{ const c=el("div",{class:"of-stat "+cls}); tr.append(c); c.append(el("b",{text:v}),el("small",{text:lab})); return c; };
     stat("loss",fmtS(m.costReal),"CUSTO"); stat("sale",fmtS(m.gross),"VENDA");
-    const c3=tr.insertCell(); c3.className="of-stat "+(m.profit>=0?"gain":"loss"); c3.append(el("b",{text:(m.profit>=0?"+":"−")+fmtS(Math.abs(m.profit))}),el("span",{class:"of-pct",text:`${m.pct>=0?"+":""}${dec(m.pct*100)}%`}));
-    const c5=tr.insertCell(); const flow=el("div",{class:"of-flow"}); flow.append(ofBlock(m.it.id,qIc,m.sale,"sale",m.units,m));
+    const c3=el("div",{class:"of-stat "+(m.profit>=0?"gain":"loss")}); tr.append(c3); c3.append(el("b",{text:(m.profit>=0?"+":"−")+fmtS(Math.abs(m.profit))}),el("span",{class:"of-pct",text:`${m.pct>=0?"+":""}${dec(m.pct*100)}%`}));
+    const c5=el("div",{class:"of-fl"}); tr.append(c5); const flow=el("div",{class:"of-flow"}); flow.append(ofBlock(m.it.id,qIc,m.sale,"sale",m.units,m));
     m.parts.forEach(g=>flow.append(ofBlock(g.id,1,g.b,"buy",g.need,m,g))); c5.append(flow);
     OF2.rows.push({m,tr});
-    const dr=body.insertRow(); dr.className="of-drow"; dr.hidden=true; const dc=dr.insertCell(); dc.colSpan=5;
+    const dr=el("div",{class:"of-drow"}); dr.hidden=true; item.append(dr); const dc=dr;
     const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; chev.textContent=open?"▴":"▾"; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open)); if(open){ setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8||r.top<60) dr.scrollIntoView({block:"nearest",behavior:"smooth"}); }catch(e){} },60); if(!dc.firstChild){ try{ dc.append(ofDetail(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes deste item: "+(e&&e.message||e)})); } } OF2.open.add(key); } else OF2.open.delete(key); };
     tr.addEventListener("click",ev=>{ if(ev.target.closest("a")) return; toggle(); });
     tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } });
@@ -345,7 +345,7 @@ async function renderMk(){
   const body=tb.createTBody();
   const cellP=(tr,o,cls)=>{ const c=tr.insertCell(); c.className="mkp "+(cls||""); if(!o){ c.textContent="—"; return; } c.append(el("b",{class:"city",text:o.c}),el("span",{class:"num",text:fmt(o.p)}),ageSpan(o.t)||""); };
   for(const x of rows){ const tr=body.insertRow(); tr.className="clickrow"; const nm_=mkName(x.r);
-    const c0=tr.insertCell(); c0.className="itemcell"; const hd=el("div",{class:"ihead"}); hd.append(iconImg(x.id,36,mq)); const nb=el("span",{class:"inm"}); nb.append(el("strong",{text:nm_}),el("small",{text:`${x.r[3]?`T${x.r[3]}.${x.e}`:"sem tier"}${mq>1?` · ${QNAME[mq]}`:""}, ${CATALOG.c[x.r[1]]||""}${x.r[2]&&subName(x.r[2])!==CATALOG.c[x.r[1]]?`: ${subName(x.r[2])}`:""}`})); hd.append(nb); c0.append(hd);
+    const c0=el("div",{class:"itemcell"}); tr.append(c0); const hd=el("div",{class:"ihead"}); hd.append(iconImg(x.id,36,mq)); const nb=el("span",{class:"inm"}); nb.append(el("strong",{text:nm_}),el("small",{text:`${x.r[3]?`T${x.r[3]}.${x.e}`:"sem tier"}${mq>1?` · ${QNAME[mq]}`:""}, ${CATALOG.c[x.r[1]]||""}${x.r[2]&&subName(x.r[2])!==CATALOG.c[x.r[1]]?`: ${subName(x.r[2])}`:""}`})); hd.append(nb); c0.append(hd);
     cellP(tr,x.x.smax); cellP(tr,x.x.smin,"gain"); cellP(tr,x.x.bmax,"gain"); cellP(tr,x.x.bmin);
     const d=tr.insertCell(); d.className="num"; d.textContent=x.x.smax&&x.x.smin?fmt(x.x.smax.p-x.x.smin.p):"—"; d.title="Maior venda menos menor venda: o espaço para comprar numa cidade e vender em outra";
     tr.addEventListener("click",()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`,mq)); }

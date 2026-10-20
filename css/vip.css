@@ -587,3 +587,22 @@ b.c,h4.c{color:#b784e8}
 .of-xi{overflow:hidden}
 @media(max-width:1500px){.of-xr{grid-template-columns:108px minmax(0,1fr) 78px minmax(110px,140px) 66px}.of-xr>.of-xt{display:none}}
 .of-drow .of-xp{position:sticky;left:0}
+/* lista em blocos (sem tabela): o painel fica sempre dentro do próprio item */
+.oflist{display:flex;flex-direction:column;gap:10px;width:max-content;min-width:100%}
+.of-lh,.oflist .of-row{display:grid;grid-template-columns:380px 120px 120px 170px max-content;align-items:center;column-gap:0}
+.of-lh{position:sticky;top:0;z-index:2;background:var(--cloth);font:600 11.5px var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--smoke);padding:6px 0}
+.of-lh span{padding:0 14px;text-align:center}.of-lh span:first-child,.of-lh span:last-child{text-align:left}
+.of-item{display:flex;flex-direction:column;min-width:100%}
+.oflist .of-row{background:var(--night-2);border:1px solid var(--line-soft);border-left:4px solid var(--smoke);border-radius:12px;padding:16px 14px;cursor:pointer}
+.oflist .of-row.is-gain{border-left-color:#3fb878}.oflist .of-row.is-loss{border-left-color:#d9534f}
+.oflist .of-row.open{border-radius:12px 12px 0 0}
+.oflist .itemcell{position:sticky;left:0;z-index:1;background:inherit;padding-right:10px;min-width:0;width:auto;max-width:none}
+.oflist .of-stat{padding:0 14px;text-align:center}
+.oflist .of-fl,.oflist .of-flow{min-width:0}
+.oflist .of-drow{margin:0}
+.oflist .of-drow .of-xp{margin-top:0;border-top:0}
+.oflist .of-row.is-gain{background:#10261b;border-color:rgba(63,184,120,.28);border-left-color:#3fb878}
+.oflist .of-row.is-loss{background:#2a1413;border-color:rgba(217,83,79,.3);border-left-color:#d9534f}
+.oflist .of-row.is-gain:hover,.oflist .of-row.is-gain.open{background:#16341f}
+.oflist .of-row.is-loss:hover,.oflist .of-row.is-loss.open{background:#381a18}
+.oflist .itemcell,.oflist .inm{text-align:left}.oflist .inm{align-items:flex-start}
