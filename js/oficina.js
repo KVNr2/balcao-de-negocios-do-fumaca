@@ -184,7 +184,7 @@ async function renderOf(){
   for(const m of shown){ const key=m.it.id; const tr=body.insertRow(); tr.dataset.id=m.it.id; tr.dataset.city=m.sale.c; tr.className="clickrow of-row "+(m.profit>=0?"is-gain":"is-loss");
     stamp(m.sale.t); m.parts.forEach(g=>stamp(g.b&&g.b.t));
     const c0=tr.insertCell(); c0.className="itemcell"; const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▸"});
-    head.append(chev,iconImg(m.it.id,44,OF2.qual>1&&isG?OF2.qual:1)); const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-tag",text:`T${m.it.t}.${m.it.e} | ${qn}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}faz em ${m.it.city}`})); head.append(nmb); c0.append(head);
+    head.append(chev,iconImg(m.it.id,44,OF2.qual>1&&isG?OF2.qual:1)); const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}faz em ${m.it.city}`})); head.append(nmb); c0.append(head);
     const c1=tr.insertCell(); c1.className="num"; c1.append(el("b",{class:"loss",text:fmt(m.cost)}),el("small",{class:"muted",text:`mat. ${fmtS(m.mat)} · taxa ${fmtS(m.fee)}`}));
     const c6=tr.insertCell(); c6.className="num vol"; c6.textContent="…"; 
     const c3=tr.insertCell(); c3.className="num "+(m.profit>=0?"gain":"loss"); c3.append(el("b",{text:sgn(m.profit)}),el("small",{text:`${m.pct>=0?"+":""}${dec(m.pct*100)}%`}));
