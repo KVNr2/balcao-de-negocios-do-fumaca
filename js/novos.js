@@ -102,6 +102,7 @@ async function renderBC(){
     if(eq&&s!=="f"&&s!=="p"){ let best=null; for(const [tt,ee] of equivs){ const ch0=cheapest(idOfSlot(s,pick.key,tt,ee)); if(ch0&&(!best||ch0.p<best.p)) best={p:ch0.p,tt,ee}; } if(best){ escolha=[best.tt,best.ee]; chosen[s]=idOfSlot(s,pick.key,best.tt,best.ee); } else escolha=equivs[0]; }
     let tr, c1; if(custom){ tr=body.rows[body.rows.length-1]; } else { tr=body.insertRow(); tr.insertCell().textContent=SLOT_PT[s]; c1=tr.insertCell(); }
     if(custom){} else if(list.length>1){ const ss=el("select",{"aria-label":`Escolher ${SLOT_PT[s].toLowerCase()}`}); list.forEach(c=>ss.append(el("option",{value:c.key,text:nmKey(c.key,c.label)}))); ss.value=pick.key; ss.addEventListener("change",()=>{ bcSel[s]=ss.value; renderBC(); }); c1.append(ss); } else c1.textContent=nmKey(pick.key,pick.label);
+    { const pc=tr.cells[1]; if(pc&&chosen[s]){ const w=el("span",{class:"cell-ic"}), tx=el("span",{class:"cell-tx"}); while(pc.firstChild) tx.append(pc.firstChild); const im=iconImg(chosen[s],36); im.classList.add("t"); w.append(im,tx); pc.append(w); } }
     const ch=cheapest(chosen[s]); const c2=tr.insertCell(); c2.className="num"; c2.textContent=ch?fmt(ch.p):"—"; tr.insertCell().textContent=ch?ch.c:"sem anúncio";
     const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=s==="f"||s==="p"?"por unidade":(eq?`T${escolha[0]}.${escolha[1]}`:"");
     if(s==="f"||s==="p"){ if(ch) consTot+=ch.p; } else if(ch) total+=ch.p; else missing++; }
