@@ -16,8 +16,8 @@ const RES = {
   leather:{raw:"HIDE",ref:"LEATHER",city:"Martlock",rawName:"Pelego",refName:"Couro",prevName:"Couro",u:"couro",up:"couros",art:"um",note:"Martlock tem o bônus de refino de pelego."}
 };
 const N = {4:2,5:3,6:4,7:5,8:5};
-const FOCUS_REF = [[54,94,164,287],[94,164,287,503],[164,287,503,880],[287,503,880,1539],[503,880,1539,2694]];
-const FOCUS_CRAFT = [[429,750,1313,2298],[750,1313,2298,4021],[1313,2298,4021,7037],[2298,4021,7037,12315],[4021,7037,12315,21551]]; // elmo e botas; peito = ×2
+const FOCUS_REF = [[54,94,164,287,503],[94,164,287,503,880],[164,287,503,880,1539],[287,503,880,1539,2694],[503,880,1539,2694,4715]]; // .4 estimado (×1,75 por nível)
+const FOCUS_CRAFT = [[429,750,1313,2298,4021],[750,1313,2298,4021,7037],[1313,2298,4021,7037,12315],[2298,4021,7037,12315,21551],[4021,7037,12315,21551,37714]]; // elmo e botas; peito = ×2
 const IV = (t,e)=>Math.pow(2,t+e);
 const MATBAR = {PLATE:"METALBAR",LEATHER:"LEATHER",CLOTH:"CLOTH"};
 const SETN = {PLATE:["Soldier","Knight","Guardian"],LEATHER:["Mercenary","Hunter","Assassin"],CLOTH:["Scholar","Cleric","Mage"]};
@@ -409,13 +409,13 @@ function renderRecs(){
     b.forEach(x=>{ const gaps=armorGaps(x); bx.append(recItem(`${nm(x.w)} (${LINE_NAME[x.l]}, spec ${LV_W[wl(x.l)].toLowerCase()})`,[x.g.length?x.g.map(nm).join(", "):"Equipamento: veja no MetaCorrupted",nmFood(x.f)||null,`Patch 3: ${x.p[1]}`,gaps.length?`Atenção: sem spec em ${gaps.join(" e ")} na sua ficha`:null])); });
   }
   const tb=$("recColeta"); tb.textContent="";
-  const hr=tb.createTHead().insertRow(); ["Recurso","Seu tier",".0",".1",".2",".3","Onde aparece"].forEach(h=>hr.append(el("th",{text:h})));
+  const hr=tb.createTHead().insertRow(); ["Recurso","Seu tier",".0",".1",".2",".3",".4","Onde aparece"].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody(); let any=false;
   for(const [k,name,base,bio] of GATHER){ const g=PF.coleta[k]; if(!base||!g||!(g.tier>=4)) continue; any=true; const tr=body.insertRow();
     tr.insertCell().textContent=name; tr.insertCell().textContent=`T${g.tier}, nível ${g.n||0}`;
     for(let e=0;e<=4;e++){ const td=tr.insertCell(); td.className="num"; if(!base){ td.textContent="—"; continue; } const p=typical(idOf(g.tier,base,e),0); td.textContent=p?fmt(p.p):"—"; }
     tr.insertCell().textContent= base ? bio : "Peixe não está na API de preços desta página ainda"; }
-  if(!any){ const tr=body.insertRow(); const td=tr.insertCell(); td.colSpan=7; td.textContent="Marque na sua ficha o tier de coleta de cada recurso."; }
+  if(!any){ const tr=body.insertRow(); const td=tr.insertCell(); td.colSpan=8; td.textContent="Marque na sua ficha o tier de coleta de cada recurso."; }
   renderFish(); renderCookRecs(); renderGo();
 }
 function renderFish(){
@@ -779,7 +779,7 @@ function renderMaps(){
   const gb=$("mapGather"); gb.textContent="";
   const base=GATHER_KEY[mapRes], bio=MAIN_BIOME[base], tier=Math.max(4,(PF.coleta[mapRes]||{}).tier||6);
   const prices=[0,1,2,3,4].map(e=>typical(idOf(tier,base,e),0)).map(p=>p?fmt(p.p):"—");
-  gb.append(el("p",{class:"small",text:`${opts.find(o=>o[0]===mapRes)[1]} é o recurso principal da ${BIOME_PT[bio]}. No seu tier (T${tier}), cada unidade vale ${prices.join(", ")} nos encantamentos .0 a .3.`}));
+  gb.append(el("p",{class:"small",text:`${opts.find(o=>o[0]===mapRes)[1]} é o recurso principal da ${BIOME_PT[bio]}. No seu tier (T${tier}), cada unidade vale ${prices.join(", ")} nos encantamentos .0 a .4.`}));
   const roy=ZONES.filter(z=>z.b===bio&&z.r==="ROY"&&z.t>=tier).sort((a,b)=>(b.res-a.res)||(a.t-b.t)).slice(0,3);
   const out=ZONES.filter(z=>z.b===bio&&z.r==="OUT"&&z.t>=tier).sort((a,b)=>((b.q||0)-(a.q||0))||(b.res-a.res)||(a.t-b.t)).slice(0,3);
   const ol2=el("ol",{class:"recs"});
