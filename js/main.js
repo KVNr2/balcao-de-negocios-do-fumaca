@@ -77,10 +77,11 @@ $("muDlg").addEventListener("click",ev=>{ if(ev.target===$("muDlg")) $("muClose"
     tiles.append(btn); btns.push(btn);
     const upd=()=>{
       btn.hidden=b.hidden; if(b.hidden) return;
-      const el=document.getElementById(id); let t="", s="";
-      if(el.tagName==="OL"){ const li=el.querySelector("li:not(.empty)"); if(li){ t=li.querySelector("strong")?li.querySelector("strong").textContent:""; const sp=li.querySelectorAll("span"); s=sp[0]?sp[0].textContent:""; } else { const e=el.querySelector("li"); s=e?e.textContent:""; } }
+      const el=document.getElementById(id); let t="", s="", ic=null;
+      if(el.tagName==="OL"){ const li=el.querySelector("li:not(.empty)"); if(li){ t=li.querySelector("strong")?li.querySelector("strong").textContent:""; const sp=li.querySelectorAll("span:not(.rec-ic)"); s=sp[0]?sp[0].textContent:""; const im=li.querySelector(".rec-ic img"); ic=im?im.cloneNode(true):null; } else { const e=el.querySelector("li"); s=e?e.textContent:""; } }
       else { const tr=el.querySelector("tbody tr"); if(tr){ const c=[...tr.cells].map(x=>x.textContent.trim()).filter(Boolean); t=c[0]||""; s=c.slice(1,3).join(" · "); } }
       btn.querySelector(".vc-t").textContent=trunc(t||"Sem dados ainda",60); btn.querySelector(".vc-s").textContent=trunc(s||sub,90);
+      { let w=btn.querySelector(".vc-ic"); if(!w){ w=document.createElement("span"); w.className="vc-ic"; btn.prepend(w); } w.textContent=""; if(ic){ ic.width=ic.height=44; w.append(ic); } w.hidden=!ic; }
       btn.classList.toggle("gain",/\+\d/.test(s)||/\+\d/.test(t)); };
     new MutationObserver(upd).observe(b,{childList:true,subtree:true,attributes:true,attributeFilter:["hidden"]}); upd();
   });

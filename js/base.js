@@ -405,21 +405,28 @@ function rankBuilds(c,onlyMine){
   const tierB={S:3,A:2}; return BUILDS.filter(b=>b.c===c&&(!onlyMine||wl(b.l)>=1))
     .sort((a,b)=>(wl(b.l)-wl(a.l))||((tierB[b.mc]||0)-(tierB[a.mc]||0))||(b.pop-a.pop)); }
 function armorGaps(b){ const miss=new Set(); for(const g of b.g){ const t=armorType(g); if(t&&armorLv(t)<1) miss.add(t); } return [...miss]; }
-function recItem(title, lines){ const li=el("li"); li.append(el("strong",{text:title})); lines.filter(Boolean).forEach(l=>li.append(el("span",{text:l}))); return li; }
+const apiIcon=id=>(id||"").replace(/_LEVEL(\d)$/,"_LEVEL$1@$1");
+/* icon: id do item principal (ícone grande à esquerda); extras: ids numa fileira de ícones pequenos */
+function recItem(title, lines, icon, extras){ const li=el("li"); const body=icon?el("div",{class:"rec-b"}):li;
+  if(icon){ li.classList.add("has-ic"); const w=el("span",{class:"rec-ic"}); w.append(iconImg(apiIcon(icon),56)); li.append(w,body); }
+  body.append(el("strong",{text:title})); lines.filter(Boolean).forEach(l=>body.append(el("span",{text:l})));
+  if(extras&&extras.length){ const r=el("div",{class:"rec-ics"}); extras.slice(0,7).forEach(i=>r.append(iconImg(apiIcon(i),38))); body.append(r); }
+  return li; }
+const gearIcon=name=>{ try{ const k=typeof gearKey==="function"&&GEAR?gearKey(name):null; return k?`T6_${k}`:null; }catch(e){ return null; } };
 function renderRecs(){
   const r=bestRefining(), box=$("recRefino"); box.textContent="";
   if(!r.length) box.append(el("li",{class:"empty",text:"Com os preços de agora, nenhum refino dá lucro com segurança."}));
-  r.slice(0,3).forEach(x=>{ const R=RES[x.res]; const rt=refRoute(x.res,x.t,x.e); box.append(recItem(`${R.refName} T${x.t}.${x.e} em ${R.city}`,[`${sgn(x.m.p1)} por ${R.u}, uns ${fmtS(x.day)} com 10.000 de foco`,rt?`Compre ${R.rawName.toLowerCase()} em ${rt.rawC} e venda em ${rt.barC}: ${sgn(rt.p1)} por ${R.u}${routeWarn([rt.rawC,R.city,rt.barC])?"; "+routeWarn([rt.rawC,R.city,rt.barC]):""}`:null,`Custo de foco ${x.m.fc} por ${R.u}${refFCE(x.res)>0?"":", sem spec"}. Sem foco: ${sgn(x.m.p0)}`])); });
+  r.slice(0,3).forEach(x=>{ const R=RES[x.res]; const rt=refRoute(x.res,x.t,x.e); box.append(recItem(`${R.refName} T${x.t}.${x.e} em ${R.city}`,[`${sgn(x.m.p1)} por ${R.u}, uns ${fmtS(x.day)} com 10.000 de foco`,rt?`Compre ${R.rawName.toLowerCase()} em ${rt.rawC} e venda em ${rt.barC}: ${sgn(rt.p1)} por ${R.u}${routeWarn([rt.rawC,R.city,rt.barC])?"; "+routeWarn([rt.rawC,R.city,rt.barC]):""}`:null,`Custo de foco ${x.m.fc} por ${R.u}${refFCE(x.res)>0?"":", sem spec"}. Sem foco: ${sgn(x.m.p0)}`],idOf(x.t,R.ref,x.e))); });
   const cbox=$("recCraft"); cbox.textContent="";
   const lines=Object.keys(PF.craft).filter(k=>PF.craft[k].lv>0);
   if(!lines.length){ cbox.append(el("li",{class:"empty",text:"Marque na sua ficha as peças que você fabrica para ver o melhor craft."})); }
   else{ const c=bestCraft();
     if(!c.length) cbox.append(el("li",{class:"empty",text: lines.every(k=>loadedFam.has(k)) ? "Com os preços de agora, nenhuma das suas linhas dá lucro com segurança." : "Buscando preços das peças…"}));
-    c.slice(0,3).forEach(x=>{ const k=x.slot+"_"+x.mat; cbox.append(recItem(`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e} em ${CRAFT_CITY[k]}`,[`${sgn(x.m.p1)} por peça, uns ${fmtS(x.day)} com 10.000 de foco`,`Custo de foco ${fmt(x.m.fc)} por peça. Venda típica ${fmt(x.m.item.p)}`,(()=>{ const r=craftRoute(x.slot,x.mat,x.s,x.t,x.e); return r?`Barras em ${r.barC}, venda em ${r.itemC}: ${sgn(r.p1)} por peça`:null; })()])); }); }
+    c.slice(0,3).forEach(x=>{ const k=x.slot+"_"+x.mat; cbox.append(recItem(`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e} em ${CRAFT_CITY[k]}`,[`${sgn(x.m.p1)} por peça, uns ${fmtS(x.day)} com 10.000 de foco`,`Custo de foco ${fmt(x.m.fc)} por peça. Venda típica ${fmt(x.m.item.p)}`,(()=>{ const r=craftRoute(x.slot,x.mat,x.s,x.t,x.e); return r?`Barras em ${r.barC}, venda em ${r.itemC}: ${sgn(r.p1)} por peça`:null; })()],gearId(x.t,x.slot,x.mat,x.s,x.e))); }); }
   for(const [c,id] of [["brumas","recBrumas"],["corrompidas","recCorr"]]){
     const b=rankBuilds(c,true).slice(0,3), bx=$(id); bx.textContent="";
     if(!b.length) bx.append(el("li",{class:"empty",text:"Nenhuma build da lista usa as armas da sua ficha."}));
-    b.forEach(x=>{ const gaps=armorGaps(x); bx.append(recItem(`${nm(x.w)} (${LINE_NAME[x.l]}, spec ${LV_W[wl(x.l)].toLowerCase()})`,[x.g.length?x.g.map(nm).join(", "):"Equipamento: veja no MetaCorrupted",nmFood(x.f)||null,`Patch 3: ${x.p[1]}`,gaps.length?`Atenção: sem spec em ${gaps.join(" e ")} na sua ficha`:null])); });
+    b.forEach(x=>{ const gaps=armorGaps(x); bx.append(recItem(`${nm(x.w)} (${LINE_NAME[x.l]}, spec ${LV_W[wl(x.l)].toLowerCase()})`,[x.g.length?x.g.map(nm).join(", "):"Equipamento: veja no MetaCorrupted",nmFood(x.f)||null,`Patch 3: ${x.p[1]}`,gaps.length?`Atenção: sem spec em ${gaps.join(" e ")} na sua ficha`:null],gearIcon(x.w),(x.g||[]).map(gearIcon).filter(Boolean))); });
   }
   const tb=$("recColeta"); tb.textContent="";
   const hr=tb.createTHead().insertRow(); ["Recurso","Seu tier",".0",".1",".2",".3",".4","Onde aparece"].forEach(h=>hr.append(el("th",{text:h})));
@@ -455,6 +462,7 @@ function renderHero(){
   if(best.kind==="ref"){ const R=RES[x.res]; b.textContent=`${R.refName.toLowerCase()} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais refinando `,b,` em ${R.city}: `,n,` por ${R.u}, uns ${fmtS(x.day)} com 10.000 de foco.`); }
   else if(best.kind==="cook"){ b.textContent=x.name; ans.append(`${who} o seu foco rende mais ${x.kind==="f"?"cozinhando":"preparando"} `,b,` em ${COOK_CITY[x.kind]}: `,n,` por fornada, uns ${fmtS(x.day)} com 10.000 de foco.`); }
   else{ b.textContent=`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais fabricando `,b,` em ${CRAFT_CITY[x.slot+"_"+x.mat]}: `,n,` por peça, uns ${fmtS(x.day)} com 10.000 de foco.`); }
+  { const hid=best.kind==="ref"?idOf(x.t,RES[x.res].ref,x.e):best.kind==="cook"?x.m.id:gearId(x.t,x.slot,x.mat,x.s,x.e); const old=ans.parentNode.querySelector(".hero-ic"); if(old) old.remove(); const hi=el("span",{class:"hero-ic"}); hi.append(iconImg(apiIcon(hid),84)); ans.parentNode.prepend(hi); }
   if(window.gsap&&!RM){ const o={v:0}; gsap.to(o,{v:x.m.p1,duration:1.1,ease:"power2.out",onUpdate:()=>n.textContent=sgn(o.v)}); }
   $("heroOthers").textContent="";
   $("heroOthers").append(el("span",{class:"muted",text:"Com o custo de foco da sua ficha e o preço típico das cidades. Confira o preço no jogo antes de comprar."}));
@@ -720,7 +728,7 @@ function renderCookRecs(){
   if(!has){ box.append(el("li",{class:"empty",text:"Marque cozinha ou alquimia na sua ficha para ver o que rende mais."})); return; }
   if(!COOK_LOADED){ box.append(el("li",{class:"empty",text:"Buscando preços dos ingredientes…"})); ensureCook().then(ok=>{ if(ok){ renderCookRecs(); renderHero(); } }); return; }
   const c=bestCook(); if(!c.length){ box.append(el("li",{class:"empty",text:"Com os preços de agora, nada da cozinha ou da alquimia dá lucro com segurança."})); return; }
-  c.slice(0,3).forEach(m=>box.append(recItem(`${m.name} em ${COOK_CITY[m.kind]}`,[`${sgn(m.p1)} por fornada de ${m.q}, uns ${fmtS(m.day)} com 10.000 de foco`,`Custo de foco ${fmt(m.fc)}. Venda típica ${fmt(m.item.p)} cada`,BUILD_FOOD.includes(m.id)?"As builds usam":null])));
+  c.slice(0,3).forEach(m=>box.append(recItem(`${m.name} em ${COOK_CITY[m.kind]}`,[`${sgn(m.p1)} por fornada de ${m.q}, uns ${fmtS(m.day)} com 10.000 de foco`,`Custo de foco ${fmt(m.fc)}. Venda típica ${fmt(m.item.p)} cada`,BUILD_FOOD.includes(m.id)?"As builds usam":null],m.id)));
 }
 
 /* ================= histórico ================= */
@@ -773,10 +781,10 @@ function renderMaps(){
   if(!f.length){ fb.append(el("p",{class:"muted",text:"Sem preço de peixe raro agora. Tente atualizar os preços."})); }
   const shown=new Set(); let rank=0; const ol=el("ol",{class:"recs"});
   for(const x of f){ if(rank>=3) break; const code=FISH_TO_BIOME[x.b];
-    if(!code){ ol.append(recItem(`Raro de ${x.n} T${x.t}: ${fmt(x.p.p)} cada`,[x.b==="AVALON"?"Sai nas Estradas de Avalon, nos lagos dos corredores.":"Sai nas Ancient Lands, pelos portais do Dragonfire."])); rank++; continue; }
+    if(!code){ ol.append(recItem(`Raro de ${x.n} T${x.t}: ${fmt(x.p.p)} cada`,[x.b==="AVALON"?"Sai nas Estradas de Avalon, nos lagos dos corredores.":"Sai nas Ancient Lands, pelos portais do Dragonfire."],`T${x.t}_FISH_FRESHWATER_${x.b}_RARE`)); rank++; continue; }
     if(shown.has(code)) continue; shown.add(code);
     const zs=ZONES.filter(z=>z.b===code&&z.t>=x.t&&z.w>0).sort((a,b)=>(b.w-a.w)||(a.r==="ROY"?-1:1)||(b.t-a.t)).slice(0,3);
-    ol.append(recItem(`Raro de ${x.n} T${x.t}: ${fmt(x.p.p)} cada`,[zs.length?`Mapas de ${BIOME_PT[code]} T${x.t}+ com mais lagos:`:`Procure zonas de ${BIOME_PT[code]} T${x.t} ou mais.`,...zs.map(zoneLine)])); rank++; }
+    ol.append(recItem(`Raro de ${x.n} T${x.t}: ${fmt(x.p.p)} cada`,[zs.length?`Mapas de ${BIOME_PT[code]} T${x.t}+ com mais lagos:`:`Procure zonas de ${BIOME_PT[code]} T${x.t} ou mais.`,...zs.map(zoneLine)],`T${x.t}_FISH_FRESHWATER_${x.b}_RARE`)); rank++; }
   fb.append(ol);
   const eel=typical("T8_MEAL_STEW_FISH",0), fishEel=typical("T7_FISH_FRESHWATER_FOREST_RARE",0);
   if(eel&&fishEel) fb.append(el("p",{class:"tiny muted",text:`Dica de cozinha: o Guisado de Enguia de Água-podre (comida das builds) usa 1 Enguia de Água-podre T7 da floresta e vende a ${fmt(eel.p)}; o peixe sozinho vale ${fmt(fishEel.p)}.`}));
@@ -802,11 +810,11 @@ function renderGo(){
   const box=$("recGo"); box.textContent="";
   const f=fishToday()[0];
   if(f&&(PF.coleta.pesca||{}).tier>=1){ const code=FISH_TO_BIOME[f.b]; const z=code?ZONES.filter(z=>z.b===code&&z.t>=f.t&&z.w>0).sort((a,b)=>b.w-a.w)[0]:null;
-    box.append(recItem(`Pescar: raro de ${f.n} T${f.t}`,[`${fmt(f.p.p)} cada`, z?`Ex.: ${zoneLine(z)}`:(f.b==="AVALON"?"Estradas de Avalon":"Ancient Lands")])); }
+    box.append(recItem(`Pescar: raro de ${f.n} T${f.t}`,[`${fmt(f.p.p)} cada`, z?`Ex.: ${zoneLine(z)}`:(f.b==="AVALON"?"Estradas de Avalon":"Ancient Lands")],`T${f.t}_FISH_FRESHWATER_${f.b}_RARE`)); }
   for(const [k,n] of GATHER){ const g=PF.coleta[k]; const base=GATHER_KEY[k]; if(!base||!g||!(g.tier>=4)) continue;
     const bio=MAIN_BIOME[base]; const z=ZONES.filter(z=>z.b===bio&&z.r==="OUT"&&z.t>=g.tier).sort((a,b)=>((b.q||0)-(a.q||0))||(b.res-a.res))[0];
     const p=typical(idOf(g.tier,base,1),0);
-    box.append(recItem(`Coletar ${n.toLowerCase()} T${g.tier}`,[p?`T${g.tier}.1 a ${fmt(p.p)} por unidade`:null, z?`Ex.: ${zoneLine(z)}`:null])); }
+    box.append(recItem(`Coletar ${n.toLowerCase()} T${g.tier}`,[p?`T${g.tier}.1 a ${fmt(p.p)} por unidade`:null, z?`Ex.: ${zoneLine(z)}`:null],idOf(g.tier,base,1))); }
   if(!box.children.length) box.append(el("li",{class:"empty",text:"Marque coleta ou pesca na sua ficha para ver os mapas recomendados."}));
   const more=el("li",{class:"empty"}); const b=el("button",{type:"button",class:"linkbtn",text:"Ver todos os mapas"}); b.addEventListener("click",()=>showTab("t-mapas")); more.append(b); box.append(more);
 }
