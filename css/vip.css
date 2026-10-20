@@ -607,3 +607,4 @@ b.c,h4.c{color:#b784e8}
 .oflist .of-row.is-loss:hover,.oflist .of-row.is-loss.open{background:#381a18}
 .oflist .itemcell,.oflist .inm{text-align:left}.oflist .inm{align-items:flex-start}
 .of2-main .tbl{max-height:calc(100vh - 150px);overflow:auto}.of-lh{top:0}
+.mn-craft{white-space:nowrap;font:600 12px var(--f-body);padding:6px 12px;border-radius:8px;border:1px solid var(--saffron);background:transparent;color:var(--saffron);cursor:pointer}.mn-craft:hover{background:var(--saffron);color:#1a1208}

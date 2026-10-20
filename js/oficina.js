@@ -385,3 +385,17 @@ function drawStack(svg,series){
 }
 $("dlgClose").addEventListener("click",()=>{ const d=$("itemDlg"); if(d.close) d.close(); else d.removeAttribute("open"); });
 $("itemDlg").addEventListener("click",ev=>{ if(ev.target===$("itemDlg")) $("dlgClose").click(); });
+/* botão do Mercado Negro: abre o Craft já com o item, o tier, o encantamento e a qualidade daquela ordem, vendendo para o MN */
+async function ofFromBM(g,m){
+  if(!BM) BM=await need("bm");
+  setupOf();
+  const sel=$("ofCat"); sel.value="g:"+g; store.set("ofCat",sel.value);
+  OF.tier=m.t; OF.ench=m.e; $("ofTier").value=String(m.t); $("ofEnch").value=String(m.e);
+  OF2.qual=m.q>1?m.q:0; $("ofQual").value=String(OF2.qual);
+  OF.sellC=new Set(["Black Market"]); OF.sellS="auto"; OF2.ov={}; OF2.rrMan=null;
+  OF.q=nmKey(m.key,m.name).toLowerCase(); $("ofFind").value=nmKey(m.key,m.name);
+  OF2.open.clear(); OF2.open.add(m.id);
+  const t=document.getElementById("t-craft"); t.click();
+  try{ ofCards(); }catch(e){}
+  renderOf();
+}
