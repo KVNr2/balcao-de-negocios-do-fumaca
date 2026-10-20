@@ -187,3 +187,10 @@ details.spsubn>summary::-webkit-details-marker{display:none}
 details.spsubn>summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .2s}
 details.spsubn[open]>summary::after{transform:rotate(-135deg)}
 details.spsubn>.spgroups{margin-top:6px}
+
+.primeira{border:1px solid var(--line);border-left:3px solid var(--saffron);border-radius:12px;padding:16px 20px;margin:14px 0;background:rgba(79,139,255,.06)}
+.primeira h3{margin:0 0 8px;font:700 17px Rajdhani,Inter,sans-serif;letter-spacing:.04em}
+.primeira ol{margin:8px 0 10px 1.2em;padding:0;display:grid;gap:6px}
+.primeira p{margin:6px 0}
+.primeira code{font:12px "JetBrains Mono",monospace;background:rgba(0,0,0,.3);padding:1px 6px;border-radius:5px;word-break:break-all}
+.primeira .btnrow{margin-top:10px}
