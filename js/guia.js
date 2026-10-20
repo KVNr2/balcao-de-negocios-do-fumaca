@@ -15,6 +15,7 @@ const GUIA = {
   "p-mapas": ["Onde pescar e coletar hoje.", "Ver os peixes mais valiosos do dia e os mapas com mais lagos e recursos do seu tier.", "Escolha o recurso. Os mapas dizem onde o recurso existe, não onde ele está agora."],
   "p-builds": ["Builds para Brumas, Corrompidas e PvE.", "Ver armas, peças, comida e poção de cada build, com as da sua ficha primeiro.", "Escolha o conteúdo. Para saber quanto custa montar uma, use a página Custo da build."],
   "p-custo": ["Quanto custa montar uma build hoje.", "Ver o preço de cada peça, a cidade onde cada uma sai mais barata e a melhor cidade para comprar tudo de uma vez.", "Escolha uma build pronta, ou \"Montar peça por peça\" para escolher cada parte. O botão Editar esta build copia a escolhida para o seu set. Escolha tier e encantamento."],
+  "p-zvz": ["O que o ZvZ está usando agora.", "Ver, por função, as armas mais usadas nas maiores lutas recentes e a build completa de cada uma.", "Escolha a função e, se quiser, uma aliança. Abra a arma para ver elmo, peito, botas, capa, poção e comida."],
   "p-matchup": ["Fichas das armas que você mais encontra nas Brumas e Corrompidas.", "Saber o golpe perigoso de cada uma, quando entrar e o que guardar.", "Procure a arma pelo nome. Marque a caixa para destacar as fichas em que as suas armas se dão bem."],
   "p-patch": ["O que mudou no último patch.", "Ver quais armas subiram ou caíram.", "Só leitura."],
   "p-fontes": ["De onde vêm os dados do site.", "Conferir as fontes e os sites de apoio.", "Só leitura."]

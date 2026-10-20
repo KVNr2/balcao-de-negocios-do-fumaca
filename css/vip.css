@@ -251,3 +251,15 @@ details.spunlock>summary{cursor:pointer;padding:10px 0;font-weight:600;color:var
 @media (max-width:640px){ .bc-top{grid-template-columns:auto 1fr} .bc-r{grid-column:1/-1;justify-items:start;text-align:left;grid-auto-flow:column;gap:10px} .bgear img{width:40px;height:40px} }
 .cc-more{align-self:center;font:700 .9rem var(--f-mono);color:var(--smoke);padding:0 6px}
 .bsyn .seg.sm{justify-self:start}
+/* aba Build ZvZ */
+.zlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin:12px 0}
+.zcard{border:1px solid var(--line,#5a4a2e);border-radius:10px;padding:10px;background:rgba(0,0,0,.18)}
+.zc-top{display:flex;gap:10px;align-items:center}.zc-mid{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+img.zbig{width:64px;height:64px}img.zi{width:46px;height:46px}
+.zbar{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}.zbar i{display:block;height:100%;background:var(--gold,#c9a24b)}
+.zdet{margin-top:8px}.zdet summary{cursor:pointer;font-size:.82rem}
+.zgear{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}.zg{display:flex;flex-direction:column;align-items:center;font-size:.65rem}
+.zvar{border-top:1px dashed rgba(255,255,255,.15);padding-top:6px;margin-top:6px}
+.zwin{display:flex;flex-wrap:wrap;gap:10px}
+@media(max-width:600px){.zlist{grid-template-columns:1fr}}
+.zlist>.block{grid-column:1/-1}
