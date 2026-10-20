@@ -1019,3 +1019,7 @@ button.ms-tr:hover,button.ms-tr[aria-expanded=true]{border-color:var(--saffron,#
 .ms-ul{max-height:260px;overflow:auto;padding:4px 0}
 .ms-it{display:flex;align-items:center;gap:10px;padding:7px 12px;cursor:pointer;font-size:13.5px}.ms-it:hover{background:rgba(255,255,255,.06)}
 .ms-no{padding:6px 12px;margin:0}
+button.nb-cell.nb-lock{position:relative;padding:0;border:1px dashed #3a3e4b;border-radius:12px;background:#101218;cursor:not-allowed;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#8a8272}
+button.nb-lock img.kx-big{opacity:.55}
+.nb-lk{position:absolute;left:4px;right:4px;bottom:4px;text-align:center;font:600 10.5px Inter,sans-serif;background:rgba(0,0,0,.65);color:var(--parch-2,#cdbf9f);border-radius:6px;padding:2px 4px}
+.nb-sethint{flex:1 1 100%}
