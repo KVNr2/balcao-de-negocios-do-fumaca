@@ -20,3 +20,5 @@ Sem isso, as builds ficam só no navegador de quem criou. Com isso, qualquer vis
 3. Em Project Settings > API, copie a **Project URL** e a chave **anon public** (essa chave pode ficar pública).
 4. Edite `data/nuvem.json`: `{"url":"https://SEUPROJETO.supabase.co","key":"CHAVE_ANON"}`. Faça commit e push.
 5. Para apagar ou corrigir uma build: Table Editor > `nb_builds` no painel do Supabase.
+
+Projeto já criado: `balcao-do-fumaca` (Supabase, região São Paulo), ligado em `data/nuvem.json`.

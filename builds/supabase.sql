@@ -9,7 +9,7 @@ create table if not exists nb_votos (
   voter text not null check (char_length(voter) <= 64),
   primary key (build_id, voter)
 );
-create or replace view nb_votos_total as select build_id, count(*)::int as n from nb_votos group by build_id;
+create or replace view nb_votos_total with (security_invoker = true) as select build_id, count(*)::int as n from nb_votos group by build_id;
 
 alter table nb_builds enable row level security;
 alter table nb_votos enable row level security;
