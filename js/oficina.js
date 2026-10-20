@@ -219,7 +219,7 @@ async function renderOf(){
     m.parts.forEach(g=>flow.append(ofBlock(g.id,1,g.b,"buy",g.need,m,g))); c5.append(flow);
     OF2.rows.push({m,tr});
     const dr=body.insertRow(); dr.className="of-drow"; dr.hidden=true; const dc=dr.insertCell(); dc.colSpan=5;
-    const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; chev.textContent=open?"▴":"▾"; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open)); if(open){ if(!dc.firstChild){ try{ dc.append(ofDetail(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes deste item: "+(e&&e.message||e)})); } } OF2.open.add(key); } else OF2.open.delete(key); };
+    const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; chev.textContent=open?"▴":"▾"; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open)); if(open){ setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8||r.top<60) dr.scrollIntoView({block:"nearest",behavior:"smooth"}); }catch(e){} },60); if(!dc.firstChild){ try{ dc.append(ofDetail(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes deste item: "+(e&&e.message||e)})); } } OF2.open.add(key); } else OF2.open.delete(key); };
     tr.addEventListener("click",ev=>{ if(ev.target.closest("a")) return; toggle(); });
     tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } });
     if(OF2.open.has(key)) toggle();

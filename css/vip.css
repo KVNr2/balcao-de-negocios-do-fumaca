@@ -582,3 +582,7 @@ b.c,h4.c{color:#b784e8}
 .of2t tbody tr.of-row.is-gain:hover td:first-child,.of2t tbody tr.of-row.is-gain.open td:first-child{background:#16341f}
 .of2t tbody tr.of-row.is-loss:hover td:first-child,.of2t tbody tr.of-row.is-loss.open td:first-child{background:#381a18}
 .of-tile,.of-chev{background:rgba(0,0,0,.28)}
+.of-drow .of-xp{position:static;min-width:0;overflow:hidden}
+.of-xr{grid-template-columns:108px minmax(0,1fr) 78px 52px minmax(110px,140px) 66px}
+.of-xi{overflow:hidden}
+@media(max-width:1500px){.of-xr{grid-template-columns:108px minmax(0,1fr) 78px minmax(110px,140px) 66px}.of-xr>.of-xt{display:none}}
