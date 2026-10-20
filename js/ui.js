@@ -12,7 +12,8 @@ function cellValue(td){
 }
 function applySort(tb){
   const st=SORT[tb.id]; if(!st||!tb.tBodies[0]||!tb.tHead) return;
-  const cmp=(x,y)=>{ if(st.auto){ if(x.n==null&&y.n!=null&&/^[—–-]?$/.test(x.s.trim()))x={n:0,s:x.s}; if(y.n==null&&x.n!=null&&/^[—–-]?$/.test(y.s.trim()))y={n:0,s:y.s}; }
+  const dash0=tb.id==="mkTable";   // só no Mercado a diferença vazia conta como 0%; nas demais listas, sem valor vai para o fim
+  const cmp=(x,y)=>{ if(st.auto&&dash0){ if(x.n==null&&y.n!=null&&/^[—–-]?$/.test(x.s.trim()))x={n:0,s:x.s}; if(y.n==null&&x.n!=null&&/^[—–-]?$/.test(y.s.trim()))y={n:0,s:y.s}; }
     if((x.n==null)!==(y.n==null)) return x.n==null?1:-1;   // sem valor (ex.: "Sem preço") sempre no fim, qualquer que seja o sentido
     let d = (x.n!=null&&y.n!=null) ? x.n-y.n : (x.n!=null ? -1 : y.n!=null ? 1 : x.s.localeCompare(y.s,"pt-BR",{numeric:true})); return st.dir*d; };
   tb._sorting=true;
