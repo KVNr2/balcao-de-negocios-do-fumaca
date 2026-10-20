@@ -57,7 +57,8 @@ def achar_jogadores(o, d=0):
     return None
 
 def batalha(bid):
-    html = get(f"{BB}/battles/{bid}")
+    try: html = get(f"{BB}/battles/{bid}")
+    except Exception as e: print("::warning::batalha", bid, e); return None
     m = re.search(r'<script[^>]*id="__NUXT_DATA__"[^>]*>(.*?)</script>', html, re.S)
     if not m: return None
     jog = achar_jogadores(devalue(json.loads(m.group(1))))
@@ -87,12 +88,13 @@ def modal(c):
 def main():
     html = get(f"{BB}/?minPlayers=100")
     ids = list(dict.fromkeys(re.findall(r"/battles/(\d+)", html)))[:MAX_BATALHAS]
-    print("batalhas na lista:", len(ids))
+    print("batalhas na lista:", len(ids), "html", len(html))
+    if not ids: print("::error::lista vazia; trecho:", html[:300].replace("\n"," ")); sys.exit(1)
     with ThreadPoolExecutor(5) as ex: bats = [b for b in ex.map(batalha, ids) if b]
     bats = [b for b in bats if len(b["jogadores"]) >= 100]
     print("batalhas lidas (100+):", len(bats))
     if len(bats) < 5:
-        print("poucas batalhas; mantendo o arquivo atual"); sys.exit(0)
+        print("::error::poucas batalhas lidas:", len(bats)); sys.exit(1)
 
     papeis = collections.defaultdict(collections.Counter); venc = collections.defaultdict(collections.Counter)
     w2role = collections.defaultdict(collections.Counter); w_n = collections.Counter()
