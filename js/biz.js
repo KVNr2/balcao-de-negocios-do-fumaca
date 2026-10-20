@@ -6,7 +6,7 @@ const BM_GROUPS = [...LINES.map(([k,n])=>[k,n]),["a_placa","Armaduras de placa"]
 const BMP = {};                     // id: {cidade: [venda, compra, idade em horas da compra, idade da venda]}
 const BMQ = {};                     // qualidades 2 a 5, mesmo formato do BMP: id: {qualidade: {cidade: [venda, compra, idade da compra, idade da venda]}} (a qualidade 1 fica no BMP)
 const BM_VOL = {};                  // id: {qualidade: peças que o Mercado Negro comprou por dia (média dos últimos 7 dias)}, ou -1 se a consulta falhou
-const BM_LOADED = new Set(); let bmMode="craft", bmTierSel=0, bmQualSel=0, bmSel=null, PLANKS_LOADED=false;
+const BM_LOADED = new Set(); let BM_TOK=0, bmMode="craft", bmTierSel=0, bmQualSel=0, bmSel=null, PLANKS_LOADED=false;
 const ageH = d => d&&!d.startsWith("0001") ? (Date.now()-Date.parse(d+"Z"))/3600e3 : Infinity;
 /* allQ: traz as qualidades 1 a 5 (a 1 vai para o BMP, as outras para o BMQ); sem allQ só a qualidade 1, como as outras páginas usam */
 async function bmFetch(ids, locs, allQ=false){
@@ -38,7 +38,7 @@ async function ensureBM(g,only=0){
     await bmFetch(gear,["Black Market",...SHOP_LOCS],true);
     if(!PLANKS_LOADED){ const pl=[]; for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) pl.push(`T${t}_PLANKS`+(e?`_LEVEL${e}@${e}`:"")); await fetchIds(pl,DATA.itens); PLANKS_LOADED=true; }
     if(extra.size) await fetchIds([...extra],DATA.itens,[...CITIES,"Caerleon"]);
-    BM_LOADED.add(g); return true;
+    BM_LOADED.add(lk); return true;
   }catch(e){ return false; }
 }
 /* T2 e T3 não estão na tabela de foco: estimativa pela razão entre tiers (cerca de 1,75 por tier) */
@@ -76,12 +76,18 @@ function setupBM(){
   document.querySelectorAll("[data-bm]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-bm]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmMode=b.dataset.bm; renderBM(); }));
   $("bmFocus").addEventListener("change",renderBM);
 }
-async function renderBM(){
+async function renderBM(partial){
+  const tok=partial?BM_TOK:++BM_TOK;
   if(!BM){ $("bmNote").textContent="Abrindo o livro do Mercado Negro…"; try{ BM=await need("bm"); }catch(e){ $("bmNote").textContent="Não consegui abrir os dados do Mercado Negro."; return; } }
   setupBM(); const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
-  if(g==="*"&&!bmTierSel){ tb.textContent=""; note.textContent="Para ver todas as mercadorias de uma vez, escolha um tier (T2 a T8) acima. Sem o tier seriam centenas de consultas."; return; }
-  const lk=g==="*"?`*#${bmTierSel}`:g;
-  if(!BM_LOADED.has(lk)){ tb.textContent=""; note.textContent="Consultando as ordens do Mercado Negro…"; const ok=await ensureBM(g,g==="*"?bmTierSel:0); if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; } if($("bmGroup").value!==g) return; }
+  if(g==="*"&&!bmTierSel&&!partial){   // todas as mercadorias e todos os tiers: busca um tier por vez (do T8 ao T2) e mostra o que já chegou
+    const falta=[8,7,6,5,4,3,2].filter(t=>!BM_LOADED.has(`*#${t}`));
+    for(let i=0;i<falta.length;i++){ const t=falta[i];
+      note.textContent=i?`Consultando T${t} (${i+1} de ${falta.length}); mostrando o que já chegou. ${note.textContent}`:`Consultando as ordens do Mercado Negro, T${t} (1 de ${falta.length})…`;
+      const ok=await ensureBM(g,t); if(tok!==BM_TOK) return;
+      if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; }
+      if(i<falta.length-1){ await renderBM(true); if(tok!==BM_TOK) return; } }
+  } else if(!(partial&&g==="*"&&!bmTierSel)&&!BM_LOADED.has(g==="*"?`*#${bmTierSel}`:g)){ tb.textContent=""; note.textContent="Consultando as ordens do Mercado Negro…"; const ok=await ensureBM(g,g==="*"?bmTierSel:0); if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; } if($("bmGroup").value!==g||tok!==BM_TOK) return; }
   const rows=[]; for(const k of bmKeys(g)) for(let t=2;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) for(let q=1;q<=5;q++){ if(bmQualSel&&q!==bmQualSel) continue; if(!bmHas(bmId(k,t,e),q)) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } }
   const val=m=>bmMode==="flip"?m.flip:m.craft;
   const ok=rows.filter(m=>val(m)!=null).sort((a,b)=>val(b)-val(a)), shown=ok.slice(0,100);
