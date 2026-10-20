@@ -473,19 +473,24 @@ function numIn(val,max,label,onSet,ph){ const inp=el("input",{type:"number",min:
 function lvRow(label,inputs,hint,ic){ const row=el("div",{class:"lvrow"}); const lb=el("span",{class:"lbl"}); if(ic){ lb.classList.add("with-ic"); lb.append(ic,document.createTextNode(label)); } else lb.textContent=label; row.append(lb); const box=el("div",{class:"lvins"}); inputs.forEach(x=>box.append(x)); row.append(box); if(hint) row.append(el("span",{class:"lvh",text:hint})); return row; }
 const tagIn = (t,inp,ic) => { const w=el("label",{class:"lvt"}), s=el("span",{text:t}); if(ic){ const h=el("span",{class:"lvtn"}); h.append(ic,s); w.append(h,inp); } else w.append(s,inp); return w; };
 const bandTxt = n => ["sem spec","começando","média","alta"][band(n)];
+/* nó recolhível da ficha (igual aos das armas): ícone, nome e resumo; o corpo só é montado quando abre */
+function spNode(nome,ic,getSum,build){ const d=el("details",{class:"spg"}), sm=el("summary"), nmS=el("span",{class:"spn",text:nome}), sumS=el("span",{class:"sps"}); sm.append(ic,nmS,sumS); d.append(sm); const body=el("div",{class:"spgrid"}); d.append(body);
+  const upd=()=>{ const t=getSum(); sumS.textContent=t; sumS.classList.toggle("on",t!=="sem spec"); }; let built=false;
+  d.addEventListener("toggle",()=>{ if(!d.open||built) return; built=true; build(body,upd); }); upd(); return d; }
 function renderProfile(){
   $("pfName").value=PF.nome||"";
-  const g=$("pfGather"); g.textContent="";
+  const g=$("pfGather"); g.textContent=""; const gg=el("div",{class:"spgroups"}); g.append(gg);
   for(const [k,n,base] of GATHER){ const cur=PF.coleta[k]||(PF.coleta[k]={s:{}}); cur.s=cur.s||{};
-    const ins=[]; if(k==="pesca"){ ins.push(tagIn("Pescador",numIn(cur.m||0,100,"Pescador",x=>{ cur.m=x; saveProfile(); renderGatherHint(row,cur); })),tagIn("Especialista",numIn(cur.s[8]||0,100,"Especialista em pesca",x=>{ if(x) cur.s[8]=x; else delete cur.s[8]; saveProfile(); renderGatherHint(row,cur); }))); } else for(let t=2;t<=8;t++) ins.push(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${n} T${t}`,x=>{ if(x) cur.s[t]=x; else delete cur.s[t]; saveProfile(); renderGatherHint(row,cur); })));
-    const row=lvRow(n,ins," ",itemImg(base||"FISH_FRESHWATER_ALL_COMMON",[4,3,5,2,6,7,8,1])); g.append(row); renderGatherHint(row,cur); }
-  const r=$("pfRefine"); r.textContent="";
+    const code=base||"FISH_FRESHWATER_ALL_COMMON", tiers=t=>tierOrder(t);
+    gg.append(spNode(n,itemImg(code,[4,3,5,2,6,7,8,1]),()=>{ deriveLv(); const lv=Object.values(cur.s).filter(x=>x>0).length+(cur.m>0?1:0); return cur.tier?`coleta até T${cur.tier}`:(lv?`${lv} com nível`:"sem spec"); },(body,upd)=>{
+      if(k==="pesca"){ body.append(tagIn("Pescador",numIn(cur.m||0,100,"Pescador",x=>{ cur.m=x; saveProfile(); upd(); }),itemImg(code,[4,3,5,2,6,7,8,1])),tagIn("Especialista",numIn(cur.s[8]||0,100,"Especialista em pesca",x=>{ if(x) cur.s[8]=x; else delete cur.s[8]; saveProfile(); upd(); }),itemImg(code,[8,7,6,5,4,3,2,1]))); }
+      else for(let t=2;t<=8;t++) body.append(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${n} T${t}`,x=>{ if(x) cur.s[t]=x; else delete cur.s[t]; saveProfile(); upd(); }),itemImg(code,tiers(t)))); })); }
+  const r=$("pfRefine"); r.textContent=""; const rg=el("div",{class:"spgroups"}); r.append(rg);
   for(const k in RES){ const cur=PF.refino[k]||(PF.refino[k]={m:0,s:{}}); cur.s=cur.s||{};
-    const hint=()=>row.querySelector(".lvh").textContent=`foco T6.0: ${fmt(refFocus(k,6,0))}`;
-    const ins=[tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${RES[k].refName}`,x=>{ cur.m=x; saveProfile(); hint(); }))];
-    for(let t=2;t<=8;t++) ins.push(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${RES[k].refName} T${t}`,x=>{ if(x) cur.s[t]=x; else delete cur.s[t]; saveProfile(); hint(); })));
-    ins.push(tagIn("Foco T6.0 no jogo",numIn(cur.obs||0,99999,`Custo de foco no jogo para ${RES[k].refName} T6.0`,x=>{ cur.obs=x; saveProfile(); hint(); },"—")));
-    const row=lvRow(RES[k].refName,ins," ",itemImg(RES[k].ref)); r.append(row); hint(); }
+    rg.append(spNode(RES[k].refName,itemImg(RES[k].ref,[6,5,4,7,8,3,2,1]),()=>{ const vals=Object.values(cur.s).filter(x=>x>0), parts=[]; if(cur.m) parts.push(`maestria ${cur.m}`); if(vals.length) parts.push(`${vals.length} de 7 com nível, maior ${Math.max(...vals)}`); if(parts.length) parts.push(`foco T6.0: ${fmt(refFocus(k,6,0))}`); return parts.length?parts.join(", "):"sem spec"; },(body,upd)=>{
+      body.append(tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${RES[k].refName}`,x=>{ cur.m=x; saveProfile(); upd(); }),itemImg(RES[k].ref,[6,5,4,7,8,3,2,1])));
+      for(let t=2;t<=8;t++) body.append(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${RES[k].refName} T${t}`,x=>{ if(x) cur.s[t]=x; else delete cur.s[t]; saveProfile(); upd(); }),itemImg(RES[k].ref,tierOrder(t))));
+      body.append(tagIn("Foco T6.0 no jogo",numIn(cur.obs||0,99999,`Custo de foco no jogo para ${RES[k].refName} T6.0`,x=>{ cur.obs=x; saveProfile(); upd(); },"—"))); })); }
   renderSpecs(); renderCookProfile();
 }
 function renderGatherHint(row,cur){ deriveLv(); const h=row.querySelector(".lvh"); if(h) h.textContent=cur.tier?`coleta até T${cur.tier}`:"sem spec"; }
@@ -530,13 +535,13 @@ function renderSpecs(){
       upd(); grid.append(d); } } }
 const MEAL_PT = {SOUP:"Sopa",SALAD:"Salada",SEAWEEDSALAD:"Salada de algas",PIE:"Torta",OMELETTE:"Omelete",STEW:"Guisado",SANDWICH:"Sanduíche",ROAST:"Assado",GRILLEDFISH:"Peixe grelhado"};
 function cookTypes(kind){ const m={}; for(const id in COOK.r){ const r=COOK.r[id]; if(r[1]!==kind||!r[3]) continue; const tp=cookType(id); if(!m[tp]) m[tp]= MEAL_PT[tp] || r[0].replace(/^Poção\s+((de|da|do)\s+)?/i,"").replace(/\s+(Menor|Maior)$/,""); } return m; }
-function renderCookProfile(){ const c=$("pfCook"); c.textContent="";
-  for(const [k,n,kind] of [["cozinha","Cozinha","f"],["alquimia","Alquimia","p"]]){ const cur=PF[k]||(PF[k]={m:0,s:{}}); cur.s=cur.s||{};
-    const save=()=>{ saveProfile(); renderCookProfile(); };
-    const ins=[tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${n}`,x=>{ cur.m=x; save(); }))];
-    const types=cookTypes(kind);
-    for(const [tp,label] of Object.entries(types)) ins.push(tagIn(label,numIn(cur.s[tp]??cur.all??0,100,`${n}: ${label}`,x=>{ cur.s[tp]=x; save(); }),itemImg((kind==="f"?"MEAL_":"POTION_")+tp,[5,4,6,3,7,8])));
-    c.append(lvRow(n,ins,"",itemImg(kind==="f"?"MEAL_STEW":"POTION_HEAL"))); } }
+function renderCookProfile(){ const c=$("pfCook"); c.textContent=""; const cg=el("div",{class:"spgroups"}); c.append(cg);
+  for(const [k,n,kind] of [["cozinha","Cozinha","f"],["alquimia","Alquimia","p"]]){ const cur=PF[k]||(PF[k]={m:0,s:{}}); cur.s=cur.s||{}; const types=cookTypes(kind);
+    const ic=()=>itemImg(kind==="f"?"MEAL_STEW":"POTION_HEAL",[5,4,6,3,7,8]);
+    cg.append(spNode(n,ic(),()=>{ const vals=Object.keys(types).map(tp=>cur.s[tp]??cur.all??0).filter(x=>x>0), parts=[]; if(cur.m) parts.push(`maestria ${cur.m}`); if(vals.length) parts.push(`${vals.length} de ${Object.keys(types).length} com nível, maior ${Math.max(...vals)}`); return parts.length?parts.join(", "):"sem spec"; },(body,upd)=>{
+      const save=()=>{ saveProfile(); upd(); };
+      body.append(tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${n}`,x=>{ cur.m=x; save(); }),ic()));
+      for(const [tp,label] of Object.entries(types)) body.append(tagIn(label,numIn(cur.s[tp]??cur.all??0,100,`${n}: ${label}`,x=>{ cur.s[tp]=x; save(); }),itemImg((kind==="f"?"MEAL_":"POTION_")+tp,[5,4,6,3,7,8]))); })); } }
 function renderWho(){ $("who").textContent = IS_EXAMPLE ? "Ficha de exemplo: Oleran" : (PF.nome ? `Ficha: ${PF.nome}` : "Ficha sem nome"); $("exampleBanner").hidden=!IS_EXAMPLE; }
 $("pfName").addEventListener("change",()=>{ PF.nome=$("pfName").value.trim().slice(0,40); saveProfile(); });
 $("pfCopy").addEventListener("click",()=>{ const code=btoa(unescape(encodeURIComponent(JSON.stringify(PF)))); const done=()=>$("pfStatus").textContent="Código da ficha copiado. Cole em outro navegador em Colar ficha.";
