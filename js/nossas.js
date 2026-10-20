@@ -22,13 +22,14 @@ async function nbLoad(){
 }
 function nbRefreshAll(){ NB_ALL=[...(NB_REPO||[]),...nbMine().filter(m=>!(NB_REPO||[]).some(r=>r.id===m.id)).map(b=>({...b,local:true}))]; window.NB_ALL=NB_ALL; }
 nbRefreshAll();
+const nbConts=b=>(b.ks&&b.ks.length)?b.ks:[b.k||""];
 const nbVotesOf=b=>b.cloud?(+b.votos||0):(+b.votos||0)+(nbVotes().has(b.id)?1:0);
 
 function nbCard(b){
   const open=nbOpen===b.id, card=el("article",{class:"bcard"+(open?" open":"")});
   const top=el("div",{class:"bc-top"}); const wi=fullImg(b.w,"nico zbig"); top.append(wi||el("span",{class:"btile"}));
   const mid=el("div",{class:"bc-mid"}); mid.append(el("h4",{text:b.t}));
-  const meta=el("div",{class:"bc-meta"}); meta.append(el("span",{class:"tag",text:b.k?contName(b.k):"Outro"})); meta.append(el("span",{class:"tag mute",text:"por "+(b.au||"Balcão do Fumaça")}));
+  const meta=el("div",{class:"bc-meta"}); nbConts(b).slice(0,3).forEach(k=>meta.append(el("span",{class:"tag",text:k?contName(k):"Outro"}))); if(nbConts(b).length>3) meta.append(el("span",{class:"tag mute",text:"+"+(nbConts(b).length-3)})); meta.append(el("span",{class:"tag mute",text:"por "+(b.au||"Balcão do Fumaça")}));
   { const nv=gbSpec(b), lv=nv>=SPEC_MIN?3:nv>0?2:0; if(b.l) meta.append(el("span",{class:"tag"+(lv>=2?" good":""),text:nv?`${b.nome}: spec ${nv}`:`${b.nome}: sem spec`})); const gaps=gbGaps(b); if(gaps.length) meta.append(el("span",{class:"tag bad",text:`Sem spec em ${gaps.join(" e ")}`})); }
   if(b.local) meta.append(el("span",{class:"tag bad",text:"Só no seu navegador"}));
   (b.tg||[]).slice(0,3).forEach(t=>meta.append(el("span",{class:"tag mute",text:t}))); mid.append(meta); top.append(mid);
@@ -60,15 +61,15 @@ function nbRender(){
   const sort=el("select",{"aria-label":"Ordem"}); [["votos","Mais votadas"],["novas","Mais novas"]].forEach(([v,t])=>sort.append(el("option",{value:v,text:t}))); sort.value=nbSort; sort.addEventListener("change",()=>{ nbSort=sort.value; nbRender(); });
   const cnt=el("span",{class:"muted small",id:"nbCount"}); bar.append(mk,imp,sort,cnt); box.append(bar);
   try{ buildIdx(); }catch(e){} for(const b of NB_ALL){ if(!b.wc&&b.w){ b.wc=b.w.replace(/^T\d_/,"").replace(/@\d$/,""); b.l=(typeof W2LINE!=="undefined"&&W2LINE[b.wc])||""; b.nome=codeName(b.wc); } }
-  const used=new Map(); NB_ALL.forEach(b=>used.set(b.k||"",(used.get(b.k||"")||0)+1));
+  const used=new Map(); NB_ALL.forEach(b=>nbConts(b).forEach(k=>used.set(k,(used.get(k)||0)+1)));
   const cc=el("div",{class:"seg wrap",role:"group","aria-label":"Conteúdo"}); const mkc=(k,t,n)=>{ const x=el("button",{type:"button","aria-pressed":String(nbCont===k),text:`${t} (${n})`}); x.addEventListener("click",()=>{ nbCont=k; nbLine=""; nbOpen=null; nbRender(); }); cc.append(x); };
   mkc("","Todos",NB_ALL.length); [...used.keys()].forEach(k=>mkc(k,k?contName(k):"Outro",used.get(k))); box.append(cc);
-  const wg=el("div",{class:"bweapons",role:"group","aria-label":"Filtrar por arma"}); const inCont=NB_ALL.filter(b=>nbCont===""||(b.k||"")===nbCont); const present=new Set(inCont.map(b=>b.l));
+  const wg=el("div",{class:"bweapons",role:"group","aria-label":"Filtrar por arma"}); const inCont=NB_ALL.filter(b=>nbCont===""||nbConts(b).includes(nbCont)); const present=new Set(inCont.map(b=>b.l));
   const all=el("button",{type:"button",class:"bw all","aria-pressed":String(!nbLine),text:"Todas"}); all.addEventListener("click",()=>{ nbLine=""; nbRender(); }); wg.append(all);
   for(const [l,code] of Object.entries(LINE_ICON)){ if(!present.has(l)&&nbLine!==l) continue; const x=el("button",{type:"button",class:"bw","aria-pressed":String(nbLine===l),title:LINE_NAME[l]}); x.append(itemImg(code,[8,7,6,5,4,3])); x.addEventListener("click",()=>{ nbLine=nbLine===l?"":l; nbRender(); }); wg.append(x); }
   box.append(wg);
   const ord=a=>a.slice().sort((x,y)=>nbSort==="novas"?String(y.data||"").localeCompare(String(x.data||"")):(nbVotesOf(y)-nbVotesOf(x)));
-  const flt=a=>a.filter(b=>(!nbCont||(b.k||"")===nbCont)&&(!nbLine||b.l===nbLine));
+  const flt=a=>a.filter(b=>(!nbCont||nbConts(b).includes(nbCont))&&(!nbLine||b.l===nbLine));
   const sec=(title,sub,list,empty)=>{ const s=el("section",{class:"nb-sec"}); s.append(el("h3",{class:"orn",text:title}),el("p",{class:"muted small",text:sub})); const l=el("div",{class:"blist"}); if(!list.length) l.append(el("p",{class:"empty",text:empty})); list.forEach(b=>l.append(nbCard(b))); s.append(l); box.append(s); };
   sec("Nossas builds",(NB_CLOUD?"Builds publicadas por todos que usam o site. Seu voto conta para todo mundo, um por navegador.":"Escolhidas pelo Balcão do Fumaça. A contagem de votos vem do arquivo da build; o seu voto soma +1 só para você."),ord(flt((NB_REPO||[]))),NB_REPO?"Ainda não há builds publicadas nesta seleção.":"Carregando…");
   { const n=flt(NB_ALL).length; cnt.textContent=n?`${n} ${n===1?"build":"builds"}`:""; }
@@ -88,9 +89,11 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
   if(!NB_CAT){ body.append(el("p",{class:"muted small",text:"Abrindo o catálogo de itens…"})); try{ NB_CAT=await need("catalog"); }catch(e){ body.textContent="Não consegui abrir o catálogo."; return; } body.lastChild.remove(); }
   let curPick=null; const sel={}; const fld=(lab,node)=>{ const l=el("label",{class:"nb-f"}); l.append(el("span",{text:lab}),node); return l; };
   const nome=el("input",{type:"text",maxlength:"80",placeholder:"Ex.: Lamina Aclarada para Fame Farm"}), au=el("input",{type:"text",maxlength:"40",placeholder:"Seu nome"}); try{ au.value=store.get("nbAuthor")||""; }catch(e){}
-  const k=el("select"); k.append(el("option",{value:"",text:"Outro"})); (GBC||[]).forEach(c=>k.append(el("option",{value:c.k,text:c.nome})));
-  const tg=el("input",{type:"text",placeholder:"PvE, Solo, Fame Farm (separe por vírgula)"}), ds=el("textarea",{rows:"3",maxlength:"400",placeholder:"Como jogar, rotação, observações…"});
-  const g1=el("div",{class:"nb-g"}); g1.append(fld("Nome da build",nome),fld("Autor",au),fld("Conteúdo",k),fld("Tags",tg)); body.append(g1,fld("Descrição",ds));
+  /* conteúdo: várias opções; características: etiquetas que aparecem no cartão */
+  const chips=(opts,max)=>{ const st=new Set(), box=el("div",{class:"nb-chips"}); opts.forEach(([v,t])=>{ const b=el("button",{type:"button",class:"nb-chip","aria-pressed":"false",text:t}); b.addEventListener("click",()=>{ if(st.has(v)) st.delete(v); else if(!max||st.size<max) st.add(v); b.setAttribute("aria-pressed",String(st.has(v))); }); box.append(b); }); return {st,box}; };
+  const K=chips((GBC||[]).map(c=>[c.k,c.nome]).concat([["","Outro"]])), T=chips(["PvE","PvP","Solo","Grupo","Fame Farm","Tank","Healer","DPS","Suporte","Mobilidade"].map(x=>[x,x]),6);
+  const ds=el("textarea",{rows:"3",maxlength:"400",placeholder:"Como jogar, rotação, observações…"});
+  const g1=el("div",{class:"nb-g"}); g1.append(fld("Nome da build",nome),fld("Autor",au),); body.append(g1); { const l1=el("div",{class:"nb-f nb-wide"}); l1.append(el("span",{text:"Conteúdo (escolha um ou mais)"}),K.box); const l2=el("div",{class:"nb-f nb-wide"}); l2.append(el("span",{text:"Características (opcional, aparecem como etiquetas no cartão)"}),T.box); body.append(l1,l2); } body.append(fld("Descrição",ds));
   body.append(el("h4",{text:"Peças e habilidades"}),el("p",{class:"muted small",text:"Clique em uma casa para escolher a peça e as habilidades dela."}));
   let SKD={i:{},s:{}}; try{ SKD=await skLoad()||SKD; }catch(e){}
   const sk={}; const wrap=el("div",{class:"nb-vg"}); const grid=el("div",{class:"kx-g nb-kg"}); const pick=el("div",{class:"nb-pick"}); wrap.append(grid); body.append(wrap,pick);
@@ -132,7 +135,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
   draw(); NB_REFRESH=()=>{ draw(); if(curPick) openPick(curPick[0],curPick[1]); };
   const err=el("p",{class:"nb-err small",hidden:true}), save=el("button",{type:"button",class:"bc-more nb-new",text:"Salvar build"});
   save.addEventListener("click",()=>{ if(!nome.value.trim()||!sel.w){ err.hidden=false; err.textContent="Dê um nome à build e escolha pelo menos a arma."; return; }
-    const b={id:nbId(nome.value),t:nome.value.trim(),au:au.value.trim()||"Visitante",k:k.value,tg:tg.value.split(",").map(s=>s.trim()).filter(Boolean).slice(0,6),desc:ds.value.trim(),data:new Date().toISOString().slice(0,10),votos:0};
+    const b={id:nbId(nome.value),t:nome.value.trim(),au:au.value.trim()||"Visitante",ks:[...K.st],k:[...K.st][0]||"",tg:[...T.st],desc:ds.value.trim(),data:new Date().toISOString().slice(0,10),votos:0};
     for(const [s] of NB_SLOTS) if(sel[s]) b[s]= s==="w"?sel[s]:[sel[s]];
     { const K={}; for(const s of ["w","h","a","s"]){ const l=(sk[s]||[]); if(!sel[s]||!l.some(Boolean)) continue; const arr=Array.from({length:s==="w"?4:2},(_,i)=>l[i]||""); K[s]=s==="w"?arr.filter(Boolean):[arr.filter(Boolean),[]]; } if(Object.keys(K).length) b.sk=K; }
     try{ store.set("nbAuthor",au.value.trim()); }catch(e){} const fim=()=>{ nbOpen=b.id; nbRender(); setTimeout(()=>{ const c=document.querySelector("#nbBox .bcard.open"); if(c) c.scrollIntoView({block:"center",behavior:"smooth"}); },100); };

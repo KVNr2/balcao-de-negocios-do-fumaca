@@ -995,3 +995,8 @@ button.nb-skcard.on{border-color:var(--gain,#5ec98c);background:rgba(94,201,140,
 .nb-R .nb-res{max-height:236px;overflow:auto;padding:2px;margin-bottom:6px;border-bottom:1px solid var(--line-soft,rgba(255,255,255,.1));padding-bottom:10px}
 .nb-R .nb-sk{margin-top:10px}
 @media (max-width:1100px){.nb-R .nb-res{max-height:260px}}
+.nb-wide{grid-column:1/-1;margin:6px 0}
+.nb-chips{display:flex;flex-wrap:wrap;gap:6px;max-height:150px;overflow:auto;padding:2px}
+button.nb-chip{padding:5px 11px;border-radius:999px;border:1px solid var(--line-soft,rgba(255,255,255,.14));background:rgba(255,255,255,.04);color:var(--parch-2,#cdbf9f);font:500 12.5px Inter,sans-serif;cursor:pointer}
+button.nb-chip:hover{border-color:var(--saffron,#e8ab45)}
+button.nb-chip[aria-pressed=true]{background:rgba(232,171,69,.2);border-color:var(--saffron,#e8ab45);color:var(--saffron,#e8ab45);font-weight:600}
