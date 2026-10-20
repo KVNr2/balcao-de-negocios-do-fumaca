@@ -699,3 +699,16 @@ b.c,h4.c{color:#b784e8}
 .of2-main .tbl,.bm2{overflow-x:auto;overflow-y:hidden;max-height:none;scrollbar-width:none}
 .of2-main .tbl::-webkit-scrollbar,.bm2::-webkit-scrollbar{display:none}
 .of-lh,.bm2t thead th{position:static}
+/* Mercado no mesmo estilo de lista */
+.mk2t tbody tr.mk-row.is-flat td{background:var(--night-2)}
+.mk2t tbody tr.mk-row.is-flat:hover td{background:color-mix(in srgb,var(--night-2) 80%,var(--parch) 8%)}
+.mk2t tbody tr.mk-row td:first-child{min-width:340px}
+.mk2t td.itemcell{width:auto}.mk2t .ihead{display:flex;align-items:center;gap:16px}
+.mk2t .ihead .inm{display:flex;flex-direction:column;gap:3px;text-align:left;white-space:normal}
+.mk2t .inm strong{font:700 17px/1.2 var(--f-body);color:var(--parch)}
+.mk2t .inm small{font-size:12.5px;color:var(--parch-2);opacity:.85}
+.mk2t td.mkp{text-align:center}
+.mk2t td.mkp .city{display:block;font:600 12px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--parch-2);margin-bottom:2px}
+.mk2t td.mkp .num{font:600 17px var(--f-body);font-variant-numeric:tabular-nums}
+.mk2t td.mkp.gain .num{color:var(--c-gain)}
+.mk2t td.bm-profit{font:700 20px var(--f-body)}

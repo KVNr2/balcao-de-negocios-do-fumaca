@@ -123,7 +123,7 @@ async function renderBC(){
 
 /* ================= encantar ================= */
 const EN_MAT = {1:["RUNE","Runa"],2:["SOUL","Alma"],3:["RELIC","Relíquia"]};
-const EN_LOADED = new Set(); let enTierSel=6;
+const EN_LOADED = new Set(); let enTierSel=0;
 async function ensureEnch(g){
   if(EN_LOADED.has(g)) return true;
   const ok=await ensureBM(g); if(!ok) return false;
@@ -146,7 +146,7 @@ function setupEN(){
   const sel=$("enGroup"); if(sel.options.length) return;
   const src=$("bmGroup"); if(!src.options.length) setupBM();
   for(const og of src.children) sel.append(og.cloneNode(true)); sel.value=store.get("enGroup")||src.value;
-  const ts=$("enTier"); [4,5,6,7,8].forEach(t=>ts.append(el("button",{type:"button","data-t":String(t),"aria-pressed":String(t===enTierSel),text:`T${t}`})));
+  const ts=$("enTier"); ["Todos",4,5,6,7,8].forEach((t,i)=>ts.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String((i?t:0)===enTierSel),text:i?`T${t}`:t})));
   ts.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ts.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); enTierSel=+b.dataset.t; renderEN(); });
   sel.addEventListener("change",()=>{ store.set("enGroup",sel.value); renderEN(); });
 }
@@ -155,18 +155,18 @@ async function renderEN(){
   if(!BM||!GEAR){ note.textContent="Abrindo os dados das peças…"; try{ [BM,GEAR]=await Promise.all([BM||need("bm"),GEAR||need("gear")]); }catch(e){ note.textContent="Não consegui abrir os dados das peças."; return; } }
   setupEN(); const g=$("enGroup").value, t=enTierSel;
   if(!EN_LOADED.has(g)){ tb.textContent=""; note.textContent="Consultando peças, runas, almas e relíquias…"; const ok=await ensureEnch(g); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("enGroup").value!==g) return; }
-  const rows=[]; for(const k of bmKeys(g)) for(const e of [1,2,3]){ const m=enModel(k,t,e); if(m&&!m.miss) rows.push(m); }
+  const rows=[]; for(const k of bmKeys(g)) for(const tt of (t?[t]:[4,5,6,7,8])) for(const e of [1,2,3]){ const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); }
   rows.sort((a,b)=>((b.save??-1e15)-(a.save??-1e15)));
   tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Peça","Passo","Peça de base","Material","Custo encantando","Sem encantar","Economia"].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
-  for(const m of rows.slice(0,40)){ const tr=body.insertRow(); tr.insertCell().append(withIcon(bmId(m.key,m.t,m.e),nmKey(m.key,m.name))); { const sc=tr.insertCell(); sc.append(withIcon(bmId(m.key,m.t,m.e-1),`.${m.e-1} → .${m.e}`)); }
+  for(const m of rows.slice(0,t?40:80)){ const tr=body.insertRow(); tr.insertCell().append(withIcon(bmId(m.key,m.t,m.e),`${nmKey(m.key,m.name)} T${m.t}`)); { const sc=tr.insertCell(); sc.append(withIcon(bmId(m.key,m.t,m.e-1),`.${m.e-1} → .${m.e}`)); }
     const c1=tr.insertCell(); c1.className="num"; c1.append(fmt(m.base.p)," ",el("span",{class:"age",text:m.base.how}));
     const c2=tr.insertCell(); c2.className="num"; c2.append(withIcon(`T${m.t}_${EN_MAT[m.e][0]}`,`${m.n} × ${fmt(m.mat.p)}`));
     const c3=tr.insertCell(); c3.className="num"; c3.textContent=fmt(m.cost);
     const c4=tr.insertCell(); c4.className="num"; if(m.alt){ c4.append(fmt(m.alt.p)," ",el("span",{class:"age",text:m.alt.how})); } else c4.textContent="—";
     const c5=tr.insertCell(); c5.className="num "+(m.save==null?"":m.save>=0?"gain":"loss"); c5.textContent=m.save==null?"—":sgn(m.save); }
   const pos=rows.filter(m=>m.save>0).length;
-  note.textContent=rows.length?`${pos} de ${rows.length} passos saem mais baratos encantando em T${t}. Peça de base pela opção mais barata entre comprar e fabricar sem foco; o material pela mediana das cidades.`:`Sem preços suficientes em T${t} para comparar.`;
+  note.textContent=rows.length?`${pos} de ${rows.length} passos saem mais baratos encantando${t?` em T${t}`:" (todos os tiers)"}. Peça de base pela opção mais barata entre comprar e fabricar sem foco; o material pela mediana das cidades.`:`Sem preços suficientes${t?` em T${t}`:""} para comparar.`;
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
 }
 
