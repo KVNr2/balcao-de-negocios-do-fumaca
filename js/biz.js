@@ -4,20 +4,28 @@ const BM_RES = {M:"METALBAR",P:"PLANKS",L:"LEATHER",C:"CLOTH"};
 const BM_RES_PT = {M:"Barra",P:"Tábua",L:"Couro",C:"Tecido"};
 const BM_GROUPS = [...LINES.map(([k,n])=>[k,n]),["a_placa","Armaduras de placa"],["a_couro","Armaduras de couro"],["a_pano","Armaduras de pano"],["mao","Mão secundária"]];
 const BMP = {};                     // id: {cidade: [venda, compra, idade em horas da compra, idade da venda]}
-const BM_VOL = {};                  // id: peças que o Mercado Negro comprou por dia (média dos últimos 7 dias)
-const BM_LOADED = new Set(); let bmMode="craft", bmTierSel=0, bmSel=null, PLANKS_LOADED=false;
+const BMQ = {};                     // qualidades 2 a 5, mesmo formato do BMP: id: {qualidade: {cidade: [venda, compra, idade da compra, idade da venda]}} (a qualidade 1 fica no BMP)
+const BM_VOL = {};                  // id: {qualidade: peças que o Mercado Negro comprou por dia (média dos últimos 7 dias)}, ou -1 se a consulta falhou
+const BM_LOADED = new Set(); let bmMode="craft", bmTierSel=0, bmQualSel=0, bmSel=null, PLANKS_LOADED=false;
 const ageH = d => d&&!d.startsWith("0001") ? (Date.now()-Date.parse(d+"Z"))/3600e3 : Infinity;
-async function bmFetch(ids, locs){
+/* allQ: traz as qualidades 1 a 5 (a 1 vai para o BMP, as outras para o BMQ); sem allQ só a qualidade 1, como as outras páginas usam */
+async function bmFetch(ids, locs, allQ=false){
   const loc=locs.join(",").replace(/ /g,"%20");
   for(let i=0;i<ids.length;i+=40){
-    const j=await apiJSON(`${HOST}/api/v2/stats/prices/${ids.slice(i,i+40).join(",")}.json?locations=${loc}&qualities=1`);
+    const j=await apiJSON(`${HOST}/api/v2/stats/prices/${ids.slice(i,i+40).join(",")}.json?locations=${loc}&qualities=${allQ?"1,2,3,4,5":"1"}`);
     for(const x of j){
+      const qx=allQ?+x.quality:1; if(allQ&&!(qx>=1&&qx<=5)) continue;
       const sa=ageH(x.sell_price_min_date), ba=ageH(x.buy_price_max_date);
       const s=sa<MAX_AGE_H?x.sell_price_min:0, b=ba<MAX_AGE_H?x.buy_price_max:0; if(!s&&!b) continue;
-      (BMP[x.item_id]||(BMP[x.item_id]={}))[x.city]=[s,b,ba,sa];
+      if(qx===1) (BMP[x.item_id]||(BMP[x.item_id]={}))[x.city]=[s,b,ba,sa];
+      else { const m=BMQ[x.item_id]||(BMQ[x.item_id]={}); (m[qx]||(m[qx]={}))[x.city]=[s,b,ba,sa]; }
     }
   }
 }
+/* preços de um item numa qualidade: {cidade: [venda, compra, idade da compra, idade da venda]} */
+const bmRec = (id,q) => q===1 ? (BMP[id]||{}) : (((BMQ[id]||{})[q])||{});
+const bmHas = (id,q) => { const v=bmRec(id,q)["Black Market"]; return !!(v&&v[1]>0); };
+const bmVolOf = (id,q) => { const v=BM_VOL[id]; return v==null ? null : typeof v==="number" ? -1 : (v[q]||0); };
 const bmId=(key,t,e)=>`T${t}_${key}`+(e?`@${e}`:"");
 const bmKeys=g=>Object.keys(BM).filter(k=>BM[k][1]===g);
 async function ensureBM(g){
@@ -25,18 +33,20 @@ async function ensureBM(g){
   const keys=bmKeys(g), gear=[], extra=new Set();
   for(const k of keys) for(let t=4;t<=8;t++){ for(let e=0;e<=4;e++) gear.push(bmId(k,t,e)); if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
   try{
-    await bmFetch(gear,["Black Market",...SHOP_LOCS]);
+    await bmFetch(gear,["Black Market",...SHOP_LOCS],true);
     if(!PLANKS_LOADED){ const pl=[]; for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) pl.push(`T${t}_PLANKS`+(e?`_LEVEL${e}@${e}`:"")); await fetchIds(pl,DATA.itens); PLANKS_LOADED=true; }
     if(extra.size) await fetchIds([...extra],DATA.itens,[...CITIES,"Caerleon"]);
     BM_LOADED.add(g); return true;
   }catch(e){ return false; }
 }
 function bmFCE(key){ return itemFCE(key); }   // armas, armaduras e mão secundária, pela spec de craft da ficha
-function bmModel(key,t,e,focus=$("bmFocus").checked){
-  const r=BM[key], id=bmId(key,t,e), rec=BMP[id]||{};
+/* q: qualidade da ordem do Mercado Negro (1 a 5). A ordem aceita essa qualidade ou melhor, então para revender
+   vale a peça mais barata entre as qualidades q a 5. */
+function bmModel(key,t,e,focus=$("bmFocus").checked,q=1){
+  const r=BM[key], id=bmId(key,t,e), rec=bmRec(id,q);
   const bmo=rec["Black Market"], cae=rec["Caerleon"];
   const bm=bmo&&bmo[1]>0?{p:bmo[1],age:bmo[2]}:null;
-  let buy=null; for(const c of SHOP_LOCS){ const v=rec[c]; if(v&&v[0]>0&&(!buy||v[0]<buy.p)) buy={c,p:v[0],age:v[3]}; }
+  let buy=null; for(let qq=q;qq<=5;qq++){ const rq=bmRec(id,qq); for(const c of SHOP_LOCS){ const v=rq[c]; if(v&&v[0]>0&&(!buy||v[0]<buy.p)) buy={c,p:v[0],age:v[3],q:qq}; } }
   const buyC=buy?buy.p:null;
   const tax=st.prem?0.04:0.08, net=bm?bm.p*(1-tax):null;
   let res=0, cnt=0, thin=false, miss=null; const parts=[];
@@ -45,7 +55,7 @@ function bmModel(key,t,e,focus=$("bmFocus").checked){
   const rr=rrr(0.15,focus,st.daily), fee=cnt*IV(t,e)*0.1125*feeVal()/100;
   const cost=miss?null:res*(1-rr)+art+fee;
   const fc=Math.max(1,Math.round(r[5]*FOCUS_CRAFT[t-4][e]/429*Math.pow(0.5,bmFCE(key)/10000)));
-  return {key,t,e,id,name:r[0],city:r[2],bm,net,buyC,buy,flip:net!=null&&buyC?net-buyC:null,cost,craft:net!=null&&cost!=null?net-cost:null,parts,res,art,fee,rr,fc,thin,miss,focus};
+  return {key,t,e,q,id,name:r[0],city:r[2],bm,net,buyC,buy,flip:net!=null&&buyC?net-buyC:null,cost,craft:net!=null&&cost!=null?net-cost:null,parts,res,art,fee,rr,fc,thin,miss,focus};
 }
 function bmGroupDefault(){ const mine=LINES.filter(([k])=>wl(k)>=2).sort((a,b)=>wl(b[0])-wl(a[0])); return mine.length?mine[0][0]:"martelo"; }
 function setupBM(){
@@ -56,6 +66,8 @@ function setupBM(){
   [og1,og2,og3].forEach(g=>{ if(g.children.length) sel.append(g); }); sel.value=store.get("bmGroup")||bmGroupDefault();
   const ts=$("bmTier"); ["Todos",4,5,6,7,8].forEach((t,i)=>ts.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String(i===0),text:i?`T${t}`:t})));
   ts.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ts.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmTierSel=+b.dataset.t; renderBM(); });
+  const qs=$("bmQual"); ["Todas",1,2,3,4,5].forEach((q,i)=>qs.append(el("button",{type:"button","data-q":String(i?q:0),"aria-pressed":String(i===0),text:i?QNAME[q]:q})));
+  qs.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; qs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmQualSel=+b.dataset.q; renderBM(); });
   sel.addEventListener("change",()=>{ store.set("bmGroup",sel.value); bmSel=null; $("bmDetail").hidden=true; renderBM(); });
   document.querySelectorAll("[data-bm]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-bm]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmMode=b.dataset.bm; renderBM(); }));
   $("bmFocus").addEventListener("change",renderBM);
@@ -64,24 +76,26 @@ async function renderBM(){
   if(!BM){ $("bmNote").textContent="Abrindo o livro do Mercado Negro…"; try{ BM=await need("bm"); }catch(e){ $("bmNote").textContent="Não consegui abrir os dados do Mercado Negro."; return; } }
   setupBM(); const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
   if(!BM_LOADED.has(g)){ tb.textContent=""; note.textContent="Consultando as ordens do Mercado Negro…"; const ok=await ensureBM(g); if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; } if($("bmGroup").value!==g) return; }
-  const rows=[]; for(const k of bmKeys(g)) for(let t=4;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; for(let e=0;e<=4;e++){ const m=bmModel(k,t,e); if(m.bm) rows.push(m); } }
+  const rows=[]; for(const k of bmKeys(g)) for(let t=4;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; for(let e=0;e<=4;e++) for(let q=1;q<=5;q++){ if(bmQualSel&&q!==bmQualSel) continue; if(!bmHas(bmId(k,t,e),q)) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } }
   const val=m=>bmMode==="flip"?m.flip:m.craft;
   const ok=rows.filter(m=>val(m)!=null).sort((a,b)=>val(b)-val(a)), shown=ok.slice(0,100);
   tb.textContent=""; const hr=tb.createTHead().insertRow();
-  (bmMode==="flip"?["Peça","Tier","O MN paga","Mais barato em","Preço lá","Lucro por peça","O MN compra por dia"]:["Peça","Tier","O MN paga","Custo para fabricar","Lucro por peça","Cidade com bônus","O MN compra por dia"]).forEach(h=>hr.append(el("th",{text:h})));
+  (bmMode==="flip"?["Peça","Tier","Qualidade","O MN paga","Mais barato em","Preço lá","Lucro por peça","O MN compra por dia"]:["Peça","Tier","Qualidade","O MN paga","Custo para fabricar","Lucro por peça","Cidade com bônus","O MN compra por dia"]).forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
   for(const m of shown){ const tr=body.insertRow(); tr.className="clickrow"; tr.tabIndex=0;
-    tr.insertCell().textContent=nmKey(m.key,m.name); tr.insertCell().textContent=`${m.t}.${m.e}`;
+    tr.insertCell().append(withIconQ(m.id,m.q,nmKey(m.key,m.name))); tr.insertCell().textContent=`${m.t}.${m.e}`;
+    tr.insertCell().append(el("span",{class:"qtag q"+m.q,text:QNAME[m.q]}));
     const c1=tr.insertCell(); c1.className="num"; c1.append(fmt(m.bm.p)," ",el("span",{class:"age"+(m.bm.age>6?" old":""),text:m.bm.age<1?"agora":`${Math.round(m.bm.age)}h`}));
-    if(bmMode==="flip"){ tr.insertCell().textContent=m.buy.c; const cb=tr.insertCell(); cb.className="num"; cb.append(fmt(m.buy.p)," ",el("span",{class:"age"+(m.buy.age>6?" old":""),text:m.buy.age<1?"agora":`${Math.round(m.buy.age)}h`})); }
+    if(bmMode==="flip"){ tr.insertCell().textContent=m.buy.c+(m.buy.q>m.q?` (${QNAME[m.buy.q]})`:""); const cb=tr.insertCell(); cb.className="num"; cb.append(fmt(m.buy.p)," ",el("span",{class:"age"+(m.buy.age>6?" old":""),text:m.buy.age<1?"agora":`${Math.round(m.buy.age)}h`})); }
     else { const c2=tr.insertCell(); c2.className="num"; c2.textContent=fmt(m.cost); }
     const v=val(m), c3=tr.insertCell(); c3.className="num "+(v>=0?"gain":"loss"); c3.textContent=sgn(v);
     if(bmMode!=="flip"){ const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=`${m.city}${m.thin?", pouca oferta":""}`; }
-    const cv=tr.insertCell(); cv.className="num vol"; cv.textContent=volTxt(BM_VOL[m.id]); tr.dataset.id=m.id;
+    const cv=tr.insertCell(); cv.className="num vol"; cv.textContent=volTxt(bmVolOf(m.id,m.q)); tr.dataset.id=m.id; tr.dataset.q=String(m.q);
     const pick=()=>{ bmSel=m; renderBMDetail(); }; tr.addEventListener("click",pick); tr.addEventListener("keydown",ev=>{ if(ev.key==="Enter") pick(); }); }
   const gname=BM_GROUPS.find(x=>x[0]===g)[1], pos=ok.filter(m=>val(m)>0).length;
-  note.textContent = !rows.length ? `Nenhuma ordem do Mercado Negro para ${gname.toLowerCase()} nos últimos 3 dias.`
-    : `${rows.length} ordens de ${gname.toLowerCase()}; ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${ok.length>100?" Mostrando as 100 melhores.":""} Clique numa linha para ver a conta e o histórico.`;
+  const qtxt=bmQualSel?` na qualidade ${QNAME[bmQualSel].toLowerCase()}`:"";
+  note.textContent = !rows.length ? `Nenhuma ordem do Mercado Negro para ${gname.toLowerCase()}${qtxt} nos últimos 3 dias.`
+    : `${rows.length} ordens de ${gname.toLowerCase()}${qtxt}; ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${ok.length>100?" Mostrando as 100 melhores.":""} Clique numa linha para ver a conta e o histórico.`;
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
   bmVolumes(shown);
 }
@@ -92,22 +106,23 @@ async function bmVolumes(shown){
   const ids=[...new Set(shown.map(m=>m.id).filter(id=>BM_VOL[id]==null))];
   for(let i=0;i<ids.length;i+=25){ const part=ids.slice(i,i+25);
     try{ const j=await apiJSON(`${HOST}/api/v2/stats/history/${part.join(",")}.json?locations=Black%20Market&time-scale=24`,360);
-      part.forEach(id=>BM_VOL[id]=0); const since=Date.now()-7*86400e3;
-      for(const x of j){ if(!(x.item_id in BM_VOL)) continue; let sum=0; for(const d of (x.data||[])) if(Date.parse(d.timestamp+"Z")>=since) sum+=d.item_count; BM_VOL[x.item_id]+=sum/7; }
+      const vol={}; part.forEach(id=>vol[id]={}); const since=Date.now()-7*86400e3;
+      for(const x of j){ const v=vol[x.item_id]; if(!v) continue; const q=+x.quality||1; let sum=0; for(const d of (x.data||[])) if(Date.parse(d.timestamp+"Z")>=since) sum+=d.item_count; v[q]=(v[q]||0)+sum/7; }
+      part.forEach(id=>BM_VOL[id]=vol[id]);
     }catch(e){ part.forEach(id=>BM_VOL[id]=-1); }
-    document.querySelectorAll("#bmTable tbody tr").forEach(tr=>{ const c=tr.querySelector(".vol"); if(c&&tr.dataset.id) c.textContent=volTxt(BM_VOL[tr.dataset.id]); });
+    document.querySelectorAll("#bmTable tbody tr").forEach(tr=>{ const c=tr.querySelector(".vol"); if(c&&tr.dataset.id) c.textContent=volTxt(bmVolOf(tr.dataset.id,+tr.dataset.q||1)); });
   }
 }
 function renderBMDetail(){
   const m=bmSel, box=$("bmDetail"); if(!m) return; box.hidden=false;
-  $("bmTitle").textContent=`${nmKey(m.key,m.name)} ${m.t}.${m.e}`;
+  $("bmTitle").textContent=`${nmKey(m.key,m.name)} ${m.t}.${m.e} · ${QNAME[m.q]}`;
   const L=$("bmLedger"); L.textContent=""; const add=(a,b,cls)=>{ const tr=L.insertRow(); if(cls) tr.className=cls; tr.insertCell().textContent=a; const c=tr.insertCell(); c.className="num"; c.textContent=b; };
-  add("O Mercado Negro paga",fmt(m.bm.p)); if(BM_VOL[m.id]>=0) add("O Mercado Negro comprou por dia (7 dias)",volTxt(BM_VOL[m.id])); add(`Menos a taxa de venda (${st.prem?4:8}%)`,fmt(m.net));
+  add(`O Mercado Negro paga (qualidade ${QNAME[m.q].toLowerCase()} ou melhor)`,fmt(m.bm.p)); { const vv=bmVolOf(m.id,m.q); if(vv!=null&&vv>=0) add("O Mercado Negro comprou por dia (7 dias)",volTxt(vv)); } add(`Menos a taxa de venda (${st.prem?4:8}%)`,fmt(m.net));
   if(m.cost!=null){ for(const p of m.parts) add(`${p.q} × ${p.nm}`,fmt(p.q*p.p)); add(`Volta ${Math.round(m.rr*100)}% dos recursos em ${m.city}`,"−"+fmt(m.res*m.rr)); add("Taxa da estação",fmt(m.fee));
     const tr=L.insertRow(); tr.className="total"; tr.insertCell().textContent="Lucro fabricando"; const tc=tr.insertCell(); tc.className=m.craft>=0?"gain":"loss"; tc.textContent=sgn(m.craft);
     if(m.focus) add("Custo de foco",fmt(m.fc)); }
-  if(m.flip!=null){ add(`Comprando em ${m.buy.c} por`,fmt(m.buyC)); const tr=L.insertRow(); tr.className="total"; tr.insertCell().textContent="Lucro revendendo"; const tc=tr.insertCell(); tc.className=m.flip>=0?"gain":"loss"; tc.textContent=sgn(m.flip); }
-  drawHistory($("histBm"),$("histBmNote"),m.id,"Black Market");
+  if(m.flip!=null){ add(`Comprando em ${m.buy.c}${m.buy.q>m.q?` (qualidade ${QNAME[m.buy.q].toLowerCase()})`:""} por`,fmt(m.buyC)); const tr=L.insertRow(); tr.className="total"; tr.insertCell().textContent="Lucro revendendo"; const tc=tr.insertCell(); tc.className=m.flip>=0?"gain":"loss"; tc.textContent=sgn(m.flip); }
+  drawHistory($("histBm"),$("histBmNote"),m.id,"Black Market",m.q);
   if(window.gsap&&!RM) gsap.from(box,{y:14,opacity:0,duration:.35,clearProps:"opacity,transform"});
   box.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"});
 }

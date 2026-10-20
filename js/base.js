@@ -198,15 +198,23 @@ function itemImg(code,tiers){ let t=tiers||[4,5,6,3,7,8,2,1], i=0; const im=el("
 const repKey = g => (g.it.find(x=>/_SET1$/.test(x[0]))||g.it[0])[0];
 /* armaduras do craft: 1, 2, 3 são os sets básicos (…_SET1); as de facção/artefato têm o código sem SET (HEAD_PLATE_UNDEAD) */
 const specCode = (g,key) => g.k.startsWith("a:") ? (/^\d+$/.test(key)?`${g.k.slice(2)}_SET${key}`:`${g.k.slice(2)}_${key}`) : key;
-/* Ícones: primeiro a cópia local (pasta icons/, listada em js/icons.js); o que não estiver lá vem do Albion Market. */
-const ICON_LOCAL = id => (typeof ICONS_LOCAL!=="undefined" && ICONS_LOCAL.has(id)) ? `icons/${id}.webp` : "";
+/* Qualidade do item: 1 a 5, como o jogo mostra. A moldura do ícone muda com ela. */
+const QNAME = ["","Normal","Bom","Excepcional","Excelente","Obra-prima"];
+/* preços das qualidades 2 a 5, no mesmo formato de DATA.itens (a qualidade 1 fica em DATA.itens): PQ[2][id][cidade] */
+const PQ = {2:{},3:{},4:{},5:{}};
+/* Ícones: primeiro a cópia local (icons/ID.webp na qualidade 1, icons/q2/ a icons/q5/ nas outras; a lista de ids está em js/icons.js);
+   o que faltar vem direto do render oficial do Albion, na mesma qualidade, e por último do Albion Market (só qualidade 1). */
+const ICON_LOCAL = (id,q=1) => (typeof ICONS_LOCAL!=="undefined" && ICONS_LOCAL.has(id)) ? (q>1 ? `icons/q${q}/${id}.webp` : `icons/${id}.webp`) : "";
+const ICON_RENDER = (id,q=1) => `https://render.albiononline.com/v1/item/${id}.png?quality=${q}&size=128`;
 const ICON_REMOTE = id => `https://albionmarket.gg/icon/${encodeURIComponent(id)}/1/200`;
-const ICON = id => ICON_LOCAL(id) || ICON_REMOTE(id);
-/* se a cópia local falhar por qualquer motivo, tenta o Albion Market antes de desistir */
-function iconSrc(im,id,onFail){ im.referrerPolicy="no-referrer"; im.onerror=()=>{ if(im.dataset.remoto!=="1" && ICON_LOCAL(id)){ im.dataset.remoto="1"; im.src=ICON_REMOTE(id); } else onFail(); }; im.dataset.remoto=""; im.src=ICON(id); }
-const iconImg = (id,size=36) => { const i=el("img",{alt:"",loading:"lazy",decoding:"async",width:size,height:size}); i.className="ico"; iconSrc(i,id,()=>{ i.style.visibility="hidden"; }); return i; };
-/* célula com o ícone do item (tier e encantamento já vão no código, ex.: T6_2H_BOW@2) ao lado do texto */
-const withIcon = (id,...nodes) => { const w=el("span",{class:"cell-ic"}); const im=iconImg(id); im.classList.add("t"); const t=el("span",{class:"cell-tx"}); t.append(...nodes); w.append(im,t); return w; };
+const ICON = (id,q=1) => ICON_LOCAL(id,q) || ICON_RENDER(id,q);
+/* tenta cada fonte em ordem; se todas falharem, chama onFail */
+function iconSrc(im,id,onFail,q=1){ im.referrerPolicy="no-referrer"; const fontes=[ICON_LOCAL(id,q),ICON_RENDER(id,q),q===1?ICON_REMOTE(id):""].filter(Boolean); let i=0;
+  im.onerror=()=>{ if(++i<fontes.length) im.src=fontes[i]; else onFail(); }; im.src=fontes[0]; }
+const iconImg = (id,size=36,q=1) => { const i=el("img",{alt:"",loading:"lazy",decoding:"async",width:size,height:size}); i.className="ico"; iconSrc(i,id,()=>{ i.style.visibility="hidden"; },q); return i; };
+/* célula com o ícone do item (tier e encantamento já vão no código, ex.: T6_2H_BOW@2) ao lado do texto; withIconQ usa o ícone da qualidade q */
+const withIconQ = (id,q,...nodes) => { const w=el("span",{class:"cell-ic"}); const im=iconImg(id,36,q); im.classList.add("t"); const t=el("span",{class:"cell-tx"}); t.append(...nodes); w.append(im,t); return w; };
+const withIcon = (id,...nodes) => withIconQ(id,1,...nodes);
 function bestCity(id, field, want, only){ const r=DATA.itens[id]; if(!r) return null; let b=null; for(const [c,v] of Object.entries(r)){ if(only&&c!==only) continue; const p=v[field]; if(!(p>0)) continue; if(!b||(want==="min"?p<b.p:p>b.p)) b={p,c,t:v[field+2]||snapTime()}; } return b; }
 const RED_CITIES = new Set(["Caerleon"]);
 const routeWarn = cs => cs.some(c=>RED_CITIES.has(c)) ? "passa por Caerleon, rota de zona vermelha" : (new Set(cs)).size>2 ? "rota com várias cidades, conte o frete e o tempo" : "";
@@ -266,10 +274,11 @@ function baseIds(){ const ids=[]; for(const r of Object.values(RES)){ ids.push(`
   for(const b of ["WOOD","ROCK"]) for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) ids.push(`T${t}_${b}`+(e?`_LEVEL${e}@${e}`:""));
   return ids.concat(FISH_IDS); }
 function familyIds(slot,mat){ const ids=[]; for(let s=1;s<=3;s++) for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) ids.push(gearId(t,slot,mat,s,e)); return ids; }
-async function fetchIds(ids, target, locs=CITIES){
+/* q: qualidade dos preços (1 a 5). Para q de 2 a 5, passe PQ[q] como target. */
+async function fetchIds(ids, target, locs=CITIES, q=1){
   const loc=locs.join(",").replace(/ /g,"%20");
   for(let i=0;i<ids.length;i+=40){
-    const j=await apiJSON(`${HOST}/api/v2/stats/prices/${ids.slice(i,i+40).join(",")}.json?locations=${loc}&qualities=1`);
+    const j=await apiJSON(`${HOST}/api/v2/stats/prices/${ids.slice(i,i+40).join(",")}.json?locations=${loc}&qualities=${q}`);
     for(const x of j){
       const s=fresh(x.sell_price_min_date)?x.sell_price_min:0, b=fresh(x.buy_price_max_date)?x.buy_price_max:0;
       if(!s&&!b) continue; const k=x.item_id.includes("_LEVEL")?x.item_id.split("@")[0]:x.item_id; (target[k]||(target[k]={}))[x.city]=[s,b,s?Date.parse(x.sell_price_min_date+"Z"):0,b?Date.parse(x.buy_price_max_date+"Z"):0];
@@ -288,7 +297,7 @@ async function loadLive(force){
     const when=isFinite(apiJSON.oldest)?new Date(apiJSON.oldest):new Date(); FORCE=false;
     const hh=when.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
     DATA={geradoEm:new Date().toISOString(),janela:`ao vivo, ${hh}`,ouro,itens}; LIVE=true; loadedFam.clear();
-    COOK_LOADED=false; BM_LOADED.clear(); PLANKS_LOADED=false; WK_LOADED=false; FZ_LOADED=false; EN_LOADED.clear(); OF.loaded.clear(); MK_SEEN.clear(); applyMeta(); recompute(true); btn.classList.remove("busy"); btnTxt("Atualizar preços"); if(!$("p-cozinha").hidden) renderCook(); if(!$("p-mapas").hidden) renderMaps(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-trab").hidden) renderWK(); if(!$("p-fazenda").hidden) renderFZ(); if(!$("p-encantar").hidden) renderEN(); if(!$("p-craft").hidden) renderOf(); if(!$("p-mk").hidden) renderMk();
+    COOK_LOADED=false; BM_LOADED.clear(); PLANKS_LOADED=false; WK_LOADED=false; FZ_LOADED=false; EN_LOADED.clear(); OF.loaded.clear(); MK_SEEN.clear(); for(const q in PQ) PQ[q]={}; if(typeof BMQ!=="undefined") for(const k in BMQ) delete BMQ[k]; applyMeta(); recompute(true); btn.classList.remove("busy"); btnTxt("Atualizar preços"); if(!$("p-cozinha").hidden) renderCook(); if(!$("p-mapas").hidden) renderMaps(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-trab").hidden) renderWK(); if(!$("p-fazenda").hidden) renderFZ(); if(!$("p-encantar").hidden) renderEN(); if(!$("p-craft").hidden) renderOf(); if(!$("p-mk").hidden) renderMk();
   }catch(e){ FORCE=false; $("when").textContent="sem conexão, usando os salvos"; $("whenBox").classList.add("off"); $("whenBox").title="Não consegui puxar os preços ao vivo agora. "+(DATA.janela?"Usando os preços salvos no site: "+DATA.janela:""); btn.classList.remove("busy"); btnTxt("Tentar de novo"); }
   btn.disabled=false;
 }
@@ -702,13 +711,13 @@ function renderCookRecs(){
 
 /* ================= histórico ================= */
 const HIST_CACHE={};
-async function drawHistory(svg,note,id,city){
+async function drawHistory(svg,note,id,city,q=1){
   if(!svg) return; svg.innerHTML=""; note.textContent="Carregando histórico…";
-  const key=id+"|"+city; let rows=HIST_CACHE[key];
+  const key=id+"|"+city+(q>1?"|"+q:""); let rows=HIST_CACHE[key];
   if(!rows){ try{ const apiId=/_LEVEL(\d)/.test(id)?`${id}@${id.match(/_LEVEL(\d)/)[1]}`:id;
       const j=await apiJSON(`${HOST}/api/v2/stats/history/${apiId}.json?locations=${encodeURIComponent(city)}&time-scale=24`,360);
-      rows=(j.find(x=>x.quality===1)||j[0]||{}).data||[]; HIST_CACHE[key]=rows; }catch(e){ rows=null; } }
-  if(!rows||rows.length<3){ note.textContent=`Sem histórico suficiente em ${city}.`; return; }
+      rows=(j.find(x=>x.quality===q)||(q===1?j[0]:null)||{}).data||[]; HIST_CACHE[key]=rows; }catch(e){ rows=null; } }
+  if(!rows||rows.length<3){ note.textContent=`Sem histórico suficiente em ${city}${q>1?`, na qualidade ${QNAME[q].toLowerCase()}`:""}.`; return; }
   rows=rows.slice(-30);
   const W=520,H=150,PL=48,PR=10,PT=10,PB=24, v=rows.map(r=>r.avg_price), lo=Math.min(...v), hi=Math.max(...v), pad=(hi-lo)*0.12||hi*0.05;
   const y0=lo-pad, y1=hi+pad, X=i=>PL+i*(W-PL-PR)/(rows.length-1), Y=p=>PT+(1-(p-y0)/(y1-y0))*(H-PT-PB);

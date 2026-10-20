@@ -115,7 +115,7 @@ async function fillVolumes(shown){
 
 /* ================= mercado: todos os itens do jogo ================= */
 let CATALOG = null;                 // data/catalog.json: c: categorias, i: [id, categoria, subcategoria, tier, encantável, nome PT, nome EN]
-const MK = {cat:"crafting", sub:"resources", tier:0, ench:0, q:"", only:true};
+const MK = {cat:"crafting", sub:"resources", tier:0, ench:0, qual:1, q:"", only:true};   // qual: qualidade dos preços e dos ícones (1 a 5); q é o texto da busca
 const SUB_PT = {resources:"Recursos brutos",refinedresources:"Recursos refinados",fish:"Peixes",alchemy:"Ingredientes de alquimia",cityresources:"Recursos de cidade",tokens:"Fichas",food:"Comidas",potions:"Poções",tomes:"Tomos",silverbag:"Sacos de prata",
   plate_armor:"Placa",leather_armor:"Couro",cloth_armor:"Pano",plate_helmet:"Placa",leather_helmet:"Couro",cloth_helmet:"Pano",plate_shoes:"Placa",leather_shoes:"Couro",cloth_shoes:"Pano",shieldtype:"Escudos",booktype:"Livros",torchtype:"Tochas",
   bags:"Bolsas",satchels:"Bolsas de lado",labourers:"Trabalhadores e diários",luxurygoods:"Artigos de luxo",maps:"Mapas",trash:"Sucata",killtrophy:"Troféus",lootitem:"Saque",farm:"Sementes e colheitas",pasture:"Animais",kennel:"Montarias da fazenda",herbgarden:"Ervas",farmingproducts:"Produtos",
@@ -138,7 +138,8 @@ function setupMk(){
   const tb=$("mkTier"); ["Todos",1,2,3,4,5,6,7,8].forEach((t,i)=>tb.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String(i===0),text:i?`T${t}`:t})));
   const eb=$("mkEnch"); ["Todos",0,1,2,3,4].forEach((e,i)=>eb.append(el("button",{type:"button","data-e":String(i?e:-1),"aria-pressed":String(i===1),text:i?`.${e}`:e})));
   const seg=(box,attr,key)=>box.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); MK[key]=+b.dataset[attr]; renderMk(); });
-  seg(tb,"t","tier"); seg(eb,"e","ench");
+  const qb=$("mkQual"); [1,2,3,4,5].forEach(q=>qb.append(el("button",{type:"button","data-q":String(q),"aria-pressed":String(q===MK.qual),text:QNAME[q]})));
+  seg(tb,"t","tier"); seg(eb,"e","ench"); seg(qb,"q","qual");
   sel.addEventListener("change",()=>{ MK.cat=sel.value; MK.sub=""; store.set("mkCat2",sel.value); fillSubs(); renderMk(); });
   $("mkSub").addEventListener("change",()=>{ MK.sub=$("mkSub").value; renderMk(); });
   let tmr=null; $("mkFind").addEventListener("input",()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ MK.q=$("mkFind").value.trim().toLowerCase(); renderMk(); },250); });
@@ -147,7 +148,7 @@ function setupMk(){
 }
 function fillSubs(){ const ss=$("mkSub"); ss.textContent=""; ss.append(el("option",{value:"",text:"Todas"}));
   const subs=[...new Set(CATALOG.i.filter(r=>r[1]===MK.cat).map(r=>r[2]))].sort((a,b)=>subName(a).localeCompare(subName(b),"pt-BR")); subs.forEach(s=>ss.append(el("option",{value:s,text:subName(s)}))); ss.value=MK.sub; }
-function extremes(id){ const r=DATA.itens[mkKey(id)]||{}; const out={smax:null,smin:null,bmax:null,bmin:null};
+function extremes(id,q=1){ const r=(q>1?(PQ[q]||{}):DATA.itens)[mkKey(id)]||{}; const out={smax:null,smin:null,bmax:null,bmin:null};
   for(const [c,v] of Object.entries(r)){ if(v[0]>0){ if(!out.smax||v[0]>out.smax.p) out.smax={p:v[0],c,t:v[2]}; if(!out.smin||v[0]<out.smin.p) out.smin={p:v[0],c,t:v[2]}; }
     if(v[1]>0){ if(!out.bmax||v[1]>out.bmax.p) out.bmax={p:v[1],c,t:v[3]}; if(!out.bmin||v[1]<out.bmin.p) out.bmin={p:v[1],c,t:v[3]}; } } return out; }
 const MK_SEEN = new Set();
@@ -163,31 +164,33 @@ async function renderMk(){
   else base.sort((a,b)=>subName(a[2]).localeCompare(subName(b[2]),"pt-BR")||mkName(a).localeCompare(mkName(b),"pt-BR")||(a[3]-b[3]));
   const list=[]; for(const r of base){ const es = MK.ench<0 ? (r[4]||isLevelRes(r)?[0,1,2,3,4]:[0]) : (MK.ench===0||r[4]||isLevelRes(r)?[MK.ench]:[]); for(const e of es) list.push({r,e,id:mkId(r,e)}); }
   const total=list.length, slice=list.slice(0,180);
-  const want=slice.map(x=>x.id).filter(id=>!MK_SEEN.has(id));
-  if(want.length){ note.textContent=`Consultando ${want.length} itens em todas as cidades…`; tb.textContent="";
-    try{ await fetchIds(want,DATA.itens,SHOP_LOCS); want.forEach(id=>MK_SEEN.add(id)); }catch(e){ note.textContent="Não consegui consultar os preços agora."; return; } }
-  const rows=slice.map(x=>({...x,x:extremes(x.id)})).filter(x=>!MK.only||x.x.smin||x.x.bmax);
+  const mq=MK.qual, seen=id=>mq>1?`${mq}|${id}`:id;
+  const want=slice.map(x=>x.id).filter(id=>!MK_SEEN.has(seen(id)));
+  if(want.length){ note.textContent=`Consultando ${want.length} itens em todas as cidades${mq>1?`, qualidade ${QNAME[mq].toLowerCase()}`:""}…`; tb.textContent="";
+    try{ await fetchIds(want,mq>1?PQ[mq]:DATA.itens,SHOP_LOCS,mq); want.forEach(id=>MK_SEEN.add(seen(id))); }catch(e){ note.textContent="Não consegui consultar os preços agora."; return; }
+    if(MK.qual!==mq) return; }
+  const rows=slice.map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>!MK.only||x.x.smin||x.x.bmax);
   tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Item","Maior venda","Menor venda","Maior compra","Menor compra","Diferença"].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
   const cellP=(tr,o,cls)=>{ const c=tr.insertCell(); c.className="mkp "+(cls||""); if(!o){ c.textContent="—"; return; } c.append(el("b",{class:"city",text:o.c}),el("span",{class:"num",text:fmt(o.p)}),ageSpan(o.t)||""); };
   for(const x of rows){ const tr=body.insertRow(); tr.className="clickrow"; const nm_=mkName(x.r);
-    const c0=tr.insertCell(); c0.className="itemcell"; const hd=el("div",{class:"ihead"}); hd.append(iconImg(x.id,36)); const nb=el("span",{class:"inm"}); nb.append(el("strong",{text:nm_}),el("small",{text:`${x.r[3]?`T${x.r[3]}.${x.e}`:"sem tier"}, ${CATALOG.c[x.r[1]]||""}${x.r[2]&&subName(x.r[2])!==CATALOG.c[x.r[1]]?`: ${subName(x.r[2])}`:""}`})); hd.append(nb); c0.append(hd);
+    const c0=tr.insertCell(); c0.className="itemcell"; const hd=el("div",{class:"ihead"}); hd.append(iconImg(x.id,36,mq)); const nb=el("span",{class:"inm"}); nb.append(el("strong",{text:nm_}),el("small",{text:`${x.r[3]?`T${x.r[3]}.${x.e}`:"sem tier"}${mq>1?` · ${QNAME[mq]}`:""}, ${CATALOG.c[x.r[1]]||""}${x.r[2]&&subName(x.r[2])!==CATALOG.c[x.r[1]]?`: ${subName(x.r[2])}`:""}`})); hd.append(nb); c0.append(hd);
     cellP(tr,x.x.smax); cellP(tr,x.x.smin,"gain"); cellP(tr,x.x.bmax,"gain"); cellP(tr,x.x.bmin);
     const d=tr.insertCell(); d.className="num"; d.textContent=x.x.smax&&x.x.smin?fmt(x.x.smax.p-x.x.smin.p):"—"; d.title="Maior venda menos menor venda: o espaço para comprar numa cidade e vender em outra";
-    tr.addEventListener("click",()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`)); }
-  note.textContent = !total ? "Nenhum item com esse filtro." : `${total} ${total>1?"itens":"item"}${search?` com "${q}"`:` em ${CATALOG.c[MK.cat]}${MK.sub?` · ${subName(MK.sub)}`:""}`}${total>180?"; mostrando os 180 primeiros, use tier, encantamento ou a busca para filtrar":""}. ${rows.length<slice.length?`${slice.length-rows.length} sem anúncio nos últimos 3 dias ficaram de fora. `:""}Clique num item para ver todas as cidades e o histórico.`;
+    tr.addEventListener("click",()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`,mq)); }
+  note.textContent = !total ? "Nenhum item com esse filtro." : `${total} ${total>1?"itens":"item"}${search?` com "${q}"`:` em ${CATALOG.c[MK.cat]}${MK.sub?` · ${subName(MK.sub)}`:""}`}${total>180?"; mostrando os 180 primeiros, use tier, encantamento ou a busca para filtrar":""}. ${rows.length<slice.length?`${slice.length-rows.length} sem anúncio nos últimos 3 dias ficaram de fora. `:""}${mq>1?`Qualidade ${QNAME[mq].toLowerCase()}: só entram itens com anúncio nessa qualidade (recursos e comida só existem na Normal). `:""}Clique num item para ver todas as cidades e o histórico.`;
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.2,stagger:.006,clearProps:"opacity,transform"});
 }
 
 /* quadro de detalhe de um item */
 const CITY_COLOR = {"Thetford":"#a46ad8","Fort Sterling":"#e9e4d8","Martlock":"#4aa3df","Bridgewatch":"#e8963f","Lymhurst":"#6cc06a","Caerleon":"#d0463f","Brecilien":"#3ec3b0","Black Market":"#8d8d99"};
-async function openItem(apiId,name){
+async function openItem(apiId,name,q=1){
   const dlg=$("itemDlg"); const key=apiId.includes("_LEVEL")?apiId.split("@")[0]:apiId;
-  $("dlgTitle").textContent=name||nmKey(apiId.replace(/^T\d_/,"").replace(/@\d$/,""),apiId); iconSrc($("dlgIcon"),apiId,()=>{}); $("dlgSub").textContent=apiId;
+  $("dlgTitle").textContent=name||nmKey(apiId.replace(/^T\d_/,"").replace(/@\d$/,""),apiId); iconSrc($("dlgIcon"),apiId,()=>{},q); $("dlgSub").textContent=apiId+(q>1?` · ${QNAME[q]}`:"");
   const box=$("dlgCities"); box.textContent="Consultando…"; $("dlgChart").textContent=""; $("dlgNote").textContent="";
   if(dlg.showModal&&!dlg.open) dlg.showModal(); else dlg.setAttribute("open","");
   const locs=[...SHOP_LOCS,"Black Market"];
-  const tgt={}; try{ await fetchIds([apiId],tgt,locs); }catch(e){}
+  const tgt={}; try{ await fetchIds([apiId],tgt,locs,q); }catch(e){}
   const r=tgt[key]||{}; box.textContent="";
   const t=el("table",{class:"ledger dlgt"}); const h=t.createTHead().insertRow(); ["Cidade","Menor venda","Atualizado","Maior compra","Atualizado"].forEach(x=>h.append(el("th",{text:x})));
   const b=t.createTBody(); const rows=Object.entries(r).sort((a,b_)=>((a[1][0]||1e15)-(b_[1][0]||1e15)));
@@ -195,7 +198,7 @@ async function openItem(apiId,name){
     const a=tr.insertCell(); a.className="num"; a.textContent=v[0]?fmt(v[0]):"—"; tr.insertCell().append(ageSpan(v[2])||"—");
     const d=tr.insertCell(); d.className="num"; d.textContent=v[1]?fmt(v[1]):"—"; tr.insertCell().append(ageSpan(v[3])||"—"); }
   if(!rows.length) box.textContent="Nenhum anúncio recente desse item."; else box.append(t);
-  try{ const j=await apiJSON(`${HOST}/api/v2/stats/history/${apiId}.json?locations=${locs.join(",").replace(/ /g,"%20")}&time-scale=24`,360); drawStack($("dlgChart"),j); }catch(e){ $("dlgNote").textContent="Sem histórico agora."; }
+  try{ const j=await apiJSON(`${HOST}/api/v2/stats/history/${apiId}.json?locations=${locs.join(",").replace(/ /g,"%20")}&time-scale=24`,360); drawStack($("dlgChart"),q>1?j.filter(s=>+s.quality===q):j); }catch(e){ $("dlgNote").textContent="Sem histórico agora."; }
 }
 function drawStack(svg,series){
   const ns="http://www.w3.org/2000/svg", mk=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e.setAttribute(k,a[k]); return e; };
