@@ -191,15 +191,20 @@ const ageSpan = t => t ? el("span",{class:"age"+((Date.now()-t)>12*3600e3?" old"
 const tierFromMastery = m => m>=100?8 : m>=60?7 : m>=30?6 : m>=10?5 : m>=1?4 : 3;
 const tierOrder = t => { const o=[t]; for(let i=t-1;i>=1;i--) o.push(i); for(let i=t+1;i<=8;i++) o.push(i); return o; };
 function itemImg(code,tiers){ let t=tiers||[4,5,6,3,7,8,2,1], i=0; const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer";
-  const set=()=>{ im.src=ICON(`T${t[i]}_${code}`); };
+  const set=()=>{ const id=`T${t[i]}_${code}`; iconSrc(im,id,fail); };
   const fail=()=>{ if(++i<t.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } };
-  im.onerror=fail; im._tier=n=>{ t=tierOrder(n); i=0; im.classList.remove("nico-off"); im.onerror=fail; set(); }; set(); return im; }
+  im._tier=n=>{ t=tierOrder(n); i=0; im.classList.remove("nico-off"); set(); }; set(); return im; }
 /* item que representa a linha de maestria: o básico (SET1) quando existe, senão o primeiro da lista */
 const repKey = g => (g.it.find(x=>/_SET1$/.test(x[0]))||g.it[0])[0];
 /* armaduras do craft: 1, 2, 3 são os sets básicos (…_SET1); as de facção/artefato têm o código sem SET (HEAD_PLATE_UNDEAD) */
 const specCode = (g,key) => g.k.startsWith("a:") ? (/^\d+$/.test(key)?`${g.k.slice(2)}_SET${key}`:`${g.k.slice(2)}_${key}`) : key;
-const ICON = id => `https://albionmarket.gg/icon/${encodeURIComponent(id)}/1/200`;
-const iconImg = (id,size=36) => { const i=el("img",{src:ICON(id),alt:"",loading:"lazy",decoding:"async",width:size,height:size}); i.className="ico"; i.referrerPolicy="no-referrer"; i.onerror=()=>{ i.style.visibility="hidden"; }; return i; };
+/* Ícones: primeiro a cópia local (pasta icons/, listada em js/icons.js); o que não estiver lá vem do Albion Market. */
+const ICON_LOCAL = id => (typeof ICONS_LOCAL!=="undefined" && ICONS_LOCAL.has(id)) ? `icons/${id}.png` : "";
+const ICON_REMOTE = id => `https://albionmarket.gg/icon/${encodeURIComponent(id)}/1/200`;
+const ICON = id => ICON_LOCAL(id) || ICON_REMOTE(id);
+/* se a cópia local falhar por qualquer motivo, tenta o Albion Market antes de desistir */
+function iconSrc(im,id,onFail){ im.referrerPolicy="no-referrer"; im.onerror=()=>{ if(im.dataset.remoto!=="1" && ICON_LOCAL(id)){ im.dataset.remoto="1"; im.src=ICON_REMOTE(id); } else onFail(); }; im.dataset.remoto=""; im.src=ICON(id); }
+const iconImg = (id,size=36) => { const i=el("img",{alt:"",loading:"lazy",decoding:"async",width:size,height:size}); i.className="ico"; iconSrc(i,id,()=>{ i.style.visibility="hidden"; }); return i; };
 /* célula com o ícone do item (tier e encantamento já vão no código, ex.: T6_2H_BOW@2) ao lado do texto */
 const withIcon = (id,...nodes) => { const w=el("span",{class:"cell-ic"}); const im=iconImg(id); im.classList.add("t"); const t=el("span",{class:"cell-tx"}); t.append(...nodes); w.append(im,t); return w; };
 function bestCity(id, field, want, only){ const r=DATA.itens[id]; if(!r) return null; let b=null; for(const [c,v] of Object.entries(r)){ if(only&&c!==only) continue; const p=v[field]; if(!(p>0)) continue; if(!b||(want==="min"?p<b.p:p>b.p)) b={p,c,t:v[field+2]||snapTime()}; } return b; }

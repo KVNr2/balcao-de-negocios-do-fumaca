@@ -183,7 +183,7 @@ async function renderMk(){
 const CITY_COLOR = {"Thetford":"#a46ad8","Fort Sterling":"#e9e4d8","Martlock":"#4aa3df","Bridgewatch":"#e8963f","Lymhurst":"#6cc06a","Caerleon":"#d0463f","Brecilien":"#3ec3b0","Black Market":"#8d8d99"};
 async function openItem(apiId,name){
   const dlg=$("itemDlg"); const key=apiId.includes("_LEVEL")?apiId.split("@")[0]:apiId;
-  $("dlgTitle").textContent=name||nmKey(apiId.replace(/^T\d_/,"").replace(/@\d$/,""),apiId); $("dlgIcon").referrerPolicy="no-referrer"; $("dlgIcon").src=ICON(apiId); $("dlgSub").textContent=apiId;
+  $("dlgTitle").textContent=name||nmKey(apiId.replace(/^T\d_/,"").replace(/@\d$/,""),apiId); iconSrc($("dlgIcon"),apiId,()=>{}); $("dlgSub").textContent=apiId;
   const box=$("dlgCities"); box.textContent="Consultando…"; $("dlgChart").textContent=""; $("dlgNote").textContent="";
   if(dlg.showModal&&!dlg.open) dlg.showModal(); else dlg.setAttribute("open","");
   const locs=[...SHOP_LOCS,"Black Market"];
