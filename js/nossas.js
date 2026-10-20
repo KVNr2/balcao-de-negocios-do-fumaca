@@ -152,12 +152,12 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
           b.append(ic,tx); b.addEventListener("click",()=>{ sk[s]=sk[s]||[]; sk[s][i]=sk[s][i]===v?undefined:v; draw(); drawSk(); }); cards.append(b); });
         grp.append(cards); spk.append(grp); }); };
     drawSk();
-    const rows=NB_CAT.i.filter(r=>NB_FILTER[s](r)&&/^T\d_/.test(r[0])); const by=new Map(); for(const r of rows){ const c=r[0].replace(/^T\d+_/,""), key=(s==="p"||s==="f")?r[0]:c; if(!by.has(key)) by.set(key,{c,nome:LANG==="en"?r[6]:r[5],en:r[6],pt:r[5],tiers:new Set(),ench:0,sub:r[2],mat:(/^(cloth|leather|plate)_/.exec(r[2])||[])[1]||(r[1]==="gathering"?"gather":"")}); const o=by.get(key); o.tiers.add(r[3]); if(r[4]&&!/consumables/.test(r[1])) o.ench=1; }
+    const rows=NB_CAT.i.filter(r=>NB_FILTER[s](r)&&/^T\d_/.test(r[0])); const by=new Map(); for(const r of rows){ const c=r[0].replace(/^T\d+_/,""), key=(s==="p"||s==="f")?r[0]:c; if(!by.has(key)) by.set(key,{c,nome:LANG==="en"?r[6]:r[5],en:r[6],pt:r[5],tiers:new Set(),ench:0,sub:r[1]==="gathering"?"gather":r[2],mat:(/^(cloth|leather|plate)_/.exec(r[2])||[])[1]||(r[1]==="gathering"?"gather":"")}); const o=by.get(key); o.tiers.add(r[3]); if(r[4]&&!/consumables/.test(r[1])) o.ench=1; }
     const list=[...by.values()].filter(o=>o.pt&&o.en).sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
     let mat=""; const matBar=el("div",{class:"seg nb-mat",role:"group","aria-label":"Material"});
     const drawMat=()=>{ matBar.textContent=""; [["","Todos"],["cloth","Tecido"],["leather","Couro"],["plate","Placa"],["gather","Coleta"]].forEach(([k,t2])=>{ const b2=el("button",{type:"button","aria-pressed":String(mat===k),text:t2}); b2.addEventListener("click",()=>{ mat=k; drawMat(); show(); }); matBar.append(b2); }); };
     if(["h","a","s"].includes(s)){ drawMat(); pick.insertBefore(matBar,res); }
-    let sub=""; const subs=[...new Set(list.map(o=>o.sub))].filter(Boolean); const sn=x=>typeof subName==="function"?subName(x):x.replace(/_/g," ");
+    let sub=""; const subs=[...new Set(list.map(o=>o.sub))].filter(Boolean); const sn=x=>x==="gather"?"Coleta":typeof subName==="function"?subName(x):x.replace(/_/g," ");
     if(!["h","a","s"].includes(s)&&subs.length>1){ const ss=el("select",{"aria-label":"Tipo",class:"nb-sub"}); ss.append(el("option",{value:"",text:"Todos os tipos"})); subs.sort((a,b)=>sn(a).localeCompare(sn(b),"pt-BR")).forEach(x=>ss.append(el("option",{value:x,text:sn(x)}))); ss.addEventListener("change",()=>{ sub=ss.value; show(); }); head.append(ss); }
     const cnt=el("p",{class:"muted small nb-cnt"}); pick.insertBefore(cnt,res);
     const show=()=>{ res.textContent=""; const f=q.value.trim().toLowerCase(); const out=list.filter(o=>o.tiers.has(+t.value)&&(!mat||o.mat===mat)&&(!sub||o.sub===sub)&&(!f||o.pt.toLowerCase().includes(f)||o.en.toLowerCase().includes(f)||o.c.toLowerCase().includes(f)));
