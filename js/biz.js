@@ -23,10 +23,10 @@ const bmKeys=g=>Object.keys(BM).filter(k=>BM[k][1]===g);
 async function ensureBM(g){
   if(BM_LOADED.has(g)) return true;
   const keys=bmKeys(g), gear=[], extra=new Set();
-  for(const k of keys) for(let t=4;t<=8;t++){ for(let e=0;e<=3;e++) gear.push(bmId(k,t,e)); if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
+  for(const k of keys) for(let t=4;t<=8;t++){ for(let e=0;e<=4;e++) gear.push(bmId(k,t,e)); if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
   try{
     await bmFetch(gear,["Black Market",...SHOP_LOCS]);
-    if(!PLANKS_LOADED){ const pl=[]; for(let t=4;t<=8;t++) for(let e=0;e<=3;e++) pl.push(`T${t}_PLANKS`+(e?`_LEVEL${e}@${e}`:"")); await fetchIds(pl,DATA.itens); PLANKS_LOADED=true; }
+    if(!PLANKS_LOADED){ const pl=[]; for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) pl.push(`T${t}_PLANKS`+(e?`_LEVEL${e}@${e}`:"")); await fetchIds(pl,DATA.itens); PLANKS_LOADED=true; }
     if(extra.size) await fetchIds([...extra],DATA.itens,[...CITIES,"Caerleon"]);
     BM_LOADED.add(g); return true;
   }catch(e){ return false; }
@@ -64,7 +64,7 @@ async function renderBM(){
   if(!BM){ $("bmNote").textContent="Abrindo o livro do Mercado Negro…"; try{ BM=await need("bm"); }catch(e){ $("bmNote").textContent="Não consegui abrir os dados do Mercado Negro."; return; } }
   setupBM(); const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
   if(!BM_LOADED.has(g)){ tb.textContent=""; note.textContent="Consultando as ordens do Mercado Negro…"; const ok=await ensureBM(g); if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; } if($("bmGroup").value!==g) return; }
-  const rows=[]; for(const k of bmKeys(g)) for(let t=4;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; for(let e=0;e<=3;e++){ const m=bmModel(k,t,e); if(m.bm) rows.push(m); } }
+  const rows=[]; for(const k of bmKeys(g)) for(let t=4;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; for(let e=0;e<=4;e++){ const m=bmModel(k,t,e); if(m.bm) rows.push(m); } }
   const val=m=>bmMode==="flip"?m.flip:m.craft;
   const ok=rows.filter(m=>val(m)!=null).sort((a,b)=>val(b)-val(a)), shown=ok.slice(0,100);
   tb.textContent=""; const hr=tb.createTHead().insertRow();

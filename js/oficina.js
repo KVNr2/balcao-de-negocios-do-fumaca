@@ -19,7 +19,7 @@ const apiLv = (t,base,e) => `T${t}_${base}`+(e?`_LEVEL${e}@${e}`:"");
 function ofItems(cat){
   const out=[];
   if(cat.startsWith("g:")){ const g=cat.slice(2);
-    for(const k of bmKeys(g)){ const r=BM[k]; for(let t=4;t<=8;t++) for(let e=0;e<=3;e++){
+    for(const k of bmKeys(g)){ const r=BM[k]; for(let t=4;t<=8;t++) for(let e=0;e<=4;e++){
       const ing=[]; for(const [,c,n] of r[3].matchAll(/([MPLC])(\d+)/g)) ing.push({id:idLv(t,BM_RES[c],e),n:+n,nm:`${MAT_PT[BM_RES[c]]} T${t}.${e}`});
       if(r[4]) ing.push({id:`T${t}_${r[4][0]}`,n:r[4][1],nm:r[4][0].startsWith("ALCHEMY")?"Ingrediente raro":"Artefato",art:true});
       const cnt=ing.filter(x=>!x.art).reduce((a,x)=>a+x.n,0);
@@ -28,7 +28,7 @@ function ofItems(cat){
     for(const id in COOK.r){ const r=COOK.r[id]; if(r[1]!==kind||!r[3]) continue; const [name,,q,fo,nut,ing]=r;
       out.push({id,key:id,name,t:+id[1],e:0,q,ing:ing.map(([iid,n])=>({id:iid,n,nm:COOK.n[iid]||iid})),city:COOK_CITY[kind],bonus:0.15,fee:q*nut*0.1125,focus:fo,fce:cookFCE(kind,id)}); }
   } else if(cat==="refine"){
-    for(const R of REF5) for(let t=4;t<=8;t++) for(let e=0;e<=3;e++){
+    for(const R of REF5) for(let t=4;t<=8;t++) for(let e=0;e<=4;e++){
       const prev=t===4?`T3_${R.ref}`:idLv(t-1,R.ref,e);
       out.push({id:idLv(t,R.ref,e),key:R.ref,name:`${R.refPT}`,t,e,q:1,ing:[{id:idLv(t,R.raw,e),n:N[t],nm:`${R.rawPT} T${t}.${e}`},{id:prev,n:1,nm:`${R.refPT} ${t===4?"T3":`T${t-1}.${e}`}`}],city:R.city,bonus:0.40,fee:IV(t,e)*0.1125,focus:FOCUS_REF[t-4][e],fce:({METALBAR:'metal',CLOTH:'cloth',LEATHER:'leather'}[R.ref]?refFCEt({METALBAR:'metal',CLOTH:'cloth',LEATHER:'leather'}[R.ref],t):0)}); }
   }
@@ -38,10 +38,10 @@ async function ensureOf(cat){
   if(OF.loaded.has(cat)) return true;
   try{
     if(cat.startsWith("g:")){ const g=cat.slice(2); const ids=[], extra=new Set(), mats=new Set();
-      for(const k of bmKeys(g)) for(let t=4;t<=8;t++){ for(let e=0;e<=3;e++){ ids.push(bmId(k,t,e)); for(const [,c] of BM[k][3].matchAll(/([MPLC])(\d+)/g)) mats.add(apiLv(t,BM_RES[c],e)); } if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
+      for(const k of bmKeys(g)) for(let t=4;t<=8;t++){ for(let e=0;e<=4;e++){ ids.push(bmId(k,t,e)); for(const [,c] of BM[k][3].matchAll(/([MPLC])(\d+)/g)) mats.add(apiLv(t,BM_RES[c],e)); } if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
       await fetchIds(ids,DATA.itens,SHOP_LOCS); await fetchIds([...mats,...extra],DATA.itens,SHOP_LOCS);
     } else if(cat==="meal"||cat==="potion"){ const ok=await ensureCook(); if(!ok) return false; }
-    else { const ids=new Set(); for(const R of REF5){ ids.add(`T3_${R.ref}`); for(let t=4;t<=8;t++) for(let e=0;e<=3;e++){ ids.add(apiLv(t,R.raw,e)); ids.add(apiLv(t,R.ref,e)); } } await fetchIds([...ids],DATA.itens,SHOP_LOCS); }
+    else { const ids=new Set(); for(const R of REF5){ ids.add(`T3_${R.ref}`); for(let t=4;t<=8;t++) for(let e=0;e<=4;e++){ ids.add(apiLv(t,R.raw,e)); ids.add(apiLv(t,R.ref,e)); } } await fetchIds([...ids],DATA.itens,SHOP_LOCS); }
     OF.loaded.add(cat); return true;
   }catch(e){ return false; }
 }
@@ -161,7 +161,7 @@ async function renderMk(){
   if(search){ const rank={weapons:0,armors:1,head:1,shoes:1,offhands:2,capes:2,crafting:3,consumables:3,farming:4,mounts:4,bags:4,gathering:5,artefacts:6,other:7,furniture:8,vanity:9};
     const nm_=r=>(mkName(r)||"").toLowerCase(); base.sort((a,b)=>((nm_(b).startsWith(q))-(nm_(a).startsWith(q)))||((rank[a[1]]??9)-(rank[b[1]]??9))||(a[3]-b[3])); }
   else base.sort((a,b)=>subName(a[2]).localeCompare(subName(b[2]),"pt-BR")||mkName(a).localeCompare(mkName(b),"pt-BR")||(a[3]-b[3]));
-  const list=[]; for(const r of base){ const es = MK.ench<0 ? (r[4]||isLevelRes(r)?[0,1,2,3]:[0]) : (MK.ench===0||r[4]||isLevelRes(r)?[MK.ench]:[]); for(const e of es) list.push({r,e,id:mkId(r,e)}); }
+  const list=[]; for(const r of base){ const es = MK.ench<0 ? (r[4]||isLevelRes(r)?[0,1,2,3,4]:[0]) : (MK.ench===0||r[4]||isLevelRes(r)?[MK.ench]:[]); for(const e of es) list.push({r,e,id:mkId(r,e)}); }
   const total=list.length, slice=list.slice(0,180);
   const want=slice.map(x=>x.id).filter(id=>!MK_SEEN.has(id));
   if(want.length){ note.textContent=`Consultando ${want.length} itens em todas as cidades…`; tb.textContent="";

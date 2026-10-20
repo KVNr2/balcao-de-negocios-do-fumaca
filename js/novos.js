@@ -36,7 +36,7 @@ function setupBC(){
     BUILDS.map((b,i)=>[b,i]).filter(([b])=>b.c===c&&gearKey(b.w)).sort((x,y)=>(mine.has(y[0].l)-mine.has(x[0].l))||((y[0].pop||0)-(x[0].pop||0))).forEach(([b,i])=>og.append(el("option",{value:String(i),text:`${nm(b.w)}${mine.has(b.l)?" (sua linha)":""}`})));
     if(og.children.length) sel.append(og); }
   const saved=store.get("bcBuild"); if(saved&&sel.querySelector(`option[value="${saved}"]`)) sel.value=saved; else { const first=sel.querySelector('option:not([value="custom"])'); if(first) sel.value=first.value; }
-  const tier=$("bcTier"), ench=$("bcEnch"); if(!tier.options.length){ [4,5,6,7,8].forEach(t=>tier.append(el("option",{value:String(t),text:`T${t}`}))); tier.value=store.get("bcTier")||"6"; [0,1,2,3].forEach(e=>ench.append(el("option",{value:String(e),text:`.${e}`}))); ench.value=store.get("bcEnch")||"1"; }
+  const tier=$("bcTier"), ench=$("bcEnch"); if(!tier.options.length){ [4,5,6,7,8].forEach(t=>tier.append(el("option",{value:String(t),text:`T${t}`}))); tier.value=store.get("bcTier")||"6"; [0,1,2,3,4].forEach(e=>ench.append(el("option",{value:String(e),text:`.${e}`}))); ench.value=store.get("bcEnch")||"1"; }
 }
 async function renderBC(){
   const note=$("bcNote"), tb=$("bcTable");
@@ -85,7 +85,7 @@ const EN_LOADED = new Set(); let enTierSel=6;
 async function ensureEnch(g){
   if(EN_LOADED.has(g)) return true;
   const ok=await ensureBM(g); if(!ok) return false;
-  const ids=[]; for(const k of bmKeys(g)) for(let t=4;t<=8;t++) for(let e=0;e<=3;e++) ids.push(bmId(k,t,e));
+  const ids=[]; for(const k of bmKeys(g)) for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) ids.push(bmId(k,t,e));
   const mats=[]; for(let t=4;t<=8;t++) for(const e of [1,2,3]) mats.push(`T${t}_${EN_MAT[e][0]}`);
   try{ await bmFetch(ids,SHOP_LOCS); await fetchIds(mats,DATA.itens,SHOP_LOCS); EN_LOADED.add(g); return true; }catch(e){ return false; }
 }
