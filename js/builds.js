@@ -164,7 +164,6 @@ function kbPanel(b){
     [["t","Ferramenta"],["gh","Chapéu de coleta"],["ga","Traje de coleta"],["gs","Botas de coleta"],["gk","Mochila de coleta"],["gb","Bolsa"],["m","Montaria"]].forEach(([k,lab])=>{ const id=b.x[k]; if(!id) return; const i=idInfo(id); if(!i) return; const it=el("div",{class:"kx-xi"}); const im=fullImg(id,"nico kx-i"); if(im) it.append(im); const tx=el("div",{class:"kx-tx"}); const nb=el("b",{text:itemNome(i.c),title:`T${i.t}${i.e?"."+i.e:""}`}); tx.append(el("small",{class:"muted",text:lab}),nb); it.append(tx); xg.append(it);
       need("catalog").then(c=>{ const bare=id.replace(/@\d$/,""); const r=c.i.find(z=>z[0]===bare)||c.i.find(z=>z[0].endsWith("_"+i.c)); if(r){ const n=(LANG==="en"?r[6]:r[5])||r[6]; if(n) nb.textContent=n; } }).catch(()=>{}); });
     X.append(xg); box.append(X); }
-  box.append(albionBar(b));
   return box;
 }
 /* botão "montar e ver o custo": escolhe o tier equivalente e leva para a aba Custo da build */
@@ -191,7 +190,7 @@ function buildCard(b){
   card.append(gbStrip(b));
   const btn=el("button",{type:"button",class:"bc-more","aria-expanded":String(open),text:open?"Esconder build completa":"Ver build completa"});
   btn.addEventListener("click",()=>{ bOpen=open?null:b.id; renderBuilds(); });
-  const act=el("div",{class:"bc-act"}); act.append(btn,custoCtl("g:"+b.id)); card.append(act);
+  const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b),custoCtl("g:"+b.id)); card.append(act);
   if(open) card.append(kbPanel(b));
   return card;
 }
