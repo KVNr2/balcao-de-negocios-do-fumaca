@@ -872,3 +872,7 @@ details.spsubn>summary{padding-top:8px;padding-bottom:8px}
 .vc.all .vc-detail .vc-det{display:block}
 @media (max-width:560px){.vc-tiles{grid-template-columns:1fr}.vc.all .vc-detail{grid-template-columns:1fr}}
 .deal .tag{display:inline-block;width:fit-content;align-self:flex-start}
+
+/* ícone do tópico no lugar da estrela */
+h2.has-ic::before,h3.has-ic::before{display:none!important}
+.hic{width:1.05em;height:1.05em;margin-right:.5em;vertical-align:-.14em;flex:none;stroke:var(--saffron);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}

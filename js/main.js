@@ -89,3 +89,17 @@ $("muDlg").addEventListener("click",ev=>{ if(ev.target===$("muDlg")) $("muClose"
   tiles.addEventListener("click",ev=>{ const b=ev.target.closest(".vc-tile"); if(!b) return; const id=b.dataset.vc; cur=cur===id?null:id; wrap.classList.remove("all"); allBtn.setAttribute("aria-pressed","false"); show(cur); if(cur) setTimeout(()=>{ const d=det.querySelector(".vc-det.open"); if(d) d.scrollIntoView({block:"nearest",behavior:"smooth"}); },50); });
   allBtn.addEventListener("click",()=>{ const on=allBtn.getAttribute("aria-pressed")!=="true"; allBtn.setAttribute("aria-pressed",String(on)); allBtn.textContent=on?"Recolher":"Mostrar tudo"; wrap.classList.toggle("all",on); cur=null; show(null); });
 })();
+
+/* ================= ícones nos títulos de cada tópico (no lugar da estrelinha) ================= */
+(function(){
+  const MAP=[[/combate|arma|zvz/i,"t-zvz"],[/craft|fabric|oficina/i,"t-craft"],[/coleta|miner|colher/i,"t-trab"],[/refin/i,"t-refino"],[/cozinha|aliment|comida|poç|alquimia/i,"t-cozinha"],[/fazenda|ilha|plant|animal|cria/i,"t-fazenda"],[/encant/i,"t-encantar"],[/pesca|mapa|onde (pescar|coletar)|aonde/i,"t-mapas"],[/prata|ganho/i,"t-prata"],[/mercado negro/i,"t-mercado"],[/mercado/i,"t-mk"],[/custo|onde comprar/i,"t-custo"],[/matchup/i,"t-matchup"],[/build/i,"t-builds"],[/patch|mudou/i,"t-patch"],[/fonte|n[uú]mero/i,"t-fontes"],[/vers/i,"t-versao"],[/resumo|dia|ficha|para voc/i,"t-voce"]];
+  const tabOf=h=>{ const p=h.closest("section.panel"); return p?p.getAttribute("aria-labelledby"):null; };
+  function run(root){ (root||document).querySelectorAll("h2:not(.has-ic),h3.orn:not(.has-ic)").forEach(h=>{
+      if(h.closest("dialog,header,nav")) return;
+      const txt=h.textContent; let id=null; for(const [rx,t] of MAP) if(rx.test(txt)){ id=t; break; } if(!id) id=tabOf(h);
+      const src=id&&document.querySelector(`#${id} svg.ic`); if(!src) return;
+      const ic=src.cloneNode(true); ic.setAttribute("class","hic"); ic.setAttribute("aria-hidden","true"); h.classList.add("has-ic"); h.prepend(ic); }); }
+  run();
+  document.querySelectorAll("nav.tabs [role=tab]").forEach(b=>b.addEventListener("click",()=>setTimeout(run,300)));
+  new MutationObserver(()=>{ clearTimeout(run._t); run._t=setTimeout(run,200); }).observe(document.querySelector("main")||document.body,{childList:true,subtree:true});
+})();
