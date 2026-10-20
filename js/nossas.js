@@ -4,17 +4,25 @@ const NB_SLOTS=[["w","Arma"],["o","Secundária"],["h","Elmo"],["a","Peito"],["s"
 function nbMine(){ try{ return JSON.parse(store.get("nb:mine")||"[]"); }catch(e){ return []; } }
 function nbSaveMine(a){ try{ store.set("nb:mine",JSON.stringify(a)); }catch(e){} }
 function nbVotes(){ try{ return new Set(JSON.parse(store.get("nb:votes")||"[]")); }catch(e){ return new Set(); } }
+let NB_CFG=null, NB_CLOUD=false;
+const nbVoter=()=>{ let v=""; try{ v=store.get("nb:voter"); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now()); store.set("nb:voter",v); } }catch(e){} return v||"anon"; };
+const nbApi=(path,o={})=>fetch(NB_CFG.url.replace(/\/$/,"")+"/rest/v1/"+path,{...o,headers:{apikey:NB_CFG.key,Authorization:"Bearer "+NB_CFG.key,"Content-Type":"application/json",...(o.headers||{})}});
 function nbVote(id){ const v=nbVotes(); v.has(id)?v.delete(id):v.add(id); try{ store.set("nb:votes",JSON.stringify([...v])); }catch(e){} }
 async function nbLoad(){
   if(NB_REPO) return;
-  NB_REPO=[]; try{ const r=await fetch(`builds/index.json?v=${VER}`); const idx=r.ok?await r.json():[];
+  NB_REPO=[]; try{ NB_CFG=await need("nuvem"); NB_CLOUD=!!(NB_CFG.url&&NB_CFG.key); }catch(e){ NB_CLOUD=false; }
+  if(NB_CLOUD){ try{ const [rb,rv,rm]=await Promise.all([nbApi("nb_builds?select=id,data&order=created_at.desc&limit=300"),nbApi("nb_votos_total?select=*"),nbApi("nb_votos?select=build_id&voter=eq."+encodeURIComponent(nbVoter()))]);
+      if(!rb.ok) throw 0; const bs=await rb.json(), tot={}; (rv.ok?await rv.json():[]).forEach(x=>tot[x.build_id]=x.n);
+      const mine=rm.ok?(await rm.json()).map(x=>x.build_id):[]; try{ store.set("nb:votes",JSON.stringify(mine)); }catch(e){}
+      NB_REPO=bs.map(x=>({...x.data,id:x.id,votos:tot[x.id]||0,cloud:true})); nbRefreshAll(); return; }catch(e){ NB_CLOUD=false; NB_REPO=[]; } }
+  try{ const r=await fetch(`builds/index.json?v=${VER}`); const idx=r.ok?await r.json():[];
     const all=await Promise.all(idx.map(f=>fetch(`builds/${f}?v=${VER}`).then(x=>x.ok?x.json():null).catch(()=>null)));
     NB_REPO=all.filter(b=>b&&b.id&&b.w).map(b=>({...b,repo:true})); }catch(e){}
   nbRefreshAll();
 }
 function nbRefreshAll(){ NB_ALL=[...(NB_REPO||[]),...nbMine().filter(m=>!(NB_REPO||[]).some(r=>r.id===m.id)).map(b=>({...b,local:true}))]; window.NB_ALL=NB_ALL; }
 nbRefreshAll();
-const nbVotesOf=b=>(+b.votos||0)+(nbVotes().has(b.id)?1:0);
+const nbVotesOf=b=>b.cloud?(+b.votos||0):(+b.votos||0)+(nbVotes().has(b.id)?1:0);
 
 function nbCard(b){
   const open=nbOpen===b.id, card=el("article",{class:"bcard"+(open?" open":"")});
@@ -25,7 +33,9 @@ function nbCard(b){
   (b.tg||[]).slice(0,3).forEach(t=>meta.append(el("span",{class:"tag mute",text:t}))); mid.append(meta); top.append(mid);
   const voted=nbVotes().has(b.id), vb=el("button",{type:"button",class:"nb-vote"+(voted?" on":""),"aria-pressed":String(voted),title:voted?"Tirar meu voto":"Votar nesta build"});
   vb.append(el("span",{class:"nb-arrow",text:"▲"}),el("b",{text:String(nbVotesOf(b))}),el("small",{text:"votos"}));
-  vb.addEventListener("click",()=>{ nbVote(b.id); nbRender(); }); const rt=el("div",{class:"bc-r"}); rt.append(vb); top.append(rt); card.append(top);
+  vb.addEventListener("click",async()=>{ const had=nbVotes().has(b.id); nbVote(b.id);
+    if(b.cloud){ b.votos=Math.max(0,(+b.votos||0)+(had?-1:1)); nbRender(); try{ if(had) await nbApi(`nb_votos?build_id=eq.${encodeURIComponent(b.id)}&voter=eq.${encodeURIComponent(nbVoter())}`,{method:"DELETE"}); else await nbApi("nb_votos",{method:"POST",body:JSON.stringify({build_id:b.id,voter:nbVoter()}),headers:{Prefer:"return=minimal"}}); }catch(e){} }
+    else nbRender(); }); const rt=el("div",{class:"bc-r"}); rt.append(vb); top.append(rt); card.append(top);
   if(b.desc) card.append(el("p",{class:"nb-desc small",text:b.desc}));
   card.append(gbStrip(b));
   const btn=el("button",{type:"button",class:"bc-more","aria-expanded":String(open),text:open?"Esconder build completa":"Ver build completa"});
@@ -34,15 +44,16 @@ function nbCard(b){
   if(b.local){ const dl=el("button",{type:"button",class:"bc-more",text:"Baixar arquivo"}); dl.addEventListener("click",()=>nbExport(b));
     const cp=el("button",{type:"button",class:"bc-more",text:"Copiar código"}); cp.addEventListener("click",()=>{ navigator.clipboard&&navigator.clipboard.writeText(nbJson(b)); cp.textContent="Copiado"; setTimeout(()=>cp.textContent="Copiar código",1500); });
     const rm=el("button",{type:"button",class:"bc-more nb-del",text:"Apagar"}); rm.addEventListener("click",()=>{ if(!confirm("Apagar esta build do seu navegador?")) return; nbSaveMine(nbMine().filter(x=>x.id!==b.id)); nbRefreshAll(); nbRender(); });
-    act.append(dl,cp,rm); }
+    if(NB_CLOUD) act.append(rm); else act.append(dl,cp,rm); }
+  if(b.local&&NB_CLOUD){ const pb=el("button",{type:"button",class:"bc-more nb-new",text:"Publicar para todos"}); pb.addEventListener("click",async()=>{ pb.disabled=true; pb.textContent="Publicando…"; try{ const o=JSON.parse(nbJson(b)); const r=await nbApi("nb_builds",{method:"POST",body:JSON.stringify({id:b.id,data:o}),headers:{Prefer:"return=minimal"}}); if(!r.ok) throw 0; nbSaveMine(nbMine().filter(x=>x.id!==b.id)); NB_REPO=null; await nbLoad(); nbRender(); }catch(e){ pb.disabled=false; pb.textContent="Falhou, tentar de novo"; } }); act.prepend(pb); }
   card.append(act); if(open) card.append(kbPanel(b)); return card;
 }
-const nbJson=b=>{ const o={...b}; delete o.local; delete o.repo; return JSON.stringify(o,null,2); };
+const nbJson=b=>{ const o={...b}; delete o.local; delete o.repo; delete o.cloud; delete o.votos; return JSON.stringify(o,null,2); };
 function nbExport(b){ const a=el("a",{href:URL.createObjectURL(new Blob([nbJson(b)],{type:"application/json"})),download:b.id+".json"}); document.body.append(a); a.click(); a.remove();
   alert("Arquivo baixado. Para publicar: coloque-o na pasta builds/ do site e acrescente o nome em builds/index.json (veja builds/LEIA-ME.md)."); }
 
 function nbRender(){
-  const box=$("nbBox"); if(!box) return; box.textContent=""; nbLoad(); nbRefreshAll();
+  const box=$("nbBox"); if(!box) return; box.textContent=""; if(!nbRender._l){ nbRender._l=1; nbLoad().then(()=>nbRender()); } nbRefreshAll();
   const bar=el("div",{class:"nb-bar"}); const mk=el("button",{type:"button",class:"bc-more nb-new",text:"+ Criar build"}); mk.addEventListener("click",()=>nbForm());
   const imp=el("button",{type:"button",class:"bc-more",text:"Colar código"}); imp.addEventListener("click",()=>{ const t=prompt("Cole aqui o código da build:"); if(!t) return; try{ const b=JSON.parse(t); if(!b.w||!b.t) throw 0; b.id=b.id||nbId(b.t); const a=nbMine(); if(!a.some(x=>x.id===b.id)) a.unshift(b); nbSaveMine(a); nbRender(); }catch(e){ alert("Código inválido."); } });
   const sort=el("select",{"aria-label":"Ordem"}); [["votos","Mais votadas"],["novas","Mais novas"]].forEach(([v,t])=>sort.append(el("option",{value:v,text:t}))); sort.value=nbSort; sort.addEventListener("change",()=>{ nbSort=sort.value; nbRender(); });
@@ -51,8 +62,8 @@ function nbRender(){
   const ord=a=>a.slice().sort((x,y)=>nbSort==="novas"?String(y.data||"").localeCompare(String(x.data||"")):(nbVotesOf(y)-nbVotesOf(x)));
   const flt=a=>a.filter(b=>!nbCont||b.k===nbCont);
   const sec=(title,sub,list,empty)=>{ const s=el("section",{class:"nb-sec"}); s.append(el("h3",{class:"orn",text:title}),el("p",{class:"muted small",text:sub})); const l=el("div",{class:"blist"}); if(!list.length) l.append(el("p",{class:"empty",text:empty})); list.forEach(b=>l.append(nbCard(b))); s.append(l); box.append(s); };
-  sec("Nossas builds","Escolhidas pelo Balcão do Fumaça. A contagem de votos vem do arquivo da build; o seu voto soma +1 só para você.",ord(flt((NB_REPO||[]))),NB_REPO?"Ainda não há builds publicadas nesta seleção.":"Carregando…");
-  const mine=NB_ALL.filter(b=>b.local); if(mine.length) sec("Suas builds","Salvas só neste navegador. Baixe o arquivo e envie para a pasta builds/ do site para publicar.",ord(flt(mine)),"");
+  sec("Nossas builds",(NB_CLOUD?"Builds publicadas por todos que usam o site. Seu voto conta para todo mundo, um por navegador.":"Escolhidas pelo Balcão do Fumaça. A contagem de votos vem do arquivo da build; o seu voto soma +1 só para você."),ord(flt((NB_REPO||[]))),NB_REPO?"Ainda não há builds publicadas nesta seleção.":"Carregando…");
+  const mine=NB_ALL.filter(b=>b.local); if(mine.length) sec("Suas builds",(NB_CLOUD?"Salvas só neste navegador porque a publicação falhou. Clique em Publicar para todos.":"Salvas só neste navegador. Baixe o arquivo e envie para a pasta builds/ do site para publicar."),ord(flt(mine)),"");
 }
 const nbId=t=>(t||"build").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40)+"-"+Math.random().toString(36).slice(2,6);
 
@@ -86,7 +97,9 @@ async function nbForm(){
   save.addEventListener("click",()=>{ if(!nome.value.trim()||!sel.w){ err.hidden=false; err.textContent="Dê um nome à build e escolha pelo menos a arma."; return; }
     const b={id:nbId(nome.value),t:nome.value.trim(),au:au.value.trim()||"Visitante",k:k.value,tg:tg.value.split(",").map(s=>s.trim()).filter(Boolean).slice(0,6),desc:ds.value.trim(),data:new Date().toISOString().slice(0,10),votos:0};
     for(const [s] of NB_SLOTS) if(sel[s]) b[s]= s==="w"?sel[s]:[sel[s]]; if(b.w&&!b.w.startsWith) b.w=b.w[0];
-    try{ store.set("nbAuthor",au.value.trim()); }catch(e){} const a=nbMine(); a.unshift(b); nbSaveMine(a); dlg.close(); nbOpen=b.id; nbRender(); });
+    try{ store.set("nbAuthor",au.value.trim()); }catch(e){} const fim=()=>{ dlg.close(); nbOpen=b.id; nbRender(); };
+    if(NB_CLOUD){ save.disabled=true; save.textContent="Publicando…"; const o={...b}; delete o.id; delete o.votos; nbApi("nb_builds",{method:"POST",body:JSON.stringify({id:b.id,data:o}),headers:{Prefer:"return=minimal"}}).then(async r=>{ if(!r.ok) throw 0; NB_REPO=null; await nbLoad(); fim(); }).catch(()=>{ const a=nbMine(); a.unshift(b); nbSaveMine(a); err.hidden=false; err.textContent="Não consegui publicar agora; a build ficou salva só no seu navegador. Use \"Publicar para todos\" depois."; save.disabled=false; save.textContent="Salvar build"; nbRender(); }); return; }
+    const a=nbMine(); a.unshift(b); nbSaveMine(a); fim(); });
   body.append(err,el("div",{class:"nb-act"}),save);
 }
 
