@@ -105,7 +105,12 @@ const KB_CONS_PT={POTION_ACID:"Poção Ácida",POTION_BERSERK:"Poção de Fúria
 const itemNome = c => KB_CONS_PT[c]||codeName(c);
 function idInfo(id){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id||""); return m?{c:m[2],t:+m[1],e:+(m[3]||0)}:null; }
 const SPELL = id => `https://render.albiononline.com/v1/spell/${id}.png`;
-function spellImg(id,cls){ const im=el("img",{class:cls||"kx-sp",alt:"",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer"; im.title=id.replace(/^PASSIVE_/,"").replace(/_/g," ").toLowerCase();
+/* nome e descrição das habilidades (data/skills.json) no idioma escolhido em "Nomes" */
+let SKS=null, SKS_P=null; const skLoad=()=>SKS_P||(SKS_P=need("skills").then(d=>{ SKS=d; return d; }).catch(()=>null));
+const spellName=id=>{ const v=SKS&&SKS.s[id]; return (v&&(LANG==="en"?v[2]:v[0]))||id.replace(/^PASSIVE_/,"").replace(/_/g," ").toLowerCase(); };
+const spellDesc=id=>{ const v=SKS&&SKS.s[id]; return (v&&(LANG==="en"?v[3]:v[1]))||""; };
+function spellTip(im,id){ const set=()=>{ const d=spellDesc(id); im.title=spellName(id)+(d?"\n\n"+d:""); }; set(); im.addEventListener("mouseenter",set); if(!SKS) skLoad().then(set); }
+function spellImg(id,cls){ const im=el("img",{class:cls||"kx-sp",alt:"",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer"; spellTip(im,id);
   /* primeiro o arquivo local (icons/spells/ID.png, baixado pelo script), depois o render oficial do jogo */
   const fontes=[`icons/spells/${id}.png`,SPELL(id)]; let i=0; im.onerror=()=>{ if(++i<fontes.length) im.src=fontes[i]; else im.remove(); }; im.src=fontes[0]; return im; }
 function kxItem(id,skills){
