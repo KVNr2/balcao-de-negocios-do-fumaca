@@ -100,6 +100,26 @@ function gbStrip(b){
   const cons=[...(b.p||[]).slice(0,2),...(b.f||[]).slice(0,2)]; if(cons.length){ const box=el("div",{class:"bg cons"}); cons.forEach(i=>{ const x=fullImg(i,"nico bi-s"); if(x) box.append(x); }); row.append(box); }
   return row;
 }
+/* Build completa em formato de killboard: uma casa por peça, com ícone grande, nome e tier; alternativas logo abaixo. */
+const CONS_PT={POTION_ACID:"Poção Ácida",POTION_BERSERK:"Poção de Fúria",POTION_CLEANSE:"Poção de Purificação",POTION_CLEANSE2:"Poção de Purificação",POTION_COOLDOWN:"Poção de Recarga",POTION_ENERGY:"Poção de Energia",POTION_GATHER:"Poção de Coleta",POTION_HEAL:"Poção de Cura",POTION_LAVA:"Poção de Lava",POTION_MOB_RESET:"Poção de Reinício de Monstros",POTION_REVIVE:"Poção de Ressurreição",POTION_SLOWFIELD:"Poção Lentidão",POTION_STONESKIN:"Poção Pele de Pedra",POTION_TORNADO:"Poção Tornado",MEAL_OMELETTE:"Omelete",MEAL_OMELETTE_AVALON:"Omelete de Avalon",MEAL_OMELETTE_DRAGONAREA:"Omelete de Dragão",MEAL_OMELETTE_FISH:"Omelete de Peixe",MEAL_PIE:"Torta",MEAL_PIE_FISH:"Torta de Peixe",MEAL_ROAST:"Assado",MEAL_ROAST_FISH:"Assado de Peixe",MEAL_SANDWICH:"Sanduíche",MEAL_SANDWICH_AVALON:"Sanduíche de Avalon",MEAL_SANDWICH_FISH:"Sanduíche de Peixe",MEAL_SOUP:"Sopa",MEAL_STEW:"Ensopado",MEAL_STEW_AVALON:"Ensopado de Avalon",MEAL_STEW_FISH:"Ensopado de Peixe"};
+const itemNome = c => CONS_PT[c]||codeName(c);
+function idInfo(id){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id||""); return m?{c:m[2],t:+m[1],e:+(m[3]||0)}:null; }
+function kbSlot(rotulo,ids){
+  const i=idInfo(ids[0]); if(!i) return null;
+  const box=el("div",{class:"kb-s"}); box.append(el("small",{class:"kb-l",text:rotulo}));
+  const im=fullImg(ids[0],"nico kb-i"); if(im) box.append(im);
+  box.append(el("b",{class:"kb-n",text:itemNome(i.c)}));
+  box.append(el("span",{class:"kb-t",text:`T${i.t}${i.e?"."+i.e:""}`}));
+  const alts=ids.slice(1).map(idInfo).filter(Boolean);
+  if(alts.length){ const a=el("div",{class:"kb-a"}); a.append(el("small",{class:"muted",text:"ou"})); alts.forEach(x=>{ const t=el("div",{class:"kb-alt"}); const g=fullImg(`T${x.t}_${x.c}${x.e?"@"+x.e:""}`,"nico kb-is"); if(g) t.append(g); t.append(el("span",{text:`${itemNome(x.c)} T${x.t}${x.e?"."+x.e:""}`})); a.append(t); }); box.append(a); }
+  return box;
+}
+function kbPanel(b){
+  const box=el("div",{class:"kb"});
+  const grid=el("div",{class:"kb-g"});
+  [["Arma",[b.w]],["Elmo",b.h],["Peito",b.a],["Botas",b.s],["Capa",b.c],["Secundária",b.o],["Poção",b.p],["Comida",b.f]].forEach(([r,ids])=>{ if(ids&&ids.length&&ids[0]){ const x=kbSlot(r,ids); if(x) grid.append(x); } });
+  box.append(grid); return box;
+}
 function buildCard(b){
   const open=bOpen===b.id; const wc=b.wc;
   const card=el("article",{class:"bcard"+(open?" open":"")});
@@ -114,6 +134,10 @@ function buildCard(b){
   mid.append(meta); top.append(mid);
   const rt=el("div",{class:"bc-r"}); rt.append(el("span",{class:"pop",text:`${b.pop} votos`})); top.append(rt); card.append(top);
   card.append(gbStrip(b));
+  const btn=el("button",{type:"button",class:"bc-more","aria-expanded":String(open),text:open?"Esconder build completa":"Ver build completa"});
+  btn.addEventListener("click",()=>{ bOpen=open?null:b.id; renderBuilds(); });
+  card.append(btn);
+  if(open) card.append(kbPanel(b));
   return card;
 }
 const contName = k => { const c=(GBC||[]).find(x=>x.k===k); return c?c.nome:k; };

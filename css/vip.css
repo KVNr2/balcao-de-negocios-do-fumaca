@@ -273,3 +273,15 @@ img.bi{width:52px;height:52px}img.bi-s{width:30px;height:30px}.bg-alt{display:fl
 .seg.wrap{display:flex;flex-direction:row;flex-wrap:wrap;width:100%;gap:6px;border:0;background:none;overflow:visible;border-radius:0}
 .seg.wrap button,.seg.wrap button:last-child{border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13.5px;min-height:0!important}
 .bsyn .seg.wrap{margin:6px 0 10px}
+
+/* build completa (killboard) */
+.kb{border-top:1px solid var(--line);margin-top:10px;padding-top:12px}
+.kb-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+.kb-s{display:grid;justify-items:center;gap:4px;text-align:center;background:#14161c;border:1px solid #23262f;border-radius:12px;padding:10px 6px}
+.kb-l{color:var(--muted,#9aa0ad);text-transform:uppercase;letter-spacing:.06em;font-size:.68rem}
+img.kb-i{width:72px;height:72px;object-fit:fill}
+.kb-n{font-size:.85rem;line-height:1.2}
+.kb-t{font-size:.75rem;color:var(--saffron)}
+.kb-a{display:grid;gap:3px;justify-items:start;margin-top:4px;width:100%;font-size:.72rem}
+.kb-alt{display:flex;align-items:center;gap:5px;text-align:left}
+img.kb-is{width:24px;height:24px;object-fit:fill}
