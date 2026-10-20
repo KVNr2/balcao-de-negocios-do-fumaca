@@ -56,7 +56,7 @@ function nbExport(b){ const a=el("a",{href:URL.createObjectURL(new Blob([nbJson(
   alert("Arquivo baixado. Para publicar: coloque-o na pasta builds/ do site e acrescente o nome em builds/index.json (veja builds/LEIA-ME.md)."); }
 
 function nbRender(){
-  const box=$("nbBox"); if(!box) return; box.textContent=""; if(!nbRender._l){ nbRender._l=1; nbLoad().then(()=>nbRender()); } nbRefreshAll();
+  const box=$("nbBox"); if(!box) return; box.textContent=""; if(!nbRender._l){ nbRender._l=1; nbLoad().then(()=>nbRender()); catLoad().then(()=>nbRender()); } nbRefreshAll();
   const bar=el("div",{class:"nb-bar"}); const mk=el("button",{type:"button",class:"bc-more nb-new",text:"+ Criar build"}); mk.addEventListener("click",()=>nbForm());
   const imp=el("button",{type:"button",class:"bc-more",text:"Colar código"}); imp.addEventListener("click",()=>{ const t=prompt("Cole aqui o código da build:"); if(!t) return; try{ const b=JSON.parse(t); if(!b.w||!b.t) throw 0; b.id=b.id||nbId(b.t); const a=nbMine(); if(!a.some(x=>x.id===b.id)) a.unshift(b); nbSaveMine(a); nbRender(); }catch(e){ alert("Código inválido."); } });
   const sort=el("select",{"aria-label":"Ordem"}); [["votos","Mais votadas"],["novas","Mais novas"]].forEach(([v,t])=>sort.append(el("option",{value:v,text:t}))); sort.value=nbSort; sort.addEventListener("change",()=>{ nbSort=sort.value; nbRender(); });
@@ -89,7 +89,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
   const body=el("div",{class:"nb-form"}); host.append(body);
   const back=el("button",{type:"button",class:"bc-more nb-back",text:"← Voltar para as builds"}); back.addEventListener("click",()=>dlg.close());
   body.append(back,el("h3",{class:"orn",text:"Criar build"})); window.scrollTo({top:0,behavior:"smooth"});
-  if(!NB_CAT){ body.append(el("p",{class:"muted small",text:"Abrindo o catálogo de itens…"})); try{ NB_CAT=await need("catalog"); }catch(e){ body.textContent="Não consegui abrir o catálogo."; return; } body.lastChild.remove(); }
+  if(!NB_CAT){ body.append(el("p",{class:"muted small",text:"Abrindo o catálogo de itens…"})); try{ NB_CAT=await need("catalog"); await catLoad(); }catch(e){ body.textContent="Não consegui abrir o catálogo."; return; } body.lastChild.remove(); }
   let curPick=null; const SETS=[{sel:{},sk:{}},{sel:{},sk:{}}]; let cs=0, sel=SETS[0].sel; const fld=(lab,node)=>{ const l=el("label",{class:"nb-f"}); l.append(el("span",{text:lab}),node); return l; };
   const nome=el("input",{type:"text",maxlength:"80",placeholder:"Ex.: Lamina Aclarada para Fame Farm"}), au=el("input",{type:"text",maxlength:"40",placeholder:"Seu nome"}); try{ au.value=store.get("nbAuthor")||""; }catch(e){}
   /* conteúdo: várias opções; características: etiquetas que aparecem no cartão */
@@ -108,7 +108,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
     document.addEventListener("click",ev=>{ if(!box.isConnected||pn.hidden||box.contains(ev.target)) return; open(false); });
     box.addEventListener("keydown",ev=>{ if(ev.key==="Escape"&&!pn.hidden){ ev.stopPropagation(); open(false); tr.focus(); } });
     paint(); return {st,box}; };
-  const K=msel((GBC||[]).map(c=>[c.k,c.nome]).concat([["","Outro"]]),{ph:"Selecione um ou mais conteúdos…"}), T=msel(["PvE","PvP","Solo","Grupo","Fame Farm","Tank","Healer","DPS","Suporte","Mobilidade"].map(x=>[x,x]),{max:6,ph:"Selecione até 6 características…"});
+  const K=msel((GBC||[]).map(c=>[c.k,c.nome]).concat(Object.entries(CONT_EXTRA)).concat([["","Outro"]]),{ph:"Selecione um ou mais conteúdos…"}), T=msel(["PvE","PvP","Solo","Grupo","Fame Farm","Tank","Healer","DPS","Suporte","Mobilidade"].map(x=>[x,x]),{max:6,ph:"Selecione até 6 características…"});
   const ds=el("textarea",{rows:"3",maxlength:"400",placeholder:"Como jogar, rotação, observações…"});
   const g1=el("div",{class:"nb-g"}); g1.append(fld("Nome da build",nome),fld("Autor",au),); body.append(g1); { const l1=el("div",{class:"nb-f nb-wide"}); l1.append(el("span",{text:"Conteúdo (escolha um ou mais)"}),K.box); const l2=el("div",{class:"nb-f nb-wide"}); l2.append(el("span",{text:"Características (opcional, aparecem como etiquetas no cartão)"}),T.box); body.append(l1,l2); } body.append(fld("Descrição",ds));
   body.append(el("h4",{text:"Peças e habilidades"}),el("p",{class:"muted small",text:"Clique em uma casa para escolher a peça e as habilidades dela. Use Set 1 / Set 2 para montar uma alternativa (no Set 2 só a mão secundária muda)."}));
@@ -120,8 +120,8 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
   const POS={w:["Q","W","E","Passiva"]}; const posLab=(s,i)=>s==="w"?POS.w[i]:(i?"Passiva":"Habilidade");
   const is2h=()=>/^T\d+_2H_/.test(SETS[0].sel.w||"");   // a arma é sempre a do Set 1
   const drawSets=()=>{ setBar.textContent=""; SETS.forEach((st,i)=>{ const n=Object.keys(st.sel).length; const b=el("button",{type:"button","aria-pressed":String(cs===i),text:i?`Set 2 (outra secundária)${n?" · "+n:""}`:`Set 1 (recomendado)${n?" · "+n:""}`}); b.addEventListener("click",()=>{ cs=i; sel=SETS[i].sel; sk=SETS[i].sk; curPick=null; pick.textContent=""; draw(); drawSets(); }); setBar.append(b); });
-    if(cs===1) setBar.append(el("span",{class:"muted small nb-sethint",text:"No Set 2 todas as peças são iguais às do Set 1; só a mão secundária pode mudar."})); };
-  const draw=()=>{ grid.textContent=""; [null,"h","c","w","a","o","p","s","f"].forEach(s=>{ if(s==="o"&&is2h()){ const off=el("button",{type:"button",class:"kx-c nb-cell nb-off",disabled:true,title:"Arma de 2 mãos ocupa a secundária"}); off.append(el("span",{class:"nb-plus",text:"⛔"}),el("small",{text:"Arma de 2 mãos"})); grid.append(off); return; } if(s&&s!=="o"&&cs===1){ const w1=SETS[0].sel[s], lk=el("button",{type:"button",class:"kx-c nb-cell nb-lock",disabled:true,title:"Igual ao Set 1: no Set 2 só a mão secundária muda"});
+    if(cs===1) setBar.append(el("span",{class:"muted small nb-sethint",text:"No Set 2 as peças são iguais às do Set 1; só a mão secundária pode mudar (e a ferramenta, se a arma do Set 1 for de coleta)."})); };
+  const draw=()=>{ grid.textContent=""; [null,"h","c","w","a","o","p","s","f"].forEach(s=>{ if(s==="o"&&is2h()){ const off=el("button",{type:"button",class:"kx-c nb-cell nb-off",disabled:true,title:"Arma de 2 mãos ocupa a secundária"}); off.append(el("span",{class:"nb-plus",text:"⛔"}),el("small",{text:"Arma de 2 mãos"})); grid.append(off); return; } if(s&&s!=="o"&&cs===1&&!(s==="w"&&/_TOOL_/.test(SETS[0].sel.w||""))){ const w1=SETS[0].sel[s], lk=el("button",{type:"button",class:"kx-c nb-cell nb-lock",disabled:true,title:"Igual ao Set 1: no Set 2 só a mão secundária muda"});
       if(w1){ const im=fullImg(w1,"nico kx-big"); if(im) lk.append(im); const l=(SETS[0].sk[s]||[]).filter(Boolean); if(l.length){ const ov=el("div",{class:"kx-ov"+(s==="w"?" kx-left":"")}); l.forEach(v=>ov.append(spellImg(v,"kx-sm"))); lk.append(ov); } lk.append(el("span",{class:"nb-lk",text:"🔒 Igual ao Set 1"})); }
       else lk.append(el("span",{class:"nb-plus",text:"🔒"}),el("small",{text:"Defina no Set 1"}));
       grid.append(lk); return; }
@@ -130,7 +130,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
       if(sel[s]){ const im=fullImg(sel[s],"nico kx-big"); if(im) cell.append(im); if(["w","h","a","s"].includes(s)&&spellOpts(s,sel[s]).some(x=>x.length)){ const n=s==="w"?4:2, ov=el("div",{class:"kx-ov"+(s==="w"?" kx-left":"")}); for(let i=0;i<n;i++){ const v=(sk[s]||[])[i]; if(v) ov.append(spellImg(v,"kx-sm")); else ov.append(el("span",{class:"nb-spph",text:"+",title:posLab(s,i)})); } cell.append(ov); } }
       else cell.append(el("span",{class:"nb-plus",text:"+"}),el("small",{text:lab}));
       if(sel[s]){ const x=el("span",{class:"nb-x",role:"button",tabindex:"0",title:"Remover "+lab.toLowerCase(),"aria-label":"Remover "+lab.toLowerCase(),text:"✕"});
-        const rm=ev=>{ ev.stopPropagation(); ev.preventDefault(); delete sel[s]; delete sk[s]; if(curPick&&curPick[0]===s){ curPick=null; pick.textContent=""; } draw(); };
+        const rm=ev=>{ ev.stopPropagation(); ev.preventDefault(); delete sel[s]; delete sk[s]; if(cs===0&&s==="w") delete SETS[1].sel.w; if(curPick&&curPick[0]===s){ curPick=null; pick.textContent=""; } draw(); };
         x.addEventListener("click",rm); x.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" ") rm(ev); }); cell.append(x); }
       cell.addEventListener("click",()=>openPick(s,lab)); grid.append(cell); }); drawSets(); drawEx(); };
   /* coleta e extras: ferramenta, set de coleta, bolsa e montaria (iguais nos dois sets; edite no Set 1) */
@@ -152,7 +152,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
           b.append(ic,tx); b.addEventListener("click",()=>{ sk[s]=sk[s]||[]; sk[s][i]=sk[s][i]===v?undefined:v; draw(); drawSk(); }); cards.append(b); });
         grp.append(cards); spk.append(grp); }); };
     drawSk();
-    const rows=NB_CAT.i.filter(r=>NB_FILTER[s](r)&&/^T\d_/.test(r[0])); const by=new Map(); for(const r of rows){ const c=r[0].replace(/^T\d+_/,""), key=(s==="p"||s==="f")?r[0]:c; if(!by.has(key)) by.set(key,{c,nome:LANG==="en"?r[6]:r[5],en:r[6],pt:r[5],tiers:new Set(),ench:0,sub:r[1]==="gathering"?"gather":r[2],mat:(/^(cloth|leather|plate)_/.exec(r[2])||[])[1]||(r[1]==="gathering"?"gather":"")}); const o=by.get(key); o.tiers.add(r[3]); if(r[4]&&!/consumables/.test(r[1])) o.ench=1; }
+    const rows=NB_CAT.i.filter(r=>NB_FILTER[s](r)&&/^T\d_/.test(r[0])&&(!(s==="w"&&cs===1)||r[1]==="gathering")); const by=new Map(); for(const r of rows){ const c=r[0].replace(/^T\d+_/,""), key=(s==="p"||s==="f")?r[0]:c; if(!by.has(key)) by.set(key,{c,nome:LANG==="en"?r[6]:r[5],en:r[6],pt:r[5],tiers:new Set(),ench:0,sub:r[1]==="gathering"?"gather":r[2],mat:(/^(cloth|leather|plate)_/.exec(r[2])||[])[1]||(r[1]==="gathering"?"gather":"")}); const o=by.get(key); o.tiers.add(r[3]); if(r[4]&&!/consumables/.test(r[1])) o.ench=1; }
     const list=[...by.values()].filter(o=>o.pt&&o.en).sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
     let mat=""; const matBar=el("div",{class:"seg nb-mat",role:"group","aria-label":"Material"});
     const drawMat=()=>{ matBar.textContent=""; [["","Todos"],["cloth","Tecido"],["leather","Couro"],["plate","Placa"],["gather","Coleta"]].forEach(([k,t2])=>{ const b2=el("button",{type:"button","aria-pressed":String(mat===k),text:t2}); b2.addEventListener("click",()=>{ mat=k; drawMat(); show(); }); matBar.append(b2); }); };
@@ -164,7 +164,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
       cnt.textContent=`${out.length} ${out.length===1?"item":"itens"}`;
       if(!out.length) res.append(el("p",{class:"muted small",text:"Nada encontrado neste tier. Troque o tier ou o filtro."}));
       out.forEach(o=>{ const b=el("button",{type:"button",class:"nb-it"}); const tt=Math.max(...[...o.tiers].filter(n=>n<=+t.value),...[...o.tiers].slice(0,1)); b.append(fullImg(`T${tt}_${o.c}`,"nico nb-ri")||"",el("span",{text:o.nome}));
-        b.addEventListener("click",()=>{ const ts=[...o.tiers].sort((a,b)=>a-b); const tier=ts.includes(+t.value)?+t.value:ts[ts.length-1]; const en=o.ench?+e.value:0; const nid=`T${tier}_${o.c}${en?"@"+en:""}`; if(!sel[s]||code(sel[s])!==o.c) delete sk[s]; sel[s]=nid; if(s==="w"&&/^T\d+_2H_/.test(nid)){ SETS.forEach(st=>{ delete st.sel.o; delete st.sk.o; }); } draw(); drawSk(); head.querySelector("b").textContent=lab; }); res.append(b); }); };
+        b.addEventListener("click",()=>{ const ts=[...o.tiers].sort((a,b)=>a-b); const tier=ts.includes(+t.value)?+t.value:ts[ts.length-1]; const en=o.ench?+e.value:0; const nid=`T${tier}_${o.c}${en?"@"+en:""}`; if(!sel[s]||code(sel[s])!==o.c) delete sk[s]; sel[s]=nid; if(cs===0&&s==="w"&&!/_TOOL_/.test(nid)) delete SETS[1].sel.w; if(s==="w"&&/^T\d+_2H_/.test(nid)){ SETS.forEach(st=>{ delete st.sel.o; delete st.sk.o; }); } draw(); drawSk(); head.querySelector("b").textContent=lab; }); res.append(b); }); };
     [q,t,e].forEach(n=>n.addEventListener("input",show)); show(); q.focus({preventScroll:true}); };
   draw(); drawSets(); NB_REFRESH=()=>{ draw(); if(curPick) openPick(curPick[0],curPick[1]); };
   const err=el("p",{class:"nb-err small",hidden:true}), save=el("button",{type:"button",class:"bc-more nb-new",text:"Salvar build"});
@@ -172,7 +172,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
     const b={id:nbId(nome.value),t:nome.value.trim(),au:au.value.trim()||"Visitante",ks:[...K.st],k:[...K.st][0]||"",tg:[...T.st],desc:ds.value.trim(),data:new Date().toISOString().slice(0,10),votos:0};
     /* Set 1 = recomendado, Set 2 = alternativa (peças, e habilidades de arma/elmo/peito/botas) */
     const S1=SETS[0], S2=SETS[1], K2={};
-    for(const [x] of NB_SLOTS){ const ids=[S1.sel[x],S2.sel[x]].filter(Boolean); if(!ids.length) continue; if(x==="w"){ b.w=S1.sel.w; } else b[x]=ids; }
+    for(const [x] of NB_SLOTS){ const ids=[S1.sel[x],S2.sel[x]].filter(Boolean); if(!ids.length) continue; if(x==="w"){ b.w=S1.sel.w; if(S2.sel.w&&/_TOOL_/.test(S1.sel.w)) b.w2=S2.sel.w; } else b[x]=ids; }
     const skl=(st,x)=>{ const l=st.sk[x]||[], n=x==="w"?4:2; if(!st.sel[x]||!l.some(Boolean)) return null; const a=Array.from({length:n},(_,i)=>l[i]||"").filter(Boolean); return a; };
     for(const x of ["w","h","a","s"]){ if(x==="w"){ const a=skl(S1,"w"); if(a) K2.w=a;  } else { const a=[S1,S2].filter(st=>st.sel[x]).map(st=>skl(st,x)||[]); if(a.some(l=>l.length)) K2[x]=a; } }
     if(Object.keys(K2).length) b.sk=K2;
