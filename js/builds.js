@@ -125,7 +125,7 @@ function kbPanel(b){
   /* esquerda: habilidades e passivas, recomendado x alternativa */
   const L=el("section",{class:"kx-l"}); L.append(el("h4",{text:"Peças, habilidades e passivas"}));
   const hd=el("div",{class:"kx-cols kx-hd"}); hd.append(el("span",{class:"kx-rec",text:"★ Recomendado"}),el("span",{text:"Alternativa"})); L.append(hd);
-  const rows=[["w",[b.w],sk.w?[sk.w]:[]],["o",b.o,[]],["h",b.h,sk.h||[]],["a",b.a,sk.a||[]],["s",b.s,sk.s||[]],["c",b.c,[]],["p",b.p,[]],["f",b.f,[]]];
+  const rows=[["w",[b.w,b.w2].filter(Boolean),sk.w?[sk.w,sk.w2||[]]:[]],["o",b.o,[]],["h",b.h,sk.h||[]],["a",b.a,sk.a||[]],["s",b.s,sk.s||[]],["c",b.c,[]],["p",b.p,[]],["f",b.f,[]]];
   rows.forEach(([k,ids,skl])=>{ if(!ids||!ids.length||!ids[0]) return; const r=el("div",{class:"kx-cols"});
     r.append(kxItem(ids[0],skl[0])); r.append(ids[1]?kxItem(ids[1],skl[1]):el("div")); L.append(r); });
   box.append(L);

@@ -38,6 +38,7 @@ function bcSlotsFor(value){
   const slots={}; const add=(slot,key,label)=>{ (slots[slot]||(slots[slot]=[])); if(key&&!slots[slot].some(x=>x.key===key)) slots[slot].push({key,label}); };
   if(value.startsWith("g:")||value.startsWith("n:")){ const b=(value[0]==="n"?(window.NB_ALL||[]):(BC_GB.builds||[])).find(x=>x.id===value.slice(2)); if(!b) return null;
     add("w",bcCode(b.w),codeName(bcCode(b.w)));
+    if(b.w2) add("w",bcCode(b.w2),codeName(bcCode(b.w2)));
     for(const sl of ["h","a","s","c","o"]) for(const id of b[sl]||[]){ const c=bcCode(id); add(sl,c,codeName(c)); }
     for(const sl of ["p","f"]) for(const id of b[sl]||[]){ const k=String(id).replace(/@\d$/,""); add(sl,k,KB_CONS_PT[bcCode(k)]||codeName(bcCode(k))); }
     if(slots.w&&/^2H_/.test(slots.w[0].key)) delete slots.o;
