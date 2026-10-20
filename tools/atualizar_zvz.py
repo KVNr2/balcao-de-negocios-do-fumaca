@@ -103,7 +103,7 @@ def main():
     if not ids: ids = re.findall(r"/battles/(\d+)", html)
     ids = list(dict.fromkeys(ids))[:MAX_BATALHAS]
     print("batalhas na lista:", len(ids), "html", len(html))
-    if not ids: print("::error::lista vazia; trecho:", html[:300].replace("\n"," ")); sys.exit(1)
+    if not ids: print("::error::lista vazia; tam", len(html), "nuxt", bool(m), "albionId", html.count("albionId"), "battles", html.count("/battles/"), "fim:", html[-300:].replace("\n"," ")); sys.exit(1)
     with ThreadPoolExecutor(5) as ex: bats = [b for b in ex.map(batalha, ids) if b]
     bats = [b for b in bats if len(b["jogadores"]) >= 100]
     print("batalhas lidas (100+):", len(bats))
