@@ -143,7 +143,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
     (["p","f"].includes(s)?[1,2,3,4,5,6,7,8]:[2,3,4,5,6,7,8]).forEach(n=>t.append(el("option",{value:n,text:"T"+n}))); t.value="8"; [0,1,2,3,4].forEach(n=>e.append(el("option",{value:n,text:n?"."+n:"sem encanto"})));
     const head=el("div",{class:"nb-ph"}); head.append(el("b",{text:lab}),q,t,e); if(sel[s]){ const cl=el("button",{type:"button",class:"bc-more",text:"Remover peça"}); cl.addEventListener("click",()=>{ delete sel[s]; delete sk[s]; pick.textContent=""; draw(); }); head.append(cl); }
     const ok=el("button",{type:"button",class:"bc-more",text:"Fechar"}); ok.addEventListener("click",()=>{ pick.textContent=""; }); head.append(ok); pick.append(head,res,spk);
-    const drawSk=()=>{ spk.textContent=""; if(!sel[s]||!["w","h","a","s"].includes(s)) return; const o=spellOpts(s,sel[s]); if(!o.some(x=>x.length)){ spk.append(el("p",{class:"muted small",text:"Não tenho a lista de habilidades desta peça."})); return; }
+    const drawSk=()=>{ spk.textContent=""; if(!sel[s]||!["w","h","a","s"].includes(s)) return; const o=spellOpts(s,sel[s]); if(!o.some(x=>x.length)){ if(!/GATHERER|_TOOL_/.test(sel[s])) spk.append(el("p",{class:"muted small",text:"Não tenho a lista de habilidades desta peça."})); return; }
       spk.append(el("b",{class:"small",text:"Escolha as habilidades"}));
       o.forEach((list,i)=>{ if(!list.length) return; const grp=el("div",{class:"nb-skg"}); grp.append(el("h5",{class:"nb-skl",text:posLab(s,i)+(s==="w"&&i<3?" (habilidade "+(i+1)+")":"")}));
         const cards=el("div",{class:"nb-skc"}); list.forEach(v=>{ const inf=(SKD.s||{})[v]||[]; const nome=spellName(v), desc=spellDesc(v);
