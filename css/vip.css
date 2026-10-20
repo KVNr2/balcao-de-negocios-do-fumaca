@@ -161,3 +161,11 @@ details.spg summary .nico{width:80px;height:80px;border-radius:14px}
 img.ico{width:56px;height:56px}
 .chip img.ico{width:40px;height:40px;border-radius:9px}
 td.itemcell img.ico{width:60px;height:60px}
+
+.cell-ic{display:flex;align-items:center;gap:10px;min-width:0}
+.cell-tx{display:flex;flex-direction:column;min-width:0}
+img.ico.t{width:52px;height:52px}
+.ledger img.ico.t{width:44px;height:44px}
+td.num .cell-ic{justify-content:flex-end}
+#enTable td,#ckTable td{vertical-align:middle}
+#enTable td:nth-child(2) .cell-tx{white-space:nowrap}

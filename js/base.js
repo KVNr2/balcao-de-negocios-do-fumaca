@@ -194,9 +194,13 @@ function itemImg(code,tiers){ let t=tiers||[4,5,6,3,7,8,2,1], i=0; const im=el("
   const set=()=>{ im.src=ICON(`T${t[i]}_${code}`); };
   const fail=()=>{ if(++i<t.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } };
   im.onerror=fail; im._tier=n=>{ t=tierOrder(n); i=0; im.classList.remove("nico-off"); im.onerror=fail; set(); }; set(); return im; }
+/* item que representa a linha de maestria: o básico (SET1) quando existe, senão o primeiro da lista */
+const repKey = g => (g.it.find(x=>/_SET1$/.test(x[0]))||g.it[0])[0];
 const specCode = (g,key) => g.k.startsWith("a:") ? `${g.k.slice(2)}_SET${key}` : key;
 const ICON = id => `https://albionmarket.gg/icon/${encodeURIComponent(id)}/1/200`;
 const iconImg = (id,size=36) => { const i=el("img",{src:ICON(id),alt:"",loading:"lazy",decoding:"async",width:size,height:size}); i.className="ico"; i.referrerPolicy="no-referrer"; i.onerror=()=>{ i.style.visibility="hidden"; }; return i; };
+/* célula com o ícone do item (tier e encantamento já vão no código, ex.: T6_2H_BOW@2) ao lado do texto */
+const withIcon = (id,...nodes) => { const w=el("span",{class:"cell-ic"}); const im=iconImg(id); im.classList.add("t"); const t=el("span",{class:"cell-tx"}); t.append(...nodes); w.append(im,t); return w; };
 function bestCity(id, field, want, only){ const r=DATA.itens[id]; if(!r) return null; let b=null; for(const [c,v] of Object.entries(r)){ if(only&&c!==only) continue; const p=v[field]; if(!(p>0)) continue; if(!b||(want==="min"?p<b.p:p>b.p)) b={p,c,t:v[field+2]||snapTime()}; } return b; }
 const RED_CITIES = new Set(["Caerleon"]);
 const routeWarn = cs => cs.some(c=>RED_CITIES.has(c)) ? "passa por Caerleon, rota de zona vermelha" : (new Set(cs)).size>2 ? "rota com várias cidades, conte o frete e o tempo" : "";
@@ -515,10 +519,10 @@ function renderSpecs(){
       const mk=key=>{ const im=itemImg(specCode(g,key), combate?tierOrder(tierFromMastery(spMastery(g.k))):null); icons.push(im); return im; };
       const upd=()=>{ const base=spSummary(g); sumS.textContent=base+(combate&&base!=="sem spec"?` · usa até T${tierFromMastery(spMastery(g.k))}`:""); sumS.classList.toggle("on",base!=="sem spec");
         if(combate){ const t=tierFromMastery(spMastery(g.k)); icons.forEach(im=>im._tier(t)); } };
-      sm.prepend(mk(g.it[0][0]));
+      sm.prepend(mk(repKey(g)));
       let built=false;
       d.addEventListener("toggle",()=>{ if(!d.open||built) return; built=true;
-        body.append(tagIn("Maestria",numIn(spMastery(g.k),g.mmax,`Maestria de ${g.nome}`,x=>{ spSetMastery(g.k,x); saveProfile(); upd(); },"—"),mk(g.it[0][0])));
+        body.append(tagIn("Maestria",numIn(spMastery(g.k),g.mmax,`Maestria de ${g.nome}`,x=>{ spSetMastery(g.k,x); saveProfile(); upd(); },"—"),mk(repKey(g))));
         for(const [key,pt,en] of g.it){ const label=LANG==="en"?en:pt;
           body.append(tagIn(label,numIn(+(spGet(g.k).s||{})[key]||0,g.max,`${g.nome}: ${label}`,x=>{ const st=spEnsure(g.k); st.s=st.s||{}; if(x) st.s[key]=x; else delete st.s[key]; saveProfile(); upd(); },"—"),mk(key))); }
         if(g.k.startsWith("a:")){ const kk=g.k.slice(2); body.append(tagIn("Foco T6.0 no jogo",numIn((PF.craft[kk]||{}).obs||0,99999,`Custo de foco no jogo para ${g.nome} T6.0`,x=>{ spEnsure(g.k).obs=x; saveProfile(); upd(); },"—"))); }
@@ -531,7 +535,7 @@ function renderCookProfile(){ const c=$("pfCook"); c.textContent="";
     const save=()=>{ saveProfile(); renderCookProfile(); };
     const ins=[tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${n}`,x=>{ cur.m=x; save(); }))];
     const types=cookTypes(kind);
-    for(const [tp,label] of Object.entries(types)) ins.push(tagIn(label,numIn(cur.s[tp]??cur.all??0,100,`${n}: ${label}`,x=>{ cur.s[tp]=x; save(); })));
+    for(const [tp,label] of Object.entries(types)) ins.push(tagIn(label,numIn(cur.s[tp]??cur.all??0,100,`${n}: ${label}`,x=>{ cur.s[tp]=x; save(); }),itemImg((kind==="f"?"MEAL_":"POTION_")+tp,[5,4,6,3,7,8])));
     c.append(lvRow(n,ins,"",itemImg(kind==="f"?"MEAL_STEW":"POTION_HEAL"))); } }
 function renderWho(){ $("who").textContent = IS_EXAMPLE ? "Ficha de exemplo: Oleran" : (PF.nome ? `Ficha: ${PF.nome}` : "Ficha sem nome"); $("exampleBanner").hidden=!IS_EXAMPLE; }
 $("pfName").addEventListener("change",()=>{ PF.nome=$("pfName").value.trim().slice(0,40); saveProfile(); });
@@ -625,7 +629,7 @@ async function renderCook(){
   const rows=Object.keys(COOK.r).filter(id=>COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id))).map(cookModel).filter(Boolean)
     .sort((a,b)=>((b.p1??-1e12)-(a.p1??-1e12)));
   for(const m of rows){ const tr=body.insertRow(); tr.tabIndex=0; tr.className="clickrow";
-    const a=tr.insertCell(); a.append(m.name); if(BUILD_FOOD.includes(m.id)) a.append(" ",el("span",{class:"spec",text:"build"}));
+    const a=tr.insertCell(); const an=el("span"); an.append(m.name); if(BUILD_FOOD.includes(m.id)) an.append(" ",el("span",{class:"spec",text:"build"})); a.append(withIcon(m.id,an));
     tr.insertCell().textContent=`${m.q} ${m.kind==="f"?(m.q>1?"porções":"porção"):(m.q>1?"poções":"poção")}`;
     if(m.miss){ const td=tr.insertCell(); td.colSpan=3; td.className="muted"; td.textContent=`Sem preço: ${m.miss}`; tr.insertCell(); continue; }
     const c=tr.insertCell(); c.className="num "+(m.p1>=0?"gain":"loss"); c.textContent=sgn(m.p1);
@@ -641,7 +645,7 @@ function renderCookDetail(){
   const m=cookModel(ckSel); const box=$("ckDetail"); if(!m||m.miss){ box.hidden=true; return; } box.hidden=false;
   $("ckTitle").textContent=`${m.name} em ${COOK_CITY[m.kind]}`;
   const L=$("ckLedger"); L.textContent="";
-  for(const x of m.parts){ const tr=L.insertRow(); const td=tr.insertCell(); td.append(COOK.n[x.iid]||x.iid,el("small",{text:`${x.c} × ${fmt(x.p.p)}`})); tr.insertCell().textContent=sgn(-x.c*x.p.p); }
+  for(const x of m.parts){ const tr=L.insertRow(); const td=tr.insertCell(); td.append(withIcon(x.iid,COOK.n[x.iid]||x.iid,el("small",{text:`${x.c} × ${fmt(x.p.p)}`}))); tr.insertCell().textContent=sgn(-x.c*x.p.p); }
   const rr=rrr(0.15,true,st.daily);
   [["Volta pelo retorno",`${dec(rr*100)}% dos ingredientes`,m.cost*rr],["Taxa da estação","estimada pela nutrição",-m.fee],["Venda",`${m.q} × ${fmt(m.item.p)} menos taxas`,m.net]].forEach(([a,b,c])=>{ const tr=L.insertRow(); const td=tr.insertCell(); td.append(a,el("small",{text:b})); tr.insertCell().textContent=sgn(c); });
   const tr=L.insertRow(); tr.className="total"; tr.insertCell().textContent="Lucro por fornada"; const tc=tr.insertCell(); tc.textContent=sgn(m.p1); tc.className=m.p1>=0?"gain":"loss";
