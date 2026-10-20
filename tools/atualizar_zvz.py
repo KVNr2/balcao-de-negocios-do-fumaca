@@ -8,8 +8,9 @@ from concurrent.futures import ThreadPoolExecutor
 from bs4 import BeautifulSoup
 
 BB = "https://albionbb.com"
+API = "https://api.albionbb.com/us"
 GI = "https://gameinfo.albiononline.com/api/gameinfo"
-UA = {"User-Agent": "Mozilla/5.0 (compatible; BalcaoFumaca-zvz/1.0; +https://kvnr2.github.io/balcao-de-negocios-do-fumaca/)", "Accept": "*/*"}
+UA = {"User-Agent": "Mozilla/5.0 (compatible; BalcaoFumaca-zvz/1.0; +https://kvnr2.github.io/balcao-de-negocios-do-fumaca/)", "Accept": "application/json,*/*", "Origin": "https://albionbb.com", "Referer": "https://albionbb.com/"}
 OUT = "data/zvz.json"
 MAX_BATALHAS = 30
 MAX_EVENTOS = 306          # por batalha (6 páginas de 51)
@@ -57,14 +58,9 @@ def achar_jogadores(o, d=0):
     return None
 
 def batalha(bid):
-    try: html = get(f"{BB}/battles/{bid}")
+    try: j = json.loads(get(f"{API}/battles/{bid}"))
     except Exception as e: print("::warning::batalha", bid, e); return None
-    m = re.search(r'<script[^>]*id="__NUXT_DATA__"[^>]*>(.*?)</script>', html, re.S)
-    if not m: return None
-    jog = achar_jogadores(devalue(json.loads(m.group(1))))
-    if not jog: return None
-    t = re.search(r"(\d{4}-\d\d-\d\dT[\d:.]+Z)", m.group(1))
-    return {"id": bid, "jogadores": jog, "hora": t.group(1) if t else ""}
+    return {"id": bid, "jogadores": j.get("players") or [], "hora": j.get("startedAt") or ""}
 
 def base(t):
     m = re.match(r"T(\d)_(.+?)(?:@(\d))?$", t or "")
@@ -86,24 +82,11 @@ def modal(c):
     return c.most_common(1)[0] if c else None
 
 def main():
-    html = get(f"{BB}/?minPlayers=100")
-    ids = []
-    m = re.search(r'<script[^>]*id="__NUXT_DATA__"[^>]*>(.*?)</script>', html, re.S)
-    if m:
-        def achar(o, d=0):
-            if d > 6: return
-            if isinstance(o, dict):
-                if "albionId" in o and "totalPlayers" in o:
-                    if (o["totalPlayers"] or 0) >= 100: ids.append(str(o["albionId"]))
-                    return
-                for x in o.values(): achar(x, d + 1)
-            elif isinstance(o, list):
-                for x in o: achar(x, d + 1)
-        achar(devalue(json.loads(m.group(1))))
-    if not ids: ids = re.findall(r"/battles/(\d+)", html)
-    ids = list(dict.fromkeys(ids))[:MAX_BATALHAS]
-    print("batalhas na lista:", len(ids), "html", len(html))
-    if not ids: print("::error::lista vazia; tam", len(html), "nuxt", bool(m), "albionId", html.count("albionId"), "battles", html.count("/battles/"), "fim:", html[-300:].replace("\n"," ")); sys.exit(1)
+    try: lista = json.loads(get(f"{API}/battles?minPlayers=100"))
+    except Exception as e: print("::error::lista falhou", e); sys.exit(1)
+    ids = [str(x["albionId"]) for x in lista if (x.get("totalPlayers") or 0) >= 100][:MAX_BATALHAS]
+    print("batalhas na lista:", len(ids))
+    if not ids: print("::error::lista vazia"); sys.exit(1)
     with ThreadPoolExecutor(5) as ex: bats = [b for b in ex.map(batalha, ids) if b]
     bats = [b for b in bats if len(b["jogadores"]) >= 100]
     print("batalhas lidas (100+):", len(bats))
