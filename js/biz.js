@@ -226,16 +226,23 @@ async function renderMU(){
   box.textContent="";
   for(const m of MU){ if(q&&!(m.w+" "+(LINE_NAME[m.l]||"")).toLowerCase().includes(q)) continue;
     const good=mine.filter(k=>LINE_RX[k]&&LINE_RX[k].test([].concat(m.forte_contra||[]).join(" ")));
-    const card=el("article",{class:"mu"+(hi&&good.length?" mine":"")});
-    const hd=el("div",{class:"mu-hd"}); const wi=m.code?zimg(m.code,8,0,"mu-wi"):null; if(wi){ wi.alt=nm(m.w); wi.title=nm(m.w); hd.append(wi); }
-    hd.append(el("h3",{},document.createTextNode(nm(m.w)),el("small",{text:LINE_NAME[m.l]||""})));
-    if(m.sp&&m.sp.length){ const sk=el("div",{class:"mu-sks",title:"Habilidades mais usadas nas builds com esta arma"}); m.sp.forEach((id,i)=>{ const b=el("span",{class:"mu-sk"+(i===3?" pas":"")}); b.append(spellImg(id,"mu-sp"),el("i",{text:["Q","W","E","P"][i]||""})); sk.append(b); }); hd.append(sk); }
-    card.append(hd);
+    const card=el("article",{class:"mu mu-c"+(hi&&good.length?" mine":""),tabIndex:0,role:"button","aria-label":`Abrir a ficha de ${nm(m.w)}`});
+    const head=()=>{ const hd=el("div",{class:"mu-hd"}); const wi=m.code?zimg(m.code,8,0,"mu-wi"):null; if(wi){ wi.alt=nm(m.w); wi.title=nm(m.w); hd.append(wi); }
+      hd.append(el("h3",{},document.createTextNode(nm(m.w)),el("small",{text:LINE_NAME[m.l]||""})));
+      if(m.sp&&m.sp.length){ const sk=el("div",{class:"mu-sks",title:"Habilidades mais usadas nas builds com esta arma"}); m.sp.forEach((id,i)=>{ const b=el("span",{class:"mu-sk"+(i===3?" pas":"")}); b.append(spellImg(id,"mu-sp"),el("i",{text:["Q","W","E","P"][i]||""})); sk.append(b); }); hd.append(sk); }
+      return hd; };
+    card.append(head());
     const dl=el("dl"); const row=(t,d,cls)=>{ if(!d) return; dl.append(el("dt",{text:t}),el("dd",{class:cls||"",text:d})); };
     row("O perigo",m.ameaca,"threat"); row("Costuma vir com",m.outras); row("Quando entrar",m.janela); row("Guarde",m.guardar); row("Erro comum",m.erro); row("Quem lida bem",[].concat(m.forte_contra||[]).join("; ")); if(m.patch) row("Patch",m.patch);
-    card.append(dl);
+    const resumo=el("p",{class:"mu-sum"}); resumo.append(el("b",{text:"O perigo: "}),m.ameaca||""); card.append(resumo);
+    if(m.janela){ const w=el("p",{class:"mu-win"}); w.append(el("b",{text:"Quando entrar: "}),m.janela); card.append(w); }
     if(hi&&good.length) card.append(el("p",{class:"small",text:`Suas linhas citadas: ${good.map(k=>LINE_NAME[k]).join(", ")}.`}));
-    const src=el("p",{class:"src"}); const fs=[].concat(m.fonte||[]); if(fs.length){ src.append("Fonte: "); fs.slice(0,2).forEach((u,i)=>{ if(i) src.append(", "); let h=u; try{ h=new URL(u).hostname.replace(/^www\./,""); }catch(e){} src.append(el("a",{href:u,target:"_blank",rel:"noopener",text:h})); }); card.append(src); }
+    card.append(el("span",{class:"mu-more",text:"Ver a ficha completa ›"}));
+    const open=()=>{ const dlg=$("muDlg"), body=$("muBody"); body.textContent=""; body.append(head(),dl);
+      if(hi&&good.length) body.append(el("p",{class:"small",text:`Suas linhas citadas: ${good.map(k=>LINE_NAME[k]).join(", ")}.`}));
+      const src=el("p",{class:"src"}); const fs=[].concat(m.fonte||[]); if(fs.length){ src.append("Fonte: "); fs.slice(0,2).forEach((u,i)=>{ if(i) src.append(", "); let h=u; try{ h=new URL(u).hostname.replace(/^www\./,""); }catch(e){} src.append(el("a",{href:u,target:"_blank",rel:"noopener",text:h})); }); body.append(src); }
+      if(dlg.showModal&&!dlg.open) dlg.showModal(); else dlg.setAttribute("open",""); };
+    card.addEventListener("click",ev=>{ if(ev.target.closest("a")) return; open(); }); card.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); open(); } });
     box.append(card); }
   if(!box.children.length) box.textContent="Nenhuma ficha com esse nome.";
   tiltCards();

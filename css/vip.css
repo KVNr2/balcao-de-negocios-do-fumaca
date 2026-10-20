@@ -763,3 +763,73 @@ dialog.dlg2{width:min(1180px,96vw);padding:0;background:var(--night-2);border:1p
 .bm2t td.cost{color:#fff;font:700 18px var(--f-body)}   /* custo encantando na lista: branco (é o valor da peça depois de encantar); no detalhe os custos ficam em vermelho */
 #enTable td.bm-profit{font:700 22px var(--f-body)}
 #enTable td.bm-profit.gain{color:#52d38a}#enTable td.bm-profit.loss{color:#ef6a62}
+
+/* ===== Matchups: cartões compactos, ficha completa ao clicar ===== */
+.mu-c{cursor:pointer;transition:transform .15s,border-color .15s;min-height:0}
+.mu-c:hover,.mu-c:focus-visible{transform:translateY(-2px);border-color:var(--saffron);outline:0}
+.mu-sum,.mu-win{margin:0;font-size:14.5px;line-height:1.45;color:var(--parch);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}
+.mu-win{-webkit-line-clamp:3;color:var(--parch-2)}
+.mu-sum b{color:var(--saffron)} .mu-win b{color:var(--brass)}
+.mu-more{margin-top:auto;font:700 13px var(--f-body);color:var(--saffron);letter-spacing:.04em}
+dialog.mu-dlg{width:min(760px,96vw)}
+.mu-body{padding:26px 28px 24px;display:flex;flex-direction:column;gap:12px}
+.mu-body dl{margin:0;display:grid;gap:14px}
+.mu-body dt{font:700 12.5px var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--brass);padding-left:10px;border-left:3px solid var(--saffron)}
+.mu-body dd{margin:4px 0 0;font-size:16px;line-height:1.5}
+.mu-body dd.threat{color:#f1a39d;background:rgba(217,83,79,.08);border:1px solid rgba(217,83,79,.35);border-radius:10px;padding:10px 12px}
+.mu-body .src{font-size:12.5px;color:var(--smoke)}
+
+/* ===== Onde está a prata: linhas por risco ===== */
+.chart .rows .row{border:1px solid var(--line-soft);border-left-width:4px;border-radius:12px;margin-bottom:8px;padding:8px 12px;background:rgba(255,255,255,.02);transition:background .15s}
+.chart .rows .row:hover{background:rgba(255,255,255,.05)}
+.chart .row.r-l{border-left-color:#52d38a;background:rgba(36,120,70,.12)}
+.chart .row.r-m{border-left-color:#e6b44c;background:rgba(200,150,40,.10)}
+.chart .row.r-h{border-left-color:#ef6a62;background:rgba(217,83,79,.10)}
+.chart .row.r-l .bar{background:linear-gradient(90deg,#2f9d63,#52d38a)}
+.chart .row.r-m .bar{background:linear-gradient(90deg,#c9962f,#f0c25a)}
+.chart .row.r-h .bar{background:linear-gradient(90deg,#b8443f,#ef6a62)}
+.chart .row .lbl{font-weight:700;font-size:17px}
+.chart .row .val{font:700 20px var(--f-body)}
+.rk-chip{display:inline-block;padding:1px 9px;border-radius:999px;font:700 11.5px var(--f-body)!important;letter-spacing:.04em;text-transform:uppercase;margin-right:6px}
+.rk-chip::before{display:none!important}
+.rk-chip.l{background:rgba(82,211,138,.16);color:#52d38a}.rk-chip.m{background:rgba(240,194,90,.16);color:#f0c25a}.rk-chip.h{background:rgba(239,106,98,.16);color:#ef6a62}
+
+/* ===== Refino: melhores combinações ===== */
+.heat-top{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:6px 0 14px}
+.heat-top .ht-l{flex:0 0 100%;font:700 12px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--parch-2);padding-left:10px;border-left:3px solid var(--saffron)}
+.ht-chip{display:flex;flex-direction:column;gap:2px;align-items:flex-start;min-width:150px;padding:10px 14px;border-radius:12px;border:1px solid var(--line-soft);background:var(--cloth);color:var(--parch);cursor:pointer;text-align:left;font-family:var(--f-body)}
+.ht-chip b{font-size:13px;color:var(--parch-2)}.ht-chip span{font:700 22px var(--f-body)}.ht-chip small{font-size:12px;color:var(--smoke)}
+.ht-chip.gain{background:rgba(36,120,70,.16);border-color:rgba(82,211,138,.45)}.ht-chip.gain span{color:#52d38a}
+.ht-chip.loss{background:rgba(217,83,79,.10);border-color:rgba(217,83,79,.4)}.ht-chip.loss span{color:#ef6a62}
+.ht-chip.flat span{color:#f0c25a}
+.ht-chip:hover{transform:translateY(-2px)}
+
+/* ===== Patch: linhas no padrão da lista ===== */
+.patchl .bm2t td:first-child{font-weight:700;white-space:nowrap;width:1%}
+.patchl .bm2t td{white-space:normal;font-size:15.5px;line-height:1.5}
+.patchl .bm2t tr.is-gain td:first-child{color:#52d38a}.patchl .bm2t tr.is-loss td:first-child{color:#ef6a62}.patchl .bm2t tr.is-warn td:first-child{color:#f0c25a}
+
+/* ===== Fontes: cartões que parecem links ===== */
+.links a{position:relative;transition:transform .15s,border-color .15s}
+.links a:hover,.links a:focus-visible{transform:translateY(-2px);border-color:var(--saffron)}
+.links a::after{content:"↗";position:absolute;top:12px;right:14px;font:700 16px var(--f-body);color:var(--saffron)}
+
+/* ===== Custo da build: tabela mais larga, preços em vermelho (é custo), total em destaque ===== */
+#p-custo .cols{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
+#bcTable td.num{color:#ef6a62;font:700 18px var(--f-body)}
+#bcTable tr.total td{font-weight:700}
+#bcTable tr.total td.num{font-size:24px;color:#fff}
+#bcTable td{white-space:normal}
+.chart .row,.chart .axis{grid-template-columns:minmax(200px,290px) minmax(0,1fr) 150px}
+.chart .axis{padding:0 16px}
+.chart .row .val{white-space:nowrap;text-align:right}
+@media (max-width:620px){.chart .row,.chart .axis{grid-template-columns:minmax(0,1fr) 120px}}
+/* patch: tabela de largura fixa, texto quebra linha */
+.patchl .tbl{overflow:visible}
+.patchl .bm2t{table-layout:fixed;width:100%}
+.patchl .bm2t th:first-child,.patchl .bm2t td:first-child{width:150px}
+.patchl .bm2t td{overflow-wrap:anywhere}
+.patchl .bm2t{width:100%!important;min-width:0!important}
+.patchl .bm2t td{white-space:normal!important}
+.patchl .bm2t thead th{text-align:left!important}
+.patchl .bm2t tbody tr.bm-row td.num{text-align:left}

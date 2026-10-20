@@ -52,3 +52,6 @@ stallIntro();
 })();
 
 
+
+$("muClose").addEventListener("click",()=>{ const d=$("muDlg"); if(d.close) d.close(); else d.removeAttribute("open"); });
+$("muDlg").addEventListener("click",ev=>{ if(ev.target===$("muDlg")) $("muClose").click(); });
