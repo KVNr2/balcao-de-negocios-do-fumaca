@@ -104,23 +104,36 @@ function gbStrip(b){
 const KB_CONS_PT={POTION_ACID:"Poção Ácida",POTION_BERSERK:"Poção de Fúria",POTION_CLEANSE:"Poção de Purificação",POTION_CLEANSE2:"Poção de Purificação",POTION_COOLDOWN:"Poção de Recarga",POTION_ENERGY:"Poção de Energia",POTION_GATHER:"Poção de Coleta",POTION_HEAL:"Poção de Cura",POTION_LAVA:"Poção de Lava",POTION_MOB_RESET:"Poção de Reinício de Monstros",POTION_REVIVE:"Poção de Ressurreição",POTION_SLOWFIELD:"Poção Lentidão",POTION_STONESKIN:"Poção Pele de Pedra",POTION_TORNADO:"Poção Tornado",MEAL_OMELETTE:"Omelete",MEAL_OMELETTE_AVALON:"Omelete de Avalon",MEAL_OMELETTE_DRAGONAREA:"Omelete de Dragão",MEAL_OMELETTE_FISH:"Omelete de Peixe",MEAL_PIE:"Torta",MEAL_PIE_FISH:"Torta de Peixe",MEAL_ROAST:"Assado",MEAL_ROAST_FISH:"Assado de Peixe",MEAL_SANDWICH:"Sanduíche",MEAL_SANDWICH_AVALON:"Sanduíche de Avalon",MEAL_SANDWICH_FISH:"Sanduíche de Peixe",MEAL_SOUP:"Sopa",MEAL_STEW:"Ensopado",MEAL_STEW_AVALON:"Ensopado de Avalon",MEAL_STEW_FISH:"Ensopado de Peixe"};
 const itemNome = c => KB_CONS_PT[c]||codeName(c);
 function idInfo(id){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id||""); return m?{c:m[2],t:+m[1],e:+(m[3]||0)}:null; }
-function kbSlot(rotulo,ids){
-  const i=idInfo(ids[0]); if(!i) return null;
-  const box=el("div",{class:"kb-s"}); box.append(el("small",{class:"kb-l",text:rotulo}));
-  const im=fullImg(ids[0],"nico kb-i"); if(im) box.append(im);
-  box.append(el("b",{class:"kb-n",text:itemNome(i.c)}));
-  box.append(el("span",{class:"kb-t",text:`T${i.t}${i.e?"."+i.e:""}`}));
-  const alts=ids.slice(1).map(idInfo).filter(Boolean);
-  if(alts.length){ const a=el("div",{class:"kb-a"}); a.append(el("small",{class:"muted",text:"ou"})); alts.forEach(x=>{ const t=el("div",{class:"kb-alt"}); const g=fullImg(`T${x.t}_${x.c}${x.e?"@"+x.e:""}`,"nico kb-is"); if(g) t.append(g); t.append(el("span",{text:`${itemNome(x.c)} T${x.t}${x.e?"."+x.e:""}`})); a.append(t); }); box.append(a); }
-  return box;
+const SPELL = id => `https://render.albiononline.com/v1/spell/${id}.png`;
+function spellImg(id,cls){ const im=el("img",{class:cls||"kx-sp",alt:"",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer"; im.title=id.replace(/^PASSIVE_/,"").replace(/_/g," ").toLowerCase();
+  /* primeiro o arquivo local (icons/spells/ID.png, baixado pelo script), depois o render oficial do jogo */
+  const fontes=[`icons/spells/${id}.png`,SPELL(id)]; let i=0; im.onerror=()=>{ if(++i<fontes.length) im.src=fontes[i]; else im.remove(); }; im.src=fontes[0]; return im; }
+function kxItem(id,skills){
+  const i=idInfo(id); const row=el("div",{class:"kx-it"}); if(!i) return row;
+  const im=fullImg(id,"nico kx-i"); if(im) row.append(im);
+  const tx=el("div",{class:"kx-tx"}); tx.append(el("b",{text:itemNome(i.c)})); tx.append(el("small",{class:"kx-t",text:`T${i.t}${i.e?"."+i.e:""}`}));
+  if(skills&&skills.length){ const sp=el("div",{class:"kx-sps"}); skills.forEach(x=>sp.append(spellImg(x))); tx.append(sp); }
+  row.append(tx); return row;
 }
 function kbPanel(b){
-  const box=el("div",{class:"kb"});
-  const grid=el("div",{class:"kb-g"});
-  /* disposição do killboard do jogo: 3 colunas; linha 1 = (vazio) elmo capa; 2 = arma peito secundária; 3 = comida botas poção */
-  [null,["Elmo",b.h],["Capa",b.c],["Arma",[b.w]],["Peito",b.a],["Secundária",b.o],["Comida",b.f],["Botas",b.s],["Poção",b.p]].forEach(c=>{
-    const ids=c&&c[1]; const x=ids&&ids.length&&ids[0]?kbSlot(c[0],ids):null; grid.append(x||el("div",{class:"kb-s kb-vazio"})); });
-  box.append(grid); return box;
+  const sk=b.sk||{}; const box=el("div",{class:"kx"});
+  /* esquerda: habilidades e passivas, recomendado x alternativa */
+  const L=el("section",{class:"kx-l"}); L.append(el("h4",{text:"Peças, habilidades e passivas"}));
+  const hd=el("div",{class:"kx-cols kx-hd"}); hd.append(el("span",{class:"kx-rec",text:"★ Recomendado"}),el("span",{text:"Alternativa"})); L.append(hd);
+  const rows=[["w",[b.w],sk.w?[sk.w]:[]],["o",b.o,[]],["h",b.h,sk.h||[]],["a",b.a,sk.a||[]],["s",b.s,sk.s||[]],["c",b.c,[]],["p",b.p,[]],["f",b.f,[]]];
+  rows.forEach(([k,ids,skl])=>{ if(!ids||!ids.length||!ids[0]) return; const r=el("div",{class:"kx-cols"});
+    r.append(kxItem(ids[0],skl[0])); r.append(ids[1]?kxItem(ids[1],skl[1]):el("div")); L.append(r); });
+  box.append(L);
+  /* direita: visão geral no formato do killboard (3 colunas) */
+  const R=el("section",{class:"kx-r"}); R.append(el("h4",{text:"Visão geral"}));
+  const g=el("div",{class:"kx-g"});
+  [null,["h",b.h,sk.h&&sk.h[0]],["c",b.c],["w",[b.w],sk.w],["a",b.a,sk.a&&sk.a[0]],["o",b.o],["p",b.p],["s",b.s,sk.s&&sk.s[0]],["f",b.f]].forEach(c=>{
+    const cell=el("div",{class:"kx-c"+(c?"":" vazio")}); const ids=c&&c[1];
+    if(ids&&ids[0]){ const im=fullImg(ids[0],"nico kx-big"); if(im) cell.append(im);
+      const sl=c[2]; if(sl&&sl.length){ const sp=el("div",{class:"kx-ov"}); sl.forEach(x=>sp.append(spellImg(x,"kx-sm"))); cell.append(sp); } }
+    g.append(cell); });
+  R.append(g); box.append(R);
+  return box;
 }
 function buildCard(b){
   const open=bOpen===b.id; const wc=b.wc;
