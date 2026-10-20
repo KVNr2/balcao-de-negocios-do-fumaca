@@ -590,6 +590,7 @@ async function lerFichaDoAlbion(txt){ txt=decodeURIComponent(txt);
 async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.hash); if(!m) return; history.replaceState(null,"",location.pathname+location.search);
   let o=null; try{ o=await lerFichaDoAlbion(m[1]); if(typeof o!=="object"||!o||!o.armas) o=null; }catch(err){ o=null; }
   if(!o){ $("pfStatus").textContent="Não consegui ler a ficha vinda do Albion."; return; }
+  for(let i=0;!PF&&i<200;i++) await new Promise(r=>setTimeout(r,50)); if(!PF) return;
   { const mesclar=(a,b)=>{ if(b&&typeof b==="object"&&!Array.isArray(b)){ const r=Object.assign({},a&&typeof a==="object"?a:{}); for(const k in b) r[k]=mesclar(r[k],b[k]); return r; } return ((b===0||b==="")&&a)?a:b; };
     const nomeAntes=(!IS_EXAMPLE&&PF.nome)||""; PF=Object.assign(EMPTY(),mesclar(PF,migrate(o))); if(nomeAntes&&!(o.nome&&String(o.nome).trim())) PF.nome=nomeAntes; else if(o.nome) PF.nome=String(o.nome).trim().slice(0,40); saveProfile(); renderProfile(); renderWho(); $("pfStatus").textContent="Ficha do Albion aplicada (o que você já tinha preenchido foi mantido)."; } }
 /* Navegação interna: ao clicar em Sincronizar, esta mesma aba vai para a página de andamento do programa (127.0.0.1, só no seu PC)
