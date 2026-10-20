@@ -262,10 +262,10 @@ async function apiJSON(url,ttlMin=10){
 const CITIES=["Thetford","Fort Sterling","Martlock","Bridgewatch","Lymhurst"];
 const MAX_AGE_H=72;
 const fresh=d=>d&&!d.startsWith("0001")&&(Date.now()-Date.parse(d+"Z"))<MAX_AGE_H*3600e3;
-function baseIds(){ const ids=[]; for(const r of Object.values(RES)){ ids.push(`T3_${r.ref}`); for(let t=4;t<=8;t++) for(let e=0;e<=3;e++) for(const b of [r.raw,r.ref]) ids.push(`T${t}_${b}`+(e?`_LEVEL${e}@${e}`:"")); }
-  for(const b of ["WOOD","ROCK"]) for(let t=4;t<=8;t++) for(let e=0;e<=3;e++) ids.push(`T${t}_${b}`+(e?`_LEVEL${e}@${e}`:""));
+function baseIds(){ const ids=[]; for(const r of Object.values(RES)){ ids.push(`T3_${r.ref}`); for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) for(const b of [r.raw,r.ref]) ids.push(`T${t}_${b}`+(e?`_LEVEL${e}@${e}`:"")); }
+  for(const b of ["WOOD","ROCK"]) for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) ids.push(`T${t}_${b}`+(e?`_LEVEL${e}@${e}`:""));
   return ids.concat(FISH_IDS); }
-function familyIds(slot,mat){ const ids=[]; for(let s=1;s<=3;s++) for(let t=4;t<=8;t++) for(let e=0;e<=3;e++) ids.push(gearId(t,slot,mat,s,e)); return ids; }
+function familyIds(slot,mat){ const ids=[]; for(let s=1;s<=3;s++) for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) ids.push(gearId(t,slot,mat,s,e)); return ids; }
 async function fetchIds(ids, target, locs=CITIES){
   const loc=locs.join(",").replace(/ /g,"%20");
   for(let i=0;i<ids.length;i+=40){
@@ -311,11 +311,11 @@ function bindTip(node,get){ node.addEventListener("pointermove",ev=>{const l=get
 function heatColor(v,scale){ const r=v/scale; if(Math.abs(r)<0.04) return ["var(--h-neutral)",false]; if(r>0) return r<0.25?["var(--h-b1)",false]:r<0.55?["var(--h-b2)",false]:r<0.85?["var(--h-b3)",true]:["var(--h-b4)",true]; return r>-0.25?["var(--h-r1)",false]:r>-0.6?["var(--h-r2)",true]:["var(--h-r3)",true]; }
 function drawHeat(tbl, get, onPick, tipFor){
   tbl.textContent=""; const cells={}; let max=0;
-  for(let t=4;t<=8;t++) for(let e=0;e<=3;e++){ const m=get(t,e); cells[t+"."+e]=m; if(m) max=Math.max(max,Math.abs(m.p1)); }
-  const hr=tbl.createTHead().insertRow(); hr.append(el("th",{text:""})); [0,1,2,3].forEach(e=>hr.append(el("th",{text:`.${e}`,scope:"col"})));
+  for(let t=4;t<=8;t++) for(let e=0;e<=4;e++){ const m=get(t,e); cells[t+"."+e]=m; if(m) max=Math.max(max,Math.abs(m.p1)); }
+  const hr=tbl.createTHead().insertRow(); hr.append(el("th",{text:""})); [0,1,2,3,4].forEach(e=>hr.append(el("th",{text:`.${e}`,scope:"col"})));
   const tb=tbl.createTBody();
   for(let t=4;t<=8;t++){ const tr=tb.insertRow(); tr.append(el("th",{class:"rh",scope:"row",text:`T${t}`}));
-    for(let e=0;e<=3;e++){ const m=cells[t+"."+e], td=tr.insertCell(); td.tabIndex=0;
+    for(let e=0;e<=4;e++){ const m=cells[t+"."+e], td=tr.insertCell(); td.tabIndex=0;
       if(!m){ td.className="na"; td.textContent="sem preço"; bindTip(td,()=>[["",`T${t}.${e}: falta preço de algum insumo.`]]); continue; }
       const [bg,dark]=heatColor(m.p1,Math.max(max*0.6,1)); td.style.background=bg; td.style.color=dark?"#ffffff":"var(--ink)"; if(m.thin) td.classList.add("thin");
       td.append(sgn(m.p1), el("small",{text:`${dec(m.spf)} por foco`}));
@@ -385,9 +385,9 @@ function renderRoute(t,e,pNow){
 }
 
 /* ================= recommendations ================= */
-function bestRefining(){ const out=[]; for(const res in RES) for(let t=4;t<=8;t++) for(let e=0;e<=3;e++){ const m=model(res,t,e,{fee:500}); if(m&&!m.thin&&m.p1>0) out.push({res,t,e,m,day:m.p1*Math.floor(10000/m.fc)}); } return out.sort((a,b)=>b.day-a.day); }
+function bestRefining(){ const out=[]; for(const res in RES) for(let t=4;t<=8;t++) for(let e=0;e<=4;e++){ const m=model(res,t,e,{fee:500}); if(m&&!m.thin&&m.p1>0) out.push({res,t,e,m,day:m.p1*Math.floor(10000/m.fc)}); } return out.sort((a,b)=>b.day-a.day); }
 function bestCraft(){ const out=[]; for(const key in PF.craft){ if(!(PF.craft[key].lv>0)) continue; const [slot,mat]=key.split("_"); if(!loadedFam.has(key)) continue;
-  for(let s=1;s<=3;s++) for(let t=4;t<=8;t++) for(let e=0;e<=3;e++){ const m=craftModel(slot,mat,s,t,e); if(m&&!m.thin&&m.p1>0) out.push({slot,mat,s,t,e,m,day:m.p1*Math.floor(10000/m.fc)}); } } return out.sort((a,b)=>b.day-a.day); }
+  for(let s=1;s<=3;s++) for(let t=4;t<=8;t++) for(let e=0;e<=4;e++){ const m=craftModel(slot,mat,s,t,e); if(m&&!m.thin&&m.p1>0) out.push({slot,mat,s,t,e,m,day:m.p1*Math.floor(10000/m.fc)}); } } return out.sort((a,b)=>b.day-a.day); }
 function rankBuilds(c,onlyMine){
   const tierB={S:3,A:2}; return BUILDS.filter(b=>b.c===c&&(!onlyMine||wl(b.l)>=1))
     .sort((a,b)=>(wl(b.l)-wl(a.l))||((tierB[b.mc]||0)-(tierB[a.mc]||0))||(b.pop-a.pop)); }
@@ -413,7 +413,7 @@ function renderRecs(){
   const body=tb.createTBody(); let any=false;
   for(const [k,name,base,bio] of GATHER){ const g=PF.coleta[k]; if(!base||!g||!(g.tier>=4)) continue; any=true; const tr=body.insertRow();
     tr.insertCell().textContent=name; tr.insertCell().textContent=`T${g.tier}, nível ${g.n||0}`;
-    for(let e=0;e<=3;e++){ const td=tr.insertCell(); td.className="num"; if(!base){ td.textContent="—"; continue; } const p=typical(idOf(g.tier,base,e),0); td.textContent=p?fmt(p.p):"—"; }
+    for(let e=0;e<=4;e++){ const td=tr.insertCell(); td.className="num"; if(!base){ td.textContent="—"; continue; } const p=typical(idOf(g.tier,base,e),0); td.textContent=p?fmt(p.p):"—"; }
     tr.insertCell().textContent= base ? bio : "Peixe não está na API de preços desta página ainda"; }
   if(!any){ const tr=body.insertRow(); const td=tr.insertCell(); td.colSpan=7; td.textContent="Marque na sua ficha o tier de coleta de cada recurso."; }
   renderFish(); renderCookRecs(); renderGo();
@@ -778,7 +778,7 @@ function renderMaps(){
   opts.forEach(([k,n])=>{ const b=el("button",{type:"button",text:n,"aria-pressed":String(k===mapRes)}); b.addEventListener("click",()=>{ mapRes=k; renderMaps(); }); seg.append(b); });
   const gb=$("mapGather"); gb.textContent="";
   const base=GATHER_KEY[mapRes], bio=MAIN_BIOME[base], tier=Math.max(4,(PF.coleta[mapRes]||{}).tier||6);
-  const prices=[0,1,2,3].map(e=>typical(idOf(tier,base,e),0)).map(p=>p?fmt(p.p):"—");
+  const prices=[0,1,2,3,4].map(e=>typical(idOf(tier,base,e),0)).map(p=>p?fmt(p.p):"—");
   gb.append(el("p",{class:"small",text:`${opts.find(o=>o[0]===mapRes)[1]} é o recurso principal da ${BIOME_PT[bio]}. No seu tier (T${tier}), cada unidade vale ${prices.join(", ")} nos encantamentos .0 a .3.`}));
   const roy=ZONES.filter(z=>z.b===bio&&z.r==="ROY"&&z.t>=tier).sort((a,b)=>(b.res-a.res)||(a.t-b.t)).slice(0,3);
   const out=ZONES.filter(z=>z.b===bio&&z.r==="OUT"&&z.t>=tier).sort((a,b)=>((b.q||0)-(a.q||0))||(b.res-a.res)||(a.t-b.t)).slice(0,3);
