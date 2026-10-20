@@ -758,3 +758,8 @@ dialog.dlg2{width:min(1180px,96vw);padding:0;background:var(--night-2);border:1p
 .lst.bm2t td.num.gain,.lst.bm2t td.num.loss{font:700 19px var(--f-body)}
 .lst.bm2t td.num.gain{color:var(--c-gain)}.lst.bm2t td.num.loss{color:var(--c-loss)}
 .lst.bm2t tbody tr.bm-row td:first-child{min-width:0}
+
+/* custo em vermelho nas listas */
+.bm2t td.cost{color:#ef6a62;font-weight:700}
+#enTable td.bm-profit{font:700 22px var(--f-body)}
+#enTable td.bm-profit.gain{color:#52d38a}#enTable td.bm-profit.loss{color:#ef6a62}

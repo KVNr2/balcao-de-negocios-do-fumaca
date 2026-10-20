@@ -140,7 +140,30 @@ function enModel(key,t,e){
   if(!mat||!base) return {key,t,e,name:BM[key][0],miss:!mat?EN_MAT[e][1].toLowerCase():"peça de base"};
   const cost=base.p+n*mat.p;
   const alt=[ready&&{p:ready.p,how:`comprar em ${ready.c}`},crReady.cost!=null&&{p:crReady.cost,how:`fabricar em ${crReady.city}`}].filter(Boolean).sort((a,b)=>a.p-b.p)[0];
-  return {key,t,e,name:BM[key][0],n,mat,base,cost,alt,save:alt?alt.p-cost:null,bm:crReady.bm};
+  return {key,t,e,name:BM[key][0],n,mat,base,cost,alt,save:alt?alt.p-cost:null,bm:crReady.bm,crLow,crReady};
+}
+
+/* detalhe do passo de encantamento, no padrão do Mercado Negro: custos em vermelho, economia em verde */
+function enPanel(m){
+  const d=el("div",{class:"of-xp"}), left=el("div",{class:"of-xl"}), right=el("div",{class:"of-xs"});
+  const idLow=bmId(m.key,m.t,m.e-1), idUp=bmId(m.key,m.t,m.e), matId=`T${m.t}_${EN_MAT[m.e][0]}`, crafted=m.base.how.startsWith("fabricando"), cr=m.crLow;
+  left.append(el("h4",{class:"of-xh",text:`${nmKey(m.key,m.name)} T${m.t}: .${m.e-1} → .${m.e}`}));
+  const hd=el("div",{class:"of-xr of-xhd"}); ["Stats","Item","Valor","Tempo","Cidade","Qtd"].forEach(x=>hd.append(el("span",{text:x}))); left.append(hd);
+  const row=(kind,lab,id,nm,sub,val,qty,where)=>{ const r=el("div",{class:"of-xr "+kind}); r.append(el("span",{class:"of-pill "+kind,text:lab}));
+    const it=el("span",{class:"of-xi"}); it.append(el("i",{class:"of-dot"+(kind==="buy"?" red":"")}),iconImg(id,34)); const n=el("span",{class:"of-xn"}); n.append(el("b",{text:nm})); if(sub) n.append(el("small",{text:sub})); it.append(n); r.append(it);
+    r.append(el("b",{class:"of-xv",text:fmt(val)}),el("span",{class:"of-xt",text:"—"}),el("span",{class:"of-xc",text:where}),el("span",{class:"of-xq",text:qty})); return r; };
+  const nm=nmKey(m.key,m.name);
+  if(m.alt) left.append(row("sale","SEM ENCANTAR",idUp,`${nm} .${m.e}`,"o que custaria já encantado",m.alt.p,"1x",m.alt.how.replace(/^(comprar|fabricar) em /,"")));
+  if(!crafted){ const city=m.base.how.replace("comprando em ",""); left.append(row("buy","COMPRA INST",idLow,`${nm} .${m.e-1}`,"peça de base mais barata",m.base.p,"1x",city)); }
+  else for(const p of cr.parts) left.append(row("buy","COMPRA INST",(p.id||idLow).replace(/_LEVEL(\d)$/,"_LEVEL$1@$1"),p.nm,p.art?"artefato não volta":"para fabricar a peça de base",p.p,`${fmt(p.q)}x`,cr.city));
+  left.append(row("buy","COMPRA INST",matId,`${EN_MAT[m.e][1]} T${m.t}`,"mediana das cidades",m.mat.p,`${m.n}x`,"cidades"));
+  const card=(cls,title,lines,tot)=>{ const c=el("div",{class:"of-xcard "+cls}); c.append(el("h4",{class:"of-xh",text:title})); for(const [k,v,cc] of lines){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{class:cc||"",text:v})); c.append(l); } if(tot){ const l=el("div",{class:"of-xline of-xtot"}); l.append(el("span",{text:tot[0]}),el("b",{text:tot[1]})); c.append(l); } return c; };
+  const cl=[]; if(crafted){ cl.push([`Matérias da peça (${cr.city})`,fmt(cr.res)],[`Retorno de recursos (${Math.round(cr.rr*100)}%)`,"−"+fmt(cr.res*cr.rr)]); if(cr.art>0) cl.push(["Artefato",fmt(cr.art)]); cl.push(["Taxa da estação",fmt(cr.fee)]); cl.push([`Peça de base .${m.e-1}`,fmt(m.base.p)]); } else cl.push([`Peça de base .${m.e-1} (${m.base.how})`,fmt(m.base.p)]);
+  cl.push([`${EN_MAT[m.e][1]} (${m.n} × ${fmt(m.mat.p)})`,fmt(m.n*m.mat.p)]);
+  right.append(card("cost","Custos detalhados (−)",cl,["Custo encantando",fmt(m.cost)]));
+  const rl=[]; if(m.alt) rl.push([`Sem encantar (${m.alt.how})`,fmt(m.alt.p)]); rl.push(["Custo encantando","−"+fmt(m.cost),"loss"]);
+  right.append(card(m.save!=null&&m.save<0?"res neg":"res",m.save!=null&&m.save<0?"Resultado (−)":"Resultado (+)",rl,["Economia",m.save==null?"—":sgn(m.save)]));
+  d.append(left,right); return d;
 }
 function setupEN(){
   const sel=$("enGroup"); if(sel.options.length) return;
@@ -157,16 +180,18 @@ async function renderEN(){
   if(!EN_LOADED.has(g)){ tb.textContent=""; note.textContent="Consultando peças, runas, almas e relíquias…"; const ok=await ensureEnch(g); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("enGroup").value!==g) return; }
   const rows=[]; for(const k of bmKeys(g)) for(const tt of (t?[t]:[4,5,6,7,8])) for(const e of [1,2,3]){ const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); }
   rows.sort((a,b)=>((b.save??-1e15)-(a.save??-1e15)));
-  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Peça","Passo","Peça de base","Material","Custo encantando","Sem encantar","Economia"].forEach(h=>hr.append(el("th",{text:h})));
+  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Peça","Passo","Custo encantando","Economia"].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
-  for(const m of rows.slice(0,t?40:80)){ const tr=body.insertRow(); tr.insertCell().append(withIcon(bmId(m.key,m.t,m.e),`${nmKey(m.key,m.name)} T${m.t}`)); { const sc=tr.insertCell(); sc.append(withIcon(bmId(m.key,m.t,m.e-1),`.${m.e-1} → .${m.e}`)); }
-    const c1=tr.insertCell(); c1.className="num"; c1.append(fmt(m.base.p)," ",el("span",{class:"age",text:m.base.how}));
-    const c2=tr.insertCell(); c2.className="num"; c2.append(withIcon(`T${m.t}_${EN_MAT[m.e][0]}`,`${m.n} × ${fmt(m.mat.p)}`));
-    const c3=tr.insertCell(); c3.className="num"; c3.textContent=fmt(m.cost);
-    const c4=tr.insertCell(); c4.className="num"; if(m.alt){ c4.append(fmt(m.alt.p)," ",el("span",{class:"age",text:m.alt.how})); } else c4.textContent="—";
-    const c5=tr.insertCell(); c5.className="num "+(m.save==null?"":m.save>=0?"gain":"loss"); c5.textContent=m.save==null?"—":sgn(m.save); }
+  for(const m of rows.slice(0,t?40:80)){ const tr=body.insertRow(); tr.tabIndex=0; tr.className="clickrow"; tr.insertCell().append(withIcon(bmId(m.key,m.t,m.e),`${nmKey(m.key,m.name)} T${m.t}`)); { const sc=tr.insertCell(); sc.append(withIcon(bmId(m.key,m.t,m.e-1),`.${m.e-1} → .${m.e}`)); }
+    const c3=tr.insertCell(); c3.className="num cost"; c3.textContent=fmt(m.cost);
+    const c5=tr.insertCell(); c5.className="num bm-profit "+(m.save==null?"":m.save>=0?"gain":"loss"); c5.textContent=m.save==null?"—":sgn(m.save);
+    const dr=document.createElement("tr"); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dc.colSpan=4; dr.append(dc); tr.after(dr);
+    const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open));
+      if(open){ dc.textContent=""; try{ dc.append(enPanel(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes: "+(e&&e.message||e)})); } setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8) dr.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"}); }catch(e){} },60); } };
+    tr.setAttribute("aria-expanded","false"); tr.addEventListener("click",toggle); tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } }); }
+  { const w=tb.parentNode; if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }
   const pos=rows.filter(m=>m.save>0).length;
-  note.textContent=rows.length?`${pos} de ${rows.length} passos saem mais baratos encantando${t?` em T${t}`:" (todos os tiers)"}. ${rows.length>(t?40:80)?` Mostrando as ${t?40:80} de maior economia de ${fmt(rows.length)} registros: não são todos.`:""} Peça de base pela opção mais barata entre comprar e fabricar sem foco; o material pela mediana das cidades.`:`Sem preços suficientes${t?` em T${t}`:""} para comparar.`;
+  note.textContent=rows.length?`${pos} de ${rows.length} passos saem mais baratos encantando${t?` em T${t}`:" (todos os tiers)"}. ${rows.length>(t?40:80)?` Mostrando as ${t?40:80} de maior economia de ${fmt(rows.length)} registros: não são todos.`:""} Peça de base pela opção mais barata entre comprar e fabricar sem foco; o material pela mediana das cidades. Clique numa linha para ver a conta.`:`Sem preços suficientes${t?` em T${t}`:""} para comparar.`;
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
 }
 
