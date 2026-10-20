@@ -26,14 +26,21 @@ function applySort(tb){
   tb._sorting=false;
   [...tb.tHead.rows[0].cells].forEach((th,i)=>{ th.setAttribute("aria-sort", i===st.col ? (st.dir>0?"ascending":"descending") : "none"); });
 }
+/* ordem padrão: pela coluna de lucro, diferença ou economia, do maior para o menor (verde em cima) */
+const PROFIT_COL=/lucro|diferen[çc]a|economia|encher e vender/i;
+function autoSort(tb){
+  const cur=SORT[tb.id]; if(cur&&!cur.auto) return;
+  if(!tb.tHead||!tb.tHead.rows[0]) return; const col=[...tb.tHead.rows[0].cells].findIndex(th=>PROFIT_COL.test(th.textContent));
+  if(col<0){ delete SORT[tb.id]; return; } SORT[tb.id]={col,dir:-1,auto:true};
+}
 function makeSortable(tb){
   if(!tb.id||tb.classList.contains("heat")||tb.classList.contains("nosort")||tb._sortable) return; tb._sortable=true;
-  try{ const s=JSON.parse(store.get("sort:"+tb.id)||"null"); if(s) SORT[tb.id]=s; }catch(e){}
+  try{ store.set("sort:"+tb.id,""); }catch(e){}   // a ordem escolhida não fica salva: a lista sempre abre pelo maior lucro/diferença
   tb.addEventListener("click",ev=>{ const th=ev.target.closest("thead th"); if(!th||!th.textContent.trim()) return;
     const col=th.cellIndex, cur=SORT[tb.id]; const numeric=[...tb.rows].some(r=>r.parentNode.tagName==="TBODY"&&cellValue(r.cells[col]).n!=null);
-    SORT[tb.id]={col,dir: cur&&cur.col===col ? -cur.dir : (numeric?-1:1)}; store.set("sort:"+tb.id,JSON.stringify(SORT[tb.id])); applySort(tb); });
+    SORT[tb.id]={col,dir: cur&&!cur.auto&&cur.col===col ? -cur.dir : (numeric?-1:1)}; applySort(tb); });
   tb.addEventListener("keydown",ev=>{ if((ev.key==="Enter"||ev.key===" ")&&ev.target.matches("thead th")){ ev.preventDefault(); ev.target.click(); } });
-  new MutationObserver(()=>{ if(tb._sorting) return; if(tb.tHead) [...tb.tHead.rows[0].cells].forEach(th=>{ if(th.textContent.trim()){ th.tabIndex=0; th.classList.add("sortable"); } }); applySort(tb); }).observe(tb,{childList:true});
+  new MutationObserver(()=>{ if(tb._sorting) return; autoSort(tb); if(tb.tHead) [...tb.tHead.rows[0].cells].forEach(th=>{ if(th.textContent.trim()){ th.tabIndex=0; th.classList.add("sortable"); } }); applySort(tb); }).observe(tb,{childList:true});
 }
 document.querySelectorAll(".tbl table[id]").forEach(makeSortable);
 
