@@ -16,7 +16,9 @@ function zVariante(w,v,idx){
   const mk=(code,t,e,tt)=>{ const w_=el("div",{class:"zg",title:zNome(code)+(e?"."+e:"")}); w_.append(zimg(code,t,e,"nico zi")); w_.append(el("span",{class:"zg-t",text:`${t}.${e||0}`})); return w_; };
   row.append(mk(w,v.arma.t,v.arma.e));
   for(const [k] of ZSLOT){ if(v[k]) row.append(mk(v[k].c,v[k].t,v[k].e)); }
-  box.append(row,custoCtl(`z:${w}:${idx}`),el("p",{class:"muted small",text:`${v.n} ${v.n===1?"jogador usou":"jogadores usaram"} este conjunto de elmo, peito e botas ${v.ip?"· IP médio "+v.ip:""}`}));
+  const zid=x=>x?`T${x.t}_${x.c}${x.e?"@"+x.e:""}`:"";
+  const zb={t:zNome(w),w:`T${v.arma.t}_${w}${v.arma.e?"@"+v.arma.e:""}`,h:[zid(v.cabeca)],a:[zid(v.peito)],s:[zid(v.botas)],c:[zid(v.capa)],p:[zid(v.pocao)],f:[zid(v.comida)]};
+  box.append(row,albionBar(zb),custoCtl(`z:${w}:${idx}`),el("p",{class:"muted small",text:`${v.n} ${v.n===1?"jogador usou":"jogadores usaram"} este conjunto de elmo, peito e botas ${v.ip?"· IP médio "+v.ip:""}`}));
   return box;
 }
 function zCard(w,n,total,role){
