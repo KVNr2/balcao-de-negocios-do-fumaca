@@ -608,3 +608,16 @@ b.c,h4.c{color:#b784e8}
 .oflist .itemcell,.oflist .inm{text-align:left}.oflist .inm{align-items:flex-start}
 .of2-main .tbl{max-height:calc(100vh - 150px);overflow:auto}.of-lh{top:0}
 .mn-craft{white-space:nowrap;font:600 12px var(--f-body);padding:6px 12px;border-radius:8px;border:1px solid var(--saffron);background:transparent;color:var(--saffron);cursor:pointer}.mn-craft:hover{background:var(--saffron);color:#1a1208}
+/* matchups com ícones */
+.mu-hd{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center;margin-bottom:10px}
+.mu-hd h3{margin:0}
+.mu-wi{width:64px;height:64px;grid-row:span 2;border-radius:12px;background:var(--cloth);border:1px solid var(--line-soft);padding:2px}
+.mu-sks{display:flex;gap:8px;align-items:center}
+.mu-sk{position:relative;display:inline-flex}
+.mu-sp{width:38px;height:38px;border-radius:9px;background:var(--cloth);border:1px solid var(--line);display:block}
+.mu-sk.pas .mu-sp{border-radius:50%;border-color:var(--saffron)}
+.mu-sk i{position:absolute;right:-3px;bottom:-4px;font:700 10px var(--f-body);font-style:normal;background:#14110f;color:var(--parch);border:1px solid var(--line);border-radius:5px;padding:0 4px;line-height:14px}
+.mu-sk:not(:has(img)){display:none}
+.mu-sks{grid-column:1/-1;margin-top:6px}
+.mu-sks:not(:has(img)){display:none}
+.mu-hd h3{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
