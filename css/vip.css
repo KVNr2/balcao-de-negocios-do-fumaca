@@ -975,3 +975,4 @@ button.nb-skcard:hover{border-color:var(--saffron,#e8ab45)}
 button.nb-skcard.on{border-color:var(--gain,#5ec98c);background:rgba(94,201,140,.08)}
 .nb-skic img.kx-sm{display:block;width:52px;flex:none}
 .nb-sktx{display:flex;flex-direction:column;gap:3px;min-width:0}.nb-sktx b{font-size:13.5px}.nb-sktx small{font-size:12px;line-height:1.35;color:var(--parch-2,#cdbf9f);white-space:pre-line}
+.nb-mat{margin:4px 0 8px}
