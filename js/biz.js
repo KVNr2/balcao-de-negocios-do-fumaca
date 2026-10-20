@@ -195,8 +195,8 @@ async function renderWK(){
   tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Trabalhador","Diário vazio","Diário cheio",`Devolve (${Math.round(wkYield(wkTierSel)*100)}%)`,"Comprar cheio e entregar","Encher e vender","Enche com"].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody(), t=wkTierSel;
   for(const [ty,nm,how] of WK){ const m=wkModel(ty,t); if(!m) continue; const tr=body.insertRow();
-    tr.insertCell().textContent=`${nm} T${t}`;
-    for(const v of [m.empty&&m.empty.p,m.full&&m.full.p,m.yieldV]){ const c=tr.insertCell(); c.className="num"; c.textContent=v?fmt(v):"—"; }
+    tr.insertCell().append(withIcon(`T${t}_JOURNAL_${ty}_FULL`,`${nm} T${t}`));
+    [[m.empty&&m.empty.p,`T${t}_JOURNAL_${ty}_EMPTY`],[m.full&&m.full.p,`T${t}_JOURNAL_${ty}_FULL`],[m.yieldV,null]].forEach(([v,ic])=>{ const c=tr.insertCell(); c.className="num"; const tx=v?fmt(v):"—"; if(ic) c.append(withIcon(ic,tx)); else c.textContent=tx; });
     for(const v of [m.buyFull,m.fill]){ const c=tr.insertCell(); c.className="num "+(v==null?"":v>=0?"gain":"loss"); c.textContent=v==null?"—":sgn(v); }
     const c=tr.insertCell(); c.className="small muted"; c.textContent=`${fmt(m.fame)} de fama ${how}${m.thin?"; parte do saque sem preço":""}`; }
   renderWKMine();
