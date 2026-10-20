@@ -92,24 +92,29 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
   const tg=el("input",{type:"text",placeholder:"PvE, Solo, Fame Farm (separe por vírgula)"}), ds=el("textarea",{rows:"3",maxlength:"400",placeholder:"Como jogar, rotação, observações…"});
   const g1=el("div",{class:"nb-g"}); g1.append(fld("Nome da build",nome),fld("Autor",au),fld("Conteúdo",k),fld("Tags",tg)); body.append(g1,fld("Descrição",ds));
   body.append(el("h4",{text:"Peças e habilidades"}),el("p",{class:"muted small",text:"Clique em uma casa para escolher a peça e as habilidades dela."}));
-  let GBD=[]; try{ GBD=(await need("builds-grind")).builds||[]; }catch(e){}
+  let SKD={i:{},s:{}}; try{ SKD=await need("skills"); }catch(e){}
   const sk={}; const wrap=el("div",{class:"nb-vg"}); const grid=el("div",{class:"kx-g nb-kg"}); const pick=el("div",{class:"nb-pick"}); wrap.append(grid); body.append(wrap,pick);
   const code=id=>String(id||"").replace(/^T\d+_/,"").replace(/@\d$/,"");
-  /* habilidades já usadas por outras builds para o mesmo item: é de onde saem as opções */
-  const spellOpts=(s,id)=>{ const c=code(id), n=s==="w"?4:2, o=Array.from({length:n},()=>new Set());
-    for(const x of GBD){ const bs=x[s]; const it=s==="w"?x.w:(bs&&bs[0]); if(!it||code(it)!==c) continue; const l=s==="w"?(x.sk||{}).w:(((x.sk||{})[s]||[])[0]); (l||[]).slice(0,n).forEach((v,i)=>{ if(v) o[i].add(v); }); } return o.map(z=>[...z]); };
+  /* todas as habilidades que a peça realmente tem no jogo (data/skills.json, gerado do ao-bin-dumps) */
+  const spellOpts=(s,id)=>{ const o=(SKD.i||{})[code(id)]; return o||[]; };
   const POS={w:["Q","W","E","Passiva"]}; const posLab=(s,i)=>s==="w"?POS.w[i]:(i?"Passiva":"Habilidade");
   const draw=()=>{ grid.textContent=""; [null,"h","c","w","a","o","p","s","f"].forEach(s=>{ const cell=el("button",{type:"button",class:"kx-c nb-cell"+(s?"":" vazio")+(s&&!sel[s]?" nb-add":"")}); if(!s){ grid.append(cell); cell.disabled=true; return; }
       const lab=NB_SLOTS.find(x=>x[0]===s)[1]; cell.title=lab;
-      if(sel[s]){ const im=fullImg(sel[s],"nico kx-big"); if(im) cell.append(im); const l=(sk[s]||[]).filter(Boolean); if(l.length){ const ov=el("div",{class:"kx-ov"+(s==="w"&&l.length>=4?" kx-left":"")}); l.forEach(v=>ov.append(spellImg(v,"kx-sm"))); cell.append(ov); } }
+      if(sel[s]){ const im=fullImg(sel[s],"nico kx-big"); if(im) cell.append(im); if(["w","h","a","s"].includes(s)&&spellOpts(s,sel[s]).some(x=>x.length)){ const n=s==="w"?4:2, ov=el("div",{class:"kx-ov"+(s==="w"?" kx-left":"")}); for(let i=0;i<n;i++){ const v=(sk[s]||[])[i]; if(v) ov.append(spellImg(v,"kx-sm")); else ov.append(el("span",{class:"nb-spph",text:"+",title:posLab(s,i)})); } cell.append(ov); } }
       else cell.append(el("span",{class:"nb-plus",text:"+"}),el("small",{text:lab}));
       cell.addEventListener("click",()=>openPick(s,lab)); grid.append(cell); }); };
   const openPick=(s,lab)=>{ pick.textContent=""; pick.scrollIntoView({block:"nearest",behavior:"smooth"}); const q=el("input",{type:"search",placeholder:`Buscar ${lab.toLowerCase()}…`}), t=el("select",{"aria-label":"Tier"}), e=el("select",{"aria-label":"Encantamento"}), res=el("div",{class:"nb-res"}), spk=el("div",{class:"nb-sk"});
     [4,5,6,7,8].forEach(n=>t.append(el("option",{value:n,text:"T"+n}))); t.value="8"; [0,1,2,3,4].forEach(n=>e.append(el("option",{value:n,text:n?"."+n:"sem encanto"})));
     const head=el("div",{class:"nb-ph"}); head.append(el("b",{text:lab}),q,t,e); if(sel[s]){ const cl=el("button",{type:"button",class:"bc-more",text:"Remover peça"}); cl.addEventListener("click",()=>{ delete sel[s]; delete sk[s]; pick.textContent=""; draw(); }); head.append(cl); }
     const ok=el("button",{type:"button",class:"bc-more",text:"Fechar"}); ok.addEventListener("click",()=>{ pick.textContent=""; }); head.append(ok); pick.append(head,spk,res);
-    const drawSk=()=>{ spk.textContent=""; if(!sel[s]||!["w","h","a","s"].includes(s)) return; const o=spellOpts(s,sel[s]); if(!o.some(x=>x.length)){ spk.append(el("p",{class:"muted small",text:"Ainda não há habilidades conhecidas para esta peça."})); return; }
-      spk.append(el("b",{class:"small",text:"Habilidades"})); o.forEach((list,i)=>{ if(!list.length) return; const row=el("div",{class:"nb-skrow"}); row.append(el("span",{class:"nb-skl",text:posLab(s,i)})); list.forEach(v=>{ const b=el("button",{type:"button",class:"nb-spb"+((sk[s]||[])[i]===v?" on":""),title:v.replace(/^PASSIVE_/,"").replace(/_/g," ").toLowerCase()}); b.append(spellImg(v,"kx-sm")); b.addEventListener("click",()=>{ sk[s]=sk[s]||[]; sk[s][i]=sk[s][i]===v?undefined:v; draw(); drawSk(); }); row.append(b); }); spk.append(row); }); };
+    const drawSk=()=>{ spk.textContent=""; if(!sel[s]||!["w","h","a","s"].includes(s)) return; const o=spellOpts(s,sel[s]); if(!o.some(x=>x.length)){ spk.append(el("p",{class:"muted small",text:"Não tenho a lista de habilidades desta peça."})); return; }
+      spk.append(el("b",{class:"small",text:"Escolha as habilidades"}));
+      o.forEach((list,i)=>{ if(!list.length) return; const grp=el("div",{class:"nb-skg"}); grp.append(el("h5",{class:"nb-skl",text:posLab(s,i)+(s==="w"&&i<3?" (habilidade "+(i+1)+")":"")}));
+        const cards=el("div",{class:"nb-skc"}); list.forEach(v=>{ const inf=(SKD.s||{})[v]||[]; const nome=(LANG==="en"?inf[2]:inf[0])||v.replace(/^PASSIVE_/,"").replace(/_/g," ").toLowerCase(), desc=(LANG==="en"?inf[3]:inf[1])||"";
+          const b=el("button",{type:"button",class:"nb-skcard"+((sk[s]||[])[i]===v?" on":""),"aria-pressed":String((sk[s]||[])[i]===v)}); const ic=el("span",{class:"nb-skic"}); ic.append(spellImg(v,"kx-sm"));
+          const tx=el("span",{class:"nb-sktx"}); tx.append(el("b",{text:nome}),el("small",{text:desc}));
+          b.append(ic,tx); b.addEventListener("click",()=>{ sk[s]=sk[s]||[]; sk[s][i]=sk[s][i]===v?undefined:v; draw(); drawSk(); }); cards.append(b); });
+        grp.append(cards); spk.append(grp); }); };
     drawSk();
     const rows=NB_CAT.i.filter(NB_FILTER[s]); const by=new Map(); for(const r of rows){ const c=r[0].replace(/^T\d+_/,""); if(!by.has(c)) by.set(c,{c,nome:LANG==="en"?r[6]:r[5],en:r[6],pt:r[5],tiers:new Set(),ench:0}); const o=by.get(c); o.tiers.add(r[3]); if(r[4]&&!/consumables/.test(r[1])) o.ench=1; }
     const list=[...by.values()].sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
