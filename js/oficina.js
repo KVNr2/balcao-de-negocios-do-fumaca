@@ -116,7 +116,7 @@ function setupOf(){
   const fill=(box,opts)=>opts.forEach(([v,t])=>box.append(el("option",{value:String(v),text:t})));
   fill($("ofTier"),[[0,"Todos"],...[1,2,3,4,5,6,7,8].map(t=>[t,`T${t}`])]);
   fill($("ofEnch"),[[-1,"Todos"],...[0,1,2,3,4].map(e=>[e,`.${e}`])]);
-  fill($("ofQual"),[[0,"Automática (normal)"],...[1,2,3,4,5].map(q=>[q,`${q} · ${QNAME[q]}`])]);
+  fill($("ofQual"),[[0,"Automática"],...[1,2,3,4,5].map(q=>[q,QNAME[q]])]);
   const bind=(id,key,num,store_)=>$(id).addEventListener("change",()=>{ (store_||OF)[key]=num?+$(id).value:$(id).value; renderOf(); });
   bind("ofTier","tier",1); bind("ofEnch","ench",1); bind("ofQual","qual",1,OF2); bind("ofBuy","buy"); bind("ofSell","sell");
   $("ofRRp").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; OF2.rrMan=null; OF.rr=b.dataset.rr; renderOf(); });
