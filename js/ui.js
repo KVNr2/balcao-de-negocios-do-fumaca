@@ -13,7 +13,7 @@ function cellValue(td){
 function applySort(tb){
   const st=SORT[tb.id]; if(!st||!tb.tBodies[0]||!tb.tHead) return;
   const cmp=(x,y)=>{ if(st.auto){ if(x.n==null&&y.n!=null&&/^[—–-]?$/.test(x.s.trim()))x={n:0,s:x.s}; if(y.n==null&&x.n!=null&&/^[—–-]?$/.test(y.s.trim()))y={n:0,s:y.s}; }
-    else if((x.n==null)!==(y.n==null)) return x.n==null?1:-1;   // vazio sempre no fim
+    if((x.n==null)!==(y.n==null)) return x.n==null?1:-1;   // sem valor (ex.: "Sem preço") sempre no fim, qualquer que seja o sentido
     let d = (x.n!=null&&y.n!=null) ? x.n-y.n : (x.n!=null ? -1 : y.n!=null ? 1 : x.s.localeCompare(y.s,"pt-BR",{numeric:true})); return st.dir*d; };
   tb._sorting=true;
   if(tb.tBodies.length>1){   // um tbody por item (linha + painel de detalhe): ordena os tbodies inteiros
