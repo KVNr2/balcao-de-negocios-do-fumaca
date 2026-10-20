@@ -204,3 +204,50 @@ details.spunlock>summary{cursor:pointer;padding:10px 0;font-weight:600;color:var
 .spunl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;padding:6px 0 14px}
 .spunl-it{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:12px;line-height:1.2;color:var(--muted,#8a94ab)}
 .spunl-it .nico{width:72px;height:72px}
+
+/* ===== aba Builds: cartões (estilo AlbionOnlineGrind / Albion Online Builds) ===== */
+.bfilters{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;margin:12px 0 16px}
+.bweapons{display:flex;flex-wrap:wrap;gap:6px}
+.bw{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:44px;padding:0 10px;background:var(--cloth);border:1px solid var(--line);border-radius:12px;color:var(--parch-2);cursor:pointer;font:600 .85rem var(--f-body)}
+.bw img{width:34px;height:34px;object-fit:contain;background:none;border:0;border-radius:0}
+.bw:hover{border-color:#3a4a6a}
+.bw[aria-pressed="true"]{border-color:var(--saffron);background:#0f1a30;box-shadow:0 0 0 1px var(--saffron) inset}
+.bsortrow{display:flex;gap:14px;align-items:flex-end}
+.blist{display:grid;gap:12px}
+.bcard{background:linear-gradient(180deg,var(--cloth-2),var(--cloth));border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:10px}
+.bcard.open{border-color:#34507f;box-shadow:0 0 0 1px #34507f33}
+.bc-top{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center}
+.bc-mid h4{margin:0;font:700 1.12rem var(--f-display);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.bc-r{display:grid;gap:4px;justify-items:end;text-align:right;font-size:.82rem}
+.bc-r .pop{font:600 .85rem var(--f-mono);color:var(--parch)}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;background:#151c2b;border:1px solid var(--line);font:600 .72rem var(--f-body);color:var(--parch-2);letter-spacing:.02em;white-space:nowrap}
+.tag.good{background:#0f2a22;border-color:#1c5b46;color:var(--gain)}
+.tag.bad{background:#2a1416;border-color:#5b2327;color:var(--loss)}
+.tag.tier-S{background:#3a2a0b;border-color:#7a5a16;color:var(--gold)}
+.tag.tier-A{background:#1c2540;border-color:#34509a;color:#8fb3ff}
+.tag.tier-B{background:#1a2b2a;border-color:#2a5a55;color:var(--tile-2)}
+.bgear{display:flex;flex-wrap:wrap;gap:6px}
+.bgear img{width:46px;height:46px;object-fit:fill;background:#14161c;border:1px solid #23262f;border-radius:10px}
+.bc-food{margin:0;font-size:.82rem;color:var(--smoke)}
+.bc-more{justify-self:start;background:none;border:1px solid var(--line);border-radius:10px;color:var(--saffron);padding:7px 14px;font:600 .85rem var(--f-body);cursor:pointer}
+.bc-more:hover{border-color:var(--saffron)}
+.btile{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;width:92px}
+.btile img.nico{width:64px;height:64px}
+.btile.big img.nico{width:78px;height:78px}
+.bc-top>.btile{width:auto}
+.bt-n{font:600 .74rem var(--f-body);color:var(--parch);line-height:1.15}
+.bt-s{font:500 .68rem var(--f-body);color:var(--smoke);line-height:1.15}
+.bsyn{border-top:1px dashed var(--line);padding-top:12px;display:grid;gap:12px}
+.bsyn h4{margin:0;font:700 1rem var(--f-display)}
+.cc-list{display:grid;gap:10px}
+.ccard{background:#0b1019;border:1px solid var(--line);border-radius:14px;padding:12px}
+.cc-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.cc-row{display:flex;gap:10px;flex-wrap:wrap}
+.cc-row .btile{padding:6px;border-radius:12px;border:1px solid transparent}
+.cc-row .btile.me{border-color:var(--saffron);background:#0f1a30}
+.cc-row .btile.link{cursor:pointer}
+.cc-row .btile.link:hover{border-color:#3a4a6a}
+@media (max-width:640px){ .bc-top{grid-template-columns:auto 1fr} .bc-r{grid-column:1/-1;justify-items:start;text-align:left;grid-auto-flow:column;gap:10px} .bgear img{width:40px;height:40px} }
+.cc-more{align-self:center;font:700 .9rem var(--f-mono);color:var(--smoke);padding:0 6px}
+.bsyn .seg.sm{justify-self:start}

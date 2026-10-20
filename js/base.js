@@ -457,21 +457,6 @@ const nmFood = f => (LANG==="en"||!f) ? f : FOOD_PT.reduce((s,[rx,pt])=>s.replac
 function setLang(l){ LANG=l; store.set("lang",l); document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===l)));
   renderBuilds(); renderRecs(); renderSpecs(); ["p-mercado","p-encantar","p-custo","p-matchup"].forEach(id=>{ if(!$(id).hidden) ({"p-mercado":renderBM,"p-encantar":renderEN,"p-custo":renderBC,"p-matchup":renderMU})[id](); }); }
 
-/* ================= builds table ================= */
-function renderBuilds(){
-  const only=$("bOnlyMine").checked, list=rankBuilds(st.bc,only), tb=$("bTable"); tb.textContent="";
-  const hr=tb.createTHead().insertRow(); ["Arma","Linha e sua spec","Equipamento citado","Fonte","Patch 3"].forEach(h=>hr.append(el("th",{text:h})));
-  const body=tb.createTBody();
-  if(!list.length){ const td=body.insertRow().insertCell(); td.colSpan=5; td.textContent="Nenhuma build desta lista usa as armas da sua ficha. Desmarque o filtro para ver todas."; return; }
-  for(const b of list){ const tr=body.insertRow();
-    const a=tr.insertCell(); a.append(nm(b.w)); if(b.mc) a.append(" ",el("span",{class:"spec",text:`tier ${b.mc}`}));
-    const lv=wl(b.l), c2=tr.insertCell(); const nv=Math.max(PF.armas[b.l]||0,spMax((PF.sp||{})["c:"+b.l])); c2.textContent=nv?`${LINE_NAME[b.l]}: nível ${nv}`:`${LINE_NAME[b.l]}: sem spec`; if(lv>=2) c2.className="gain";
-    const gaps=armorGaps(b), g=tr.insertCell(); g.append(b.g.length?b.g.map(nm).join(", "):"Veja na fonte"); if(b.f) g.append(el("small",{class:"blk",text:nmFood(b.f)})); if(gaps.length) g.append(el("small",{class:"blk loss",text:`Sem spec em ${gaps.join(" e ")}`}));
-    tr.insertCell().textContent = b.src==="pesquisa" ? "Pesquisa, não conferida" : b.src==="MetaCorrupted" ? "MetaCorrupted" : `AOG, ${b.pop} salvos`;
-    const p=tr.insertCell(); p.className=`chg ${b.p[0]}`; p.textContent=b.p[1];
-  }
-}
-
 /* ================= profile editor ================= */
 function segRow(label, val, labels, onSet){ const row=el("div",{class:"lv"}); row.append(el("span",{class:"lbl",text:label})); const seg=el("div",{class:"seg sm",role:"group","aria-label":label});
   labels.forEach((t,i)=>{ const b=el("button",{type:"button",text:t,"aria-pressed":String(i===val)}); b.addEventListener("click",()=>{ [...seg.children].forEach(x=>x.setAttribute("aria-pressed",String(x===b))); onSet(i); }); seg.append(b); }); row.append(seg); return row; }
