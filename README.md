@@ -9,7 +9,9 @@ Site do grupo para fazer prata no Albion Online (servidor Américas).
 ## Como está organizado
 
 - `index.html`: a página (estrutura e textos).
-- `css/balcao.css`: a identidade visual.
+- `css/balcao.css`: a base de estilos (componentes, tabelas, mapas de calor).
+- `css/vip.css`: a estrutura do Pedro (barra superior, menu que recolhe, ícones, ficha em árvore).
+- `css/souk.css`: a identidade do souk por cima da estrutura (cores, fontes, toldo, lampião e fumaça). Os três entram no carimbo de versão `?v=`.
 - `js/base.js`: ficha, preços, cache da API, refino, craft, cozinha, histórico e mapas.
 - `js/fx.js`: efeitos com GSAP (fumaça do título, lanternas, menu em livro); as animações de fundo param fora da tela.
 - `js/biz.js`: Mercado Negro, trabalhadores e matchups.
@@ -29,3 +31,6 @@ Os arquivos levam `?v=` com um código de versão no `index.html`; ao trocar um 
 O site não aparece em buscadores (`robots.txt` e `noindex`). Publicação: Settings > Pages > Branch `main`, pasta `/ (root)`.
 
 Albion Online é da Sandbox Interactive, sem ligação com este site.
+
+## Versão dos arquivos
+Depois de mexer em `css/`, `js/` ou `data/`, rode `./carimbo.sh`. Ele troca o `?v=` de todos os arquivos no `index.html` para os navegadores dos amigos baixarem a versão nova.

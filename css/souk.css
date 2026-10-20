@@ -1,0 +1,203 @@
+/* =====================================================================
+   Identidade do souk por cima da estrutura do Pedro (vip.css).
+   A estrutura (barra superior, menu que recolhe, ficha em árvore, ícones)
+   fica como está; esta camada só devolve a noite do mercado: tecido,
+   latão, açafrão, o toldo listrado e a fumaça no nome.
+   Os ícones dos itens (molduras, tamanhos e origem) não são tocados aqui.
+   ===================================================================== */
+:root{
+  --night:#15100f; --night-2:#1c1513; --cloth:#24191a; --cloth-2:#2c1f1f; --line:#4a3527; --line-soft:#33251f;
+  --parch:#efe2c4; --parch-2:#cdbd9c; --smoke:#a39382;
+  --saffron:#e8ab45; --saffron-ink:#1d1206; --brass:#b98c46; --gold:#f0c060; --cyan:#efe2c4;
+  --madder:#8e2c2c; --madder-2:#6f2124; --tile:#2f7d74; --tile-2:#4fb0a3;
+  --gain:#7cc79a; --loss:#ee8670; --muted:#a39382;
+  --h-neutral:#2f2626; --h-b1:#1e3936; --h-b2:#22564f; --h-b3:#2e8076; --h-b4:#47ab9e; --h-r1:#43201f; --h-r2:#7d2b2c; --h-r3:#b64640;
+  --f-display:"El Messiri","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Gill Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Alegreya Sans","Gill Sans","Segoe UI",system-ui,sans-serif;
+  --top-h:64px; --awning-h:14px;
+  --bar:#120d0c; --bar-2:#1a1312; --well:#1a1311; --well-line:#3a2a20; --glow:rgba(232,171,69,.14);
+}
+body{background-color:var(--night);font-size:16px;line-height:1.5;
+  background-image:radial-gradient(1100px 520px at 12% -10%,rgba(232,171,69,.07),transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23b98c46' stroke-opacity='.06' stroke-width='1.2'%3E%3Cpath d='M60 10l14 36 36 14-36 14-14 36-14-36-36-14 36-14z'/%3E%3Cpath d='M60 28l9 23 23 9-23 9-9 23-9-23-23-9 23-9z'/%3E%3Cpath d='M0 0l20 20M120 0l-20 20M0 120l20-20M120 120l-20-20'/%3E%3Ccircle cx='60' cy='60' r='6'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:auto,120px 120px}
+.num{font-family:var(--f-body);font-size:1em;letter-spacing:0;font-variant-numeric:tabular-nums lining-nums}
+a{color:var(--saffron)}
+::selection{background:rgba(232,171,69,.35);color:var(--parch)}
+*{scrollbar-color:#5a4230 transparent}
+::-webkit-scrollbar-thumb{background:#5a4230;border-radius:9px}
+::-webkit-scrollbar-thumb:hover{background:var(--brass)}
+:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+
+/* ---------- barra superior: a fachada da barraca ---------- */
+.vip-top{background:linear-gradient(180deg,#1d1513,var(--bar));border-bottom:1px solid var(--line);height:var(--top-h);gap:12px}
+/* toldo listrado pendurado na barra, fica junto quando a barra gruda no topo */
+.vip-top::after{content:"";position:absolute;left:0;right:0;top:100%;height:var(--awning-h);pointer-events:none;z-index:2;transform-origin:50% 0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='14' viewBox='0 0 48 14'%3E%3Cpath d='M0 0H24V8A12 6 0 0 1 0 8Z' fill='%238e2c2c'/%3E%3Cpath d='M24 0H48V8A12 6 0 0 1 24 8Z' fill='%23d8c7a0'/%3E%3Cpath d='M0 0H48V2H0Z' fill='%23b98c46'/%3E%3Cpath d='M0 8A12 6 0 0 0 24 8A12 6 0 0 0 48 8V14H0Z' fill='none'/%3E%3C/svg%3E") repeat-x 0 0/48px 14px;
+  filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))}
+.vip-top .brand{position:relative;gap:12px;padding-right:6px}
+.vip-top .logo{width:38px;height:38px;padding:3px;border-radius:10px;background:radial-gradient(circle at 50% 58%,rgba(232,171,69,.32),rgba(232,171,69,0) 70%),#1f1714;border:1px solid var(--line);fill:none;overflow:visible}
+.vip-top .logo .lt-body{fill:#3a2614;stroke:var(--brass);stroke-width:1.2}
+.vip-top .logo .lt-pane{fill:var(--saffron)}
+.vip-top .logo .lt-metal{fill:var(--brass)}
+.vip-top .bn{line-height:1;gap:1px}
+.vip-top .bn small{order:-1;font:500 11.5px var(--f-body);letter-spacing:.02em;text-transform:none;color:var(--smoke);margin:0}
+.vip-top .bn b{font:700 27px/1 var(--f-display);letter-spacing:.01em;text-transform:none;color:var(--saffron);text-shadow:0 0 22px rgba(232,171,69,.32);position:relative}
+#bigTitle .ch{display:inline-block;will-change:transform}
+/* fumaça subindo do lampião */
+.wisps{position:absolute;left:11px;top:-6px;width:20px;height:30px;pointer-events:none}
+.wisps i{position:absolute;left:5px;bottom:0;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle,rgba(239,226,196,.34),rgba(239,226,196,0) 70%);opacity:0;
+  animation:wisp 5.6s ease-in infinite}
+.wisps i:nth-child(2){animation-delay:1.9s;left:2px}
+.wisps i:nth-child(3){animation-delay:3.7s;left:8px}
+@keyframes wisp{0%{transform:translate(0,6px) scale(.5);opacity:0}25%{opacity:.75}100%{transform:translate(9px,-34px) scale(2.6);opacity:0}}
+.idle-off .wisps i{animation-play-state:paused}
+.vip-top .status{background:var(--well);border:1px solid var(--well-line);border-radius:999px;height:34px;font:500 13px var(--f-body);letter-spacing:0;text-transform:none;color:var(--smoke)}
+.vip-top .status strong{font:600 13.5px var(--f-body);letter-spacing:0;color:var(--parch)}
+.vip-top .pulse{background:var(--gain)}
+.vip-top .facts{gap:7px}
+.vip-top .facts>*{height:34px;border-radius:999px;background:var(--well);border:1px solid var(--well-line);font:500 13px var(--f-body);letter-spacing:0;text-transform:none;color:var(--smoke);gap:6px}
+.vip-top .facts strong,.vip-top .facts .patchchip strong{font:600 14px var(--f-body);font-variant-numeric:tabular-nums;color:var(--parch)}
+.vip-top .facts .gold strong{color:var(--gold)}
+.vip-top .facts .gold svg path{stroke:var(--saffron)}
+.vip-top .facts #reload{background:var(--saffron);border-color:var(--saffron);color:var(--saffron-ink);font-weight:600}
+.vip-top .facts #reload:hover{background:#f2bb5c;color:var(--saffron-ink)}
+.vip-top .facts #reload:disabled{opacity:.7;cursor:progress}
+.vip-top .who-chip{background:var(--well);border:1px solid var(--well-line);color:var(--parch-2);font:500 13.5px var(--f-body)}
+.vip-top .who-chip svg{background:#2c1f1a;stroke:var(--saffron)}
+.vip-top .who-chip:hover{border-color:var(--brass);color:var(--parch)}
+
+/* ---------- menu: o livro de negócios ---------- */
+.app>.ledger-book{background:linear-gradient(90deg,#1f1613,#191210 85%,#140e0d);border-right:1px solid var(--line);padding-top:calc(var(--awning-h) + 12px)}
+/* costura da lombada */
+.app>.ledger-book::after{display:block!important;content:"";position:absolute;top:0;bottom:0;right:6px;width:0;border-right:1.5px dashed rgba(185,140,70,.28);pointer-events:none}
+.nav-toggle{top:calc(var(--awning-h) + 12px);background:#1f1714;border-color:var(--line);color:var(--parch-2)}
+.nav-toggle:hover{color:var(--parch);border-color:var(--brass)}
+.lang{font:500 12.5px var(--f-body);letter-spacing:0;text-transform:none;color:var(--smoke)}
+.lang button{font:600 12px var(--f-body);background:var(--well);border-color:var(--well-line);color:var(--parch-2);border-radius:999px;padding:2px 10px}
+.lang button[aria-pressed="true"]{background:var(--saffron);border-color:var(--saffron);color:var(--saffron-ink)}
+nav.tabs .grp{font:600 14px var(--f-display);letter-spacing:.01em;text-transform:none;color:var(--brass);margin:14px 0 4px 10px}
+nav.tabs button{font:500 15.5px var(--f-display);letter-spacing:0;color:var(--parch-2);border-radius:8px;min-height:38px}
+nav.tabs button .ic{stroke:currentColor;opacity:.8}
+nav.tabs button:hover{background:rgba(239,226,196,.06);color:var(--parch)}
+/* página aberta: folha de pergaminho com fita vermelha */
+nav.tabs button[aria-selected="true"]{position:relative;background:linear-gradient(180deg,#f1e5c9,#e2d1aa);border-color:#c9b48a;color:#2a1d12;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+nav.tabs button[aria-selected="true"] .ic{stroke:var(--madder);opacity:1}
+nav.tabs button[aria-selected="true"]::before{content:"";position:absolute;left:-12px;top:-3px;width:6px;height:calc(100% + 10px);background:var(--madder);clip-path:polygon(0 0,100% 0,100% 100%,50% 86%,0 100%)}
+.rail nav.tabs .grp{background:var(--line-soft)}
+.rail nav.tabs button[aria-selected="true"]::before{left:-12px}
+.rail nav.tabs button .tl{background:#241a17;border:1px solid var(--line);color:var(--parch);font:500 13.5px var(--f-body);box-shadow:0 6px 16px rgba(0,0,0,.4)}
+
+/* ---------- título da página ---------- */
+.pagehead{padding-top:calc(var(--awning-h) + 18px);gap:2px 14px;align-items:baseline}
+.ph-k{font:500 13px var(--f-body);letter-spacing:.01em;text-transform:none;color:var(--brass)}
+.ph-t{font:600 clamp(26px,2.3vw,34px)/1.12 var(--f-display);letter-spacing:0;text-transform:none;color:var(--parch)}
+.ph-t::before{display:none}
+.ph-d{font-size:15.5px;color:var(--parch-2);flex-basis:100%}
+
+/* ---------- títulos, cartões e caixas ---------- */
+h2{font:600 22px/1.2 var(--f-display);letter-spacing:0;text-transform:none;color:var(--parch)}
+h3{font:600 18px/1.2 var(--f-display);letter-spacing:0;text-transform:none;color:var(--parch)}
+h2::before,h3.orn::before{width:.62em;height:.62em;margin:0 .45em 0 0;border-radius:0;background:var(--saffron);box-shadow:none;
+  clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
+h2.sub{font-size:19px}
+.sheet{background:linear-gradient(180deg,var(--cloth-2),var(--cloth));border:1px solid var(--line);border-radius:10px;padding:20px 22px;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.deal.sheet{background:radial-gradient(80% 150% at 0% 0%,rgba(232,171,69,.12),transparent 60%),linear-gradient(180deg,var(--cloth-2),var(--cloth));border-color:#5a4030}
+.deal .tag{font:600 15px var(--f-display);letter-spacing:0;text-transform:none;color:var(--brass)}
+.answer{font:500 clamp(22px,2.1vw,30px)/1.28 var(--f-display);letter-spacing:0}
+.answer b,.answer strong{color:var(--saffron)}
+.tbl{background:var(--cloth);border:1px solid var(--line);border-radius:10px}
+.tbl th{font:500 14px var(--f-body);letter-spacing:0;text-transform:none;color:var(--brass);background:rgba(0,0,0,.22)}
+.banner{background:rgba(232,171,69,.09);border:1px solid rgba(232,171,69,.32);border-radius:10px}
+.banner.big b{color:var(--saffron)}
+details.guide{background:linear-gradient(90deg,rgba(239,226,196,.06),rgba(239,226,196,.015));border:1px solid var(--line);border-left:3px solid var(--saffron);border-radius:10px}
+details.guide summary{font:600 16px var(--f-display);letter-spacing:0;text-transform:none;color:var(--saffron)}
+details.guide summary::before{background:var(--saffron);color:var(--saffron-ink)}
+details.guide summary::after{font:400 13px var(--f-body);letter-spacing:0;text-transform:none;color:var(--smoke)}
+details.guide dt{font:500 13px/1.9 var(--f-body);letter-spacing:0;text-transform:none;color:var(--brass)}
+details.guide dd{font-size:15px;color:var(--parch)}
+details.more>summary{color:var(--smoke)}
+.seg{background:var(--well);border-color:var(--well-line)}
+.seg button{color:var(--parch-2);border-right-color:var(--well-line)}
+.seg button[aria-pressed="true"]{background:var(--saffron);color:var(--saffron-ink)}
+.btn{background:var(--saffron);color:var(--saffron-ink);border-color:var(--saffron);border-radius:8px}
+.btn:hover{background:#f2bb5c}
+.btn.ghost{background:transparent;color:var(--parch-2);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--brass);color:var(--parch)}
+input,select,textarea{background:var(--well);border-color:var(--well-line);color:var(--parch)}
+input:focus,select:focus,textarea:focus{border-color:var(--saffron);outline:none;box-shadow:0 0 0 3px rgba(232,171,69,.18)}
+input::placeholder{color:#7d6f62}
+section.panel>.row-ctl{background:rgba(239,226,196,.03);border-color:var(--line-soft)}
+
+/* ---------- ficha em árvore (estrutura do Pedro) ---------- */
+details.secnode>summary:hover{background:rgba(239,226,196,.04);border-radius:10px}
+details.secnode>summary::after{border-color:var(--brass)}
+.secsum{font:500 13px var(--f-body);letter-spacing:0;text-transform:none;color:var(--smoke)}
+.secsum.on{color:var(--gain)}
+details.spsubn>summary{font:600 17px/1.2 var(--f-display);letter-spacing:0;text-transform:none;color:var(--brass)}
+details.spsubn>summary::after{color:var(--brass)}
+details.spg{background:rgba(0,0,0,.16);border-color:var(--line-soft);border-radius:10px}
+details.spg[open]{background:rgba(0,0,0,.24);border-color:var(--line)}
+details.spg summary::before{border-color:var(--brass)}
+.spn{font:500 17px/1.15 var(--f-display);color:var(--parch)}
+.sps{font:500 13px var(--f-body);color:var(--smoke)}
+.sps.on{color:var(--gain)}
+.spgrid label.lvt{font:500 13.5px var(--f-body);color:var(--parch-2)}
+.spgrid label.lvt:first-child span,.spgrid label.lvt:first-child{color:var(--saffron)}
+.primeira{background:rgba(232,171,69,.06);border-color:var(--line);border-left-color:var(--saffron);border-radius:10px}
+.primeira h3{font:600 19px var(--f-display);letter-spacing:0}
+.primeira code{font:12.5px ui-monospace,Consolas,monospace;background:rgba(0,0,0,.3)}
+.semsync{border-left-color:var(--saffron);background:rgba(232,171,69,.08)}
+.semsync p{color:var(--parch-2)}
+
+/* ---------- janela do item, avisos ---------- */
+dialog.dlg{background:linear-gradient(180deg,var(--cloth-2),var(--cloth));border:1px solid #5a4030;border-radius:12px;color:var(--parch);box-shadow:0 24px 60px rgba(0,0,0,.6)}
+dialog.dlg::backdrop{background:rgba(10,7,6,.72);backdrop-filter:blur(2px)}
+.dlg-h h2{font:600 24px/1.15 var(--f-display);letter-spacing:0;text-transform:none}
+.dlg-h h2::before{display:none}
+table.dlgt th{font:500 13px var(--f-body);letter-spacing:0;text-transform:none;color:var(--brass)}
+table.dlgt th:not(:first-child),table.dlgt td:not(:first-child){text-align:right}
+#toast{background:var(--saffron);color:var(--saffron-ink);border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+
+/* ---------- celular ---------- */
+@media (max-width:900px){
+  :root{--awning-h:10px}
+  .vip-top{position:relative;height:auto;padding:10px 14px 12px}
+  .vip-top::after{background-size:34px 10px}
+  .vip-top .bn b{font-size:24px}
+  .vip-top .status{flex:1 1 100%;justify-content:flex-start}
+  .vip-top .facts{flex-wrap:wrap;overflow:visible;gap:6px}
+  .vip-top .facts>*{flex:1 1 auto;justify-content:center;height:32px;padding:0 10px}
+  .vip-top .facts #reload{flex:1 1 100%}
+  .app>.ledger-book{padding:calc(var(--awning-h) + 6px) 8px 6px;background:#1a1311;z-index:28}
+  .app>.ledger-book::after{display:none!important}
+  /* indica que a faixa de páginas rola para o lado */
+  .app>.ledger-book nav.tabs{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);padding-right:24px}
+  nav.tabs button[aria-selected="true"]::before{display:none}
+  .pagehead{padding-top:16px}
+}
+@media (max-width:560px){ .vip-top .bn small{display:block} .vip-top .who-chip{max-width:170px} }
+
+@media (prefers-reduced-motion:reduce){ .wisps{display:none} .vip-top .pulse{animation:none} }
+.vip-top::after{transform:scaleY(var(--aw,1))}
+/* número grande da mercadoria do dia no mesmo traço do texto */
+.answer .num{font-family:inherit;font-size:1em}
+@media (max-width:560px){
+  .vip-top .brand{flex:0 1 auto}
+  .vip-top .who-chip{max-width:150px;margin-left:auto}
+}
+/* rótulos sem caixa alta espaçada */
+td.mkp .city{font:600 13px var(--f-body);letter-spacing:0;text-transform:none;color:var(--brass)}
+.mu dt{font:600 13px var(--f-body);letter-spacing:0;text-transform:none;color:var(--brass)}
+/* botão Atualizar: o ícone gira enquanto busca */
+#reload.busy svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){ #reload.busy svg{animation:none} }
+/* status dos preços: verde ao vivo, açafrão com os salvos, vermelho sem conexão */
+.vip-top .status.stale .pulse{background:var(--saffron);animation:none}
+.vip-top .status.off .pulse{background:var(--loss);animation:none}
+a.btn{text-decoration:none;display:inline-flex;align-items:center}
+/* janela do item no celular: a tabela de cidades rola para o lado em vez de cortar */
+#dlgCities{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:560px){ table.dlgt{font-size:14px} table.dlgt th,table.dlgt td{padding:5px 5px;white-space:nowrap} dialog.dlg{padding:16px 14px} }

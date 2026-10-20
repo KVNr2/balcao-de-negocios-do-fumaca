@@ -54,6 +54,7 @@ function moveTabLamp(btn, instant){
   const vertical=getComputedStyle(navEl).flexDirection==="column";
   const vars=vertical ? {x:0,y:b.top-nav.top-4,height:b.height+10,width:9} : {x:b.left-nav.left+navEl.scrollLeft,y:b.bottom-nav.top-3,width:b.width,height:3};
   if(!vertical&&!instant) btn.scrollIntoView({block:"nearest",inline:"nearest",behavior:RM?"auto":"smooth"});
+  if(!window.gsap) return; // sem a GSAP (CDN fora do ar) o menu segue funcionando, só sem a lamparina
   if(!FX.ok||RM||instant) gsap.set(lamp,vars); else gsap.to(lamp,{...vars,duration:.45,ease:"back.out(1.6)"});
 }
 
@@ -95,9 +96,33 @@ function smokeTitle(tl,chars,sweep){
     .set(sweep,{opacity:0});
 }
 
+/* abertura na barra superior: o toldo cai, o lampião acende e o nome sai da fumaça. Só uma vez, ao abrir o site. */
+function soukIntro(){
+  const top=document.querySelector(".vip-top"); if(!top) return;
+  const mm=gsap.matchMedia();
+  mm.add("(prefers-reduced-motion: no-preference)",()=>{
+    let chars=[$("bigTitle")];
+    if(window.SplitText){ const sp=SplitText.create("#bigTitle",{type:"chars",charsClass:"ch"}); chars=sp.chars; }
+    const tl=gsap.timeline({defaults:{ease:"power3.out"}});
+    tl.fromTo(top,{"--aw":0},{"--aw":1,duration:1,ease:"elastic.out(1,.55)"})
+      .from(".vip-top .logo",{y:-16,rotation:-14,autoAlpha:0,transformOrigin:"50% 0%",duration:.9,ease:"back.out(2.2)"},.15)
+      .fromTo(chars,{opacity:0,y:16,scale:1.3,filter:"blur(9px)"},{opacity:1,y:0,scale:1,filter:"blur(0px)",duration:1,stagger:{each:.07,from:"center"},clearProps:"filter,transform,opacity"},.3)
+      .from(".vip-top .bn small",{opacity:0,y:6,duration:.5,clearProps:"opacity,transform"},.85)
+      .fromTo("#bigTitle",{textShadow:"0 0 22px rgba(232,171,69,.32)"},{textShadow:"0 0 40px rgba(255,214,140,.9)",duration:.2,yoyo:true,repeat:1,ease:"power2.out",clearProps:"textShadow"},1.15)
+      .from(".vip-top .status, .vip-top .facts > *, .vip-top .who-chip",{y:8,autoAlpha:0,duration:.4,stagger:.05,clearProps:"opacity,visibility,transform"},.7)
+      .from("nav.tabs button",{x:-10,autoAlpha:0,duration:.3,stagger:.02,clearProps:"opacity,visibility,transform"},.8);
+    // lampião piscando de leve; para quando a aba fica escondida
+    const flick=gsap.to(".vip-top .lt-pane",{opacity:"random(0.72,1)",duration:"random(0.08,0.32)",repeat:-1,repeatRefresh:true,ease:"none",delay:2});
+    const sync=()=>{ const hid=document.hidden; hid?flick.pause():flick.resume(); document.body.classList.toggle("idle-off",hid); };
+    document.addEventListener("visibilitychange",sync);
+    return ()=>{ document.removeEventListener("visibilitychange",sync); };
+  });
+}
+
 function stallIntro(){
   addFlourishes();
-  if(!FX.ok||!document.querySelector(".stall .awning")) return; // o visual novo não tem barraca/lanternas
+  if(!FX.ok) return;
+  if(!document.querySelector(".stall .awning")){ soukIntro(); return; } // estrutura nova: barra superior com toldo e lampião
   const mm=gsap.matchMedia();
   mm.add({motion:"(prefers-reduced-motion: no-preference)"},()=>{
     const tl=gsap.timeline();
