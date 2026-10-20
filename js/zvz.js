@@ -34,7 +34,7 @@ function renderZvz(){
   const host=$("zList"); if(!host) return; 
   if(!ZVZ){ if(!renderZvz._l){ renderZvz._l=1; need("zvz").then(d=>{ ZVZ=d; renderZvz(); }).catch(()=>{ $("zNote").textContent="Os dados do ZvZ ainda não foram gerados. Eles aparecem depois da primeira atualização automática."; }); } return; }
   const j=ZVZ.janela, d=zDados();
-  $("zNote").textContent=`${j.batalhas} batalhas com 100+ jogadores · ${j.jogadores} jogadores · ${j.mortes} mortes lidas. Atualizado em ${new Date(ZVZ.atualizado).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}.`;
+  $("zNote").textContent=`Fonte: ${ZVZ.fonte}. ${j.batalhas} batalhas · ${j.jogadores} jogadores · ${j.mortes} mortes lidas. Atualizado em ${new Date(ZVZ.atualizado).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}.`;
   const rs=$("zRoles"); rs.textContent="";
   for(const [k,n] of ZROLE){ const t=(d[k]||{}).total||0; if(!t&&k!==zRole) continue; const b=el("button",{type:"button","aria-pressed":String(zRole===k),text:`${n} (${t})`}); b.addEventListener("click",()=>{ zRole=k; renderZvz(); }); rs.append(b); }
   const sel=$("zAli"); if(!sel._ok){ sel._ok=1; sel.append(el("option",{value:"",text:"Todas as alianças"})); ZVZ.aliancas.forEach(a=>sel.append(el("option",{value:a.nome,text:`${a.nome} (${a.jogadores} jogadores, IP ${a.ip})`}))); sel.addEventListener("change",()=>{ zAli=sel.value; renderZvz(); }); }

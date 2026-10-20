@@ -129,8 +129,8 @@ def coletar_atlas():
 def coletar_albionbb():
     API = "https://api.albionbb.com/us"; GI = "https://gameinfo.albiononline.com/api/gameinfo"
     h = {"Origin": "https://albionbb.com", "Referer": "https://albionbb.com/"}
-    lista = json.loads(get(f"{API}/battles?minPlayers=100", extra=h))
-    ids = [str(x["albionId"]) for x in lista if (x.get("totalPlayers") or 0) >= 100][:30]
+    lista = json.loads(get(f"{API}/battles?minPlayers=200", extra=h))
+    ids = [str(x["albionId"]) for x in lista if (x.get("totalPlayers") or 0) >= MIN_JOGADORES][:30]
     def um(bid):
         try: j = json.loads(get(f"{API}/battles/{bid}", extra=h))
         except Exception: return None
@@ -149,7 +149,7 @@ def coletar_albionbb():
                 x = e.get(lado) or {}; eq = norm_equip(x.get("Equipment"))
                 if eq.get("MainHand"): eventos.append({"eq": eq, "ip": x.get("AverageItemPower") or 0})
         return {"id": bid, "hora": j.get("startedAt") or "", "jogadores": pl, "eventos": eventos, "ips": {}, "mortes": len(evs)}
-    with ThreadPoolExecutor(4) as ex: return [b for b in ex.map(um, ids) if b and len(b["jogadores"]) >= 100]
+    with ThreadPoolExecutor(4) as ex: return [b for b in ex.map(um, ids) if b and len(b["jogadores"]) >= MIN_JOGADORES]
 
 # ---------- agregação ----------
 def main():
@@ -160,7 +160,7 @@ def main():
     print("lutas lidas no AtlasChill:", len(bats))
     if len(bats) < 5:
         print("::warning::poucas lutas no AtlasChill; tentando AlbionBB")
-        try: bats = coletar_albionbb(); fonte = "AlbionBB (lutas com 100+ jogadores) e API oficial"
+        try: bats = coletar_albionbb(); fonte = "AlbionBB e API oficial (lutas com 200+ jogadores; o AtlasChill bloqueou o acesso automático)"
         except Exception as e: print("::error::reserva falhou", e); sys.exit(1)
     if len(bats) < 5: print("::error::poucas lutas lidas:", len(bats)); sys.exit(1)
 
@@ -227,4 +227,8 @@ def main():
     open(OUT, "w").write(json.dumps(novo, ensure_ascii=False, separators=(",", ":")))
     print("gravado", OUT, "| fonte:", fonte, "| lutas", len(bats), "jogadores", total_j, "mortes", mortes, "armas", len(novo["armas"]))
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    try: main()
+    except SystemExit: raise
+    except Exception:
+        import traceback; print("::error::" + traceback.format_exc().replace("\n", " | ")[-900:]); sys.exit(1)
