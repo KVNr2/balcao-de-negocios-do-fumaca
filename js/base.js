@@ -22,7 +22,7 @@ const IV = (t,e)=>Math.pow(2,t+e);
 const MATBAR = {PLATE:"METALBAR",LEATHER:"LEATHER",CLOTH:"CLOTH"};
 const SETN = {PLATE:["Soldier","Knight","Guardian"],LEATHER:["Mercenary","Hunter","Assassin"],CLOTH:["Scholar","Cleric","Mage"]};
 const SLOTN = {PLATE:{HEAD:"Helmet",ARMOR:"Armor",SHOES:"Boots"},LEATHER:{HEAD:"Hood",ARMOR:"Jacket",SHOES:"Shoes"},CLOTH:{HEAD:"Cowl",ARMOR:"Robe",SHOES:"Sandals"}};
-const CRAFT_PT = {HEAD_PLATE:"Elmo de placa",HEAD_LEATHER:"Capuz de couro",HEAD_CLOTH:"Capucha de pano",ARMOR_PLATE:"Peitoral de placa",ARMOR_LEATHER:"Jaqueta de couro",ARMOR_CLOTH:"Robe de pano",SHOES_PLATE:"Botas de placa",SHOES_LEATHER:"Sapatos de couro",SHOES_CLOTH:"Sandálias de pano"};
+const CRAFT_PT = {HEAD_PLATE:"Elmo de placa",HEAD_LEATHER:"Capuz de couro",HEAD_CLOTH:"Capote de pano",ARMOR_PLATE:"Peitoral de placa",ARMOR_LEATHER:"Jaqueta de couro",ARMOR_CLOTH:"Robe de pano",SHOES_PLATE:"Botas de placa",SHOES_LEATHER:"Sapatos de couro",SHOES_CLOTH:"Sandálias de pano"};
 const CRAFT_CITY = {HEAD_PLATE:"Fort Sterling",HEAD_LEATHER:"Lymhurst",HEAD_CLOTH:"Thetford",ARMOR_PLATE:"Bridgewatch",ARMOR_LEATHER:"Thetford",ARMOR_CLOTH:"Fort Sterling",SHOES_PLATE:"Martlock",SHOES_LEATHER:"Lymhurst",SHOES_CLOTH:"Bridgewatch"};
 const LINES = [["espada","Espadas"],["machado","Machados"],["maca","Maças"],["martelo","Martelos"],["lanca","Lanças"],["bordao","Bordões"],["adaga","Adagas"],["luvas","Luvas de guerra"],["arco","Arcos"],["besta","Bestas"],["metamorfo","Metamorfos"],["fogo","Fogo"],["gelo","Gelo"],["arcano","Arcano"],["sagrado","Sagrado"],["natureza","Natureza"],["maldito","Amaldiçoado"]];
 const LINE_NAME = Object.fromEntries(LINES);
@@ -196,7 +196,8 @@ function itemImg(code,tiers){ let t=tiers||[4,5,6,3,7,8,2,1], i=0; const im=el("
   im.onerror=fail; im._tier=n=>{ t=tierOrder(n); i=0; im.classList.remove("nico-off"); im.onerror=fail; set(); }; set(); return im; }
 /* item que representa a linha de maestria: o básico (SET1) quando existe, senão o primeiro da lista */
 const repKey = g => (g.it.find(x=>/_SET1$/.test(x[0]))||g.it[0])[0];
-const specCode = (g,key) => g.k.startsWith("a:") ? `${g.k.slice(2)}_SET${key}` : key;
+/* armaduras do craft: 1, 2, 3 são os sets básicos (…_SET1); as de facção/artefato têm o código sem SET (HEAD_PLATE_UNDEAD) */
+const specCode = (g,key) => g.k.startsWith("a:") ? (/^\d+$/.test(key)?`${g.k.slice(2)}_SET${key}`:`${g.k.slice(2)}_${key}`) : key;
 const ICON = id => `https://albionmarket.gg/icon/${encodeURIComponent(id)}/1/200`;
 const iconImg = (id,size=36) => { const i=el("img",{src:ICON(id),alt:"",loading:"lazy",decoding:"async",width:size,height:size}); i.className="ico"; i.referrerPolicy="no-referrer"; i.onerror=()=>{ i.style.visibility="hidden"; }; return i; };
 /* célula com o ícone do item (tier e encantamento já vão no código, ex.: T6_2H_BOW@2) ao lado do texto */
