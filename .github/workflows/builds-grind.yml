@@ -20,7 +20,7 @@ jobs:
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name "builds-bot"
             git config user.email "builds-bot@users.noreply.github.com"
-            git add data/builds-grind.json index.html
+            git add data/builds-grind.json index.html versao.txt
             git commit -m "Builds atualizadas automaticamente"
             git pull --rebase -q
             git push

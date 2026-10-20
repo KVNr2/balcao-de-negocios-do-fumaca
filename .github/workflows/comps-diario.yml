@@ -21,7 +21,7 @@ jobs:
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name "comps-bot"
             git config user.email "comps-bot@users.noreply.github.com"
-            git add data/comps.json index.html
+            git add data/comps.json index.html versao.txt
             git commit -m "Composições atualizadas automaticamente"
             git push
           fi
