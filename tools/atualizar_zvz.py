@@ -1,167 +1,230 @@
 #!/usr/bin/env python3
-"""Atualiza data/zvz.json com o que as maiores lutas recentes (albionbb, 100+ jogadores) estão usando:
- - função e arma de cada jogador (página da batalha no albionbb);
- - build completa de quem morreu (eventos da API oficial gameinfo, que trazem o equipamento todo).
-Rodado todo dia pelo GitHub Actions. Se algo falhar ou vierem poucas batalhas, NÃO sobrescreve o arquivo atual."""
-import json, re, sys, time, datetime, urllib.request, collections
+"""Atualiza data/zvz.json com o que as maiores lutas recentes estão usando.
+Fonte principal: AtlasChill (https://atlaschill.com/albion/en/battleboard?minPlayers=200). A página da lista e a de cada luta
+trazem no HTML os jogadores (arma, aliança, kills/mortes) e os eventos de morte com o equipamento completo de quem matou e de quem morreu.
+Reserva: AlbionBB + API oficial, se o AtlasChill não responder. A função (tank, curandeiro...) vem da tabela tools/roles_armas.json.
+Se algo falhar ou vierem poucas lutas, NÃO sobrescreve o arquivo atual."""
+import json, re, sys, os, time, datetime, urllib.request, collections
 from concurrent.futures import ThreadPoolExecutor
-from bs4 import BeautifulSoup
 
-BB = "https://albionbb.com"
-API = "https://api.albionbb.com/us"
-GI = "https://gameinfo.albiononline.com/api/gameinfo"
-UA = {"User-Agent": "Mozilla/5.0 (compatible; BalcaoFumaca-zvz/1.0; +https://kvnr2.github.io/balcao-de-negocios-do-fumaca/)", "Accept": "application/json,*/*", "Origin": "https://albionbb.com", "Referer": "https://albionbb.com/"}
+ATLAS = "https://atlaschill.com/albion"
+SERVIDORES = ["americas", "europe", "asia"]
+MIN_JOGADORES = 200
+MAX_POR_SERVIDOR = 10
+UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36",
+      "Accept": "text/html,application/json,*/*", "Accept-Language": "en-US,en;q=0.9"}
 OUT = "data/zvz.json"
-MAX_BATALHAS = 30
-MAX_EVENTOS = 306          # por batalha (6 páginas de 51)
 SLOTS = {"Head": "cabeca", "Armor": "peito", "Shoes": "botas", "Cape": "capa", "OffHand": "off", "Potion": "pocao", "Food": "comida"}
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROLES = json.load(open(os.path.join(HERE, "roles_armas.json")))
 
-def get(url, tries=3):
+def get(url, tries=3, extra=None):
+    h = dict(UA); h.update(extra or {})
     for i in range(tries):
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=45) as r:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=60) as r:
                 return r.read().decode("utf-8", "replace")
         except Exception as e:
             if i == tries - 1: raise
-            time.sleep(2 * (i + 1))
-
-def devalue(arr):
-    """Decodifica o __NUXT_DATA__ do Nuxt (formato devalue: valores referenciados por índice)."""
-    memo = {}
-    def res(i):
-        if i in memo: return memo[i]
-        v = arr[i]
-        if isinstance(v, list):
-            if v and isinstance(v[0], str) and v[0] in ("Reactive", "ShallowReactive", "Ref", "ShallowRef", "NuxtError", "EmptyShallowRef", "EmptyRef"):
-                memo[i] = res(v[1]) if len(v) > 1 else None; return memo[i]
-            o = []; memo[i] = o
-            for x in v: o.append(res(x) if isinstance(x, int) and not isinstance(x, bool) else x)
-            return o
-        if isinstance(v, dict):
-            o = {}; memo[i] = o
-            for k, x in v.items(): o[k] = res(x) if isinstance(x, int) and not isinstance(x, bool) else x
-            return o
-        memo[i] = v; return v
-    return res(0)
-
-def achar_jogadores(o, d=0):
-    if d > 7 or o is None: return None
-    if isinstance(o, list):
-        if len(o) > 20 and isinstance(o[0], dict) and "weapon" in o[0] and "role" in o[0]: return o
-        for x in o:
-            r = achar_jogadores(x, d + 1)
-            if r: return r
-    elif isinstance(o, dict):
-        for x in o.values():
-            r = achar_jogadores(x, d + 1)
-            if r: return r
-    return None
-
-def batalha(bid):
-    try: j = json.loads(get(f"{API}/battles/{bid}"))
-    except Exception as e: print("::warning::batalha", bid, e); return None
-    return {"id": bid, "jogadores": j.get("players") or [], "hora": j.get("startedAt") or ""}
+            time.sleep(3 * (i + 1))
 
 def base(t):
     m = re.match(r"T(\d)_(.+?)(?:@(\d))?$", t or "")
     return (m.group(2), int(m.group(1)), int(m.group(3) or 0)) if m else (None, 0, 0)
 
-def eventos(bid):
-    out = []
-    for off in range(0, MAX_EVENTOS, 51):
-        try: pag = json.loads(get(f"{GI}/events/battle/{bid}?offset={off}&limit=51"))
-        except Exception as e:
-            print("eventos falhou", bid, off, e); break
-        if not pag: break
-        out += pag
-        if len(pag) < 51: break
+def papel_da_arma(w):
+    if w in ROLES: return ROLES[w]
+    if re.search(r"HOLYSTAFF|FALLENSTAFF|REDEMPTION|LIFETOUCH|DIVINE|NATURESTAFF|GREATHOLY|GREATNATURE", w): return "healer"
+    return ""
+
+# ---------- AtlasChill ----------
+def fluxo(html):
+    """Junta os pedaços self.__next_f.push([1,"..."]) do Next.js em um texto só."""
+    partes = []
+    for m in re.finditer(r'self\.__next_f\.push\(\[1,("(?:[^"\\]|\\.)*")\]\)', html):
+        try: partes.append(json.loads(m.group(1)))
+        except Exception: pass
+    return "".join(partes)
+
+def array_apos(txt, chave):
+    """Acha todos os arrays JSON que começam em "chave":[ e devolve o maior que for válido."""
+    melhor = []
+    for m in re.finditer(r'"%s":\[' % re.escape(chave), txt):
+        i = m.end() - 1; d = 0; ins = False; esc = False
+        for j in range(i, len(txt)):
+            c = txt[j]
+            if ins:
+                if esc: esc = False
+                elif c == "\\\\" or c == "\\": esc = True
+                elif c == '"': ins = False
+            elif c == '"': ins = True
+            elif c == "[": d += 1
+            elif c == "]":
+                d -= 1
+                if d == 0:
+                    try:
+                        arr = json.loads(txt[i:j + 1])
+                        if len(arr) > len(melhor): melhor = arr
+                    except Exception: pass
+                    break
+    return melhor
+
+def lista_atlas(servidor):
+    html = get(f"{ATLAS}/en/battleboard?server={servidor}&minPlayers={MIN_JOGADORES}")
+    f = fluxo(html)
+    achados = re.findall(r'\{"id":(\d{8,}),"startTime":"([^"]+)"', f)
+    ids = list(dict.fromkeys(i for i, _ in achados))[:MAX_POR_SERVIDOR]
+    print(servidor, "lista:", len(ids), "lutas (html", len(html), "fluxo", len(f), ")")
+    return ids
+
+def norm_equip(eq):
+    out = {}
+    for k, v in (eq or {}).items():
+        t = v.get("Type") if isinstance(v, dict) else v
+        if t: out[k] = t
     return out
 
-def modal(c):
-    """(codigo, tier, encanto) mais comum num Counter de tuplas."""
-    return c.most_common(1)[0] if c else None
+def luta_atlas(par):
+    servidor, bid = par
+    try:
+        html = get(f"{ATLAS}/en/battleboard/{bid}/{servidor}")
+    except Exception as e:
+        print("::warning::luta", bid, e); return None
+    f = fluxo(html)
+    jog = array_apos(f, "players")
+    jog = [p for p in jog if isinstance(p, dict) and ("mainHand" in p or "name" in p)]
+    ev = array_apos(f, "events")
+    als = array_apos(f, "alliances")
+    if len(jog) < 50: print("::warning::luta", bid, "jogadores", len(jog), "fluxo", len(f)); return None
+    t = re.search(r'"startTime":"([^"]+)"', f)
+    pl = []
+    for p in jog:
+        w = base(p.get("mainHand"))[0]
+        if not w: continue
+        pl.append({"allianceName": p.get("allianceName") or "", "kills": p.get("kills") or 0, "deaths": p.get("deaths") or 0, "weapon": w, "role": papel_da_arma(w)})
+    eventos = []
+    for e in ev:
+        for lado in ("killer", "victim"):
+            x = e.get(lado) or {}
+            eq = norm_equip(x.get("equipment") or x.get("Equipment"))
+            if eq.get("MainHand"): eventos.append({"eq": eq, "ip": x.get("averageItemPower") or x.get("itemPower") or x.get("ip") or 0})
+    ips = {a.get("name"): a.get("avgIp") for a in als if isinstance(a, dict) and a.get("avgIp")}
+    return {"id": bid, "hora": t.group(1) if t else "", "jogadores": pl, "eventos": eventos, "ips": ips, "mortes": len(ev)}
 
+def coletar_atlas():
+    pares = []
+    for s in SERVIDORES:
+        try:
+            for i in lista_atlas(s): pares.append((s, i))
+        except Exception as e: print("::warning::lista", s, e)
+        time.sleep(1.5)
+    out = []
+    for p in pares:
+        b = luta_atlas(p)
+        if b: out.append(b)
+        time.sleep(0.8)
+    return out
+
+# ---------- reserva: AlbionBB + API oficial ----------
+def coletar_albionbb():
+    API = "https://api.albionbb.com/us"; GI = "https://gameinfo.albiononline.com/api/gameinfo"
+    h = {"Origin": "https://albionbb.com", "Referer": "https://albionbb.com/"}
+    lista = json.loads(get(f"{API}/battles?minPlayers=100", extra=h))
+    ids = [str(x["albionId"]) for x in lista if (x.get("totalPlayers") or 0) >= 100][:30]
+    def um(bid):
+        try: j = json.loads(get(f"{API}/battles/{bid}", extra=h))
+        except Exception: return None
+        pl = [{"allianceName": p.get("allianceName") or "", "kills": p.get("kills") or 0, "deaths": p.get("deaths") or 0,
+               "weapon": (p.get("weapon") or {}).get("name"), "role": p.get("role") or ""} for p in (j.get("players") or []) if (p.get("weapon") or {}).get("name")]
+        evs = []
+        for off in range(0, 306, 51):
+            try: pag = json.loads(get(f"{GI}/events/battle/{bid}?offset={off}&limit=51"))
+            except Exception: break
+            if not pag: break
+            evs += pag
+            if len(pag) < 51: break
+        eventos = []
+        for e in evs:
+            for lado in ("Victim", "Killer"):
+                x = e.get(lado) or {}; eq = norm_equip(x.get("Equipment"))
+                if eq.get("MainHand"): eventos.append({"eq": eq, "ip": x.get("AverageItemPower") or 0})
+        return {"id": bid, "hora": j.get("startedAt") or "", "jogadores": pl, "eventos": eventos, "ips": {}, "mortes": len(evs)}
+    with ThreadPoolExecutor(4) as ex: return [b for b in ex.map(um, ids) if b and len(b["jogadores"]) >= 100]
+
+# ---------- agregação ----------
 def main():
-    try: lista = json.loads(get(f"{API}/battles?minPlayers=100"))
-    except Exception as e: print("::error::lista falhou", e); sys.exit(1)
-    ids = [str(x["albionId"]) for x in lista if (x.get("totalPlayers") or 0) >= 100][:MAX_BATALHAS]
-    print("batalhas na lista:", len(ids))
-    if not ids: print("::error::lista vazia"); sys.exit(1)
-    with ThreadPoolExecutor(5) as ex: bats = [b for b in ex.map(batalha, ids) if b]
-    bats = [b for b in bats if len(b["jogadores"]) >= 100]
-    print("batalhas lidas (100+):", len(bats))
+    fonte = "AtlasChill (battleboard, lutas com 200+ jogadores)"
+    bats = []
+    try: bats = coletar_atlas()
+    except Exception as e: print("::warning::AtlasChill falhou:", e)
+    print("lutas lidas no AtlasChill:", len(bats))
     if len(bats) < 5:
-        print("::error::poucas batalhas lidas:", len(bats)); sys.exit(1)
+        print("::warning::poucas lutas no AtlasChill; tentando AlbionBB")
+        try: bats = coletar_albionbb(); fonte = "AlbionBB (lutas com 100+ jogadores) e API oficial"
+        except Exception as e: print("::error::reserva falhou", e); sys.exit(1)
+    if len(bats) < 5: print("::error::poucas lutas lidas:", len(bats)); sys.exit(1)
 
     papeis = collections.defaultdict(collections.Counter); venc = collections.defaultdict(collections.Counter)
-    w2role = collections.defaultdict(collections.Counter); w_n = collections.Counter()
-    aliancas = collections.defaultdict(lambda: {"jog": 0, "bat": 0, "k": 0, "d": 0, "papeis": collections.defaultdict(collections.Counter), "ips": []})
-    total_j = 0
+    w_papel = collections.defaultdict(collections.Counter); w_n = collections.Counter()
+    aliancas = collections.defaultdict(lambda: {"jog": 0, "bat": 0, "k": 0, "d": 0, "papeis": collections.defaultdict(collections.Counter), "ipn": 0, "ips": 0})
+    total_j = 0; sem_papel = collections.Counter()
     for b in bats:
         por_al = collections.defaultdict(lambda: [0, 0])
         for p in b["jogadores"]:
-            a = p.get("allianceName") or ""
-            por_al[a][0] += p.get("kills") or 0; por_al[a][1] += p.get("deaths") or 0
+            por_al[p["allianceName"]][0] += p["kills"]; por_al[p["allianceName"]][1] += p["deaths"]
         for p in b["jogadores"]:
-            r = p.get("role"); w = (p.get("weapon") or {}).get("name")
-            if not r or not w: continue
-            total_j += 1; papeis[r][w] += 1; w2role[w][r] += 1; w_n[w] += 1
-            a = p.get("allianceName") or ""
+            w, r, a = p["weapon"], p["role"], p["allianceName"]
+            total_j += 1; w_n[w] += 1
+            if not r: sem_papel[w] += 1; continue
+            papeis[r][w] += 1; w_papel[w][r] += 1
             k, d = por_al[a]
             if a and k > d: venc[r][w] += 1
-            if a:
-                A = aliancas[a]; A["jog"] += 1; A["papeis"][r][w] += 1
-                if p.get("ip"): A["ips"].append(p["ip"])
+            if a: aliancas[a]["jog"] += 1; aliancas[a]["papeis"][r][w] += 1
         for a, (k, d) in por_al.items():
-            if a: aliancas[a]["bat"] += 1; aliancas[a]["k"] += k; aliancas[a]["d"] += d
+            if a:
+                A = aliancas[a]; A["bat"] += 1; A["k"] += k; A["d"] += d
+                if b["ips"].get(a): A["ips"] += b["ips"][a]; A["ipn"] += 1
+    if sem_papel: print("armas sem função conhecida:", dict(sem_papel.most_common(12)))
 
-    # builds completas pelas mortes
-    with ThreadPoolExecutor(4) as ex: evs = list(ex.map(lambda b: eventos(b["id"]), bats))
-    mortes = 0; por_arma = collections.defaultdict(list)
-    for lista in evs:
-        for e in lista:
-            mortes += 1
-            for lado in ("Victim", "Killer"):   # a coluna "action" mostra a build completa de quem matou e de quem morreu
-                v = e.get(lado) or {}; eq = v.get("Equipment") or {}
-                mh = base((eq.get("MainHand") or {}).get("Type"))
-                if not mh[0] or (v.get("AverageItemPower") or 0) < 900: continue
-                peca = {}
-                for k, nome in SLOTS.items():
-                    b_ = base((eq.get(k) or {}).get("Type"))
-                    peca[nome] = b_ if b_[0] else None
-                por_arma[mh[0]].append((mh, peca, v.get("AverageItemPower") or 0))
+    mortes = sum(b["mortes"] for b in bats); por_arma = collections.defaultdict(list)
+    for b in bats:
+        for e in b["eventos"]:
+            eq = e["eq"]; mh = base(eq.get("MainHand"))
+            if not mh[0] or (e["ip"] and e["ip"] < 900): continue
+            peca = {nome: (base(eq.get(k)) if base(eq.get(k))[0] else None) for k, nome in SLOTS.items()}
+            por_arma[mh[0]].append((mh, peca, e["ip"] or 0))
     armas = {}
     for w, lst in por_arma.items():
         cont = collections.Counter(); resumo = {}
         for mh, peca, ip in lst:
-            chave = (peca["cabeca"][0] if peca["cabeca"] else "", peca["peito"][0] if peca["peito"] else "", peca["botas"][0] if peca["botas"] else "")
+            chave = tuple(peca[n][0] if peca[n] else "" for n in ("cabeca", "peito", "botas"))
             cont[chave] += 1; resumo.setdefault(chave, []).append((mh, peca, ip))
         vars_ = []
         for chave, n in cont.most_common(3):
-            itens = resumo[chave]; var = {"n": n, "ip": round(sum(i[2] for i in itens) / n), "arma": None}
-            tm = collections.Counter((i[0][1], i[0][2]) for i in itens).most_common(1)[0][0]; var["arma"] = {"t": tm[0], "e": tm[1]}
+            itens = resumo[chave]; ipv = [i[2] for i in itens if i[2]]
+            tm = collections.Counter((i[0][1], i[0][2]) for i in itens).most_common(1)[0][0]
+            var = {"n": n, "ip": round(sum(ipv) / len(ipv)) if ipv else 0, "arma": {"t": tm[0], "e": tm[1]}}
             for nome in SLOTS.values():
                 c = collections.Counter(i[1][nome] for i in itens if i[1][nome])
-                if c:
-                    (cod, t, e), nn = c.most_common(1)[0]; var[nome] = {"c": cod, "t": t, "e": e}
+                if c: (cod, t, e), _ = c.most_common(1)[0]; var[nome] = {"c": cod, "t": t, "e": e}
             vars_.append(var)
         armas[w] = {"mortes": len(lst), "variantes": vars_}
-    for w, d in armas.items():
-        d["papel"] = w2role[w].most_common(1)[0][0] if w in w2role else ""; d["jogadores"] = w_n.get(w, 0)
-    for w in w_n:
-        armas.setdefault(w, {"mortes": 0, "variantes": [], "papel": w2role[w].most_common(1)[0][0], "jogadores": w_n[w]})
+    for w in list(w_n):
+        a = armas.setdefault(w, {"mortes": 0, "variantes": []})
+        a["papel"] = w_papel[w].most_common(1)[0][0] if w in w_papel else ""; a["jogadores"] = w_n[w]
 
     def pap(c): return {r: {"total": sum(cc.values()), "armas": cc.most_common(14)} for r, cc in c.items()}
     top_al = sorted(aliancas.items(), key=lambda x: -x[1]["jog"])[:8]
+    horas = [b["hora"] for b in bats if b["hora"]]
     novo = {
-        "fonte": "albionbb (batalhas com 100+ jogadores) e gameinfo oficial (equipamento de quem morreu)",
-        "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
-        "janela": {"batalhas": len(bats), "jogadores": total_j, "mortes": mortes, "de": min(b["hora"] for b in bats if b["hora"]) if any(b["hora"] for b in bats) else "", "ate": max(b["hora"] for b in bats if b["hora"]) if any(b["hora"] for b in bats) else ""},
+        "fonte": fonte, "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
+        "janela": {"batalhas": len(bats), "jogadores": total_j, "mortes": mortes, "de": min(horas) if horas else "", "ate": max(horas) if horas else ""},
         "papeis": pap(papeis), "vencedores": pap(venc),
         "armas": {w: d for w, d in armas.items() if d["jogadores"] >= 3},
-        "aliancas": [{"nome": n, "jogadores": a["jog"], "batalhas": a["bat"], "k": a["k"], "d": a["d"], "ip": round(sum(a["ips"]) / len(a["ips"])) if a["ips"] else 0, "papeis": pap(a["papeis"])} for n, a in top_al],
+        "aliancas": [{"nome": n, "jogadores": a["jog"], "batalhas": a["bat"], "k": a["k"], "d": a["d"], "ip": round(a["ips"] / a["ipn"]) if a["ipn"] else 0, "papeis": pap(a["papeis"])} for n, a in top_al],
     }
+    if sum(v["total"] for v in novo["papeis"].values()) < 300: print("::error::poucos jogadores com função:", novo["papeis"].keys()); sys.exit(1)
     open(OUT, "w").write(json.dumps(novo, ensure_ascii=False, separators=(",", ":")))
-    print("gravado", OUT, "batalhas", len(bats), "jogadores", total_j, "mortes", mortes, "armas", len(novo["armas"]))
+    print("gravado", OUT, "| fonte:", fonte, "| lutas", len(bats), "jogadores", total_j, "mortes", mortes, "armas", len(novo["armas"]))
 
 if __name__ == "__main__": main()
