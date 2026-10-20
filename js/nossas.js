@@ -90,8 +90,22 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
   let curPick=null; const SETS=[{sel:{},sk:{}},{sel:{},sk:{}}]; let cs=0, sel=SETS[0].sel; const fld=(lab,node)=>{ const l=el("label",{class:"nb-f"}); l.append(el("span",{text:lab}),node); return l; };
   const nome=el("input",{type:"text",maxlength:"80",placeholder:"Ex.: Lamina Aclarada para Fame Farm"}), au=el("input",{type:"text",maxlength:"40",placeholder:"Seu nome"}); try{ au.value=store.get("nbAuthor")||""; }catch(e){}
   /* conteúdo: várias opções; características: etiquetas que aparecem no cartão */
-  const chips=(opts,max)=>{ const st=new Set(), box=el("div",{class:"nb-chips"}); opts.forEach(([v,t])=>{ const b=el("button",{type:"button",class:"nb-chip","aria-pressed":"false",text:t}); b.addEventListener("click",()=>{ if(st.has(v)) st.delete(v); else if(!max||st.size<max) st.add(v); b.setAttribute("aria-pressed",String(st.has(v))); }); box.append(b); }); return {st,box}; };
-  const K=chips((GBC||[]).map(c=>[c.k,c.nome]).concat([["","Outro"]])), T=chips(["PvE","PvP","Solo","Grupo","Fame Farm","Tank","Healer","DPS","Suporte","Mobilidade"].map(x=>[x,x]),6);
+  /* caixa de seleção múltipla (estilo SelectCheckboxMenu): botão com resumo, painel com marcar todos, filtro e lista de caixas */
+  const msel=(opts,{max,ph})=>{ const st=new Set(), box=el("div",{class:"ms"}), tr=el("button",{type:"button",class:"ms-tr","aria-haspopup":"listbox","aria-expanded":"false"}), val=el("span",{class:"ms-val"}); tr.append(val,el("span",{class:"ms-ar",text:"▾","aria-hidden":"true"}));
+    const pn=el("div",{class:"ms-pn",hidden:true}), hd=el("div",{class:"ms-hd"}), all=el("input",{type:"checkbox","aria-label":"Selecionar todos",title:"Selecionar todos"}), q=el("input",{type:"search",placeholder:"Filtrar…","aria-label":"Filtrar"}), x=el("button",{type:"button",class:"ms-x","aria-label":"Fechar",text:"✕"}), ul=el("div",{class:"ms-ul",role:"listbox"});
+    if(max) all.hidden=true; hd.append(all,q,x); pn.append(hd,ul); box.append(tr,pn);
+    const lab=v=>(opts.find(o=>o[0]===v)||[0,v])[1];
+    const paint=()=>{ val.textContent=""; if(!st.size) val.append(el("span",{class:"ms-ph",text:ph})); else { [...st].slice(0,3).forEach(v=>val.append(el("span",{class:"ms-chip",text:lab(v)}))); if(st.size>3) val.append(el("span",{class:"ms-chip mute",text:"+"+(st.size-3)})); } all.checked=st.size===opts.length&&opts.length>0; };
+    const vis=()=>{ const f=q.value.trim().toLowerCase(); return opts.filter(o=>!f||o[1].toLowerCase().includes(f)); };
+    const list=()=>{ ul.textContent=""; vis().forEach(([v,t])=>{ const row=el("label",{class:"ms-it"}), cb=el("input",{type:"checkbox"}); cb.checked=st.has(v); cb.disabled=!st.has(v)&&!!max&&st.size>=max; cb.addEventListener("change",()=>{ if(cb.checked) st.add(v); else st.delete(v); paint(); list(); }); row.append(cb,el("span",{text:t})); ul.append(row); }); if(!ul.children.length) ul.append(el("p",{class:"muted small ms-no",text:"Nada encontrado."})); if(max) ul.append(el("p",{class:"muted small ms-no",text:`${st.size} de ${max} no máximo`})); };
+    all.addEventListener("change",()=>{ vis().forEach(([v])=>{ if(all.checked) st.add(v); else st.delete(v); }); paint(); list(); });
+    q.addEventListener("input",list);
+    const open=o=>{ pn.hidden=!o; tr.setAttribute("aria-expanded",String(o)); if(o){ q.value=""; list(); q.focus({preventScroll:true}); } };
+    tr.addEventListener("click",()=>open(pn.hidden)); x.addEventListener("click",()=>{ open(false); tr.focus(); });
+    document.addEventListener("click",ev=>{ if(!box.isConnected||pn.hidden||box.contains(ev.target)) return; open(false); });
+    box.addEventListener("keydown",ev=>{ if(ev.key==="Escape"&&!pn.hidden){ ev.stopPropagation(); open(false); tr.focus(); } });
+    paint(); return {st,box}; };
+  const K=msel((GBC||[]).map(c=>[c.k,c.nome]).concat([["","Outro"]]),{ph:"Selecione um ou mais conteúdos…"}), T=msel(["PvE","PvP","Solo","Grupo","Fame Farm","Tank","Healer","DPS","Suporte","Mobilidade"].map(x=>[x,x]),{max:6,ph:"Selecione até 6 características…"});
   const ds=el("textarea",{rows:"3",maxlength:"400",placeholder:"Como jogar, rotação, observações…"});
   const g1=el("div",{class:"nb-g"}); g1.append(fld("Nome da build",nome),fld("Autor",au),); body.append(g1); { const l1=el("div",{class:"nb-f nb-wide"}); l1.append(el("span",{text:"Conteúdo (escolha um ou mais)"}),K.box); const l2=el("div",{class:"nb-f nb-wide"}); l2.append(el("span",{text:"Características (opcional, aparecem como etiquetas no cartão)"}),T.box); body.append(l1,l2); } body.append(fld("Descrição",ds));
   body.append(el("h4",{text:"Peças e habilidades"}),el("p",{class:"muted small",text:"Clique em uma casa para escolher a peça e as habilidades dela. Use Set 1 / Set 2 para montar uma alternativa."}));

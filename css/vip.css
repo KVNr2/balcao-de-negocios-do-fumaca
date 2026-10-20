@@ -1003,3 +1003,19 @@ button.nb-chip[aria-pressed=true]{background:rgba(232,171,69,.2);border-color:va
 .nb-sets{margin:4px 0 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 button.nb-cell.nb-off{background:repeating-linear-gradient(45deg,#101218,#101218 8px,#14161c 8px,#14161c 16px);border:1px dashed #2b2e38;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#8a8272;cursor:not-allowed;opacity:.7}
 button.nb-cell.nb-off .nb-plus{font-size:26px;opacity:.6}
+/* seleção múltipla com painel (estilo PrimeFaces SelectCheckboxMenu) */
+.ms{position:relative}
+button.ms-tr{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:42px;padding:6px 12px;border-radius:8px;border:1px solid var(--line,rgba(255,255,255,.18));background:rgba(0,0,0,.25);color:var(--parch,#f1e6c9);cursor:pointer;text-align:left;font:inherit}
+button.ms-tr:hover,button.ms-tr[aria-expanded=true]{border-color:var(--saffron,#e8ab45)}
+.ms-val{display:flex;flex-wrap:wrap;gap:5px;min-width:0}.ms-ph{opacity:.6;font-size:13.5px}
+.ms-chip{padding:3px 9px;border-radius:999px;background:rgba(232,171,69,.2);color:var(--saffron,#e8ab45);font:600 12px Inter,sans-serif;white-space:nowrap}.ms-chip.mute{background:rgba(255,255,255,.1);color:var(--parch-2,#cdbf9f)}
+.ms-ar{opacity:.7;font-size:14px}
+.ms-pn{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);min-width:260px;background:#1d1511;border:1px solid var(--line,rgba(255,255,255,.2));border-radius:10px;box-shadow:0 12px 30px #000c;overflow:hidden}
+.ms-pn[hidden]{display:none}
+.ms-hd{display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.06);border-bottom:1px solid var(--line-soft,rgba(255,255,255,.1))}
+.ms-hd input[type=search]{flex:1;min-width:0;width:auto!important}
+.ms-hd input[type=checkbox],.ms-it input{width:18px;height:18px;accent-color:var(--saffron,#e8ab45);flex:none}
+.ms-x{border:0;background:none;color:var(--parch-2,#cdbf9f);font-size:16px;cursor:pointer;padding:2px 6px}.ms-x:hover{color:#fff}
+.ms-ul{max-height:260px;overflow:auto;padding:4px 0}
+.ms-it{display:flex;align-items:center;gap:10px;padding:7px 12px;cursor:pointer;font-size:13.5px}.ms-it:hover{background:rgba(255,255,255,.06)}
+.ms-no{padding:6px 12px;margin:0}
