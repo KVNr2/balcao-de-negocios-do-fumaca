@@ -693,3 +693,9 @@ b.c,h4.c{color:#b784e8}
 .oflist .of-row.is-loss:hover .itemcell,.oflist .of-row.is-loss.open .itemcell{background:#381a18}
 .oflist .of-row .itemcell{box-shadow:10px 0 12px -8px rgba(0,0,0,.6)}
 .oflist .of-row{min-height:calc(var(--ic-row) + 2*var(--row-pad-y))}
+.hbar{position:sticky;bottom:0;z-index:20;overflow-x:auto;overflow-y:hidden;height:16px;background:var(--night-2);border-top:1px solid var(--line);scrollbar-width:auto;scrollbar-color:var(--saffron) var(--night-2)}
+.hbar>div{height:1px}
+.hbar::-webkit-scrollbar{height:14px}.hbar::-webkit-scrollbar-thumb{background:var(--saffron);border-radius:7px;border:2px solid var(--night-2)}
+.of2-main .tbl,.bm2{overflow-x:auto;overflow-y:hidden;max-height:none;scrollbar-width:none}
+.of2-main .tbl::-webkit-scrollbar,.bm2::-webkit-scrollbar{display:none}
+.of-lh,.bm2t thead th{position:static}
