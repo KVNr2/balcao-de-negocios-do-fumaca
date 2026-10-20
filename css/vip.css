@@ -976,3 +976,5 @@ button.nb-skcard.on{border-color:var(--gain,#5ec98c);background:rgba(94,201,140,
 .nb-skic img.kx-sm{display:block;width:52px;flex:none}
 .nb-sktx{display:flex;flex-direction:column;gap:3px;min-width:0}.nb-sktx b{font-size:13.5px}.nb-sktx small{font-size:12px;line-height:1.35;color:var(--parch-2,#cdbf9f);white-space:pre-line}
 .nb-mat{margin:4px 0 8px}
+.nb-x{position:absolute;top:-8px;right:-8px;z-index:3;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#2a1713;border:1.5px solid #e87a6a;color:#e87a6a;font:700 13px/1 Inter,sans-serif;cursor:pointer;box-shadow:0 2px 6px #000a}
+.nb-x:hover,.nb-x:focus-visible{background:#e87a6a;color:#1a0d0a;outline:none}

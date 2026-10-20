@@ -102,6 +102,9 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
       const lab=NB_SLOTS.find(x=>x[0]===s)[1]; cell.title=lab;
       if(sel[s]){ const im=fullImg(sel[s],"nico kx-big"); if(im) cell.append(im); if(["w","h","a","s"].includes(s)&&spellOpts(s,sel[s]).some(x=>x.length)){ const n=s==="w"?4:2, ov=el("div",{class:"kx-ov"+(s==="w"?" kx-left":"")}); for(let i=0;i<n;i++){ const v=(sk[s]||[])[i]; if(v) ov.append(spellImg(v,"kx-sm")); else ov.append(el("span",{class:"nb-spph",text:"+",title:posLab(s,i)})); } cell.append(ov); } }
       else cell.append(el("span",{class:"nb-plus",text:"+"}),el("small",{text:lab}));
+      if(sel[s]){ const x=el("span",{class:"nb-x",role:"button",tabindex:"0",title:"Remover "+lab.toLowerCase(),"aria-label":"Remover "+lab.toLowerCase(),text:"✕"});
+        const rm=ev=>{ ev.stopPropagation(); ev.preventDefault(); delete sel[s]; delete sk[s]; if(curPick&&curPick[0]===s){ curPick=null; pick.textContent=""; } draw(); };
+        x.addEventListener("click",rm); x.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" ") rm(ev); }); cell.append(x); }
       cell.addEventListener("click",()=>openPick(s,lab)); grid.append(cell); }); };
   const openPick=(s,lab)=>{ curPick=[s,lab]; pick.textContent=""; pick.scrollIntoView({block:"nearest",behavior:"smooth"}); const q=el("input",{type:"search",placeholder:`Buscar ${lab.toLowerCase()}…`}), t=el("select",{"aria-label":"Tier"}), e=el("select",{"aria-label":"Encantamento"}), res=el("div",{class:"nb-res"}), spk=el("div",{class:"nb-sk"});
     [4,5,6,7,8].forEach(n=>t.append(el("option",{value:n,text:"T"+n}))); t.value="8"; [0,1,2,3,4].forEach(n=>e.append(el("option",{value:n,text:n?"."+n:"sem encanto"})));
