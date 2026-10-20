@@ -646,3 +646,13 @@ b.c,h4.c{color:#b784e8}
 .bm2t td.num:nth-child(5){color:#ef6a62}
 .bm2t td.num:nth-child(4){color:#6db4f2}
 .bm2t .mn-craft{padding:8px 14px}
+.bm2{--tblw:1100px}
+.bm2t tbody{display:table-row-group}
+.bm2t .of-drow td{background:transparent;padding:0!important;border:0;text-align:left;white-space:normal}
+.bm2t .of-drow .of-xp{margin-top:-10px;width:min(var(--tblw),calc(100vw - 340px))}
+.bm2t tbody tr.bm-row.open td:first-child{border-radius:12px 0 0 0}.bm2t tbody tr.bm-row.open td:last-child{border-radius:0 12px 0 0}
+.bm2t tbody tr.bm-row.open td{border-bottom-color:transparent}
+.bm2t .hist{margin-top:10px}
+.bm2t .hist svg{width:100%;height:150px;display:block}.bm2t .hist-h{font:700 12px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--parch-2);padding-left:10px;border-left:3px solid var(--saffron);margin-bottom:6px}
+.of-xcard.res.neg{background:rgba(217,83,79,.07);border-color:rgba(217,83,79,.4)}
+.of-xcard.res.neg .of-xh,.of-xcard.res.neg .of-xtot,.of-xcard.res.neg .of-xtot b{color:#ef6a62;border-color:#ef6a62}
