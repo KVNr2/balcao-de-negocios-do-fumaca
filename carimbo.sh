@@ -6,4 +6,5 @@ set -e
 cd "$(dirname "$0")"
 V=$(cat css/*.css js/*.js data/*.json | sha1sum | cut -c1-8)
 sed -i -E "s/\?v=[0-9a-f]{8}/?v=$V/g; s/(<html[^>]*data-v=\")[0-9a-f]{8}\"/\1$V\"/" index.html
+echo "$V" > versao.txt
 echo "versão $V"
