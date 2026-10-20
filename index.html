@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="abedd100">
+<html lang="pt-BR" data-v="8e6a9522">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=abedd100">
-<link rel="stylesheet" href="css/vip.css?v=abedd100">
-<link rel="stylesheet" href="css/souk.css?v=abedd100">
+<link rel="stylesheet" href="css/balcao.css?v=8e6a9522">
+<link rel="stylesheet" href="css/vip.css?v=8e6a9522">
+<link rel="stylesheet" href="css/souk.css?v=8e6a9522">
 </head>
 <body>
 <div class="wrap app">
@@ -272,20 +272,38 @@
           <div class="of-g"><h3>Item</h3>
             <div class="of-2c"><label class="f">Tier<select id="ofTier"></select></label><label class="f">Encantamento<select id="ofEnch"></select></label></div>
             <label class="f">Qualidade do item vendido<select id="ofQual"></select></label></div>
-          <div class="of-g"><h3>Mercado</h3>
-            <label class="f">Cidade de compra e venda<select id="ofCity"></select></label>
-            <label class="f">Vender<select id="ofSell"><option value="ordem">Por ordem de venda</option><option value="inst">Na hora</option><option value="bm">Mercado Negro</option></select></label>
-            <label class="f">Comprar materiais<select id="ofBuy"><option value="inst">Na hora</option><option value="ordem">Por ordem de compra</option></select></label></div>
-          <div class="of-g"><h3>Parâmetros</h3>
-            <label class="f">Quantidade a fabricar <small class="muted">vazio: média vendida por dia no destino</small><input id="ofQty" type="number" min="1" step="1" placeholder="Automática"></label>
-            <label class="f">Taxa da estação <small class="muted">pratas por 100 de nutrição</small><input id="ofFee" type="number" min="0" step="10"></label>
-            <div class="of-pre" id="ofFeeP"><button type="button" data-f="500">500</button><button type="button" data-f="650">650</button><button type="button" data-f="800">800</button><button type="button" data-f="1000">1000</button></div>
-            <div class="f"><span>Taxa de retorno <b id="ofRRv">—</b></span><input type="range" id="ofRRs" min="0" max="70" step="0.1" value="24.8" aria-label="Taxa de retorno de recursos"></div>
-            <div class="of-pre" id="ofRRp"><button type="button" data-rr="none" aria-pressed="false" title="Sem bônus de cidade, sem foco"></button><button type="button" data-rr="auto" aria-pressed="true" title="Cidade com bônus, sem foco"></button><button type="button" data-rr="focus" aria-pressed="false" title="Cidade com bônus e foco"></button></div>
-            <label class="chk"><input type="checkbox" id="ofPrem"> Conta Premium</label>
-            <label class="chk"><input type="checkbox" id="ofTax" checked> Taxa de venda</label>
-            <label class="chk"><input type="checkbox" id="ofFocus"> Usar foco</label>
-            <label class="chk"><input type="checkbox" id="ofDaily"> Bônus diário (+10%)</label></div>
+          <div class="of-card" id="ofCityCard">
+            <button type="button" class="of-chead" aria-expanded="false" aria-controls="ofCityPop">
+              <span class="of-ct">Cidade</span><span class="of-cs" id="ofCityS"></span>
+              <span class="of-cb"><span class="of-ico"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><span class="of-lines"><span><b class="v">Venda:</b> <span id="ofCityV"></span></span><span><b class="c">Compra:</b> <span id="ofCityC"></span></span></span><span class="of-chv" aria-hidden="true">⌃</span></span>
+            </button>
+            <div class="of-pop" id="ofCityPop" hidden>
+              <div class="of-pc"><h4 class="v">Venda <small>(multi)</small></h4><div id="ofSellList"></div></div>
+              <div class="of-pc"><h4 class="c">Compra</h4><div id="ofBuyList"></div></div>
+            </div>
+          </div>
+          <div class="of-card" id="ofStratCard">
+            <button type="button" class="of-chead" aria-expanded="false" aria-controls="ofStratPop">
+              <span class="of-ct">Estratégia</span><span class="of-cs" id="ofStratS"></span>
+              <span class="of-cb"><span class="of-ico"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg></span><span class="of-lines"><span><b class="v">Venda:</b> <span id="ofStratV"></span></span><span><b class="c">Compra:</b> <span id="ofStratC"></span></span></span><span class="of-chv" aria-hidden="true">⌃</span></span>
+            </button>
+            <div class="of-pop" id="ofStratPop" hidden>
+              <div class="of-pc"><h4 class="v">Venda</h4><div id="ofSellS"></div><input type="number" min="0" id="ofManS" class="of-man" placeholder="Preço por unidade" hidden></div>
+              <div class="of-pc"><h4 class="c">Compra</h4><div id="ofBuyS"></div><input type="number" min="0" id="ofManB" class="of-man" placeholder="Preço por unidade" hidden></div>
+            </div>
+          </div>
+          <div class="of-card of-sl"><div class="of-slh"><span class="of-ct">Quantidade a fabricar</span></div>
+            <input id="ofQty" type="number" min="1" step="1" placeholder="Automática"><small class="muted">Vazio: média vendida por dia no destino</small></div>
+          <div class="of-card of-sl"><div class="of-slh"><span class="of-ct">Taxa de nutrição</span><input id="ofFee" type="number" min="0" step="5" aria-label="Taxa da estação por 100 de nutrição"></div>
+            <input type="range" id="ofFeeS" min="0" max="1500" step="5" aria-label="Taxa de nutrição">
+            <div class="of-pre" id="ofFeeP"><button type="button" data-f="300">300</button><button type="button" data-f="400">400</button><button type="button" data-f="600">600</button><button type="button" data-f="800">800</button></div></div>
+          <div class="of-card of-sl"><div class="of-slh"><span class="of-ct">Taxa de retorno</span><b class="of-big" id="ofRRv">—</b></div>
+            <input type="range" id="ofRRs" min="0" max="70" step="0.1" value="24.8" aria-label="Taxa de retorno de recursos">
+            <div class="of-pre" id="ofRRp"><button type="button" data-rr="none" aria-pressed="false" title="Sem bônus de cidade, sem foco"></button><button type="button" data-rr="auto" aria-pressed="true" title="Cidade com bônus, sem foco"></button><button type="button" data-rr="focus" aria-pressed="false" title="Cidade com bônus e foco"></button></div></div>
+          <label class="of-sw"><span class="of-swi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg></span><span class="of-swt">Conta Premium</span><input type="checkbox" id="ofPrem"><i class="of-track"></i></label>
+          <label class="of-sw"><span class="of-swi on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5L5 19"/><circle cx="7" cy="7" r="2"/><circle cx="17" cy="17" r="2"/></svg></span><span class="of-swt">Taxa de Venda</span><input type="checkbox" id="ofTax" checked><i class="of-track"></i></label>
+          <label class="of-sw"><span class="of-swi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></svg></span><span class="of-swt">Usar Foco</span><input type="checkbox" id="ofFocus"><i class="of-track"></i></label>
+          <label class="of-sw"><span class="of-swi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg></span><span class="of-swt">Usar Diário</span><input type="checkbox" id="ofDaily"><i class="of-track"></i></label>
         </aside>
         <div class="of2-main">
           <p class="small muted" id="ofNote"></p>
@@ -628,17 +646,17 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=abedd100"></script>
-<script src="js/base.js?v=abedd100"></script>
-<script src="js/fx.js?v=abedd100"></script>
-<script src="js/biz.js?v=abedd100"></script>
-<script src="js/builds.js?v=abedd100"></script>
-<script src="js/zvz.js?v=abedd100"></script>
-<script src="js/novos.js?v=abedd100"></script>
-<script src="js/guia.js?v=abedd100"></script>
-<script src="js/ui.js?v=abedd100"></script>
-<script src="js/oficina.js?v=abedd100"></script>
-<script src="js/versao.js?v=abedd100"></script>
-<script src="js/main.js?v=abedd100"></script>
+<script src="js/icons.js?v=8e6a9522"></script>
+<script src="js/base.js?v=8e6a9522"></script>
+<script src="js/fx.js?v=8e6a9522"></script>
+<script src="js/biz.js?v=8e6a9522"></script>
+<script src="js/builds.js?v=8e6a9522"></script>
+<script src="js/zvz.js?v=8e6a9522"></script>
+<script src="js/novos.js?v=8e6a9522"></script>
+<script src="js/guia.js?v=8e6a9522"></script>
+<script src="js/ui.js?v=8e6a9522"></script>
+<script src="js/oficina.js?v=8e6a9522"></script>
+<script src="js/versao.js?v=8e6a9522"></script>
+<script src="js/main.js?v=8e6a9522"></script>
 </body>
 </html>
