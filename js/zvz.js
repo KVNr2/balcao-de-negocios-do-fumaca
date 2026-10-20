@@ -16,7 +16,7 @@ function zVariante(w,v,top){
   const mk=(code,t,e,tt)=>{ const w_=el("div",{class:"zg",title:zNome(code)+(e?"."+e:"")}); w_.append(zimg(code,t,e,"nico zi")); w_.append(el("span",{class:"zg-t",text:`${t}.${e||0}`})); return w_; };
   row.append(mk(w,v.arma.t,v.arma.e));
   for(const [k] of ZSLOT){ if(v[k]) row.append(mk(v[k].c,v[k].t,v[k].e)); }
-  box.append(row,el("p",{class:"muted small",text:`${v.n} ${v.n===1?"jogador usou":"jogadores usaram"} este conjunto de elmo, peito e botas · IP médio ${v.ip}`}));
+  box.append(row,el("p",{class:"muted small",text:`${v.n} ${v.n===1?"jogador usou":"jogadores usaram"} este conjunto de elmo, peito e botas ${v.ip?"· IP médio "+v.ip:""}`}));
   return box;
 }
 function zCard(w,n,total,role){
@@ -37,7 +37,7 @@ function renderZvz(){
   $("zNote").textContent=`Fonte: ${ZVZ.fonte}. ${j.batalhas} batalhas · ${j.jogadores} jogadores · ${j.mortes} mortes lidas. Atualizado em ${new Date(ZVZ.atualizado).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}.`;
   const rs=$("zRoles"); rs.textContent="";
   for(const [k,n] of ZROLE){ const t=(d[k]||{}).total||0; if(!t&&k!==zRole) continue; const b=el("button",{type:"button","aria-pressed":String(zRole===k),text:`${n} (${t})`}); b.addEventListener("click",()=>{ zRole=k; renderZvz(); }); rs.append(b); }
-  const sel=$("zAli"); if(!sel._ok){ sel._ok=1; sel.append(el("option",{value:"",text:"Todas as alianças"})); ZVZ.aliancas.forEach(a=>sel.append(el("option",{value:a.nome,text:`${a.nome} (${a.jogadores} jogadores, IP ${a.ip})`}))); sel.addEventListener("change",()=>{ zAli=sel.value; renderZvz(); }); }
+  const sel=$("zAli"); if(!sel._ok){ sel._ok=1; sel.append(el("option",{value:"",text:"Todas as alianças"})); ZVZ.aliancas.forEach(a=>sel.append(el("option",{value:a.nome,text:`${a.nome} (${a.jogadores} jogadores${a.ip?", IP "+a.ip:""})`}))); sel.addEventListener("change",()=>{ zAli=sel.value; renderZvz(); }); }
   host.textContent=""; const r=d[zRole];
   if(!r||!r.armas.length){ host.append(el("p",{class:"empty",text:"Sem dados para esta função."})); return; }
   for(const [w,n] of r.armas) host.append(zCard(w,n,r.total,zRole));
