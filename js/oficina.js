@@ -286,7 +286,7 @@ document.addEventListener("input",ev=>{ if(ev.target.id==="ofManS"){ OF2.manS=+e
 
 /* ================= mercado: todos os itens do jogo ================= */
 let CATALOG = null;                 // data/catalog.json: c: categorias, i: [id, categoria, subcategoria, tier, encantável, nome PT, nome EN]
-const MK = {cat:"crafting", sub:"resources", tier:0, ench:-1, qual:1, q:"", only:true};   // qual: qualidade dos preços e dos ícones (1 a 5); q é o texto da busca
+const MK = {cat:"", sub:"", city:"", tier:0, ench:-1, qual:1, q:"", only:true};   // qual: qualidade dos preços e dos ícones (1 a 5); q é o texto da busca
 const SUB_PT = {resources:"Recursos brutos",refinedresources:"Recursos refinados",fish:"Peixes",alchemy:"Ingredientes de alquimia",cityresources:"Recursos de cidade",tokens:"Fichas",food:"Comidas",potions:"Poções",tomes:"Tomos",silverbag:"Sacos de prata",
   plate_armor:"Placa",leather_armor:"Couro",cloth_armor:"Pano",plate_helmet:"Placa",leather_helmet:"Couro",cloth_helmet:"Pano",plate_shoes:"Placa",leather_shoes:"Couro",cloth_shoes:"Pano",shieldtype:"Escudos",booktype:"Livros",torchtype:"Tochas",
   bags:"Bolsas",satchels:"Bolsas de lado",labourers:"Trabalhadores e diários",luxurygoods:"Artigos de luxo",maps:"Mapas",trash:"Sucata",killtrophy:"Troféus",lootitem:"Saque",farm:"Sementes e colheitas",pasture:"Animais",kennel:"Montarias da fazenda",herbgarden:"Ervas",farmingproducts:"Produtos",
@@ -304,13 +304,13 @@ const mkName = r => (LANG==="en" ? r[6] : r[5]) || r[6] || r[0];
 function setupMk(){
   const sel=$("mkCat"); if(sel.options.length) return;
   const order=["crafting","weapons","armors","head","shoes","offhands","capes","consumables","farming","gathering","mounts","bags","artefacts","furniture","other","vanity"];
-  for(const c of order) if(CATALOG.c[c]) sel.append(el("option",{value:c,text:CATALOG.c[c]}));
-  sel.value=store.get("mkCat2")||"crafting"; MK.cat=sel.value; if(MK.cat!=="crafting") MK.sub="";
-  const tb=$("mkTier"); ["Todos",1,2,3,4,5,6,7,8].forEach((t,i)=>tb.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String(i===0),text:i?`T${t}`:t})));
-  const eb=$("mkEnch"); ["Todos",0,1,2,3,4].forEach((e,i)=>eb.append(el("button",{type:"button","data-e":String(i?e:-1),"aria-pressed":String(i===0),text:i?`.${e}`:e})));
-  const seg=(box,attr,key)=>box.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); MK[key]=+b.dataset[attr]; renderMk(); });
-  const qb=$("mkQual"); [1,2,3,4,5].forEach(q=>qb.append(el("button",{type:"button","data-q":String(q),"aria-pressed":String(q===MK.qual),text:QNAME[q]})));
-  seg(tb,"t","tier"); seg(eb,"e","ench"); seg(qb,"q","qual");
+  sel.append(el("option",{value:"",text:"Todas"})); for(const c of order) if(CATALOG.c[c]) sel.append(el("option",{value:c,text:CATALOG.c[c]}));
+  { const sv=store.get("mkCat2"); sel.value=sv==null?"":sv; if(sel.value!==(sv==null?"":sv)) sel.value=""; } MK.cat=sel.value; MK.sub="";
+  const fillSel=(id,opts,val,key)=>{ const x=$(id); opts.forEach(([v,t])=>x.append(el("option",{value:String(v),text:t}))); x.value=String(val); x.addEventListener("change",()=>{ MK[key]=id==="mkCity"?x.value:+x.value; renderMk(); }); };
+  fillSel("mkTier",[[0,"Todos"],...[1,2,3,4,5,6,7,8].map(t=>[t,`T${t}`])],MK.tier,"tier");
+  fillSel("mkEnch",[[-1,"Todos"],...[0,1,2,3,4].map(e=>[e,`.${e}`])],MK.ench,"ench");
+  fillSel("mkQual",[1,2,3,4,5].map(q=>[q,QNAME[q]]),MK.qual,"qual");
+  fillSel("mkCity",[["","Todas as cidades"],...SHOP_LOCS.map(c=>[c,c])],"","city");
   sel.addEventListener("change",()=>{ MK.cat=sel.value; MK.sub=""; store.set("mkCat2",sel.value); fillSubs(); renderMk(); });
   $("mkSub").addEventListener("change",()=>{ MK.sub=$("mkSub").value; renderMk(); });
   let tmr=null; $("mkFind").addEventListener("input",()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ MK.q=$("mkFind").value.trim().toLowerCase(); renderMk(); },250); });
@@ -318,7 +318,7 @@ function setupMk(){
   fillSubs();
 }
 function fillSubs(){ const ss=$("mkSub"); ss.textContent=""; ss.append(el("option",{value:"",text:"Todas"}));
-  const subs=[...new Set(CATALOG.i.filter(r=>r[1]===MK.cat).map(r=>r[2]))].sort((a,b)=>subName(a).localeCompare(subName(b),"pt-BR")); subs.forEach(s=>ss.append(el("option",{value:s,text:subName(s)}))); ss.value=MK.sub; }
+  const subs=(MK.cat?[...new Set(CATALOG.i.filter(r=>r[1]===MK.cat).map(r=>r[2]))]:[]).sort((a,b)=>subName(a).localeCompare(subName(b),"pt-BR")); subs.forEach(s=>ss.append(el("option",{value:s,text:subName(s)}))); ss.value=MK.sub; }
 function extremes(id,q=1){ const r=(q>1?(PQ[q]||{}):DATA.itens)[mkKey(id)]||{}; const out={smax:null,smin:null,bmax:null,bmin:null};
   for(const [c,v] of Object.entries(r)){ if(v[0]>0){ if(!out.smax||v[0]>out.smax.p) out.smax={p:v[0],c,t:v[2]}; if(!out.smin||v[0]<out.smin.p) out.smin={p:v[0],c,t:v[2]}; }
     if(v[1]>0){ if(!out.bmax||v[1]>out.bmax.p) out.bmax={p:v[1],c,t:v[3]}; if(!out.bmin||v[1]<out.bmin.p) out.bmin={p:v[1],c,t:v[3]}; } } return out; }
@@ -328,10 +328,11 @@ async function renderMk(){
   if(!CATALOG){ note.textContent="Abrindo o catálogo de itens do jogo…"; try{ CATALOG=await need("catalog"); }catch(e){ note.textContent="Não consegui abrir o catálogo."; return; } }
   setupMk();
   const q=MK.q, search=q.length>=2;
-  let base=CATALOG.i.filter(r=> search ? ((r[5]||"").toLowerCase().includes(q)||(r[6]||"").toLowerCase().includes(q)||r[0].toLowerCase().includes(q)) : (r[1]===MK.cat&&(!MK.sub||r[2]===MK.sub)));
+  let base=CATALOG.i.filter(r=> search ? ((r[5]||"").toLowerCase().includes(q)||(r[6]||"").toLowerCase().includes(q)||r[0].toLowerCase().includes(q)) : ((!MK.cat||r[1]===MK.cat)&&(!MK.sub||r[2]===MK.sub)));
   base=base.filter(r=>!MK.tier||r[3]===MK.tier);
   if(search){ const rank={weapons:0,armors:1,head:1,shoes:1,offhands:2,capes:2,crafting:3,consumables:3,farming:4,mounts:4,bags:4,gathering:5,artefacts:6,other:7,furniture:8,vanity:9};
     const nm_=r=>(mkName(r)||"").toLowerCase(); base.sort((a,b)=>((nm_(b).startsWith(q))-(nm_(a).startsWith(q)))||((rank[a[1]]??9)-(rank[b[1]]??9))||(a[3]-b[3])); }
+  else if(!MK.cat){ const rank={weapons:0,armors:1,head:1,shoes:1,offhands:2,capes:2,crafting:3,consumables:3,farming:4,mounts:4,bags:4,gathering:5,artefacts:6,other:7,furniture:8,vanity:9}; base.sort((a,b)=>((rank[a[1]]??9)-(rank[b[1]]??9))||mkName(a).localeCompare(mkName(b),"pt-BR")||(a[3]-b[3])); }
   else base.sort((a,b)=>subName(a[2]).localeCompare(subName(b[2]),"pt-BR")||mkName(a).localeCompare(mkName(b),"pt-BR")||(a[3]-b[3]));
   const list=[]; for(const r of base){ const es = MK.ench<0 ? (r[4]||isLevelRes(r)?[0,1,2,3,4]:[0]) : (MK.ench===0||r[4]||isLevelRes(r)?[MK.ench]:[]); for(const e of es) list.push({r,e,id:mkId(r,e)}); }
   const total=list.length, slice=list.slice(0,180);
@@ -341,41 +342,56 @@ async function renderMk(){
     try{ await fetchIds(want,mq>1?PQ[mq]:DATA.itens,SHOP_LOCS,mq); want.forEach(id=>MK_SEEN.add(seen(id))); }catch(e){ note.textContent="Não consegui consultar os preços agora."; return; }
     if(MK.qual!==mq) return; }
   const rows=slice.map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>!MK.only||x.x.smin||x.x.bmax);
-  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Item","Maior venda","Menor venda","Maior compra","Menor compra","Diferença"].forEach(h=>hr.append(el("th",{text:h})));
-  const body=tb.createTBody();
-  const cellP=(tr,o,cls)=>{ const c=tr.insertCell(); c.className="mkp "+(cls||""); if(!o){ c.textContent="—"; return; } c.append(el("b",{class:"city",text:o.c}),el("span",{class:"num",text:fmt(o.p)}),ageSpan(o.t)||""); };
-  for(const x of rows){ const sp=x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0, spp=x.x.smin?sp/x.x.smin.p:0; const tr=body.insertRow(); tr.className="clickrow bm-row mk-row "+(sp>0&&spp>=0.1?"is-gain":"is-flat"); tr.tabIndex=0; const nm_=mkName(x.r);
-    const c0=tr.insertCell(); c0.className="itemcell"; const hd=el("div",{class:"ihead"}); const ii=iconImg(x.id,76,mq); ii.classList.add("ic-row"); hd.append(ii); const nb=el("span",{class:"inm"}); nb.append(el("strong",{text:nm_}),el("small",{text:`${x.r[3]?`T${x.r[3]}.${x.e}`:"sem tier"}${mq>1?` · ${QNAME[mq]}`:""}, ${CATALOG.c[x.r[1]]||""}${x.r[2]&&subName(x.r[2])!==CATALOG.c[x.r[1]]?`: ${subName(x.r[2])}`:""}`})); hd.append(nb); c0.append(hd);
-    cellP(tr,x.x.smax); cellP(tr,x.x.smin,"gain"); cellP(tr,x.x.bmax,"gain"); cellP(tr,x.x.bmin);
-    const d=tr.insertCell(); d.className="num"; d.className="num bm-profit "+(sp>0&&spp>=0.1?"gain":""); d.textContent=x.x.smax&&x.x.smin?fmt(sp):"—"; if(x.x.smax&&x.x.smin) d.append(el("small",{text:`${sp>=0?"+":""}${dec(spp*100)}%`})); d.title="Maior venda menos menor venda: o espaço para comprar numa cidade e vender em outra";
-    const op=()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`,mq); tr.addEventListener("click",op); tr.addEventListener("keydown",ev=>{ if(ev.key==="Enter") op(); }); }
-  note.textContent = !total ? "Nenhum item com esse filtro." : `${total} ${total>1?"itens":"item"}${search?` com "${q}"`:` em ${CATALOG.c[MK.cat]}${MK.sub?` · ${subName(MK.sub)}`:""}`}${total>180?"; mostrando os 180 primeiros, use tier, encantamento ou a busca para filtrar":""}. ${rows.length<slice.length?`${slice.length-rows.length} sem anúncio nos últimos 3 dias ficaram de fora. `:""}${mq>1?`Qualidade ${QNAME[mq].toLowerCase()}: só entram itens com anúncio nessa qualidade (recursos e comida só existem na Normal). `:""}Clique num item para ver todas as cidades e o histórico.`;
+  const cities=MK.city?[MK.city]:SHOP_LOCS;
+  tb.textContent=""; const hr=tb.createTHead().insertRow(); hr.append(el("th",{text:"Item"}));
+  cities.forEach(c=>{ const th=el("th",{}); th.append(el("span",{class:"dot",style:`background:${CITY_COLOR[c]||"#999"}`}),c); hr.append(th); });
+  ["Diferença","Atualizado",""].forEach(h=>hr.append(el("th",{text:h})));
+  const body=tb.createTBody(), src=mq>1?(PQ[mq]||{}):DATA.itens;
+  for(const x of rows){ const rec=src[mkKey(x.id)]||{}; const sp=x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0, spp=x.x.smin?sp/x.x.smin.p:0, hot=sp>0&&spp>=0.1;
+    const tr=body.insertRow(); tr.className="clickrow bm-row mk-row "+(hot?"is-gain":"is-flat"); tr.tabIndex=0; const nm_=mkName(x.r);
+    const c0=tr.insertCell(); c0.className="itemcell"; const hd=el("div",{class:"ihead"}); const ii=iconImg(x.id,76,mq); ii.classList.add("ic-row"); if(x.r[3]) hd.append(el("span",{class:"tbadge",text:`T${x.r[3]}`})); hd.append(ii);
+    const nb=el("span",{class:"inm"}); const tn=el("strong",{}); tn.append(nm_); if(mq>1) tn.append(el("span",{class:"qtag q"+mq,text:QNAME[mq]})); nb.append(tn,el("small",{text:`${x.r[3]?`T${x.r[3]}.${x.e}`:"sem tier"} · ${CATALOG.c[x.r[1]]||""}${x.r[2]&&subName(x.r[2])!==CATALOG.c[x.r[1]]?` › ${subName(x.r[2])}`:""}`})); hd.append(nb); c0.append(hd);
+    for(const c of cities){ const v=rec[c], td=tr.insertCell(); td.className="num mk-city"; if(!v||!(v[0]>0)){ td.textContent="—"; td.classList.add("none"); continue; }
+      const b=el("b",{class:"mk-pr"+(x.x.smin&&v[0]===x.x.smin.p?" low":x.x.smax&&v[0]===x.x.smax.p&&sp>0?" high":""),text:fmt(v[0])}); td.append(b); }
+    const d=tr.insertCell(); d.className="num bm-profit "+(hot?"gain":""); d.textContent=x.x.smax&&x.x.smin?fmt(sp):"—"; if(x.x.smax&&x.x.smin) d.append(el("small",{text:`${sp>=0?"+":""}${dec(spp*100)}%`})); d.title="Maior venda menos menor venda: o espaço para comprar numa cidade e vender em outra";
+    const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean); const tu=tr.insertCell(); tu.className="num"; tu.append(ts.length?(ageSpan(Math.max(...ts))||"—"):"—");
+    const ac=tr.insertCell(); const bt=el("button",{type:"button",class:"btn mn-craft",text:"Detalhe"}); ac.append(bt);
+    const op=()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`,mq); tr.addEventListener("click",op); tr.addEventListener("keydown",ev=>{ if(ev.key==="Enter"&&ev.target===tr) op(); }); }
+  note.textContent = !total ? "Nenhum item com esse filtro." : `${total} ${total>1?"itens":"item"}${search?` com "${q}"`:MK.cat?` em ${CATALOG.c[MK.cat]}${MK.sub?` · ${subName(MK.sub)}`:""}`:" em todas as categorias"}${total>180?"; mostrando os 180 primeiros, use categoria, tier, encantamento ou a busca para filtrar":""}. ${rows.length<slice.length?`${slice.length-rows.length} sem anúncio nos últimos 3 dias ficaram de fora. `:""}${mq>1?`Qualidade ${QNAME[mq].toLowerCase()}: só entram itens com anúncio nessa qualidade (recursos e comida só existem na Normal). `:""}Verde: o menor preço da linha. Âmbar: o maior. Clique num item para ver as ofertas e o histórico.`;
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.2,stagger:.006,clearProps:"opacity,transform"});
   const wr=tb.parentNode; wr.id="mkWrap"; hbar(wr);
 }
 
 /* quadro de detalhe de um item */
 const CITY_COLOR = {"Thetford":"#a46ad8","Fort Sterling":"#e9e4d8","Martlock":"#4aa3df","Bridgewatch":"#e8963f","Lymhurst":"#6cc06a","Caerleon":"#d0463f","Brecilien":"#3ec3b0","Black Market":"#8d8d99"};
+let DLG={days:30,series:null,q:1};
 async function openItem(apiId,name,q=1){
   const dlg=$("itemDlg"); const key=apiId.includes("_LEVEL")?apiId.split("@")[0]:apiId;
   $("dlgTitle").textContent=name||nmKey(apiId.replace(/^T\d_/,"").replace(/@\d$/,""),apiId); iconSrc($("dlgIcon"),apiId,()=>{},q); $("dlgSub").textContent=apiId+(q>1?` · ${QNAME[q]}`:"");
-  const box=$("dlgCities"); box.textContent="Consultando…"; $("dlgChart").textContent=""; $("dlgNote").textContent="";
+  const tm=/^T(\d)_/.exec(apiId); $("dlgTier").textContent=tm?`T${tm[1]}`:""; $("dlgTier").hidden=!tm;
+  const S=$("dlgSum"), SE=$("dlgSell"), BU=$("dlgBuy"); [S,SE,BU].forEach(b=>b.textContent=""); S.textContent="Consultando…"; $("dlgChart").textContent=""; $("dlgNote").textContent="";
   if(dlg.showModal&&!dlg.open) dlg.showModal(); else dlg.setAttribute("open","");
   const locs=[...SHOP_LOCS,"Black Market"];
   const tgt={}; try{ await fetchIds([apiId],tgt,locs,q); }catch(e){}
-  const r=tgt[key]||{}; box.textContent="";
-  const t=el("table",{class:"ledger dlgt"}); const h=t.createTHead().insertRow(); ["Cidade","Menor venda","Atualizado","Maior compra","Atualizado"].forEach(x=>h.append(el("th",{text:x})));
-  const b=t.createTBody(); const rows=Object.entries(r).sort((a,b_)=>((a[1][0]||1e15)-(b_[1][0]||1e15)));
-  for(const [c,v] of rows){ const tr=b.insertRow(); const cc=tr.insertCell(); cc.append(el("span",{class:"dot",style:`background:${CITY_COLOR[c]||"#999"}`}),c);
-    const a=tr.insertCell(); a.className="num"; a.textContent=v[0]?fmt(v[0]):"—"; tr.insertCell().append(ageSpan(v[2])||"—");
-    const d=tr.insertCell(); d.className="num"; d.textContent=v[1]?fmt(v[1]):"—"; tr.insertCell().append(ageSpan(v[3])||"—"); }
-  if(!rows.length) box.textContent="Nenhum anúncio recente desse item."; else box.append(t);
-  try{ const j=await apiJSON(`${HOST}/api/v2/stats/history/${apiId}.json?locations=${locs.join(",").replace(/ /g,"%20")}&time-scale=24`,360); drawStack($("dlgChart"),q>1?j.filter(s=>+s.quality===q):j); }catch(e){ $("dlgNote").textContent="Sem histórico agora."; }
+  const r=tgt[key]||{}, dot=c=>el("span",{class:"dot",style:`background:${CITY_COLOR[c]||"#999"}`});
+  const list=(box,idx,tidx,asc)=>{ const rows=Object.entries(r).filter(([c,v])=>v[idx]>0&&(idx===1||c!=="Black Market")).sort((a,b)=>asc?a[1][idx]-b[1][idx]:b[1][idx]-a[1][idx]);
+    if(!rows.length){ box.append(el("p",{class:"small muted",text:"Sem ofertas recentes."})); return null; }
+    rows.forEach(([c,v],i)=>{ const row=el("div",{class:"dlg-of"+(i===0?" best":"")}); row.append(el("b",{class:"pr",text:fmt(v[idx])})); const cc=el("span",{class:"cc"}); const nm1=el("span",{}); nm1.append(dot(c),c); cc.append(nm1,el("small",{},ageSpan(v[tidx])||"")); row.append(cc); box.append(row); }); return rows[0]; };
+  const lo=list(SE,0,2,true), hi=list(BU,1,3,false);
+  S.textContent=""; const line=(k,v,sub,cls)=>{ const l=el("div",{class:"dlg-sum"}); l.append(el("span",{text:k}),el("b",{class:cls||"",text:v})); if(sub) l.append(el("small",{text:sub})); S.append(l); };
+  if(lo) line("Menor venda",fmt(lo[1][0]),lo[0]); else line("Menor venda","—");
+  if(hi) line("Melhor compra",fmt(hi[1][1]),hi[0]); else line("Melhor compra","—");
+  if(lo&&hi) line("Diferença bruta",(hi[1][1]-lo[1][0]>=0?"+":"")+fmt(hi[1][1]-lo[1][0]),"melhor compra menos menor venda",hi[1][1]-lo[1][0]>=0?"gain":"loss");
+  const ts=Object.values(r).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean); if(ts.length){ const l=el("div",{class:"dlg-sum"}); l.append(el("span",{text:"Atualizado"}),el("b",{},ageSpan(Math.max(...ts))||"—")); S.append(l); }
+  if(!lo&&!hi) S.textContent="Nenhum anúncio recente desse item.";
+  DLG.series=null; DLG.q=q; DLG.id=apiId;
+  try{ const j=await apiJSON(`${HOST}/api/v2/stats/history/${apiId}.json?locations=${locs.join(",").replace(/ /g,"%20")}&time-scale=24`,360); DLG.series=q>1?j.filter(s=>+s.quality===q):j; drawStack($("dlgChart"),DLG.series,DLG.days); }catch(e){ $("dlgNote").textContent="Sem histórico agora."; }
 }
-function drawStack(svg,series){
+$("dlgRange").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; $("dlgRange").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); DLG.days=+b.dataset.d; if(DLG.series){ $("dlgChart").textContent=""; drawStack($("dlgChart"),DLG.series,DLG.days); } });
+function drawStack(svg,series,N=30){
   const ns="http://www.w3.org/2000/svg", mk=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e.setAttribute(k,a[k]); return e; };
-  const days={}; for(const s of series) for(const d of (s.data||[]).slice(-30)){ const k=d.timestamp.slice(0,10); (days[k]||(days[k]={}))[s.location]=(days[k][s.location]||0)+d.item_count; }
-  const keys=Object.keys(days).sort().slice(-30); if(keys.length<2){ $("dlgNote").textContent="Pouco histórico para esse item."; return; }
+  const days={}; for(const s of series) for(const d of (s.data||[]).slice(-N)){ const k=d.timestamp.slice(0,10); (days[k]||(days[k]={}))[s.location]=(days[k][s.location]||0)+d.item_count; }
+  const keys=Object.keys(days).sort().slice(-N); if(keys.length<2){ $("dlgNote").textContent="Pouco histórico para esse item."; return; }
   const W=720,H=220,PL=46,PB=24,PT=8, tot=keys.map(k=>Object.values(days[k]).reduce((a,b)=>a+b,0)), max=Math.max(...tot)||1, bw=(W-PL-8)/keys.length;
   for(const f of [0.5,1]){ const y=PT+(1-f)*(H-PT-PB); svg.append(mk("line",{x1:PL,x2:W-8,y1:y,y2:y,stroke:"var(--line-soft)"})); const tx=mk("text",{x:PL-6,y:y+4,"text-anchor":"end","font-size":11,fill:"var(--smoke)"}); tx.textContent=fmtS(max*f); svg.append(tx); }
   const cities=[...new Set(series.map(s=>s.location))];
