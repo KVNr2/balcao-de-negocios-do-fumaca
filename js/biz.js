@@ -201,7 +201,10 @@ async function renderMU(){
   for(const m of MU){ if(q&&!(m.w+" "+(LINE_NAME[m.l]||"")).toLowerCase().includes(q)) continue;
     const good=mine.filter(k=>LINE_RX[k]&&LINE_RX[k].test([].concat(m.forte_contra||[]).join(" ")));
     const card=el("article",{class:"mu"+(hi&&good.length?" mine":"")});
-    card.append(el("h3",{},document.createTextNode(nm(m.w)),el("small",{text:LINE_NAME[m.l]||""})));
+    const hd=el("div",{class:"mu-hd"}); const wi=m.code?zimg(m.code,8,0,"mu-wi"):null; if(wi){ wi.alt=nm(m.w); wi.title=nm(m.w); hd.append(wi); }
+    hd.append(el("h3",{},document.createTextNode(nm(m.w)),el("small",{text:LINE_NAME[m.l]||""})));
+    if(m.sp&&m.sp.length){ const sk=el("div",{class:"mu-sks",title:"Habilidades mais usadas nas builds com esta arma"}); m.sp.forEach((id,i)=>{ const b=el("span",{class:"mu-sk"+(i===3?" pas":"")}); b.append(spellImg(id,"mu-sp"),el("i",{text:["Q","W","E","P"][i]||""})); sk.append(b); }); hd.append(sk); }
+    card.append(hd);
     const dl=el("dl"); const row=(t,d,cls)=>{ if(!d) return; dl.append(el("dt",{text:t}),el("dd",{class:cls||"",text:d})); };
     row("O perigo",m.ameaca,"threat"); row("Costuma vir com",m.outras); row("Quando entrar",m.janela); row("Guarde",m.guardar); row("Erro comum",m.erro); row("Quem lida bem",[].concat(m.forte_contra||[]).join("; ")); if(m.patch) row("Patch",m.patch);
     card.append(dl);
