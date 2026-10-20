@@ -51,6 +51,11 @@ def main():
                 ids = lista(b.get(a)) + (lista(b.get(c)) if c else [])
                 if ids: e[sl] = list(dict.fromkeys(ids))
             e["w"] = e["w"][0]
+            # habilidades e passivas (ids do jogo): w = arma; h/a/s = [recomendado, alternativa]
+            sk = {"w": lista(b.get("weapon_skills"))}
+            for sl, p1, p2 in (("h", "helmet_skills", "helmet_alt_skills"), ("a", "chest_skills", "chest_alt_skills"), ("s", "boots_skills", "boots_alt_skills")):
+                sk[sl] = [lista(b.get(p1)), lista(b.get(p2))]
+            if any(sk["w"]) or any(any(v) for k, v in sk.items() if k != "w"): e["sk"] = sk
             builds.append(e)
         print(key, len(bl), "total", j.get("total"))
     if len(builds) < 60 or len(conteudos) < 8:
