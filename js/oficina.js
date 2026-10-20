@@ -203,7 +203,7 @@ async function renderOf(){
   const body=tb.createTBody(); let oldest=Infinity, newest=0;
   const stamp=t=>{ if(t>0){ oldest=Math.min(oldest,t); newest=Math.max(newest,t); } };
   const qIc=OF2.qual>1&&isG?OF2.qual:1; OF2.rows=[];
-  for(const m of shown){ const key=m.it.id; const tr=body.insertRow(); tr.dataset.id=m.it.id; tr.dataset.city=m.sale.c; tr.className="clickrow of-row "+(m.profit>=0?"is-gain":"is-loss");
+  for(const m of shown){ const key=m.it.id; const tr=body.insertRow(); tr.dataset.id=m.it.id; tr.dataset.city=m.sale.c; tr.className="clickrow of-row "+(m.profit>=0?"is-gain":"is-loss"); tr.tabIndex=0; tr.setAttribute("aria-expanded","false");
     stamp(m.sale.t); m.parts.forEach(g=>stamp(g.b&&g.b.t));
     const c0=tr.insertCell(); c0.className="itemcell"; const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▾"});
     const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}faz em ${m.it.city}`})); head.append(nmb,chev); c0.append(head);
@@ -214,8 +214,9 @@ async function renderOf(){
     m.parts.forEach(g=>flow.append(ofBlock(g.id,1,g.b,"buy",g.need,m,g))); c5.append(flow);
     OF2.rows.push({m,tr});
     const dr=body.insertRow(); dr.className="of-drow"; dr.hidden=true; const dc=dr.insertCell(); dc.colSpan=5;
-    const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; chev.textContent=open?"▴":"▾"; tr.classList.toggle("open",open); if(open){ if(!dc.firstChild) dc.append(ofDetail(m)); OF2.open.add(key); } else OF2.open.delete(key); };
+    const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; chev.textContent=open?"▴":"▾"; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open)); if(open){ if(!dc.firstChild) dc.append(ofDetail(m)); OF2.open.add(key); } else OF2.open.delete(key); };
     tr.addEventListener("click",ev=>{ if(ev.target.closest("a")) return; toggle(); });
+    tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } });
     if(OF2.open.has(key)) toggle();
   }
   const pos=ok.filter(m=>m.profit>0).length, faltam=rows.length-ok.length, rrs=ok[0]?ok[0].rr:0;
