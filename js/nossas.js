@@ -117,7 +117,7 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
         grp.append(cards); spk.append(grp); }); };
     drawSk();
     const rows=NB_CAT.i.filter(r=>NB_FILTER[s](r)&&/^T\d_/.test(r[0])); const by=new Map(); for(const r of rows){ const c=r[0].replace(/^T\d+_/,""); if(!by.has(c)) by.set(c,{c,nome:LANG==="en"?r[6]:r[5],en:r[6],pt:r[5],tiers:new Set(),ench:0,mat:(/^(cloth|leather|plate)_/.exec(r[2])||[])[1]||""}); const o=by.get(c); o.tiers.add(r[3]); if(r[4]&&!/consumables/.test(r[1])) o.ench=1; }
-    const list=[...by.values()].filter(o=>o.pt||o.en).sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
+    const list=[...by.values()].filter(o=>o.pt&&o.en).sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
     let mat=""; const matBar=el("div",{class:"seg nb-mat",role:"group","aria-label":"Material"});
     const drawMat=()=>{ matBar.textContent=""; [["","Todos"],["cloth","Tecido"],["leather","Couro"],["plate","Placa"]].forEach(([k,t2])=>{ const b2=el("button",{type:"button","aria-pressed":String(mat===k),text:t2}); b2.addEventListener("click",()=>{ mat=k; drawMat(); show(); }); matBar.append(b2); }); };
     if(["h","a","s"].includes(s)){ drawMat(); pick.insertBefore(matBar,spk); }
