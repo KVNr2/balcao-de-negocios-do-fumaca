@@ -128,7 +128,7 @@ function albionLoadout(b,set){
   const w=set&&b.w2?b.w2:b.w, x=b.x||{};
   const slots=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o,set)],["h",pick(b.h,set)],["a",pick(b.a,set)],["s",pick(b.s,set)],["c",pick(b.c,set)],["gb",x.gb||""],["m",x.m||""],["p",pick(b.p,set)],["f",pick(b.f,set)]];
   const equipment=[]; for(const [k,id] of slots){ if(!id) continue; const gear=["w","o","h","a","s","c"].includes(k), food=k==="p"||k==="f";
-    const e={item:id,quality:gear?3:1}; if(k==="p") e.stack=10; e.pref=gear?[1,1,2]:food?[0,0,1,1]:[0,0,0]; equipment.push(e); }
+    const e={item:id,quality:1}; if(k==="p") e.stack=10; e.pref=gear?[1,1,2]:food?[0,0,1,1]:[0,0,0]; equipment.push(e); }
   return JSON.stringify({version:1,name:String(b.t||b.nome||"Build").slice(0,40),icon:13,color:12,equipment});
 }
 function albionBar(b){
