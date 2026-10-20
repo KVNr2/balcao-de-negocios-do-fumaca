@@ -114,10 +114,6 @@ function buildCard(b){
   mid.append(meta); top.append(mid);
   const rt=el("div",{class:"bc-r"}); rt.append(el("span",{class:"pop",text:`${b.pop} votos`})); top.append(rt); card.append(top);
   card.append(gbStrip(b));
-  const btn=el("button",{type:"button",class:"bc-more","aria-expanded":String(open),text:open?"Esconder combinações":"Ver o que combina com esta build"});
-  btn.addEventListener("click",()=>{ bOpen=open?null:b.id; renderBuilds(); });
-  card.append(btn);
-  if(open) card.append(synergyPanel(b));
   return card;
 }
 const contName = k => { const c=(GBC||[]).find(x=>x.k===k); return c?c.nome:k; };
