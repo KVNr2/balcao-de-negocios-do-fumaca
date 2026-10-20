@@ -276,7 +276,7 @@ img.bi{width:52px;height:52px}img.bi-s{width:30px;height:30px}.bg-alt{display:fl
 
 /* build completa (killboard) */
 .kb{border-top:1px solid var(--line);margin-top:10px;padding-top:12px}
-.kb-g{display:grid;grid-template-columns:repeat(3,minmax(0,150px));justify-content:center;gap:10px}
+.kb-g{display:grid;grid-template-columns:repeat(3,minmax(0,150px));justify-content:start;gap:10px}
 .kb-vazio{background:#101218;border-style:dashed;opacity:.35;min-height:60px}
 @media (max-width:520px){.kb-g{grid-template-columns:repeat(3,1fr);gap:6px} img.kb-i{width:56px;height:56px}}
 .kb-s{display:grid;justify-items:center;gap:4px;text-align:center;background:#14161c;border:1px solid #23262f;border-radius:12px;padding:10px 6px}
