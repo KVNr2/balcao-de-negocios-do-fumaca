@@ -117,7 +117,9 @@ function kbSlot(rotulo,ids){
 function kbPanel(b){
   const box=el("div",{class:"kb"});
   const grid=el("div",{class:"kb-g"});
-  [["Arma",[b.w]],["Elmo",b.h],["Peito",b.a],["Botas",b.s],["Capa",b.c],["Secundária",b.o],["Poção",b.p],["Comida",b.f]].forEach(([r,ids])=>{ if(ids&&ids.length&&ids[0]){ const x=kbSlot(r,ids); if(x) grid.append(x); } });
+  /* disposição do killboard do jogo: 3 colunas; linha 1 = (vazio) elmo capa; 2 = arma peito secundária; 3 = comida botas poção */
+  [null,["Elmo",b.h],["Capa",b.c],["Arma",[b.w]],["Peito",b.a],["Secundária",b.o],["Comida",b.f],["Botas",b.s],["Poção",b.p]].forEach(c=>{
+    const ids=c&&c[1]; const x=ids&&ids.length&&ids[0]?kbSlot(c[0],ids):null; grid.append(x||el("div",{class:"kb-s kb-vazio"})); });
   box.append(grid); return box;
 }
 function buildCard(b){
