@@ -656,3 +656,40 @@ b.c,h4.c{color:#b784e8}
 .bm2t .hist svg{width:100%;height:150px;display:block}.bm2t .hist-h{font:700 12px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--parch-2);padding-left:10px;border-left:3px solid var(--saffron);margin-bottom:6px}
 .of-xcard.res.neg{background:rgba(217,83,79,.07);border-color:rgba(217,83,79,.4)}
 .of-xcard.res.neg .of-xh,.of-xcard.res.neg .of-xtot,.of-xcard.res.neg .of-xtot b{color:#ef6a62;border-color:#ef6a62}
+
+/* ===== padrões de lista e layout (Craft, Mercado Negro e próximas listas) =====
+   Mude aqui para mudar nas duas abas. */
+:root{
+  --ic-row:76px;      /* ícone do item na linha da lista */
+  --ic-block:60px;    /* ícone nos blocos de venda e compra da linha */
+  --ic-detail:48px;   /* ícone nas linhas do painel aberto */
+  --ic-radius:12px;
+  --row-pad-y:18px; --row-pad-x:16px; --row-gap:12px; --row-radius:14px;
+  --c-gain-bg:#10261b; --c-gain-bd:rgba(63,184,120,.3); --c-gain:#52d38a;
+  --c-loss-bg:#2a1413; --c-loss-bd:rgba(217,83,79,.32); --c-loss:#ef6a62;
+}
+.ic-row,.of-itic,.bm2t .cell-ic img{width:var(--ic-row);height:var(--ic-row);border-radius:var(--ic-radius);flex:none;background:var(--cloth);border:1px solid var(--line-soft)}
+.of-tile img,.of-tile .ico{width:var(--ic-block);height:var(--ic-block)}
+.of-xi .ico,.of-xi img{width:var(--ic-detail);height:var(--ic-detail);border-radius:10px;background:var(--cloth);border:1px solid var(--line-soft)}
+.oflist{gap:var(--row-gap)}
+.oflist .of-row{padding:var(--row-pad-y) var(--row-pad-x);border-radius:var(--row-radius)}
+.bm2t{border-spacing:0 var(--row-gap)}
+.bm2t tbody tr.bm-row td{padding-top:var(--row-pad-y);padding-bottom:var(--row-pad-y)}
+.oflist .of-row.is-gain,.bm2t tbody tr.bm-row.is-gain td{background:var(--c-gain-bg)}
+.oflist .of-row.is-loss,.bm2t tbody tr.bm-row.is-loss td{background:var(--c-loss-bg)}
+.oflist .of-row.is-gain:hover,.oflist .of-row.is-gain.open{background:#16341f}
+.oflist .of-row.is-loss:hover,.oflist .of-row.is-loss.open{background:#381a18}
+.bm2t tbody tr.bm-row.is-gain:hover td{background:#16341f}.bm2t tbody tr.bm-row.is-loss:hover td{background:#381a18}
+.oflist .of-row{grid-template-columns:420px 120px 120px 170px max-content}
+.of-lh{grid-template-columns:420px 120px 120px 170px max-content}
+.of-xr{grid-template-columns:112px minmax(220px,1fr) 76px 56px 140px 72px}
+.oflist .ihead{justify-content:flex-start;gap:16px;width:100%}
+.oflist .ihead .inm{flex:1;min-width:0}
+.oflist .ihead .of-chev{margin-left:auto}
+.oflist .of-itic,.oflist img.ico.of-itic{width:var(--ic-row)!important;height:var(--ic-row)!important}
+.oflist .of-row .itemcell{background:var(--night-2)}
+.oflist .of-row.is-gain .itemcell{background:var(--c-gain-bg)}.oflist .of-row.is-loss .itemcell{background:var(--c-loss-bg)}
+.oflist .of-row.is-gain:hover .itemcell,.oflist .of-row.is-gain.open .itemcell{background:#16341f}
+.oflist .of-row.is-loss:hover .itemcell,.oflist .of-row.is-loss.open .itemcell{background:#381a18}
+.oflist .of-row .itemcell{box-shadow:10px 0 12px -8px rgba(0,0,0,.6)}
+.oflist .of-row{min-height:calc(var(--ic-row) + 2*var(--row-pad-y))}
