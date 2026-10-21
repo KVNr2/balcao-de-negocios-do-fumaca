@@ -800,7 +800,7 @@ async function drawHistory(svg,note,id,city,q=1,rich=false,days=30){
       rows=(j.find(x=>x.quality===q)||(q===1?j[0]:null)||{}).data||[]; HIST_CACHE[key]=rows; }catch(e){ rows=null; } }
   if(!rows||rows.length<(days<=7?2:3)){ if(rich&&svg.parentNode){ svg.parentNode.hidden=true; note.textContent=""; return; } note.textContent=`Sem histórico suficiente em ${city}${q>1?`, na qualidade ${QNAME[q].toLowerCase()}`:""}.`; return; }
   rows=rows.slice(-days);
-  const W=rich?1100:520,H=rich?452:150,PL=rich?56:48,PR=rich?64:10,PT=rich?22:10,PB=rich?172:24, v=rows.map(r=>r.avg_price), lo=Math.min(...v), hi=Math.max(...v), pad=(hi-lo)*0.12||hi*0.05;
+  const W=rich?1100:520,H=rich?452:150,PL=rich?56:48,PR=rich?84:10,PT=rich?22:10,PB=rich?172:24, v=rows.map(r=>r.avg_price), lo=Math.min(...v), hi=Math.max(...v), pad=(hi-lo)*0.12||hi*0.05;
   const y0=lo-pad, y1=hi+pad, XP=rich?22:0, X=i=>PL+XP+i*(W-PL-PR-2*XP)/(rows.length-1), Y=p=>PT+(1-(p-y0)/(y1-y0))*(H-PT-PB);
   const ns="http://www.w3.org/2000/svg", mk=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e.setAttribute(k,a[k]); return e; };
   for(const g of [y0+(y1-y0)*0.15,(y0+y1)/2,y1-(y1-y0)*0.15]){ svg.append(mk("line",{x1:PL,x2:W-PR,y1:Y(g),y2:Y(g),stroke:"var(--line-soft)","stroke-width":1}));
@@ -819,17 +819,18 @@ async function drawHistory(svg,note,id,city,q=1,rich=false,days=30){
   if(rich){   /* versão do Mercado Negro: linha da média, mínimo, máximo, valor de agora e quadros de resumo */
     svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
     /* barras: peças vendidas por dia (altura proporcional), embaixo do preço */
+    const lbl=(x,y,txt,fill,anc="start",fw=700)=>{ const t=mk("text",{x,y,"text-anchor":anc,"font-size":11.5,"font-weight":fw,fill}); t.textContent=txt; svg.append(t); };
     const cnt=rows.map(r=>r.item_count||0), cmx=Math.max(1,...cnt), yb=H-22, bhm=98, bw=Math.max(3,Math.min(26,(W-PL-PR)/rows.length*0.62)), bars=[];
     svg.append(mk("line",{x1:PL,x2:W-PR,y1:yb,y2:yb,stroke:"var(--line-soft)","stroke-width":1}));
     cnt.forEach((c,i)=>{ const h=c?Math.max(2,c/cmx*bhm):0, b=mk("rect",{x:X(i)-bw/2,y:yb-h,width:bw,height:h,rx:2,fill:"var(--saffron)",opacity:.6,"pointer-events":"none"}); svg.append(b); bars.push(b); if(c&&(rows.length<=16||bw>=16)){ const ct=mk("text",{x:X(i),y:yb-h-4,"text-anchor":"middle","font-size":rows.length>16?11:13,"font-weight":800,fill:"var(--parch)","pointer-events":"none"}); ct.textContent=fmt(c); svg.append(ct); } });
+    { const ca=cnt.reduce((a,b)=>a+b,0)/cnt.length, cy=yb-ca/cmx*bhm; svg.append(mk("line",{x1:PL,x2:W-PR,y1:cy,y2:cy,stroke:"var(--parch-2)","stroke-width":1.2,"stroke-dasharray":"5 4",opacity:.8,"pointer-events":"none"})); lbl(W-PR+8,cy-3,"média","var(--parch-2)","start",500); lbl(W-PR+8,cy+10,dec(ca)+" /dia","var(--parch-2)","start",700); }
     { const t3=mk("text",{x:PL,y:yb-bhm-26,"text-anchor":"start","font-size":10.5,"font-weight":700,fill:"var(--smoke)"}); t3.textContent="PEÇAS VENDIDAS POR DIA";t3.setAttribute("font-size",12.5);t3.setAttribute("fill","var(--saffron)"); svg.append(t3); const t4=mk("text",{x:PL,y:PT-8,"text-anchor":"start","font-size":10.5,"font-weight":700,fill:"var(--smoke)"}); t4.textContent="PREÇO MÉDIO PAGO NO DIA"; svg.append(t4); }
     const nt=Math.min(rows.length,rows.length>14?7:rows.length); for(let k=1;k<nt-1;k++){ const i=Math.round(k*(rows.length-1)/(nt-1)); const t=mk("text",{x:X(i),y:H-6,"text-anchor":"middle","font-size":9.5,fill:"var(--smoke)",opacity:.75}); t.textContent=new Date(rows[i].timestamp+"Z").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}); svg.append(t); }
     cross.setAttribute("y2",yb); hit.setAttribute("height",yb-PT);
     hit.addEventListener("pointermove",ev=>{ const i=at(ev); bars.forEach((b,k)=>b.setAttribute("opacity",k===i?1:.6)); });
     hit.addEventListener("pointerleave",()=>bars.forEach(b=>b.setAttribute("opacity",.6)));
     const mn=Math.min(...v), mx=Math.max(...v), av=v.reduce((a,b)=>a+b,0)/v.length, nw=v[v.length-1], dv=(nw-av)/av*100, col=nw<av*0.93?"#6cc06a":nw>av*1.07?"#e8963f":"var(--parch-2)";
-    const lbl=(x,y,txt,fill,anc="start",fw=700)=>{ const t=mk("text",{x,y,"text-anchor":anc,"font-size":11.5,"font-weight":fw,fill}); t.textContent=txt; svg.append(t); };
-    svg.append(mk("line",{x1:PL,x2:W-PR,y1:Y(av),y2:Y(av),stroke:"var(--parch-2)","stroke-width":1.2,"stroke-dasharray":"5 4",opacity:.7})); lbl(PL+4,Y(av)-5,"média","var(--parch-2)","start",500);
+    svg.append(mk("line",{x1:PL,x2:W-PR,y1:Y(av),y2:Y(av),stroke:"var(--parch-2)","stroke-width":1.2,"stroke-dasharray":"5 4",opacity:.7})); { let ay=Y(av), ny=Y(nw); if(Math.abs(ay-ny)<30) ay=ny+(ay>=ny?1:-1)*30; lbl(W-PR+8,ay-3,"média","var(--parch-2)","start",500); lbl(W-PR+8,ay+10,fmt(Math.round(av)),"var(--parch-2)","start",700); }
     const iMn=v.indexOf(mn), iMx=v.indexOf(mx);
     [[iMx,mx,"#e8963f",-9],[iMn,mn,"#6cc06a",16]].forEach(([i,val,c,dy])=>{ svg.append(mk("circle",{cx:X(i),cy:Y(val),r:4,fill:c,stroke:"var(--cloth)","stroke-width":1.5})); lbl(Math.min(Math.max(X(i),PL+26),W-PR-26),Y(val)+dy,fmt(val),c,"middle"); });
     dot.setAttribute("r",5.5); dot.setAttribute("fill",col);
