@@ -22,6 +22,12 @@ function ipItem(id){
   const ip=Math.floor(base+bonus*(1+mod)+1e-9);   // o jogo corta a fração (não arredonda)
   return {ip,base,bonus:bonus*(1+mod),mod};
 }
+/* IP máximo possível: ficha "full" (maestria e todas as specs no máximo) para o mesmo item. Usado para comparar com o IP médio lido nas lutas. */
+let IPFULL=null;
+function ipFullPF(){ if(IPFULL) return IPFULL; const P={sp:{},armas:{},craft:{}};
+  for(const g of SPECS.g){ if(!g.k.startsWith("c:")) continue; const s={}; for(const it of g.it) s[it[0]]=g.max||100; P.sp[g.k]={m:g.mmax||100,s}; const ln=g.k.slice(2); if(LINE_NAME&&LINE_NAME[ln]) P.armas[ln]=g.mmax||100; }
+  return IPFULL=P; }
+function ipItemFull(id){ const old=PF; PF=ipFullPF(); try{ return ipItem(id); }finally{ PF=old; } }
 /* IP médio da build no set e tier escolhidos; lê as peças já convertidas pelo mesmo caminho do carregamento do Albion */
 const IP_QUAL={1:0,2:20,3:40,4:60,5:100};   // bônus de IP da qualidade: normal 0, bom +20, excepcional +40, excelente +60, obra-prima +100
 function ipBuild(b,set,tier,qf){
