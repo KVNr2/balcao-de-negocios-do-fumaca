@@ -24,8 +24,9 @@ const zQmin=x=>x<=20?"Bom":x<=40?"Excepcional":x<=60?"Excelente":"Obra-prima";
 function zLeitura(w,v){ if(!v.ip) return null; let teto; try{ teto=zTeto(w,v); }catch(e){ return null; } if(!teto) return null;
   const exc=v.ip-teto, pouco=v.n<3?` (amostra pequena: ${v.n} ${v.n===1?"jogador":"jogadores"})`:"", cards=[];
   if(exc<=0) cards.push(["ok","Compatível com qualidade Normal","IP "+(-exc)+" abaixo do máximo possível ("+teto+" com spec cheia, qualidade Normal). Sem sinal de overgear nem de qualidade melhor."+pouco]);
-  else if(exc<=40) cards.push(["both","Qualidade melhor e/ou overgear leve","IP "+exc+" acima do máximo possível em Normal ("+teto+"). Peças Boas ou Excepcionais (qualidade barata) explicam, e um overgear leve também pode ter ocorrido."+pouco]);
-  else cards.push(["over","Overgear","IP "+exc+" acima do máximo possível em Normal ("+teto+"), mais do que até Excepcional (+40) explicaria. Em ZvZ Excelente e Obra-prima são raras pelo custo, então é provável overgear"+(exc>100?"; nem Obra-prima em todas as peças explicaria (+100)":"")+"."+pouco]);
+  else if(exc<=20) cards.push(["both","Qualidade Boa e/ou overgear leve","IP "+exc+" acima do máximo possível em Normal ("+teto+"). Peças Boas (+20, qualidade barata) explicam; um overgear leve também pode ter ocorrido."+pouco]);
+  else if(exc<=40) cards.push(["both","Overgear provável (ou Excepcional)","IP "+exc+" acima do máximo possível em Normal ("+teto+"). Pode ser Excepcional (+40) em todas as peças, mas é mais fácil e mais barato ter dado overgear (cerca de "+(exc/100).toFixed(1).replace(".",",")+" encanto a mais por peça)."+pouco]);
+  else cards.push(["over","Overgear","IP "+exc+" acima do máximo possível em Normal ("+teto+"), equivale a cerca de "+(exc/100).toFixed(1).replace(".",",")+" encanto a mais em todas as peças. Ir de Excelente ou Obra-prima em tudo custa muito mais que subir encanto/tier, então é provável overgear"+(exc>100?"; nem Obra-prima em todas as peças explicaria (+100)":"")+"."+pouco]);
   return {teto,cards}; }
 function zVariante(w,v,idx){
   const box=el("div",{class:"zvar"}); const row=el("div",{class:"zgear"});
