@@ -123,9 +123,10 @@ function kxItem(id,skills){
   row.append(tx); return row;
 }
 /* carregamento do Albion (Loadouts > Colar texto): JSON no mesmo formato que o jogo gera em "Copiar como texto" */
-/* mesma força de item em outro tier: 8.0 = 7.1 = 6.2 = 5.3 = 4.4 (soma tier+encanto). Se não existe equivalente, a peça fica como está */
-function albionEquiv(id,tier){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id||""); if(!m||!tier) return {id,ok:true}; const t=+m[1], e=+(m[3]||0), ne=t+e-tier;
-  if(t===tier&&!e||t<4) return {id,ok:true}; if(ne<0||ne>4) return {id,ok:false}; return {id:`T${tier}_${m[2]}${ne?"@"+ne:""}`,ok:true}; }
+/* "Equivalente a TN": todas as peças passam a valer N (tier + encanto = N: T8 = 8.0, 7.1, 6.2, 5.3, 4.4; T5 = 5.0 ou 4.1; T4 = só 4.0).
+   Cada peça fica no tier dela quando dá; se o tier dela passa de N, desce para TN.0; se faltam mais de 4 encantos, sobe de tier. */
+function albionEquiv(id,N){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id||""); if(!m||!N) return {id,ok:true}; const t=+m[1]; if(t<4) return {id,ok:true};
+  const nt=Math.max(Math.max(4,N-4),Math.min(t,N)), ne=N-nt; return {id:`T${nt}_${m[2]}${ne?"@"+ne:""}`,ok:true}; }
 function albionLoadout(b,set,tier){
   const pick=(arr,i)=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[i]||arr[0]||""; };
   const w=set&&b.w2?b.w2:b.w, x=b.x||{};
@@ -138,7 +139,7 @@ function albionBar(b,badge){
   const bar=el("div",{class:"kx-alb"}); let set=0, tier=0;
   const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
   if(hasAlt){ const sel=el("select",{"aria-label":"Set para o Albion"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; if(badge) badge._upd(set,tier); }); bar.append(sel); }
-  const tsel=el("select",{"aria-label":"Montar como","title":"Troca cada peça pela equivalente em outro tier (8.0 = 7.1 = 6.2 = 5.3 = 4.4)"}); tsel.append(el("option",{value:"0",text:"Peças como estão"})); [8,7,6,5,4].forEach(t=>tsel.append(el("option",{value:String(t),text:`Equivalente a T${t}`}))); tsel.addEventListener("change",()=>{ tier=+tsel.value; if(badge) badge._upd(set,tier); }); bar.append(tsel);
+  const tsel=el("select",{"aria-label":"Montar como","title":"Todas as peças com a mesma força: T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4; T5 = 5.0 ou 4.1; T4 = 4.0. Cada peça fica no tier dela quando dá."}); tsel.append(el("option",{value:"0",text:"Peças como estão"})); [8,7,6,5,4].forEach(t=>tsel.append(el("option",{value:String(t),text:`Equivalente a T${t}`}))); tsel.addEventListener("change",()=>{ tier=+tsel.value; if(badge) badge._upd(set,tier); }); bar.append(tsel);
   const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
   const msg=el("span",{class:"muted small",role:"status"});
   btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set,tier); const mi=albionLoadout.miss; try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."+(mi?` ${mi} ${mi===1?"peça não tem":"peças não têm"} equivalente nesse tier e ficou como está.`:""); }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
