@@ -1155,3 +1155,5 @@ img.nb-xi{width:52px;height:52px}
 .arv-pata{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:9px;background:rgba(255,255,255,.06);font-size:20px;flex:none}
 .arv-pata{color:var(--saffron,#e0a93b)}
 .arv-pata svg{width:24px;height:24px}
+.lvtn .arv-pata,.spgrid .arv-pata{position:static;width:28px;height:28px;flex:none;border-radius:6px}
+.lvtn .arv-pata svg{width:18px;height:18px}
