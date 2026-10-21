@@ -4,8 +4,10 @@ const ZROLE = [["tank","Tanks"],["healer","Curandeiros"],["support","Suportes"],
 const ZSLOT = [["cabeca","Elmo"],["peito","Peito"],["botas","Botas"],["capa","Capa"],["off","Secundária"],["pocao","Poção"],["comida","Comida"]];
 function zimg(code,t,e,cls,q=1){
   const im=el("img",{class:cls||"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer";
-  const ids=[`T${t}_${code}${e?"@"+e:""}`]; if(e) ids.push(`T${t}_${code}`);
-  let i=0; const set=()=>iconSrc(im,ids[i],()=>{ if(++i<ids.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } },q); set(); im._q=nq=>{ if(nq===q) return; q=nq; i=0; im.classList.remove("nico-off"); set(); }; return im;
+  let ids; const mk=()=>{ ids=[`T${t}_${code}${e?"@"+e:""}`]; if(e) ids.push(`T${t}_${code}`); }; mk();
+  let i=0; const set=()=>iconSrc(im,ids[i],()=>{ if(++i<ids.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } },q); set(); im._q=nq=>{ if(nq===q) return; q=nq; i=0; im.classList.remove("nico-off"); set(); };
+  /* troca o tier/encanto do ícone (ex.: ao escolher "T6 equivalente") */
+  im._id=(nt,ne)=>{ if(nt===t&&ne===e) return; t=nt; e=ne; mk(); i=0; im.classList.remove("nico-off"); set(); }; return im;
 }
 const zNome = c => { buildIdx(); return codeName(c); };
 const zPct = (n,t) => t?Math.round(n*1000/t)/10:0;
