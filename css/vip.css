@@ -1191,3 +1191,38 @@ img.nb-xi{width:52px;height:52px}
 .kx-qtop .qp{margin-top:0}
 @media (hover:none){.qp-d{width:26px;height:26px}.qp{gap:8px}}
 select.kx-q:not([value="0"]){}
+
+/* ===== Card de build: IP por peça + linha larga (proposta B) ===== */
+.bg-ip{font:700 11px Inter,sans-serif;color:var(--parch-2,#cdbf9f);font-variant-numeric:tabular-nums;min-height:13px}
+.bg-ip.low{color:var(--loss,#ee8670)}
+.bgear .bg-w{display:none}
+.blist{container-type:inline-size}
+@container (min-width:1000px){
+  .blist>.bcard{grid-column:auto;grid-template-columns:250px 470px 120px minmax(0,1fr);grid-auto-flow:row;align-items:center;column-gap:18px;row-gap:10px;padding:12px 16px}
+  .bcard .bc-top{display:contents}
+  .bcard .bc-top>img.zbig,.bcard .bc-top>.btile{display:none}
+  .bcard .bc-mid{grid-column:1;grid-row:1}
+  .bcard .bc-meta{flex-wrap:nowrap;overflow:hidden}.bcard .bc-meta .tag{display:none}.bcard .bc-meta .tag:first-child{display:inline-block}.bcard .bc-meta .tag.bad{display:inline-block;max-width:170px;overflow:hidden;text-overflow:ellipsis}
+  .bcard .bc-more,.bcard .tag{white-space:nowrap}
+  .bcard .bgear{grid-column:2;grid-row:1;flex-wrap:nowrap;gap:8px}
+  .bcard .bgear .bg-w{display:flex}
+  .bcard .bc-r{grid-column:3;grid-row:1;align-items:center;text-align:center}
+  .bcard .bc-r .ip-badge{padding:2px 8px;align-items:center;border:0;background:none}
+  .bcard .bc-r .ip-n{font-size:28px}
+  .bcard .bc-r .ip-l,.bcard .bc-r .ip-s{display:none}
+  .bcard .bc-act{grid-column:4;grid-row:1;justify-self:end;flex-wrap:nowrap;margin:0}
+  .bcard:not(.open) .kx-alb select,.bcard:not(.open) .kx-alb .alb-tier,.bcard:not(.open) .kx-alb .bc-cost,.bcard:not(.open) .kx-alb .muted{display:none}
+  .bcard:not(.open) .kx-alb{flex-wrap:nowrap}
+  .bcard .bc-act .kx-alb{order:1}.bcard .bc-act .bc-tog{order:2}
+  .bcard .nb-desc{grid-column:1/-1;grid-row:2}
+  .bcard.open .bc-act{grid-column:1/-1;grid-row:2;justify-self:stretch;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--line-soft)}
+  .bcard.open .bc-act .bc-tog{margin-left:auto}
+  .bcard.open .nb-desc{grid-row:3}
+  .bcard.open .kx{grid-column:1/-1;grid-row:4}
+  .bcard.open{border-color:var(--saffron);box-shadow:none}
+}
+@media (min-width:1000px){.blist{grid-template-columns:minmax(0,1fr)}}
+
+.kx-alb .kx-qtop{border:0;background:none;padding:0;margin:0 4px 0 0;flex-wrap:nowrap}
+.kx-alb .kx-qtop small{display:none}
+.kx-alb .kx-qt{font:600 12px Inter,sans-serif;color:var(--parch-2,#cdbf9f);white-space:nowrap}
