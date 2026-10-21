@@ -1071,3 +1071,9 @@ img.nb-xi{width:52px;height:52px}
 .alb-tier{display:flex;flex-direction:column;gap:2px;font:600 11px Inter,sans-serif;color:var(--parch-2,#cdbf9f)}
 .alb-tier select{min-height:40px;height:40px}
 .kx-alb .bc-more{height:40px;align-self:flex-end}.kx-alb select{align-self:flex-end}
+/* ZvZ: IP compacto na linha da build, alinhado à direita, sem alargar o quadro */
+.zgear{align-items:center}
+.zgear .ip-badge.ip-in{margin-left:auto;flex:none;padding:4px 10px;align-items:flex-end}
+.zgear .ip-badge.ip-in .ip-n{font-size:26px}
+.zgear .ip-badge.ip-in .ip-s{max-width:150px;font-size:10px;white-space:normal}
+.zc-top .ip-badge{display:none}
