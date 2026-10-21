@@ -20,7 +20,7 @@ function zVariante(w,v,idx){
   return box;
 }
 const zBuild=(w,v)=>{ const zid=x=>x?`T${x.t}_${x.c}${x.e?"@"+x.e:""}`:"";
-  return {noOff:!v.off,o:v.off?[zid(v.off)]:[],t:zNome(w),w:`T${v.arma.t}_${w}${v.arma.e?"@"+v.arma.e:""}`,h:[zid(v.cabeca)],a:[zid(v.peito)],s:[zid(v.botas)],c:[zid(v.capa)],p:[zid(v.pocao)],f:[zid(v.comida)]}; };
+  return {o:v.off?[zid(v.off)]:[],t:zNome(w),w:`T${v.arma.t}_${w}${v.arma.e?"@"+v.arma.e:""}`,h:[zid(v.cabeca)],a:[zid(v.peito)],s:[zid(v.botas)],c:[zid(v.capa)],p:[zid(v.pocao)],f:[zid(v.comida)]}; };
 function zCard(w,n,total,role){
   const info=ZVZ.armas[w]; const card=el("div",{class:"zcard"});
   const top=el("div",{class:"zc-top"}); top.append(zimg(w,info&&info.variantes[0]?info.variantes[0].arma.t:8,info&&info.variantes[0]?info.variantes[0].arma.e:0,"nico zbig"));
