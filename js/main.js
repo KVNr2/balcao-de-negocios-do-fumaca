@@ -40,7 +40,7 @@ function applyMeta(){ if(DATA.ouro){ $("goldV").textContent=fmt(DATA.ouro); $("p
     $("whenBox").classList.toggle("stale",!LIVE); $("whenBox").classList.remove("off");
     $("whenBox").title=LIVE?"Consultados agora no Albion Online Data; cada preço é o anúncio mais recente de até 3 dias":"Preços salvos no site: "+DATA.janela; } }
 async function loadCraftFamilies(){ const keys=Object.keys(PF.craft).filter(k=>PF.craft[k].lv>0); for(const k of keys){ const [s,m]=k.split("_"); await ensureFamily(s,m); } renderRecs(); renderHero(); }
-function recompute(reset){ $("resNote").textContent=RES[st.res].note; renderHeat(); calc(!!reset); renderRecs(); renderHero(); renderBuilds(); if(!$("p-craft").hidden) renderCraft(); if(!$("p-fazenda").hidden&&FARM) renderFZ(); if(!$("p-encantar").hidden&&GEAR) renderEN(); if(LIVE) loadCraftFamilies(); }
+function recompute(reset){ $("resNote").textContent=RES[st.res].note; renderHeat(); calc(!!reset); renderRecs(); renderHero(); renderBuilds(); if(!$("p-craft").hidden) renderCraft(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-fazenda").hidden&&FARM) renderFZ(); if(!$("p-encantar").hidden&&GEAR) renderEN(); if(LIVE) loadCraftFamilies(); }
 
 loadProfile(); renderProfile(); renderWho(); renderActs("all");
 stallIntro();

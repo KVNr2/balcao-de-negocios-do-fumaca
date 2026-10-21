@@ -1157,3 +1157,6 @@ img.nb-xi{width:52px;height:52px}
 .arv-pata svg{width:24px;height:24px}
 .lvtn .arv-pata,.spgrid .arv-pata{position:static;width:28px;height:28px;flex:none;border-radius:6px}
 .lvtn .arv-pata svg{width:18px;height:18px}
+.bm2t thead th.bm-sort{cursor:pointer;user-select:none}
+.bm2t thead th.bm-sort:hover{color:var(--saffron,#e0a93b)}
+.bm2t tbody tr.bm-row td.bm-pct{font-weight:700}
