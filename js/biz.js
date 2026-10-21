@@ -291,7 +291,9 @@ async function renderWK(){
     { const c=tr.insertCell(); const v=m.buyFull==null?null:m.buyFull*wkN(); c.className="num bm-profit "+(v==null?"":v>=0?"gain":"loss"); c.textContent=v==null?"—":sgn(v); c.title=`${sgn(m.buyFull||0)} por diário × ${wkN()}, um diário por trabalhador por dia`; }
     { const c=tr.insertCell(); c.className="num "+(m.fill==null?"":m.fill>=0?"gain":"loss"); c.textContent=m.fill==null?"—":sgn(m.fill); }
     const c=tr.insertCell(); c.className="small muted"; c.textContent=`${fmt(m.fame)} de fama ${how}${m.thin?"; parte do saque sem preço":""}`;
-    { const rc=tr.insertCell(); const rb=el("button",{type:"button",class:"btn mn-craft",title:"Abrir o Refino para ver o que fazer com o que o trabalhador devolve",text:"Refino ➜"}); rb.addEventListener("click",()=>{ const b=document.getElementById("t-refino"); if(b) b.click(); }); rc.append(rb); } }
+    { const rc=tr.insertCell(), rf={ORE:["metal","minério vira barra de metal"],FIBER:["cloth","fibra vira tecido"],HIDE:["leather","couro cru vira couro"]}[ty];
+      if(rf){ const rb=el("button",{type:"button",class:"btn mn-craft",title:`O que o trabalhador devolve aqui (${rf[1]}) entra no Refino: abre o lucro de refinar no tier T${m.t}`,text:"Refinar ➜"});
+        rb.addEventListener("click",()=>{ const b=document.getElementById("t-refino"); if(!b) return; b.click(); const sb=document.querySelector(`#p-refino [data-res="${rf[0]}"]`); if(sb&&sb.getAttribute("aria-pressed")!=="true") sb.click(); const ts=$("tier"); if(ts){ ts.value=String(m.t); ts.dispatchEvent(new Event("change",{bubbles:true})); } }); rc.append(rb); } } }
 
   { let mb=$("wkMore"); if(!mb){ mb=el("button",{type:"button",id:"wkMore",class:"btn mn-craft"}); tb.parentNode.after(mb); mb.addEventListener("click",()=>{ WK_SHOW+=30; renderWK(); }); } mb.hidden=all.length<=WK_SHOW; mb.textContent=`Mostrar mais (${WK_SHOW} de ${all.length})`; }
   renderWKMine();
