@@ -898,26 +898,38 @@ function importFromHash(){
   box.append(el("div",{class:"btnrow"},yes,no)); const p=$("p-voce"); p.prepend(box); showTab("t-voce",true);
 }
 
-/* Árvore da fazenda e da cozinha: é aqui que se vê e se edita a ficha dessa parte, na ordem dos nós do jogo
-   (Fazendeiro aprendiz > Sous Chef > Mestre-cuca / Alquimista > especializações; Fazendeiro aprendiz > Ceifeiro > Herborista / Fazendeiro / Criador de animais > especializações) */
+/* Árvore da fazenda e da cozinha: é aqui que se vê e se edita a ficha dessa parte, no mesmo formato das armas: cada nó é uma linha que só abre ao clicar.
+   Fazendeiro aprendiz > Sous Chef > Mestre-cuca / Alquimista > especializações;  Fazendeiro aprendiz > Ceifeiro > Herborista / Fazendeiro / Criador de animais > especializações */
+const ARV_OPEN = new Set();
 function renderArvore(){ const box=$("pfArvore"); if(!box||!SPECS) return; if(box.contains(document.activeElement)&&document.activeElement.tagName==="INPUT") return; box.textContent="";
-  const reg=[], retierAll=()=>reg.forEach(r=>r.im._tier(r.tier())), cnt=()=>{ const on=box.querySelectorAll(".arv-chip.on").length, all=box.querySelectorAll(".arv-chip").length, sm=$("arvSum"); if(sm){ sm.textContent=on?`${on} de ${all} com spec`:"sem spec"; sm.classList.toggle("on",on>0); sm.style.setProperty("--p",(all?Math.round(on/all*100):0)+"%"); } };
-  const salvar=()=>{ saveProfile(); retierAll(); cnt(); };
-  const chip=(code,nome,get,set,tier,mx)=>{ const c=el("label",{class:"arv-chip"+(get()>0?" on":"")}), im=itemImg(code,tierOrder(tier()),true); reg.push({im,tier});
-    c.append(im,el("span",{class:"arv-cn"},nome),numIn(get(),mx||100,nome,v=>{ set(v); c.classList.toggle("on",v>0); salvar(); },"0")); return c; };
-  const no=(titulo,sub,ctl,filhos)=>{ const n=el("div",{class:"arv-no"}), h=el("div",{class:"arv-h"}); h.append(el("span",{class:"arv-t"},titulo),sub?el("span",{class:"arv-s"},sub):"",ctl); n.append(h); if(filhos) n.append(filhos); return n; };
-  const lista=(...x)=>{ const d=el("div",{class:"arv-fil"}); x.flat().filter(Boolean).forEach(i=>d.append(i)); return d; };
-  /* nó 0/1 (Ceifeiro, Sous Chef): botão que alterna */
-  const porta=(get,set,rotulo)=>{ const b=el("button",{type:"button",class:"arv-tg","aria-label":rotulo}); const pinta=()=>{ const v=get(); b.textContent=v===undefined?"—/1":`${v?1:0}/1`; b.classList.toggle("on",v>0); b.setAttribute("aria-pressed",v>0?"true":"false"); }; pinta();
-    b.addEventListener("click",()=>{ set(get()>0?0:1); pinta(); const n=b.closest(".arv-no"); if(n) n.classList.toggle("lib",get()>0); salvar(); }); return b; };
-  const mestria=(get,set,max,nome)=>{ const w=el("span",{class:"arv-m"}); w.append(numIn(get(),max,"Maestria de "+nome,v=>{ set(v); salvar(); },"0"),el("b",{class:"arv-v"},"/"+max)); return w; };
-  const grupoFaz=(k,titulo)=>{ const g=SPECS.g.find(x=>x.k===k); if(!g) return null; const ch=el("div",{class:"arv-chips"}), tier=()=>iconTier(spMastery(k),spGet(k).t2);
-    g.it.forEach(it=>ch.append(chip(it[0],it[1],()=>+(spGet(k).s||{})[it[0]]||0,v=>{ const st=spEnsure(k); st.s=st.s||{}; if(v) st.s[it[0]]=v; else delete st.s[it[0]]; },tier,g.max)));
-    return no(titulo,"maestria · especializações",mestria(()=>spMastery(k),v=>spSetMastery(k,v),g.mmax||100,titulo),lista(ch)); };
-  const grupoCoz=(k,titulo,kind)=>{ const ch=el("div",{class:"arv-chips"}), cur=()=>(PF[k]=PF[k]||{m:0,s:{}}), tier=()=>iconTier(cur().m||0,cur().t2);
-    COOK_NODES[kind].forEach(([tp,label,code])=>ch.append(chip(code,label,()=>{ const c=cur(); return (c.s||{})[tp]??c.all??0; },v=>{ const c=cur(); c.s=c.s||{}; c.s[tp]=v; },tier)));
-    return no(titulo,"maestria · especializações",mestria(()=>cur().m||0,v=>{ cur().m=v; },100,titulo),lista(ch)); };
+  const reg=[], upds=[], retierAll=()=>reg.forEach(r=>r.im._tier(r.tier())), cnt=()=>{ const on=box.querySelectorAll(".arv-sp.on").length, all=box.querySelectorAll(".arv-sp").length, sm=$("arvSum"); if(sm){ sm.textContent=on?`${on} de ${all} com spec`:"sem spec"; sm.classList.toggle("on",on>0); sm.style.setProperty("--p",(all?Math.round(on/all*100):0)+"%"); } };
+  const salvar=()=>{ saveProfile(); retierAll(); upds.forEach(f=>f()); cnt(); };
+  const ico=(code,tier,gate)=>{ const im=itemImg(code,tier&&tierOrder(typeof tier==="function"?tier():tier),gate!==false&&typeof tier==="function"); if(typeof tier==="function") reg.push({im,tier}); return im; };
+  /* nó que abre ao clicar (mesma aparência dos grupos de armas) */
+  const no=(id,nome,ic,getSum,filhos)=>{ const d=el("details",{class:"spg"}), sm=el("summary"), sumS=el("span",{class:"sps"}); sm.append(ic,el("span",{class:"spn",text:nome}),sumS); d.append(sm);
+    const body=el("div",{class:"arv-body"}); d.append(body); filhos(body); d.open=ARV_OPEN.has(id);
+    d.addEventListener("toggle",()=>{ d.open?ARV_OPEN.add(id):ARV_OPEN.delete(id); });
+    const upd=()=>{ const t=getSum(); sumS.textContent=t; sumS.classList.toggle("on",!/^(sem spec|—|0\/)/.test(t)); }; upd(); upds.push(upd); return d; };
+  const porta=(get,set)=>{ const b=el("button",{type:"button",class:"arv-tg"}), pinta=()=>{ const v=get(); b.textContent=v===undefined?"—/1":`${v?1:0}/1`; b.classList.toggle("on",v>0); b.setAttribute("aria-pressed",v>0?"true":"false"); }; pinta();
+    b.addEventListener("click",()=>{ set(get()>0?0:1); pinta(); salvar(); }); return [b,pinta]; };
+  const linhaPorta=(rot,get,set,body)=>{ const [b,pinta]=porta(get,set); upds.push(pinta); const l=el("div",{class:"arv-porta"}); l.append(el("span",{text:rot}),b); body.append(l); };
+  const rotulo=g=>v=>v===undefined?"—/1":`${v?1:0}/1`;
+  const grupoFaz=(k,titulo,id)=>{ const g=SPECS.g.find(x=>x.k===k); if(!g) return null; const tier=()=>iconTier(spMastery(k),spGet(k).t2);
+    const sumF=()=>{ const sv=spGet(k).s||{}, n=g.it.filter(([c])=>+sv[c]>0).length, m=spMastery(k); return (m||n)?`maestria ${m} · ${n} de ${g.it.length}`:"sem spec"; };
+    return no(id,titulo,ico(repKey(g),tier,false),sumF,body=>{ const gr=el("div",{class:"spgrid"}); body.append(gr);
+      gr.append(tagIn("Maestria",numIn(spMastery(k),g.mmax||100,"Maestria de "+titulo,v=>{ spSetMastery(k,v); salvar(); },"—"),ico(repKey(g),tier,false)));
+      g.it.forEach(it=>{ const lab=tagIn(it[1],numIn(+(spGet(k).s||{})[it[0]]||0,g.max||100,`${titulo}: ${it[1]}`,v=>{ const st=spEnsure(k); st.s=st.s||{}; if(v) st.s[it[0]]=v; else delete st.s[it[0]]; lab.classList.toggle("arv-sp",true); lab.classList.toggle("on",v>0); salvar(); },"—"),ico(it[0],tier)); lab.classList.add("arv-sp"); lab.classList.toggle("on",+(spGet(k).s||{})[it[0]]>0); gr.append(lab); }); }); };
+  const grupoCoz=(k,titulo,kind,id,ic)=>{ const cur=()=>(PF[k]=PF[k]||{m:0,s:{}}), tier=()=>iconTier(cur().m||0,cur().t2), val=tp=>{ const c=cur(); return (c.s||{})[tp]??c.all??0; }, nodes=COOK_NODES[kind];
+    const sumF=()=>{ const n=nodes.filter(([tp])=>val(tp)>0).length, m=cur().m||0; return (m||n)?`maestria ${m} · ${n} de ${nodes.length}`:"sem spec"; };
+    return no(id,titulo,ic(tier),sumF,body=>{ const gr=el("div",{class:"spgrid"}); body.append(gr);
+      gr.append(tagIn("Maestria",numIn(cur().m||0,100,"Maestria de "+titulo,v=>{ cur().m=v; salvar(); },"—"),ic(tier)));
+      nodes.forEach(([tp,label,code])=>{ const lab=tagIn(label,numIn(val(tp),100,`${titulo}: ${label}`,v=>{ const c=cur(); c.s=c.s||{}; c.s[tp]=v; lab.classList.toggle("on",v>0); salvar(); },"—"),ico(code,tier)); lab.classList.add("arv-sp"); lab.classList.toggle("on",val(tp)>0); gr.append(lab); }); }); };
   const gF=["z:plantas","z:ervas","z:animais"], gC=["cozinha","alquimia"];
-  const ceif=no("Ceifeiro","libera T2",porta(()=>gF.map(k=>(PF.sp||{})[k]&&(PF.sp[k]||{}).t2).find(v=>v!==undefined),v=>gF.forEach(k=>{ spEnsure(k).t2=v; }),"Ceifeiro"),lista(grupoFaz("z:ervas","Herborista"),grupoFaz("z:plantas","Fazendeiro"),grupoFaz("z:animais","Criador de animais")));
-  const sous=no("Sous Chef","libera T2",porta(()=>gC.map(k=>(PF[k]||{}).t2).find(v=>v!==undefined),v=>gC.forEach(k=>{ (PF[k]=PF[k]||{m:0,s:{}}).t2=v; }),"Sous Chef"),lista(grupoCoz("cozinha","Mestre-cuca","f"),grupoCoz("alquimia","Alquimista","p")));
-  box.append(no("Fazendeiro aprendiz","libera T1",el("b",{class:"arv-v on"},"1/1"),lista(sous,ceif))); cnt(); }
+  const gateF=()=>gF.map(k=>(PF.sp||{})[k]&&(PF.sp[k]||{}).t2).find(v=>v!==undefined), gateC=()=>gC.map(k=>(PF[k]||{}).t2).find(v=>v!==undefined);
+  const sous=no("sous","Sous Chef",itemImg("MEAL_SOUP",[1]),()=>rotulo()(gateC()),body=>{
+    linhaPorta("Nó liberado (libera o T2)",gateC,v=>gC.forEach(k=>{ (PF[k]=PF[k]||{m:0,s:{}}).t2=v; }),body);
+    body.append(grupoCoz("cozinha","Mestre-cuca","f","mc",()=>itemImg("MEAL_SOUP",[1])),grupoCoz("alquimia","Alquimista","p","alq",t=>ico("POTION_HEAL",t,false))); });
+  const ceif=no("ceif","Ceifeiro",itemImg("FARM_BEAN_SEED",[2]),()=>rotulo()(gateF()),body=>{
+    linhaPorta("Nó liberado (libera o T2)",gateF,v=>gF.forEach(k=>{ spEnsure(k).t2=v; }),body);
+    body.append(grupoFaz("z:ervas","Herborista","her"),grupoFaz("z:plantas","Fazendeiro","faz"),grupoFaz("z:animais","Criador de animais","cri")); });
+  box.append(no("apr","Fazendeiro aprendiz",itemImg("FARM_CARROT_SEED",[1]),()=>"1/1 · libera o T1",body=>body.append(sous,ceif))); cnt(); }
