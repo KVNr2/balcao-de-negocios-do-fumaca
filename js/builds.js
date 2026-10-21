@@ -97,7 +97,7 @@ function gbGaps(b){ const miss=new Set(); for(const sl of ["h","a","s"]) for(con
 /* "Qualidade de todas as peças" sobe para a barra de controles (junto de Set e Tier) */
 function qMoveTop(card){ const q=card.querySelector(".kx-qtop"), bar=card.querySelector(".kx-alb"); if(!q||!bar) return; const ref=bar.querySelector(".bc-more"); bar.insertBefore(q,ref); }
 function ipApply(b){ const els=b._bipEls, parts=b._ipParts; if(!els||!parts) return; const vals=parts.filter(p=>p.slot!=="c").map(p=>Math.round(p.ip)), min=Math.min(...vals), mix=vals.some(v=>v!==min);   // a capa não ganha maestria, então nunca é "a que puxa para baixo"
-  for(const k in els){ const p=parts.find(x=>x.slot===k); const e=els[k]; if(!p){ e.textContent=""; e.classList.remove("low"); continue; } const v=Math.round(p.ip); e.textContent=v.toLocaleString("pt-BR"); const low=mix&&k!=="c"&&v===min; e.classList.toggle("low",low); e.title=low?"A peça com menor IP: puxa a média da build para baixo":""; } }
+  for(const k in els){ const p=parts.find(x=>x.slot===k); const e=els[k]; if(!p){ e.textContent=""; e.classList.remove("low"); continue; } const v=Math.round(p.ip); e.textContent=String(v); const low=mix&&k!=="c"&&v===min; e.classList.toggle("low",low); e.title=low?"A peça com menor IP: puxa a média da build para baixo":""; } }
 function gbStrip(b){
   const row=el("div",{class:"bgear"}); b._bipEls={};
   for(const [sl] of [["w"],["o"],["h"],["a"],["s"],["c"]]){ const ids=sl==="w"?[b.w]:b[sl]; if(!ids||!ids.length||!ids[0]) continue; const box=el("div",{class:"bg"+(sl==="w"?" bg-w":"")}); const im=qImg(b,sl,ids[0],"nico bi"); if(im) box.append(im);

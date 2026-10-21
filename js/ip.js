@@ -36,9 +36,9 @@ function albionBadge(b){
   const w=el("div",{class:"ip-badge",role:"status"}); const num=el("b",{class:"ip-n"}), lab=el("span",{class:"ip-l",text:"IP"}), sub=el("div",{class:"ip-s"}); w.append(lab,num,sub);
   w._upd=(set,tier,qf)=>{ let r; try{ r=ipBuild(b,set||0,tier||0,qf); }catch(e){ w.hidden=true; return; } w.hidden=false;
     b._ipParts=r.parts; if(typeof ipApply==='function') ipApply(b);
-    num.textContent=Math.round(r.avg).toLocaleString("pt-BR");
+    num.textContent=String(Math.round(r.avg));
     sub.textContent=""; sub.append(el("span",{class:"ip-c",text:tier?`T${tier} equivalente`:"Tier original"}),el("span",{class:"ip-c"+(r.sem?" off":""),text:r.sem?"Sem ficha":"Sua ficha"})); { const qs=new Set(r.parts.map(p=>p.q)); if(!(qs.size===1&&qs.has(1))) sub.append(el("span",{class:"ip-c",text:qs.size===1?QNAME[[...qs][0]]:"Qualidades mistas"})); }
-    { const N={w:"Arma",o:"Mão secundária",h:"Elmo",a:"Peito",s:"Botas",c:"Capa"}, f=n=>Math.round(n).toLocaleString("pt-BR"), avg=Math.round(r.avg), min=Math.min(...r.parts.filter(p=>p.slot!=="c").map(p=>Math.round(p.ip)));
+    { const N={w:"Arma",o:"Mão secundária",h:"Elmo",a:"Peito",s:"Botas",c:"Capa"}, f=n=>String(Math.round(n)), avg=Math.round(r.avg), min=Math.min(...r.parts.filter(p=>p.slot!=="c").map(p=>Math.round(p.ip)));
       w.title="IP médio da build (média das peças"+(r.two?", arma de 2 mãos conta em dobro":"")+").\n"+r.parts.map(p=>{ const v=Math.round(p.ip), d=v-avg; return `${N[p.slot]}: ${f(v)}${p.q>1?" ("+QNAME[p.q]+" +"+IP_QUAL[p.q]+")":""}${p.slot==="c"?"  (capa não ganha maestria)":p.slot!=="c"&&v===min&&r.parts.some(x=>x.slot!=="c"&&Math.round(x.ip)!==v)?"  ← menor, puxa a média para baixo":d<0?"  ("+d+")":""}`; }).join("\n")+"\nCalculado com "+(tier?"T"+tier+" equivalente":"o tier original")+(r.sem?"; carregue sua ficha para somar maestria e spec.":", com a sua ficha.")+"\nNão conta itens energizados."; }
     w.setAttribute("aria-label","IP "+num.textContent); };
   w._upd(0,0); return w;
