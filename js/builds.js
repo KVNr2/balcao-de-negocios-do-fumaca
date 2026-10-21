@@ -127,27 +127,38 @@ function kxItem(id,skills){
    Cada peça fica no tier dela quando dá; se o tier dela passa de N, desce para TN.0; se faltam mais de 4 encantos, sobe de tier. */
 function albionEquiv(id,N){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id||""); if(!m||!N) return {id,ok:true}; const t=+m[1]; if(t<4) return {id,ok:true};
   const nt=Math.max(Math.max(4,N-4),Math.min(t,N)), ne=N-nt; return {id:`T${nt}_${m[2]}${ne?"@"+ne:""}`,ok:true}; }
-function albionLoadout(b,set,tier){
+function albionLoadout(b,set,tier,qf){
   const pick=(arr,i)=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[i]||arr[0]||""; };
   const w=set&&b.w2?b.w2:b.w, x=b.x||{};
   const slots=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o,set)],["h",pick(b.h,set)],["a",pick(b.a,set)],["s",pick(b.s,set)],["c",pick(b.c,set)],["gb",x.gb||""],["m",x.m||""],["p",pick(b.p,set)],["f",pick(b.f,set)]];
-  const equipment=[]; let miss=0; for(let [k,id] of slots){ if(!id) continue; if(tier&&["w","o","h","a","s","c"].includes(k)){ const q=albionEquiv(id,tier); if(!q.ok) miss++; id=q.id; } const gear=["w","o","h","a","s","c"].includes(k), food=k==="p"||k==="f";
-    const e={item:id,quality:1}; if(k==="p") e.stack=10; e.pref=gear?[1,1,2]:food?[0,0,1,1]:[0,0,0]; equipment.push(e); }
+  const equipment=[]; let miss=0; albionLoadout.slots=[]; for(let [k,id] of slots){ if(!id) continue; if(tier&&["w","o","h","a","s","c"].includes(k)){ const q=albionEquiv(id,tier); if(!q.ok) miss++; id=q.id; } const gear=["w","o","h","a","s","c"].includes(k), food=k==="p"||k==="f";
+    const e={item:id,quality:gear&&qf?(qf(k)||1):1}; if(gear) (albionLoadout.slots=albionLoadout.slots||[]).push(k); if(k==="p") e.stack=10; e.pref=gear?[1,1,2]:food?[0,0,1,1]:[0,0,0]; equipment.push(e); }
   albionLoadout.miss=miss; return JSON.stringify({version:1,name:String(b.t||b.nome||"Build").slice(0,40)+(tier?" T"+tier:""),icon:13,color:12,equipment});
 }
 /* barra de ações do card: tier das peças (muda o IP, o carregamento e o custo), set, copiar e ver custo */
 function albionBar(b,badge,costValue){
-  const bar=el("div",{class:"kx-alb"}); let set=0, tier=0;
-  const refresh=()=>{ if(badge) badge._upd(set,tier); };
+  const bar=el("div",{class:"kx-alb"}); let set=0, tier=0, qa=1; const qp={};   // qa: qualidade de todas as peças; qp: qualidade de uma peça específica (vale mais que qa)
+  const qf=k=>qp[k]||qa;
+  const refresh=()=>{ if(badge) badge._upd(set,tier,qf); };
   const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
-  if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; refresh(); }); bar.append(sel); }
+  if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; buildPecas(); refresh(); }); bar.append(sel); }
   const lab=el("label",{class:"alb-tier",title:"O tier escolhido vale para o IP, para o texto copiado ao Albion e para o custo. T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4; T5 = 5.0 ou 4.1; T4 = 4.0. Cada peça fica no tier dela quando dá."});
   const tsel=el("select",{"aria-label":"Tier das peças"});
   tsel.append(el("option",{value:"0",text:"Tier: original"})); [8,7,6,5,4].forEach(t=>tsel.append(el("option",{value:String(t),text:`Tier: T${t} equivalente`}))); tsel.value=String(tier);
   tsel.addEventListener("change",()=>{ tier=+tsel.value; refresh(); }); lab.append(tsel); bar.append(lab);
+  /* qualidade: um seletor para todas as peças e um botão que abre um seletor por peça */
+  const QOPT=[1,2,3,4,5], qsel=(val,all)=>{ const x=el("select",{"aria-label":"Qualidade"}); if(!all) x.append(el("option",{value:"0",text:"= todas"})); QOPT.forEach(q=>x.append(el("option",{value:String(q),text:QNAME[q]}))); x.value=String(val); return x; };
+  const ql=el("label",{class:"alb-tier",title:"Qualidade das peças: muda o IP e o texto copiado ao Albion. Bom +20, Excepcional +40, Excelente +60, Obra-prima +100 de IP por peça."}); const qs=qsel(1,true); ql.append(qs); bar.append(ql);
+  const pb=el("button",{type:"button",class:"bc-more alb-pp","aria-expanded":"false",text:"Por peça",title:"Escolher a qualidade de cada peça separadamente"}); bar.append(pb);
+  const pecas=el("div",{class:"alb-pecas",hidden:true}); const SLN={w:"Arma",o:"Mão sec.",h:"Elmo",a:"Peito",s:"Botas",c:"Capa"};
+  function buildPecas(){ pecas.textContent=""; albionLoadout(b,set,0); for(const k of albionLoadout.slots){ const l=el("label",{}); l.append(el("span",{text:SLN[k]}));
+      const x=qsel(qp[k]||0,false); x.addEventListener("change",()=>{ if(+x.value) qp[k]=+x.value; else delete qp[k]; refresh(); }); l.append(x); pecas.append(l); } }
+  qs.addEventListener("change",()=>{ qa=+qs.value; for(const k in qp) delete qp[k]; buildPecas(); refresh(); });
+  pb.addEventListener("click",()=>{ pecas.hidden=!pecas.hidden; pb.setAttribute("aria-expanded",String(!pecas.hidden)); if(!pecas.hidden) buildPecas(); });
+  bar.append(pecas);
   const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento com o tier escolhido. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
   const msg=el("span",{class:"muted small",role:"status"});
-  btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set,tier); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
+  btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set,tier,qf); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
   bar.append(btn);
   if(costValue){ const bt=el("button",{type:"button",class:"bc-more bc-cost",text:"Ver custo",title:"Abre o Custo da build no tier escolhido"});
     bt.addEventListener("click",()=>{ let N=tier; if(!N){ const m=idInfo(set&&b.w2?b.w2:b.w); N=m?Math.min(8,Math.max(4,m.t+m.e)):8; } bcIr(costValue,N); }); bar.append(bt); }

@@ -23,19 +23,20 @@ function ipItem(id){
   return {ip,base,bonus:bonus*(1+mod),mod};
 }
 /* IP médio da build no set e tier escolhidos; lê as peças já convertidas pelo mesmo caminho do carregamento do Albion */
-function ipBuild(b,set,tier){
-  const eq=JSON.parse(albionLoadout(b,set,tier)).equipment, miss=albionLoadout.miss||0; const parts=[]; let sum=0, two=false;
+const IP_QUAL={1:0,2:20,3:40,4:60,5:100};   // bônus de IP da qualidade: normal 0, bom +20, excepcional +40, excelente +60, obra-prima +100
+function ipBuild(b,set,tier,qf){
+  const eq=JSON.parse(albionLoadout(b,set,tier,qf)).equipment, miss=albionLoadout.miss||0; const parts=[]; let sum=0, two=false;
   for(const e of eq){ const m=idInfo(e.item); if(!m) continue; let slot=null;
     if(/^(MAIN|2H)_/.test(m.c)){ slot="w"; two=/^2H_/.test(m.c); } else if(/^OFF_/.test(m.c)) slot="o"; else if(/^HEAD_/.test(m.c)) slot="h"; else if(/^ARMOR_/.test(m.c)) slot="a"; else if(/^SHOES_/.test(m.c)) slot="s"; else if(/^CAPEITEM/.test(m.c)) slot="c";
-    if(!slot) continue; const r=ipItem(e.item); if(!r) continue; parts.push({id:e.item,slot,ip:r.ip}); sum+=r.ip; if(slot==="w"&&two) sum+=r.ip; }
+    if(!slot) continue; const r=ipItem(e.item); if(!r) continue; const ip=r.ip+(IP_QUAL[e.quality]||0); parts.push({id:e.item,slot,ip,q:e.quality||1}); sum+=ip; if(slot==="w"&&two) sum+=ip; }
   return {avg:sum/6,parts,miss,sem:!(PF&&PF.sp&&Object.keys(PF.sp).length)};
 }
 /* selo verde grande com o IP; upd(set,tier) recalcula quando a pessoa troca o set ou o tier */
 function albionBadge(b){
   const w=el("div",{class:"ip-badge",role:"status"}); const num=el("b",{class:"ip-n"}), lab=el("span",{class:"ip-l",text:"IP médio aprox."}), sub=el("div",{class:"ip-s"}); w.append(lab,num,sub);
-  w._upd=(set,tier)=>{ let r; try{ r=ipBuild(b,set||0,tier||0); }catch(e){ w.hidden=true; return; } w.hidden=false;
+  w._upd=(set,tier,qf)=>{ let r; try{ r=ipBuild(b,set||0,tier||0,qf); }catch(e){ w.hidden=true; return; } w.hidden=false;
     num.textContent="≈ "+Math.round(r.avg).toLocaleString("pt-BR");
-    sub.textContent=""; sub.append(el("span",{class:"ip-c",text:tier?`T${tier} equivalente`:"Tier original"}),el("span",{class:"ip-c"+(r.sem?" off":""),text:r.sem?"Sem ficha":"Sua ficha"}));
-    w.title="Valor aproximado: depende do tier e da qualidade das peças. Aqui o cálculo usa o tier escolhido em \"Tier das peças\" e qualidade normal (cada qualidade acima soma de +20 a +100 por peça). "+"\nIP de cada peça:\n"+r.parts.map(p=>`${({w:"Arma",o:"Mão secundária",h:"Elmo",a:"Peito",s:"Botas",c:"Capa"})[p.slot]}: ${Math.round(p.ip).toLocaleString("pt-BR")}`).join("\n")+(r.sem?"\nCarregue sua ficha para somar os bônus de maestria e spec.":""); };
+    sub.textContent=""; sub.append(el("span",{class:"ip-c",text:tier?`T${tier} equivalente`:"Tier original"}),el("span",{class:"ip-c"+(r.sem?" off":""),text:r.sem?"Sem ficha":"Sua ficha"})); { const qs=new Set(r.parts.map(p=>p.q)); if(!(qs.size===1&&qs.has(1))) sub.append(el("span",{class:"ip-c",text:qs.size===1?QNAME[[...qs][0]]:"Qualidades mistas"})); }
+    w.title="Valor aproximado: depende do tier e da qualidade das peças. Aqui o cálculo usa o tier escolhido em \"Tier das peças\" e a qualidade escolhida em \"Qualidade\" (normal por padrão; bom +20, excepcional +40, excelente +60, obra-prima +100 por peça). "+"\nIP de cada peça:\n"+r.parts.map(p=>`${({w:"Arma",o:"Mão secundária",h:"Elmo",a:"Peito",s:"Botas",c:"Capa"})[p.slot]}: ${Math.round(p.ip).toLocaleString("pt-BR")}`).join("\n")+(r.sem?"\nCarregue sua ficha para somar os bônus de maestria e spec.":""); };
   w._upd(0,0); return w;
 }
