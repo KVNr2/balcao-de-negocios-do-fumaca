@@ -267,9 +267,21 @@ function cachePut(url,j){ const v=JSON.stringify({t:Date.now(),j}); try{ localSt
 const API_MAX=6; let apiBusy=0; const apiQ=[];
 const apiSlot=()=>apiBusy<API_MAX?(apiBusy++,Promise.resolve()):new Promise(f=>apiQ.push(f));
 const apiFree=()=>{ const n=apiQ.shift(); if(n) n(); else apiBusy--; };
+/* a API aceita 100 pedidos por minuto: o site se limita a 70 (janela deslizante) e, se mesmo assim receber 429,
+   espera até a hora que a própria API informa ("resets at ...") e tenta de novo */
+const API_CHUNK=120;   // itens por pedido (a API aceitou 160 sem problema)
+const API_BUDGET=70, apiStamps=[];
+async function apiPace(){ for(;;){ const now=Date.now(); while(apiStamps.length&&now-apiStamps[0]>60e3) apiStamps.shift(); if(apiStamps.length<API_BUDGET){ apiStamps.push(now); return; } await new Promise(f=>setTimeout(f,Math.max(250,60e3-(now-apiStamps[0])+50))); } }
+const apiResetMs=txt=>{ const m=/resets at (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/.exec(txt||""); if(!m) return 0; const t=Date.parse(m[1]+"T"+m[2]+"Z")-Date.now(); return Math.min(65e3,Math.max(1e3,t+1000)); };
 async function apiJSON(url,ttlMin=10){
   if(!FORCE){ const c=cacheGet(url,ttlMin); if(c){ apiJSON.oldest=Math.min(apiJSON.oldest||Infinity,c.t); return c.j; } }
-  await apiSlot(); let r; try{ r=await fetch(url); } finally{ apiFree(); } for(let n=0;!r.ok&&(r.status===429||r.status>=500)&&n<3;n++){ await new Promise(f=>setTimeout(f,1500*Math.pow(2,n))); r=await fetch(url); }   // limite de pedidos da API: espera e tenta de novo
+  let r;
+  for(let n=0;;n++){
+    await apiSlot(); try{ await apiPace(); r=await fetch(url); } finally{ apiFree(); }
+    if(r.ok||n>=3||!(r.status===429||r.status>=500)) break;
+    const txt=r.status===429?await r.text().catch(()=>""):""; const w=r.status===429?(apiResetMs(txt)||1500*Math.pow(2,n)):1500*Math.pow(2,n);
+    await new Promise(f=>setTimeout(f,w));
+  }
   if(!r.ok) throw new Error("API respondeu "+r.status); const j=await r.json(); cachePut(url,j); return j;
 }
 const CITIES=["Thetford","Fort Sterling","Martlock","Bridgewatch","Lymhurst"];
@@ -282,7 +294,7 @@ function familyIds(slot,mat){ const ids=[]; for(let s=1;s<=3;s++) for(let t=4;t<
 /* q: qualidade dos preços (1 a 5). Para q de 2 a 5, passe PQ[q] como target. */
 async function fetchIds(ids, target, locs=CITIES, q=1){
   const loc=locs.join(",").replace(/ /g,"%20");
-  const parts=[]; for(let i=0;i<ids.length;i+=40) parts.push(ids.slice(i,i+40));
+  const parts=[]; for(let i=0;i<ids.length;i+=API_CHUNK) parts.push(ids.slice(i,i+API_CHUNK));
   const res=await Promise.all(parts.map(p=>apiJSON(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=${q}`)));   // pedaços em paralelo
   for(const j of res){
     for(const x of j){

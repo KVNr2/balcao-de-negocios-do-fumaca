@@ -9,7 +9,7 @@ const BM_VOL = {};                  // id: {qualidade: peças que o Mercado Negr
 const BM_LOADED = new Set(); let BM_TOK=0, bmMode="craft", bmTierSel=0, bmQualSel=0, bmSel=null, PLANKS_LOADED=false;
 const ageH = d => d&&!d.startsWith("0001") ? (Date.now()-Date.parse(d+"Z"))/3600e3 : Infinity;
 /* allQ: traz as qualidades 1 a 5 (a 1 vai para o BMP, as outras para o BMQ); sem allQ só a qualidade 1, como as outras páginas usam */
-async function bmFetch(ids, locs, allQ=false, step=40){
+async function bmFetch(ids, locs, allQ=false, step=API_CHUNK){
   const loc=locs.join(",").replace(/ /g,"%20");
   const parts=[]; for(let i=0;i<ids.length;i+=step) parts.push(ids.slice(i,i+step));
   const res=await Promise.all(parts.map(p=>apiJSON(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=${allQ?"1,2,3,4,5":"1"}`)));   // pedaços em paralelo
@@ -38,13 +38,13 @@ async function ensureBMTop(t,lk){
   for(const k of Object.keys(BM)){ if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) gear.push(bmId(k,t,e)); if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
   for(const r of ["METALBAR","PLANKS","LEATHER","CLOTH"]) if(t<4) extra.add(`T${t}_${r}`);
   try{
-    await bmFetch(gear,["Black Market"],true,80);
+    await bmFetch(gear,["Black Market"],true,150);
     if(!PLANKS_LOADED){ BM_PL.p=BM_PL.p||(async()=>{ const pl=[]; for(let x=4;x<=8;x++) for(let e=0;e<=4;e++) pl.push(`T${x}_PLANKS`+(e?`_LEVEL${e}@${e}`:"")); await fetchIds(pl,DATA.itens); PLANKS_LOADED=true; })().finally(()=>{ BM_PL.p=null; }); await BM_PL.p; }
     if(extra.size) await fetchIds([...extra],DATA.itens,[...CITIES,"Caerleon"]);
     const sc=new Map();
     for(const k of Object.keys(BM)){ if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) for(let q=1;q<=5;q++){ const id=bmId(k,t,e); if(!bmHas(id,q)) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(!m.bm) continue; const v=bmMode==="flip"?m.net:m.craft; if(v!=null&&(!sc.has(id)||v>sc.get(id))) sc.set(id,v); } }
     const top=[...sc.entries()].sort((a,b)=>b[1]-a[1]).slice(0,BM_TOPN).map(x=>x[0]);
-    if(top.length) await bmFetch(top,["Black Market",...SHOP_LOCS],true,40);
+    if(top.length) await bmFetch(top,["Black Market",...SHOP_LOCS],true);
     BM_TOP[lk]=new Set(top); BM_LOADED.add(lk); return true;
   }catch(e){ return false; }
 }
