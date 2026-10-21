@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="da9dd624">
+<html lang="pt-BR" data-v="6ca55a81">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=da9dd624">
-<link rel="stylesheet" href="css/vip.css?v=da9dd624">
-<link rel="stylesheet" href="css/souk.css?v=da9dd624">
+<link rel="stylesheet" href="css/balcao.css?v=6ca55a81">
+<link rel="stylesheet" href="css/vip.css?v=6ca55a81">
+<link rel="stylesheet" href="css/souk.css?v=6ca55a81">
 </head>
 <body>
 <div class="wrap app">
@@ -191,10 +191,15 @@
       <div class="spsec" id="pfCook"></div>
       <div id="pfFarm" class="spsec"></div>
     </div>
-    <details class="sheet secnode"><summary><h3 class="orn">Árvore: fazenda, cozinha e rastreamento</h3><span class="secsum" id="arvSum"></span></summary><div class="secbody">
-      <p class="tiny muted">Fazenda, cozinha, alquimia e rastreamento (caçada) na ordem da árvore do jogo: cada nó libera o de baixo. Digite a maestria e o nível de cada especialização, ou toque em 0/1 para marcar Sous Chef e Ceifeiro. Ícone em cinza ainda não dá para fazer.</p>
+    <details class="sheet secnode"><summary><h3 class="orn">Árvore da fazenda e da cozinha</h3><span class="secsum" id="arvSum"></span></summary><div class="secbody">
+      <p class="tiny muted">Fazenda, cozinha e alquimia na ordem da árvore do jogo: cada nó libera o de baixo. Digite a maestria e o nível de cada especialização, ou toque em 0/1 para marcar Sous Chef e Ceifeiro. Ícone em cinza ainda não dá para fazer.</p>
       <div id="pfArvore" class="arv"></div>
     </div></details>
+    <details class="sheet secnode"><summary><h3 class="orn">Caçada</h3><span class="secsum" id="cacaSum"></span></summary><div class="secbody">
+      <p class="tiny muted">Rastreamento no jogo: Rastreador aprendiz, Rastreador experiente e as 8 especializações de criaturas. Digite o nível de cada uma.</p>
+      <div id="pfCaca" class="arv"></div>
+    </div></details>
+    <span id="t-pegadas" hidden><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><ellipse cx="7.6" cy="16.2" rx="2.7" ry="3.4"/><circle cx="4.6" cy="11.4" r="1.15"/><circle cx="7.2" cy="9.9" r="1.2"/><circle cx="9.9" cy="10.4" r="1.15"/><circle cx="11.6" cy="12.6" r="1"/><ellipse cx="16.6" cy="8.6" rx="2.5" ry="3.2"/><circle cx="13.8" cy="4.2" r="1.05"/><circle cx="16.2" cy="2.9" r="1.1"/><circle cx="18.7" cy="3.4" r="1.05"/><circle cx="20.2" cy="5.5" r=".95"/></svg></span>
   </section>
 
   <!-- REFINO -->
@@ -639,19 +644,19 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=da9dd624"></script>
-<script src="js/base.js?v=da9dd624"></script>
-<script src="js/fx.js?v=da9dd624"></script>
-<script src="js/biz.js?v=da9dd624"></script>
-<script src="js/builds.js?v=da9dd624"></script>
-<script src="js/nossas.js?v=da9dd624"></script>
-<script src="js/ip.js?v=da9dd624"></script>
-<script src="js/zvz.js?v=da9dd624"></script>
-<script src="js/novos.js?v=da9dd624"></script>
-<script src="js/guia.js?v=da9dd624"></script>
-<script src="js/ui.js?v=da9dd624"></script>
-<script src="js/oficina.js?v=da9dd624"></script>
-<script src="js/versao.js?v=da9dd624"></script>
-<script src="js/main.js?v=da9dd624"></script>
+<script src="js/icons.js?v=6ca55a81"></script>
+<script src="js/base.js?v=6ca55a81"></script>
+<script src="js/fx.js?v=6ca55a81"></script>
+<script src="js/biz.js?v=6ca55a81"></script>
+<script src="js/builds.js?v=6ca55a81"></script>
+<script src="js/nossas.js?v=6ca55a81"></script>
+<script src="js/ip.js?v=6ca55a81"></script>
+<script src="js/zvz.js?v=6ca55a81"></script>
+<script src="js/novos.js?v=6ca55a81"></script>
+<script src="js/guia.js?v=6ca55a81"></script>
+<script src="js/ui.js?v=6ca55a81"></script>
+<script src="js/oficina.js?v=6ca55a81"></script>
+<script src="js/versao.js?v=6ca55a81"></script>
+<script src="js/main.js?v=6ca55a81"></script>
 </body>
 </html>
