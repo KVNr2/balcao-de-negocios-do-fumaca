@@ -190,7 +190,9 @@ const ageSpan = t => t ? el("span",{class:"age"+((Date.now()-t)>12*3600e3?" old"
 /* Tier liberado pela maestria da linha (armas e armaduras de combate): T4 no nível 1, T5 no 10, T6 no 30, T7 no 60, T8 no 100. */
 const tierFromMastery = m => m>=100?8 : m>=60?7 : m>=30?6 : m>=10?5 : m>=1?4 : 3;
 /* tier do ícone de cozinha, alquimia e fazenda: quem libera os tiers é a maestria (Alquimista, Mestre-cuca, Herborista, Fazendeiro, Criador de Animais), no mínimo T4 */
-const iconTier = m => Math.max(4, tierFromMastery(m||0));
+/* t2: o nó que libera o T2 (Sous Chef para cozinha e alquimia, Ceifeiro para a fazenda), 0 ou 1; vem do programa e não existe se ainda não sincronizou.
+   Maestria 0: sem o nó só dá para fazer T1, com ele T2; sem a informação, T4 (mínimo). Com maestria, o tier da maestria. */
+const iconTier = (m,t2) => m>=1 ? Math.max(4,tierFromMastery(m)) : t2===0 ? 1 : t2===1 ? 2 : 4;
 const tierOrder = t => { const o=[t]; for(let i=t-1;i>=1;i--) o.push(i); for(let i=t+1;i<=8;i++) o.push(i); return o; };
 /* o servidor de ícones devolve uma imagem em branco (sem erro) para um tier que o item não tem, então a ordem importa:
    primeiro os tiers que temos salvos no site, e para os poucos itens sem cópia local, o tier em que ele existe */
@@ -569,13 +571,13 @@ function renderSpecs(){
       const d=el("details",{class:"spg"}), sm=el("summary"), nmS=el("span",{class:"spn",text:g.nome}), sumS=el("span",{class:"sps",text:spSummary(g)});
       sm.append(nmS,sumS); d.append(sm); const body=el("div",{class:"spgrid"}); d.append(body);
       const icons=[], combate=g.sec==="combate", tierIc=combate||g.sec==="fazenda", icT=combate?tierFromMastery:iconTier;   // tierIc: o tier do ícone segue a maestria (como nas armaduras)
-      const mk=key=>{ const im=itemImg(specCode(g,key), tierIc?tierOrder(icT(spMastery(g.k))):null); icons.push(im); return im; };
+      const mk=key=>{ const im=itemImg(specCode(g,key), tierIc?tierOrder(icT(spMastery(g.k),spGet(g.k).t2)):null); icons.push(im); return im; };
       const upd=()=>{ const base=spSummary(g); sumS.classList.toggle("on",base!=="sem spec"); sumS.title=base;
         { const sv=spGet(g.k).s||{}, vals=g.it.map(([k])=>+sv[k]||0).filter(v=>v>0), m=spMastery(g.k); sumS.textContent="";
           const chip=(t,c)=>sumS.append(el("span",{class:"spchip "+(c||""),text:t}));
           if(base==="sem spec"){ chip("sem spec","off"); } else { if(m) chip("Maestria "+m,"m"); if(vals.length) chip(`${vals.length}/${g.it.length} itens`,"n"); if(vals.length) chip("Maior "+Math.max(...vals),"mx"); if(combate&&m) chip("Usa até T"+tierFromMastery(m),"t"); if(g.k.startsWith("a:")&&(m||vals.length)){ const [slot,mat]=g.k.slice(2).split("_"); chip("Foco T6.0: "+fmt(craftFocus(slot,mat,6,0,1)),"f"); } }
           d.style.setProperty("--p",(g.it.length?Math.round(vals.length/g.it.length*100):0)+"%"); d.classList.toggle("has",base!=="sem spec"); } refreshSubs();
-        if(tierIc){ const t=icT(spMastery(g.k)); icons.forEach(im=>im._tier(t)); } if(combate) lockRows(); };
+        if(tierIc){ const t=icT(spMastery(g.k),spGet(g.k).t2); icons.forEach(im=>im._tier(t)); } if(combate) lockRows(); };
       /* sem maestria (abaixo do T4) não dá para usar item nenhuma da linha: some o nome e o ícone, a não ser que o item já tenha nível */
       const rows=[], hint=el("p",{class:"tiny muted splock",text:"Digite a maestria da linha para liberar as armas e peças. Sem maestria não dá para usar nenhuma delas.",hidden:true});
       /* nó de prévia: o que a maestria 1 libera (itens T4), só enquanto a maestria está zerada */
@@ -600,7 +602,7 @@ function cookTypes(kind){ const m={}; for(const id in COOK.r){ const r=COOK.r[id
 const COOK_ICON={MOB:"MOB_RESET"};
 function renderCookProfile(){ const c=$("pfCook"); c.textContent=""; const cg=el("div",{class:"spgroups"}); c.append(cg);
   for(const [k,n,kind] of [["cozinha","Cozinha","f"],["alquimia","Alquimia","p"]]){ const cur=PF[k]||(PF[k]={m:0,s:{}}); cur.s=cur.s||{}; const types=cookTypes(kind);
-    const icons=[], mk=code=>{ const im=itemImg(code,tierOrder(iconTier(cur.m))); icons.push(im); return im; }, retier=()=>{ const t=iconTier(cur.m); icons.forEach(im=>im._tier(t)); };
+    const icons=[], mk=code=>{ const im=itemImg(code,tierOrder(iconTier(cur.m,cur.t2))); icons.push(im); return im; }, retier=()=>{ const t=iconTier(cur.m,cur.t2); icons.forEach(im=>im._tier(t)); };
     const ic=()=>mk(kind==="f"?"MEAL_STEW":"POTION_HEAL");
     cg.append(spNode(n,ic(),()=>{ const vals=Object.keys(types).map(tp=>cur.s[tp]??cur.all??0).filter(x=>x>0), parts=[]; if(cur.m) parts.push(`maestria ${cur.m}`); if(vals.length) parts.push(`${vals.length} de ${Object.keys(types).length} com nível, maior ${Math.max(...vals)}`); return parts.length?parts.join(", "):"sem spec"; },(body,upd)=>{
       const save=()=>{ saveProfile(); upd(); retier(); };
