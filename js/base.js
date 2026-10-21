@@ -792,14 +792,14 @@ function renderCookRecs(){
 
 /* ================= histórico ================= */
 const HIST_CACHE={};
-async function drawHistory(svg,note,id,city,q=1,rich=false){
+async function drawHistory(svg,note,id,city,q=1,rich=false,days=30){
   if(!svg) return; svg.innerHTML=""; note.textContent="Carregando histórico…";
   const key=id+"|"+city+(q>1?"|"+q:""); let rows=HIST_CACHE[key];
   if(!rows){ try{ const apiId=/_LEVEL(\d)/.test(id)?`${id}@${id.match(/_LEVEL(\d)/)[1]}`:id;
       const j=await apiJSON(`${HOST}/api/v2/stats/history/${apiId}.json?locations=${encodeURIComponent(city)}&time-scale=24`,360);
       rows=(j.find(x=>x.quality===q)||(q===1?j[0]:null)||{}).data||[]; HIST_CACHE[key]=rows; }catch(e){ rows=null; } }
-  if(!rows||rows.length<3){ note.textContent=`Sem histórico suficiente em ${city}${q>1?`, na qualidade ${QNAME[q].toLowerCase()}`:""}.`; return; }
-  rows=rows.slice(-30);
+  if(!rows||rows.length<(days<=7?2:3)){ note.textContent=`Sem histórico suficiente em ${city}${q>1?`, na qualidade ${QNAME[q].toLowerCase()}`:""}.`; return; }
+  rows=rows.slice(-days);
   const W=rich?760:520,H=rich?230:150,PL=rich?56:48,PR=rich?64:10,PT=rich?16:10,PB=24, v=rows.map(r=>r.avg_price), lo=Math.min(...v), hi=Math.max(...v), pad=(hi-lo)*0.12||hi*0.05;
   const y0=lo-pad, y1=hi+pad, X=i=>PL+i*(W-PL-PR)/(rows.length-1), Y=p=>PT+(1-(p-y0)/(y1-y0))*(H-PT-PB);
   const ns="http://www.w3.org/2000/svg", mk=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e.setAttribute(k,a[k]); return e; };
