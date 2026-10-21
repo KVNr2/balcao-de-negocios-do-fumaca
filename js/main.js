@@ -45,7 +45,7 @@ function recompute(reset){ $("resNote").textContent=RES[st.res].note; renderHeat
 loadProfile(); renderProfile(); renderWho(); renderActs("all");
 stallIntro();
 (async()=>{
-  try{ const [p,c,z,g,sp]=await Promise.all([need("precos"),need("cook"),need("zones"),need("gear"),need("specs")]); DATA=p; COOK=c; ZONES=z; GEAR=g; SPECS=sp; indexSpecs(); }catch(e){ $("when").textContent="Não consegui abrir os dados do site"; }
+  try{ const [p,c,z,g,sp,io]=await Promise.all([need("precos"),need("cook"),need("zones"),need("gear"),need("specs"),need("ipoff").catch(()=>({}))]); DATA=p; COOK=c; ZONES=z; GEAR=g; SPECS=sp; IPOFF=io||{}; indexSpecs(); }catch(e){ $("when").textContent="Não consegui abrir os dados do site"; }
   applyMeta(); renderSpecs(); renderCookProfile(); importFromHash();
   const hash=location.hash.slice(1), start=tabs.find(b=>b.id==="t-"+hash)?"t-"+hash:(store.get("tab")||"t-voce"); recompute(true); if($(start)) showTab(start,true);
   loadBuilds(); loadLive();

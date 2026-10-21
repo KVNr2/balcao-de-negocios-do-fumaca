@@ -7,10 +7,12 @@
    de qualquer grupo. Conferido no jogo com maça, escudo e arco; as categorias de lança, bordão, natureza, metamorfo, besta, livro e tocha ainda não foram vistas no jogo. */
 const IP_CLS={espada:"g",machado:"g",maca:"g",martelo:"g",luvas:"g",besta:"g",escudo:"g",arco:"c",lanca:"c",adaga:"c",bordao:"c",natureza:"c",metamorfo:"c",tocha:"c",fogo:"m",gelo:"m",arcano:"m",sagrado:"m",maldito:"m",livro:"m"};
 const IP_CRIST=/_CRYSTAL$/;
+/* base de poder de item de cada item além da do tier (data/ipoff.json, tirado do items.json do jogo): artefatos e itens de 1 mão/2 mãos especiais têm +25, +50, +75 ou +100 */
+let IPOFF={};
 const IP_ARTE=/_(MORGANA|HELL|UNDEAD|KEEPER|FEY|AVALON|CRYSTAL|ROYAL)$/;
 function ipItem(id){
   const m=idInfo(id); if(!m) return null; buildIdx();
-  const base=100*m.t+300+100*m.e; const gk=W2LINE&&W2LINE[m.c]; const grp=gk&&SPECS&&SPECS.g.find(g=>g.k==="c:"+gk);
+  const base=100*m.t+300+100*m.e+(IPOFF[m.c]||0); const gk=W2LINE&&W2LINE[m.c]; const grp=gk&&SPECS&&SPECS.g.find(g=>g.k==="c:"+gk);
   let bonus=0, mod=m.t>=5?(m.t-4)*0.05:0;
   if(grp){ const f=(PF&&PF.sp&&PF.sp[grp.k])||{}, s=f.s||{}, off=/^OFF_/.test(m.c), own=+s[m.c]||0, ownCr=IP_CRIST.test(m.c);
     const cf=c=>IP_ARTE.test(c)?0.1:off?0.6:0.2;   // quanto cada nível de um item dá aos demais do grupo (escudo comum 0,6; artefato 0,1; resto 0,2)
