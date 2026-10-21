@@ -84,7 +84,7 @@ function synergyPanel(b){
   return box;
 }
 const GEAR_SLOTS = [["h","Elmo"],["a","Peito"],["s","Botas"],["c","Capa"],["o","Secundária"]];
-function fullImg(id,cls){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id||""); if(!m) return null; const im=zimg(m[2],+m[1],+(m[3]||0),cls||"nico"); const n=codeName(m[2]); im.title=n+(m[3]?" ."+m[3]:""); im.alt=n; return im; }
+function fullImg(id,cls,q=1){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id||""); if(!m) return null; const im=zimg(m[2],+m[1],+(m[3]||0),cls||"nico",q); const n=codeName(m[2]); im.title=n+(m[3]?" ."+m[3]:""); im.alt=n; return im; }
 function gbPrep(){
   buildIdx(); if(!GB||!W2LINE) return;
   for(const b of GB){ if(b.wc) continue; b.wc=b.w.replace(/^T\d_/,"").replace(/@\d$/,""); b.l=W2LINE[b.wc]||""; b.nome=codeName(b.wc); }
@@ -95,8 +95,8 @@ const gbSpec = b => b.l ? (+(((PF.sp||{})["c:"+b.l]||{}).s||{})[b.wc]||0) : 0;
 function gbGaps(b){ const miss=new Set(); for(const sl of ["h","a","s"]) for(const id of (b[sl]||[]).slice(0,1)){ const m=/^T\d_(?:HEAD|ARMOR|SHOES)_(PLATE|LEATHER|CLOTH)/.exec(id); const t=m&&({PLATE:"placa",LEATHER:"couro",CLOTH:"pano"})[m[1]]; if(t&&armorLv(t)<1) miss.add(t); } return [...miss]; }
 function gbStrip(b){
   const row=el("div",{class:"bgear"});
-  for(const [sl] of GEAR_SLOTS){ const ids=b[sl]; if(!ids||!ids.length) continue; const box=el("div",{class:"bg"}); const im=fullImg(ids[0],"nico bi"); if(im) box.append(im);
-    if(ids.length>1){ const alt=el("div",{class:"bg-alt",title:"ou"}); ids.slice(1,3).forEach(i=>{ const x=fullImg(i,"nico bi-s"); if(x) alt.append(x); }); box.append(alt); } row.append(box); }
+  for(const [sl] of GEAR_SLOTS){ const ids=b[sl]; if(!ids||!ids.length) continue; const box=el("div",{class:"bg"}); const im=qImg(b,sl,ids[0],"nico bi"); if(im) box.append(im);
+    if(ids.length>1){ const alt=el("div",{class:"bg-alt",title:"ou"}); ids.slice(1,3).forEach(i=>{ const x=qImg(b,sl,i,"nico bi-s"); if(x) alt.append(x); }); box.append(alt); } row.append(box); }
   const cons=[...(b.p||[]).slice(0,2),...(b.f||[]).slice(0,2)]; if(cons.length){ const box=el("div",{class:"bg cons"}); cons.forEach(i=>{ const x=fullImg(i,"nico bi-s"); if(x) box.append(x); }); row.append(box); }
   return row;
 }
@@ -115,9 +115,9 @@ function spellTip(im,id){ const set=()=>{ const d=spellDesc(id); im.title=spellN
 function spellImg(id,cls){ const im=el("img",{class:cls||"kx-sp",alt:"",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer"; spellTip(im,id);
   /* primeiro o arquivo local (icons/spells/ID.png, baixado pelo script), depois o render oficial do jogo */
   const fontes=[`icons/spells/${id}.png`,SPELL(id)]; let i=0; im.onerror=()=>{ if(++i<fontes.length) im.src=fontes[i]; else im.remove(); }; im.src=fontes[0]; return im; }
-function kxItem(id,skills){
+function kxItem(id,skills,b,slot){
   const i=idInfo(id); const row=el("div",{class:"kx-it"}); if(!i) return row;
-  const im=fullImg(id,"nico kx-i"); if(im) row.append(im);
+  const im=b&&slot?qImg(b,slot,id,"nico kx-i"):fullImg(id,"nico kx-i"); if(im) row.append(im);
   const tx=el("div",{class:"kx-tx"}); tx.append(el("b",{text:itemNome(i.c),title:`T${i.t}${i.e?"."+i.e:""}`}));
   if(skills&&skills.length){ const sp=el("div",{class:"kx-sps"}); skills.forEach(x=>sp.append(spellImg(x))); tx.append(sp); }
   row.append(tx); return row;
@@ -137,12 +137,15 @@ function albionLoadout(b,set,tier,qf){
 }
 /* barra de ações do card: tier das peças (muda o IP, o carregamento e o custo), set, copiar e ver custo */
 const QOPT=[1,2,3,4,5];
+/* imagem de uma peça da build com a borda da qualidade escolhida; guardada para trocar quando a qualidade muda */
+function qImg(b,slot,id,cls){ if(!"wohasc".includes(slot)) return fullImg(id,cls); const im=fullImg(id,cls,bQf(b)(slot)); if(im) (b._qi=b._qi||[]).push([slot,im]); return im; }
+const bQApply=b=>(b._qi||[]).forEach(([k,im])=>{ if(im._q) im._q(bQf(b)(k)); });
 const bQ=b=>b._qs||(b._qs={a:1,p:{}});          // qualidade escolhida na build: a = todas as peças, p = peça específica (vale mais)
 const bQf=b=>k=>bQ(b).p[k]||bQ(b).a;
 const qSelect=(val,todas,label)=>{ const x=el("select",{class:"kx-q","aria-label":label||"Qualidade"}); if(todas) x.append(el("option",{value:"0",text:"= todas"})); QOPT.forEach(q=>x.append(el("option",{value:String(q),text:QNAME[q]}))); x.value=String(val); return x; };
 function albionBar(b,badge,costValue,opts){
   const bar=el("div",{class:"kx-alb"}); let set=0, tier=0; const qf=bQf(b);
-  const refresh=()=>{ if(badge) badge._upd(set,tier,qf); }; b._refresh=refresh;
+  const refresh=()=>{ if(badge) badge._upd(set,tier,qf); bQApply(b); }; b._refresh=refresh;
   const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
   if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; refresh(); }); bar.append(sel); }
   const lab=el("label",{class:"alb-tier",title:"O tier escolhido vale para o IP, para o texto copiado ao Albion e para o custo. T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4; T5 = 5.0 ou 4.1; T4 = 4.0. Cada peça fica no tier dela quando dá."});
@@ -169,16 +172,16 @@ function kbPanel(b){
   const hd=el("div",{class:"kx-cols kx-hd"}); hd.append(el("span",{class:"kx-rec",text:"★ Recomendado"}),el("span",{text:"Alternativa"})); L.append(hd);
   const rows=[["w",[b.w,b.w2].filter(Boolean),sk.w?[sk.w,sk.w2||[]]:[]],["o",b.o,[]],["h",b.h,sk.h||[]],["a",b.a,sk.a||[]],["s",b.s,sk.s||[]],["c",b.c,[]],["p",b.p,[]],["f",b.f,[]]];
   rows.forEach(([k,ids,skl])=>{ if(!ids||!ids.length||!ids[0]) return; const r=el("div",{class:"kx-cols"});
-    const first=kxItem(ids[0],skl[0]);
+    const first=kxItem(ids[0],skl[0],b,k);
     if("wohasc".includes(k)){ const x=qSelect(bQ(b).p[k]||0,true,"Qualidade: "+itemNome((idInfo(ids[0])||{}).c||"")); x.addEventListener("change",()=>{ if(+x.value) bQ(b).p[k]=+x.value; else delete bQ(b).p[k]; if(b._refresh) b._refresh(); }); qsl.push([k,x]); const tx=first.querySelector(".kx-tx"); (tx||first).append(x); }
-    r.append(first); r.append(ids[1]?kxItem(ids[1],skl[1]):el("div")); L.append(r); });
+    r.append(first); r.append(ids[1]?kxItem(ids[1],skl[1],b,k):el("div")); L.append(r); });
   box.append(L);
   /* direita: visão geral no formato do killboard (3 colunas) */
   const R=el("section",{class:"kx-r"}); R.append(el("h4",{text:"Visão geral"}));
   const g=el("div",{class:"kx-g"});
   [null,["h",b.h,sk.h&&sk.h[0]],["c",b.c],["w",[b.w],sk.w],["a",b.a,sk.a&&sk.a[0]],["o",b.o],["p",b.p],["s",b.s,sk.s&&sk.s[0]],["f",b.f]].forEach(c=>{
     const cell=el("div",{class:"kx-c"+(c?"":" vazio")}); const ids=c&&c[1];
-    if(ids&&ids[0]){ const im=fullImg(ids[0],"nico kx-big"); if(im) cell.append(im);
+    if(ids&&ids[0]){ const im=qImg(b,c[0],ids[0],"nico kx-big"); if(im) cell.append(im);
       const sl=c[2]; if(sl&&sl.length){
         /* 4 habilidades (arma): coluna à esquerda do ícone; com 2 ou 3, embaixo */
         const lado=sl.length>=4; const sp=el("div",{class:"kx-ov"+(lado?" kx-left":"")}); sl.forEach(x=>sp.append(spellImg(x,"kx-sm"))); cell.append(sp); } }
@@ -192,9 +195,9 @@ function kbPanel(b){
 }
 function buildCard(b){
   const open=bOpen===b.id; const wc=b.wc;
-  const card=el("article",{class:"bcard"+(open?" open":"")});
+  b._qi=[]; const card=el("article",{class:"bcard"+(open?" open":"")});
   const top=el("div",{class:"bc-top"});
-  const wi=fullImg(b.w,"nico zbig"); top.append(wi||el("span",{class:"btile"}));
+  const wi=qImg(b,"w",b.w,"nico zbig"); top.append(wi||el("span",{class:"btile"}));
   const mid=el("div",{class:"bc-mid"}); const h=el("h4"); h.append(b.t||b.nome); mid.append(h);
   const nv=gbSpec(b); const lv=nv>=SPEC_MIN?3:nv>0?2:0;
   const meta=el("div",{class:"bc-meta"}); meta.append(el("span",{class:"tag",text:contName(b.k)}));
