@@ -198,16 +198,17 @@ const tierOrder = t => { const o=[t]; for(let i=t-1;i>=1;i--) o.push(i); for(let
    primeiro os tiers que temos salvos no site, e para os poucos itens sem cópia local, o tier em que ele existe */
 const ICON_TIER_HINT = {MOUNT_MULE:[2,3], FARM_CARROT_SEED:[1], FARM_BEAN_SEED:[2], FARM_AGARIC_SEED:[2]};
 /* sementes sem imagem própria: usa a do produto (cenoura, feijão, cogumelo), que temos salva, no tier em que ele existe */
-/* ícone fixo num tier: o lobinho-vil é preto no T6 e branco no T8; "Montarias raras" no jogo é o branco */
-const ICON_PIN = {FARM_DIREWOLF_BABY:8};
+/* item que só existe a partir de certo tier: se a maestria ainda não chega lá, mostra o ícone desse tier em cinza (ainda não dá para fazer) */
+const ICON_MIN = {FARM_DIREWOLF_BABY:6};
 const ICON_ALT = {FARM_CARROT_SEED:["CARROT",1], FARM_BEAN_SEED:["BEAN",2], FARM_AGARIC_SEED:["AGARIC",2]};
 function itemImg(code,tiers){ let t=null, i=0; if(ICON_ALT[code]){ const [alt,tr]=ICON_ALT[code]; if(typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${tr}_${alt}`)&&![1,2,3,4,5,6,7,8].some(x=>ICONS_LOCAL.has(`T${x}_${code}`))){ code=alt; tiers=[tr]; } }
-  const ordem=l=>{ if(ICON_PIN[code]) return [ICON_PIN[code],...l.filter(x=>x!==ICON_PIN[code])]; const has=x=>typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${x}_${code}`), loc=has(l[0])?[]:l.filter(has); const first=loc.length?loc:(ICON_TIER_HINT[code]||[]); return first.length?[...first,...l.filter(x=>!first.includes(x))]:l; };
+  let lock=false;
+  const ordem=l=>{ const mn=ICON_MIN[code]; lock=!!(mn&&l[0]<mn); if(lock) return [mn,...l.filter(x=>x!==mn)]; const has=x=>typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${x}_${code}`), loc=has(l[0])?[]:l.filter(has); const first=loc.length?loc:(ICON_TIER_HINT[code]||[]); return first.length?[...first,...l.filter(x=>!first.includes(x))]:l; };
   t=ordem(tiers||[4,5,6,3,7,8,2,1]);
-  const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer";
+  const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer"; const marca=()=>{ im.classList.toggle("nico-lock",lock); if(lock) im.title=`Só existe a partir do T${ICON_MIN[code]}: ainda não dá para fazer com a maestria atual.`; else im.removeAttribute("title"); }; marca();
   const set=()=>{ const id=`T${t[i]}_${code}`; iconSrc(im,id,fail); };
   const fail=()=>{ if(++i<t.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } };
-  im._tier=n=>{ t=ordem(tierOrder(n)); i=0; im.classList.remove("nico-off"); set(); }; set(); return im; }
+  im._tier=n=>{ t=ordem(tierOrder(n)); marca(); i=0; im.classList.remove("nico-off"); set(); }; set(); return im; }
 /* item que representa a linha de maestria: o básico (SET1) quando existe, senão o primeiro da lista */
 const REP_FIXO = {"z:animais":"FARM_HORSE_BABY","z:ervas":"FARM_AGARIC_SEED"};   // ícone da maestria do grupo quando o primeiro da lista não representa bem (criação de animais: o potro)
 const repKey = g => REP_FIXO[g.k]||(g.it.find(x=>/_SET1$/.test(x[0]))||g.it[0])[0];

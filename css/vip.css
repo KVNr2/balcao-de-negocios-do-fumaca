@@ -1116,3 +1116,6 @@ img.nb-xi{width:52px;height:52px}
 /* lucro que mudou na última atualização de preços */
 .bm-chg{font-size:.7em;font-weight:700;margin-right:.15em;vertical-align:middle}
 .bm-chg.up{color:var(--gain,#2e7d32)}.bm-chg.dn{color:var(--loss,#c62828)}
+
+/* ícone de item ainda não liberado pela maestria */
+.nico-lock{filter:grayscale(1) opacity(.6)}
