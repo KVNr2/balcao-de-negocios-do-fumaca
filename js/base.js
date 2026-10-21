@@ -190,7 +190,11 @@ const ageSpan = t => t ? el("span",{class:"age"+((Date.now()-t)>12*3600e3?" old"
 /* Tier liberado pela maestria da linha (armas e armaduras de combate): T4 no nível 1, T5 no 10, T6 no 30, T7 no 60, T8 no 100. */
 const tierFromMastery = m => m>=100?8 : m>=60?7 : m>=30?6 : m>=10?5 : m>=1?4 : 3;
 const tierOrder = t => { const o=[t]; for(let i=t-1;i>=1;i--) o.push(i); for(let i=t+1;i<=8;i++) o.push(i); return o; };
-function itemImg(code,tiers){ let t=tiers||[4,5,6,3,7,8,2,1], i=0; const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer";
+/* o servidor de ícones devolve uma imagem em branco (sem erro) para um tier que o item não tem, então a ordem importa:
+   primeiro os tiers que temos salvos no site, e para os poucos itens sem cópia local, o tier em que ele existe */
+const ICON_TIER_HINT = {MOUNT_MULE:[2,3]};
+function itemImg(code,tiers){ let t=tiers||[4,5,6,3,7,8,2,1], i=0;
+  { const has=x=>typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${x}_${code}`), loc=has(t[0])?[]:t.filter(has); const hint=ICON_TIER_HINT[code]||[]; const first=loc.length?loc:hint; if(first.length) t=[...first,...t.filter(x=>!first.includes(x))]; } const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer";
   const set=()=>{ const id=`T${t[i]}_${code}`; iconSrc(im,id,fail); };
   const fail=()=>{ if(++i<t.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } };
   im._tier=n=>{ t=tierOrder(n); i=0; im.classList.remove("nico-off"); set(); }; set(); return im; }
