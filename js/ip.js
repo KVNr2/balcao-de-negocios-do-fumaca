@@ -28,6 +28,6 @@ function albionBadge(b){
   w._upd=(set,tier)=>{ let r; try{ r=ipBuild(b,set||0,tier||0); }catch(e){ w.hidden=true; return; } w.hidden=false;
     num.textContent="≈ "+Math.round(r.avg).toLocaleString("pt-BR");
     sub.textContent=""; sub.append(el("span",{class:"ip-c",text:tier?`T${tier} equivalente`:"Tier original"}),el("span",{class:"ip-c"+(r.sem?" off":""),text:r.sem?"Sem ficha":"Sua ficha"}));
-    w.title="Valor aproximado: depende do tier e da qualidade das peças. Aqui o cálculo usa o tier escolhido em \"Tier das peças\" e qualidade normal (cada qualidade acima soma de +20 a +100 por peça). "+r.parts.map(p=>`${p.slot.toUpperCase()} ${Math.round(p.ip)}`).join(" · ")+(r.sem?". Carregue sua ficha para somar os bônus de maestria e spec.":""); };
+    w.title="Valor aproximado: depende do tier e da qualidade das peças. Aqui o cálculo usa o tier escolhido em \"Tier das peças\" e qualidade normal (cada qualidade acima soma de +20 a +100 por peça). "+"\nIP de cada peça:\n"+r.parts.map(p=>`${({w:"Arma",o:"Mão secundária",h:"Elmo",a:"Peito",s:"Botas",c:"Capa"})[p.slot]}: ${Math.round(p.ip).toLocaleString("pt-BR")}`).join("\n")+(r.sem?". Carregue sua ficha para somar os bônus de maestria e spec.":""); };
   w._upd(0,0); return w;
 }

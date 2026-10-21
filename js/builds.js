@@ -142,8 +142,8 @@ function albionBar(b,badge,costValue){
   const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
   if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; refresh(); }); bar.append(sel); }
   const lab=el("label",{class:"alb-tier",title:"O tier escolhido vale para o IP, para o texto copiado ao Albion e para o custo. T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4; T5 = 5.0 ou 4.1; T4 = 4.0. Cada peça fica no tier dela quando dá."});
-  lab.append(el("span",{text:"Tier das peças (muda o IP)"})); const tsel=el("select",{"aria-label":"Tier das peças"});
-  tsel.append(el("option",{value:"0",text:"Como na build (tier original)"})); [8,7,6,5,4].forEach(t=>tsel.append(el("option",{value:String(t),text:`T${t} equivalente`}))); tsel.value=String(tier);
+  lab.append(el("span",{text:"Tier das peças"})); const tsel=el("select",{"aria-label":"Tier das peças"});
+  tsel.append(el("option",{value:"0",text:"Original da build"})); [8,7,6,5,4].forEach(t=>tsel.append(el("option",{value:String(t),text:`T${t} equivalente`}))); tsel.value=String(tier);
   tsel.addEventListener("change",()=>{ tier=+tsel.value; try{ store.set("bTier",String(tier)); }catch(e){} refresh(); }); lab.append(tsel); bar.append(lab);
   const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento com o tier escolhido. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
   const msg=el("span",{class:"muted small",role:"status"});

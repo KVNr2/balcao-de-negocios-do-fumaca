@@ -1083,3 +1083,20 @@ img.nb-xi{width:52px;height:52px}
 .zgear .ip-badge.ip-in .ip-s{max-width:none}
 .nb-warn{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0;padding:10px 14px;border-radius:10px;border:1px solid #c9892f;background:rgba(201,137,47,.12);color:var(--parch,#efe3c2);font:500 13px Inter,sans-serif}
 .nb-warn[hidden]{display:none}.nb-warn textarea{flex:1 1 260px}
+/* UX: a classe .wrap da página vazava para as pílulas de filtro e abria um vão de 64px embaixo */
+.seg.wrap{padding:0;max-width:none;margin:0}
+/* UX: ações do card em uma linha só, rótulo ao lado do seletor */
+.alb-tier{flex-direction:row;align-items:center;gap:8px;font:600 12px Inter,sans-serif;white-space:nowrap}
+.alb-tier select{width:auto;min-width:150px}
+.kx-alb{gap:8px 10px}
+.kx-alb select{align-self:center}.kx-alb .bc-more{align-self:center}
+/* UX celular: cabeçalho compacto, botão de atualizar só com o ícone */
+@media (max-width:700px){
+  .vip-top{padding:8px 12px;gap:6px}
+  .vip-top .facts{gap:6px}
+  .vip-top .facts>*{height:32px;padding:0 10px}
+  .vip-top .facts #reload{flex:0 0 36px!important;width:36px!important;max-width:36px;padding:0;justify-content:center;margin-left:auto}
+  .vip-top .facts #reload span{display:none}
+  .vip-top .status{height:32px;padding:0 10px}
+  .alb-tier{flex-wrap:wrap}
+}

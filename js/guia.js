@@ -30,7 +30,7 @@ const GUIA = {
     "Escolha o tier. Digite a felicidade do seu trabalhador (a barra vai até 900 no T8) ou o rendimento em % que o jogo mostra; sem isso, a conta usa a barra cheia. Abaixo, a lista mostra os diários do que você já coleta na ficha."],
   "p-mercado": ["O Mercado Negro de Caerleon, que compra equipamento.",
     "Achar peças que dão lucro: fabricando para vender lá, ou comprando na cidade mais barata e revendendo. Mostra também quantas peças o Mercado Negro compra por dia. Linha verde é lucro, vermelha é prejuízo.",
-    "Escolha a mercadoria, o tier e a qualidade (\"Todos\" mostra tudo; com tudo em Todos, a lista carrega um tier por vez) e o modo: Fabricar e vender ou Comprar barato e revender. A lista mostra as 100 de maior lucro. Clique numa linha para ver a conta e o histórico; o botão \"Craft\" leva a peça para a aba Craft. A idade ao lado do preço mostra quão recente é a ordem."],
+    "Escolha a mercadoria, o tier e a qualidade (\"Todos\" mostra tudo; com todas as mercadorias e todos os tiers, a lista mostra os 5 mais lucrativos de cada tier) e o modo: Fabricar e vender ou Comprar barato e revender. Nos demais casos a lista mostra as 100 de maior lucro. Clique numa linha para ver a conta e o histórico; o botão \"Craft\" leva a peça para a aba Craft. A idade ao lado do preço mostra quão recente é a ordem."],
   "p-prata": ["Uma comparação das atividades que mais rendem prata por hora.",
     "Comparar o ganho e o risco de cada atividade (corrompidas, brumas, coleta, craft e outras). A barra mostra a faixa de prata por hora; a cor mostra o risco: verde baixo, amarelo médio, vermelho alto.",
     "Use os botões Tudo, Solo, Grupo e Sem risco para ver só o que combina com o seu jeito de jogar. Passe o mouse numa linha para ver mais detalhes. São estimativas de uma tabela da comunidade: servem para comparar, não para prometer."],
@@ -65,7 +65,7 @@ const GUIA = {
   const io=("IntersectionObserver" in window)?new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ seen[e.target.dataset.p]=1; io.unobserve(e.target); try{ localStorage.setItem("guiaVisto",JSON.stringify(seen)); }catch(_){} } })):null;
   for(const [id,[que,pode,como]] of Object.entries(GUIA)){
     const panel=document.getElementById(id); if(!panel) continue;
-    const d=document.createElement("details"); d.className="guide"; d.dataset.p=id; if(closed[id]===false || (!seen[id] && closed[id]!==true)) d.open=true; if(io) io.observe(d);
+    const d=document.createElement("details"); d.className="guide"; d.dataset.p=id; if(closed[id]===false || (!seen[id] && closed[id]!==true && !matchMedia("(max-width:700px)").matches)) d.open=true; if(io) io.observe(d);
     d.innerHTML=`<summary>Como usar esta página</summary><dl><dt>Dá para</dt><dd></dd><dt>Como usar</dt><dd></dd></dl>`;
     const dds=d.querySelectorAll("dd"); dds[0].textContent=pode; dds[1].textContent=como;
     d.addEventListener("toggle",()=>{ closed[id]=!d.open; try{ localStorage.setItem("guiaFechado",JSON.stringify(closed)); }catch(e){} });
