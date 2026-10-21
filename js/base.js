@@ -905,12 +905,11 @@ function renderArvore(){ const box=$("pfArvore"); if(!box) return; box.textConte
   const no=(titulo,sub,val,ok,filhos)=>{ const n=el("div",{class:"arv-no"+(ok?" on":"")}); const h=el("div",{class:"arv-h"}); h.append(el("span",{class:"arv-t"},titulo),sub?el("span",{class:"arv-s"},sub):"",el("b",{class:"arv-v"},val)); n.append(h); if(filhos) n.append(filhos); return n; };
   const lista=(...x)=>{ const d=el("div",{class:"arv-fil"}); x.flat().filter(Boolean).forEach(i=>d.append(i)); return d; };
   const grupoFaz=(k,titulo)=>{ const g=SPECS&&SPECS.g.find(x=>x.k===k); if(!g) return null; const cur=fz[k]||{}, m=cur.m||0, t=iconTier(m,cur.t2), ch=el("div",{class:"arv-chips"});
-    g.it.forEach(it=>ch.append(chip(it[0],it[1],(cur.s||{})[it[0]]||0,t))); return no(titulo,"maestria",`${m}/100`,m>0,lista(ch)); };
+    g.it.forEach(it=>ch.append(chip(it[0],it[1],(cur.s||{})[it[0]]||0,t))); return no(titulo,"maestria · especializações",`${m}/100`,m>0,lista(ch)); };
   const grupoCoz=(k,titulo,kind)=>{ const cur=PF[k]||{}, m=cur.m||0, t=iconTier(m,cur.t2), ch=el("div",{class:"arv-chips"});
-    COOK_NODES[kind].forEach(([tp,label,code])=>ch.append(chip(code,label,(cur.s||{})[tp]??cur.all??0,t))); return no(titulo,"maestria",`${m}/100`,m>0,lista(ch)); };
+    COOK_NODES[kind].forEach(([tp,label,code])=>ch.append(chip(code,label,(cur.s||{})[tp]??cur.all??0,t))); return no(titulo,"maestria · especializações",`${m}/100`,m>0,lista(ch)); };
   const ceif=no("Ceifeiro","libera T2",tg===undefined?"—/1":`${tg?1:0}/1`,tg>0,lista(grupoFaz("z:plantas","Fazendeiro"),grupoFaz("z:ervas","Herborista"),grupoFaz("z:animais","Criador de animais")));
-  const faz=no("Fazendeiro aprendiz","libera T1","1/1",true,lista(ceif));
   const sc=(PF.cozinha||{}).t2??(PF.alquimia||{}).t2;
   const sous=no("Sous Chef","libera T2",sc===undefined?"—/1":`${sc?1:0}/1`,sc>0,lista(grupoCoz("cozinha","Mestre-cuca","f"),grupoCoz("alquimia","Alquimista","p")));
-  box.append(el("h4",{class:"arv-sec"},"Fazenda"),faz,el("h4",{class:"arv-sec"},"Cozinha e alquimia"),sous);
+  box.append(no("Fazendeiro aprendiz","libera T1","1/1",true,lista(sous,ceif)));
   const on=box.querySelectorAll(".arv-chip.on").length, all=box.querySelectorAll(".arv-chip").length, sm=$("arvSum"); if(sm){ sm.textContent=on?`${on} de ${all} com spec`:"sem spec"; sm.classList.toggle("on",on>0); } }
