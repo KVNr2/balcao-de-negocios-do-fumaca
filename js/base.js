@@ -898,55 +898,51 @@ function importFromHash(){
   box.append(el("div",{class:"btnrow"},yes,no)); const p=$("p-voce"); p.prepend(box); showTab("t-voce",true);
 }
 
-/* Árvore da fazenda e da cozinha: é aqui que se vê e se edita a ficha dessa parte, no mesmo formato das armas: cada nó é uma linha que só abre ao clicar.
-   Fazendeiro aprendiz > Sous Chef > Mestre-cuca / Alquimista > especializações;  Fazendeiro aprendiz > Ceifeiro > Herborista / Fazendeiro / Criador de animais > especializações */
+/* Árvore da fazenda, da cozinha e da caçada: mesmo padrão do Combate. Cada maestria é um cartão (maestria, itens com spec, maior nível, "usa até T");
+   os cartões ficam sob o nó que os libera (Sous Chef, Ceifeiro, Rastreador aprendiz). Clicar no cartão abre os campos de cada especialização. */
 const ARV_OPEN = new Set();
-function renderArvore(){ const box=$("pfArvore"); if(!box||!SPECS) return; if(box.contains(document.activeElement)&&document.activeElement.tagName==="INPUT") return; box.textContent="";
-  const reg=[], upds=[], retierAll=()=>reg.forEach(r=>r.im._tier(r.tier())), cnt=()=>{ const on=box.querySelectorAll(".arv-sp.on").length, all=box.querySelectorAll(".arv-sp").length, sm=$("arvSum"); if(sm){ sm.textContent=on?`${on} de ${all} com spec`:"sem spec"; sm.classList.toggle("on",on>0); sm.style.setProperty("--p",(all?Math.round(on/all*100):0)+"%"); } };
-  const salvar=()=>{ saveProfile(); retierAll(); upds.forEach(f=>f()); cnt(); };
-  const ico=(code,tier,gate)=>{ const im=itemImg(code,tier&&tierOrder(typeof tier==="function"?tier():tier),gate!==false&&typeof tier==="function"); if(typeof tier==="function") reg.push({im,tier}); return im; };
-  /* nó que abre ao clicar (mesma aparência dos grupos de armas) */
-  const no=(id,nome,ic,getSum,filhos)=>{ const d=el("details",{class:"spg"}), sm=el("summary"), sumS=el("span",{class:"sps"}); sm.append(ic,el("span",{class:"spn",text:nome}),sumS); d.append(sm);
-    const body=el("div",{class:"arv-body"}); d.append(body); filhos(body); d.open=ARV_OPEN.has(id);
-    d.addEventListener("toggle",()=>{ d.open?ARV_OPEN.add(id):ARV_OPEN.delete(id); });
-    const upd=()=>{ const t=getSum(); sumS.textContent=t; sumS.classList.toggle("on",!/^(sem spec|—|0\/)/.test(t)); }; upd(); upds.push(upd); return d; };
-  const porta=(get,set)=>{ const b=el("button",{type:"button",class:"arv-tg"}), pinta=()=>{ const v=get(); b.textContent=v===undefined?"—/1":`${v?1:0}/1`; b.classList.toggle("on",v>0); b.setAttribute("aria-pressed",v>0?"true":"false"); }; pinta();
-    b.addEventListener("click",()=>{ set(get()>0?0:1); pinta(); salvar(); }); return [b,pinta]; };
-  const linhaPorta=(rot,get,set,body)=>{ const [b,pinta]=porta(get,set); upds.push(pinta); const l=el("div",{class:"arv-porta"}); l.append(el("span",{text:rot}),b); body.append(l); };
-  const rotulo=g=>v=>v===undefined?"—/1":`${v?1:0}/1`;
-  const grupoFaz=(k,titulo,id)=>{ const g=SPECS.g.find(x=>x.k===k); if(!g) return null; const tier=()=>iconTier(spMastery(k),spGet(k).t2);
-    const sumF=()=>{ const sv=spGet(k).s||{}, n=g.it.filter(([c])=>+sv[c]>0).length, m=spMastery(k); return (m||n)?`maestria ${m} · ${n} de ${g.it.length}`:"sem spec"; };
-    return no(id,titulo,ico(repKey(g),tier,false),sumF,body=>{ const gr=el("div",{class:"spgrid"}); body.append(gr);
-      gr.append(tagIn("Maestria",numIn(spMastery(k),g.mmax||100,"Maestria de "+titulo,v=>{ spSetMastery(k,v); salvar(); },"—"),ico(repKey(g),tier,false)));
-      g.it.forEach(it=>{ const lab=tagIn(it[1],numIn(+(spGet(k).s||{})[it[0]]||0,g.max||100,`${titulo}: ${it[1]}`,v=>{ const st=spEnsure(k); st.s=st.s||{}; if(v) st.s[it[0]]=v; else delete st.s[it[0]]; lab.classList.toggle("arv-sp",true); lab.classList.toggle("on",v>0); salvar(); },"—"),ico(it[0],tier)); lab.classList.add("arv-sp"); lab.classList.toggle("on",+(spGet(k).s||{})[it[0]]>0); gr.append(lab); }); }); };
-  const grupoCoz=(k,titulo,kind,id,ic)=>{ const cur=()=>(PF[k]=PF[k]||{m:0,s:{}}), tier=()=>iconTier(cur().m||0,cur().t2), val=tp=>{ const c=cur(); return (c.s||{})[tp]??c.all??0; }, nodes=COOK_NODES[kind];
-    const sumF=()=>{ const n=nodes.filter(([tp])=>val(tp)>0).length, m=cur().m||0; return (m||n)?`maestria ${m} · ${n} de ${nodes.length}`:"sem spec"; };
-    return no(id,titulo,ic(tier),sumF,body=>{ const gr=el("div",{class:"spgrid"}); body.append(gr);
-      gr.append(tagIn("Maestria",numIn(cur().m||0,100,"Maestria de "+titulo,v=>{ cur().m=v; salvar(); },"—"),ic(tier)));
-      nodes.forEach(([tp,label,code])=>{ const lab=tagIn(label,numIn(val(tp),100,`${titulo}: ${label}`,v=>{ const c=cur(); c.s=c.s||{}; c.s[tp]=v; lab.classList.toggle("on",v>0); salvar(); },"—"),ico(code,tier)); lab.classList.add("arv-sp"); lab.classList.toggle("on",val(tp)>0); gr.append(lab); }); }); };
-  const gF=["z:plantas","z:ervas","z:animais"], gC=["cozinha","alquimia"];
-  const gateF=()=>gF.map(k=>(PF.sp||{})[k]&&(PF.sp[k]||{}).t2).find(v=>v!==undefined), gateC=()=>gC.map(k=>(PF[k]||{}).t2).find(v=>v!==undefined);
-  const sous=no("sous","Sous Chef",itemImg("MEAL_SOUP",[1]),()=>rotulo()(gateC()),body=>{
-    linhaPorta("Nó liberado (libera o T2)",gateC,v=>gC.forEach(k=>{ (PF[k]=PF[k]||{m:0,s:{}}).t2=v; }),body);
-    body.append(grupoCoz("cozinha","Mestre-cuca","f","mc",()=>itemImg("MEAL_SOUP",[1])),grupoCoz("alquimia","Alquimista","p","alq",t=>ico("POTION_HEAL",t,false))); });
-  const ceif=no("ceif","Ceifeiro",itemImg("FARM_BEAN_SEED",[2]),()=>rotulo()(gateF()),body=>{
-    linhaPorta("Nó liberado (libera o T2)",gateF,v=>gF.forEach(k=>{ spEnsure(k).t2=v; }),body);
-    body.append(grupoFaz("z:ervas","Herborista","her"),grupoFaz("z:plantas","Fazendeiro","faz"),grupoFaz("z:animais","Criador de animais","cri")); });
-  box.append(no("apr","Fazendeiro aprendiz",itemImg("FARM_CARROT_SEED",[1]),()=>"1/1 · libera o T1",body=>body.append(sous,ceif))); cnt(); }
-/* Caçada (Rastreamento no jogo): Rastreador aprendiz 1/1 > Rastreador experiente (maestria) > 8 especializações.
-   Os nós não têm item para servir de ícone, então usam as pegadas. */
 const PEGADAS='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><ellipse cx="7.6" cy="16.2" rx="2.7" ry="3.4"/><circle cx="4.6" cy="11.4" r="1.15"/><circle cx="7.2" cy="9.9" r="1.2"/><circle cx="9.9" cy="10.4" r="1.15"/><circle cx="11.6" cy="12.6" r="1"/><ellipse cx="16.6" cy="8.6" rx="2.5" ry="3.2"/><circle cx="13.8" cy="4.2" r="1.05"/><circle cx="16.2" cy="2.9" r="1.1"/><circle cx="18.7" cy="3.4" r="1.05"/><circle cx="20.2" cy="5.5" r=".95"/></svg>';
 const pegadas=()=>{ const sp=el("span",{class:"arv-pata","aria-hidden":"true"}); sp.innerHTML=PEGADAS; return sp; };
 const CACA=[["PANTHER","Pantera das Sombras"],["ENT","Espírito Arbóreo"],["DIREBEAR","Urso Espiritual"],["WEREWOLF","Lobisomem"],["IMP","Diabrete Infernal"],["ELEMENTAL_ROCK","Golem de Pedra Rúnica"],["EAGLE","Águia da Alvorada"],["FACTION_MOB","Presa Rara"]];
-const CACA_OPEN=new Set();
-function renderCaca(){ const box=$("pfCaca"); if(!box) return; if(box.contains(document.activeElement)&&document.activeElement.tagName==="INPUT") return; box.textContent="";
-  const cnt=()=>{ const on=box.querySelectorAll(".arv-sp.on").length, sm=$("cacaSum"); if(sm){ sm.textContent=on?`${on} de ${CACA.length} com spec`:"sem spec"; sm.classList.toggle("on",on>0); sm.style.setProperty("--p",Math.round(on/CACA.length*100)+"%"); } };
-  const rast=()=>spEnsure("z:rastreio"), upds=[];
-  const no=(id,nome,getSum,filhos)=>{ const d=el("details",{class:"spg"}), sm=el("summary"), sumS=el("span",{class:"sps"}); sm.append(pegadas(),el("span",{class:"spn",text:nome}),sumS); d.append(sm);
-    const body=el("div",{class:"arv-body"}); d.append(body); filhos(body); d.open=CACA_OPEN.has(id); d.addEventListener("toggle",()=>{ d.open?CACA_OPEN.add(id):CACA_OPEN.delete(id); });
-    const upd=()=>{ const t=getSum(); sumS.textContent=t; sumS.classList.toggle("on",!/^(sem spec|1\/1$)/.test(t)); }; upd(); upds.push(upd); return d; };
-  const salvar=()=>{ saveProfile(); upds.forEach(f=>f()); cnt(); };
-  const exper=no("exp","Rastreador experiente",()=>{ const g=spGet("z:rastreio"), sv=g.s||{}, n=CACA.filter(([c])=>+sv[c]>0).length, m=g.m||0; return (m||n)?`maestria ${m} · ${n} de ${CACA.length}`:"sem spec"; },body=>{ const gr=el("div",{class:"spgrid"}); body.append(gr);
-    gr.append(tagIn("Maestria",numIn(spGet("z:rastreio").m||0,100,"Maestria de Rastreador experiente",v=>{ rast().m=v; salvar(); },"—")));
-    CACA.forEach(([c,n])=>{ const lab=tagIn(n,numIn(+(spGet("z:rastreio").s||{})[c]||0,100,"Caçada: "+n,v=>{ const st=rast(); st.s=st.s||{}; if(v) st.s[c]=v; else delete st.s[c]; lab.classList.toggle("on",v>0); salvar(); },"—")); lab.classList.add("arv-sp"); lab.classList.toggle("on",+(spGet("z:rastreio").s||{})[c]>0); gr.append(lab); }); });
-  box.append(no("rap","Rastreador aprendiz",()=>"1/1",body=>body.append(exper))); cnt(); }
+/* monta uma seção inteira (Fazenda/cozinha ou Caçada) dentro de `box`; `def(ctx)` devolve as subseções [{id,nome,gate,cartoes}] */
+function arvoreSecao(box,sumId,def){ if(!box||!SPECS) return; if(box.contains(document.activeElement)&&document.activeElement.tagName==="INPUT") return; box.textContent="";
+  const reg=[], cards=[], subs=[], retierAll=()=>reg.forEach(r=>r.im._tier(r.tier()));
+  const geral=()=>{ const on=cards.filter(c=>c.d.classList.contains("has")).length, sm=$(sumId); if(sm){ sm.textContent=on?`${on} de ${cards.length} com spec`:"sem spec"; sm.classList.toggle("on",on>0); sm.style.setProperty("--p",(cards.length?Math.round(on/cards.length*100):0)+"%"); } };
+  const refresh=()=>{ cards.forEach(c=>c.upd()); subs.forEach(sn=>{ const on=sn._cs.filter(c=>c.d.classList.contains("has")).length; sn._cnt.textContent=on?`${on} de ${sn._cs.length} com spec`:""; sn._cnt.classList.toggle("on",!!on); sn._cnt.style.setProperty("--p",(sn._cs.length?Math.round(on/sn._cs.length*100):0)+"%"); }); geral(); };
+  const salvar=()=>{ saveProfile(); retierAll(); refresh(); };
+  const ico=(code,tier,gate)=>{ const im=itemImg(code,tier&&tierOrder(typeof tier==="function"?tier():tier),gate!==false&&typeof tier==="function"); if(typeof tier==="function") reg.push({im,tier}); return im; };
+  const cartao=o=>{ const d=el("details",{class:"spg"}), sm=el("summary"), sumS=el("span",{class:"sps"}); sm.append(o.ic(),el("span",{class:"spn",text:o.nome}),sumS); d.append(sm);
+    const vals=()=>o.itens.map(([c])=>+o.getV(c)||0).filter(v=>v>0);
+    const upd=()=>{ const v=vals(), m=o.getM()||0, any=m>0||v.length>0; sumS.textContent=""; const chip=(t,c)=>sumS.append(el("span",{class:"spchip "+(c||""),text:t}));
+      if(!any) chip("sem spec","off"); else { if(m) chip("Maestria "+m,"m"); if(v.length) chip(`${v.length}/${o.itens.length} itens`,"n"); if(v.length) chip("Maior "+Math.max(...v),"mx"); if(o.tier) chip("Usa até T"+o.tier(),"t"); }
+      d.style.setProperty("--p",Math.round(v.length/o.itens.length*100)+"%"); d.classList.toggle("has",any); sumS.classList.toggle("on",any); };
+    let built=false; const body=el("div",{class:"spgrid"}); d.append(body);
+    d.addEventListener("toggle",()=>{ if(d.open) ARV_OPEN.add(o.id); else ARV_OPEN.delete(o.id); if(!d.open||built) return; built=true;
+      body.append(tagIn("Maestria",numIn(o.getM()||0,o.mmax||100,"Maestria de "+o.nome,v=>{ o.setM(v); salvar(); },"—"),o.semIcCorpo?null:o.ic()));
+      o.itens.forEach(([c,label,ic])=>{ body.append(tagIn(label,numIn(+o.getV(c)||0,o.max||100,`${o.nome}: ${label}`,v=>{ o.setV(c,v); salvar(); },"—"),ic?ic(o.tier):null)); }); });
+    d.open=ARV_OPEN.has(o.id); const card={d,upd}; cards.push(card); upd(); return card; };
+  const porta=(rot,get,set)=>{ const l=el("div",{class:"arv-porta"}), b=el("button",{type:"button",class:"arv-tg"}); const pinta=()=>{ const v=get(); b.textContent=v===undefined?"—/1":`${v?1:0}/1`; b.classList.toggle("on",v>0); b.setAttribute("aria-pressed",v>0?"true":"false"); };
+    pinta(); b.addEventListener("click",()=>{ set(get()>0?0:1); pinta(); salvar(); }); l.append(el("span",{text:rot}),b); return l; };
+  for(const sd of def({ico,cartao,porta})){ const sn=el("details",{class:"spsubn"}), ss=el("summary"), cnt=el("span",{class:"secsum"}); ss.append(el("span",{text:sd.nome}),cnt); sn.append(ss);
+    if(sd.nota) sn.append(el("p",{class:"tiny muted arv-nota",text:sd.nota})); if(sd.gate) sn.append(sd.gate);
+    const grid=el("div",{class:"spgroups"}); sn.append(grid); sn._cnt=cnt; sn._cs=sd.cartoes.map(f=>f()); sn._cs.forEach(c=>grid.append(c.d)); sn.open=true; subs.push(sn); box.append(sn); }
+  refresh(); }
+function renderArvore(){ arvoreSecao($("pfArvore"),"arvSum",({ico,cartao,porta})=>{
+  const gF=["z:plantas","z:ervas","z:animais"], gC=["cozinha","alquimia"];
+  const gateF=()=>gF.map(k=>(PF.sp||{})[k]&&(PF.sp[k]||{}).t2).find(v=>v!==undefined), gateC=()=>gC.map(k=>(PF[k]||{}).t2).find(v=>v!==undefined);
+  const faz=(k,nome,id)=>()=>{ const g=SPECS.g.find(x=>x.k===k), tier=()=>iconTier(spMastery(k),spGet(k).t2);
+    return cartao({id,nome,ic:()=>ico(repKey(g),tier,false),itens:g.it.map(([c,l])=>[c,l,t=>ico(c,t)]),getM:()=>spMastery(k),setM:v=>spSetMastery(k,v),mmax:g.mmax||100,max:g.max||100,
+      getV:c=>(spGet(k).s||{})[c],setV:(c,v)=>{ const st=spEnsure(k); st.s=st.s||{}; if(v) st.s[c]=v; else delete st.s[c]; },tier}); };
+  const coz=(k,nome,kind,id,ic)=>()=>{ const cur=()=>(PF[k]=PF[k]||{m:0,s:{}}), tier=()=>iconTier(cur().m||0,cur().t2);
+    return cartao({id,nome,ic:()=>ic(tier),itens:COOK_NODES[kind].map(([tp,l,code])=>[tp,l,t=>ico(code,t)]),getM:()=>cur().m||0,setM:v=>{ cur().m=v; },mmax:100,max:100,
+      getV:tp=>{ const c=cur(); return (c.s||{})[tp]??c.all??0; },setV:(tp,v)=>{ const c=cur(); c.s=c.s||{}; c.s[tp]=v; },tier}); };
+  return [
+    {nome:"Cozinha e alquimia (Sous Chef)",nota:"Fazendeiro aprendiz (1/1) libera o T1. O Sous Chef libera o T2 e abre as duas maestrias.",
+      gate:porta("Sous Chef liberado (libera o T2)",gateC,v=>gC.forEach(k=>{ (PF[k]=PF[k]||{m:0,s:{}}).t2=v; })),
+      cartoes:[coz("cozinha","Mestre-cuca","f","c-mc",()=>itemImg("MEAL_SOUP",[1])),coz("alquimia","Alquimista","p","c-alq",t=>ico("POTION_HEAL",t,false))]},
+    {nome:"Fazenda (Ceifeiro)",nota:"O Ceifeiro libera o T2 e abre as três maestrias da fazenda.",
+      gate:porta("Ceifeiro liberado (libera o T2)",gateF,v=>gF.forEach(k=>{ spEnsure(k).t2=v; })),
+      cartoes:[faz("z:ervas","Herborista","c-her"),faz("z:plantas","Fazendeiro","c-faz"),faz("z:animais","Criador de animais","c-cri")]}]; }); }
+function renderCaca(){ arvoreSecao($("pfCaca"),"cacaSum",({cartao})=>{ const rast=()=>spEnsure("z:rastreio");
+  return [{nome:"Rastreador aprendiz (1/1)",cartoes:[()=>cartao({id:"c-rast",nome:"Rastreador experiente",ic:pegadas,semIcCorpo:true,itens:CACA.map(([c,l])=>[c,l,null]),getM:()=>spGet("z:rastreio").m||0,setM:v=>{ rast().m=v; },mmax:100,max:100,
+    getV:c=>(spGet("z:rastreio").s||{})[c],setV:(c,v)=>{ const st=rast(); st.s=st.s||{}; if(v) st.s[c]=v; else delete st.s[c]; }})]}]; }); }
