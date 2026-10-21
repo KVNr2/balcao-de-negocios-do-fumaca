@@ -136,26 +136,20 @@ function albionLoadout(b,set,tier,qf){
   albionLoadout.miss=miss; return JSON.stringify({version:1,name:String(b.t||b.nome||"Build").slice(0,40)+(tier?" T"+tier:""),icon:13,color:12,equipment});
 }
 /* barra de ações do card: tier das peças (muda o IP, o carregamento e o custo), set, copiar e ver custo */
-function albionBar(b,badge,costValue){
-  const bar=el("div",{class:"kx-alb"}); let set=0, tier=0, qa=1; const qp={};   // qa: qualidade de todas as peças; qp: qualidade de uma peça específica (vale mais que qa)
-  const qf=k=>qp[k]||qa;
-  const refresh=()=>{ if(badge) badge._upd(set,tier,qf); };
+const QOPT=[1,2,3,4,5];
+const bQ=b=>b._qs||(b._qs={a:1,p:{}});          // qualidade escolhida na build: a = todas as peças, p = peça específica (vale mais)
+const bQf=b=>k=>bQ(b).p[k]||bQ(b).a;
+const qSelect=(val,todas,label)=>{ const x=el("select",{class:"kx-q","aria-label":label||"Qualidade"}); if(todas) x.append(el("option",{value:"0",text:"= todas"})); QOPT.forEach(q=>x.append(el("option",{value:String(q),text:QNAME[q]}))); x.value=String(val); return x; };
+function albionBar(b,badge,costValue,opts){
+  const bar=el("div",{class:"kx-alb"}); let set=0, tier=0; const qf=bQf(b);
+  const refresh=()=>{ if(badge) badge._upd(set,tier,qf); }; b._refresh=refresh;
   const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
-  if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; buildPecas(); refresh(); }); bar.append(sel); }
+  if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; refresh(); }); bar.append(sel); }
   const lab=el("label",{class:"alb-tier",title:"O tier escolhido vale para o IP, para o texto copiado ao Albion e para o custo. T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4; T5 = 5.0 ou 4.1; T4 = 4.0. Cada peça fica no tier dela quando dá."});
   const tsel=el("select",{"aria-label":"Tier das peças"});
   tsel.append(el("option",{value:"0",text:"Tier: original"})); [8,7,6,5,4].forEach(t=>tsel.append(el("option",{value:String(t),text:`Tier: T${t} equivalente`}))); tsel.value=String(tier);
   tsel.addEventListener("change",()=>{ tier=+tsel.value; refresh(); }); lab.append(tsel); bar.append(lab);
-  /* qualidade: um seletor para todas as peças e um botão que abre um seletor por peça */
-  const QOPT=[1,2,3,4,5], qsel=(val,all)=>{ const x=el("select",{"aria-label":"Qualidade"}); if(!all) x.append(el("option",{value:"0",text:"= todas"})); QOPT.forEach(q=>x.append(el("option",{value:String(q),text:QNAME[q]}))); x.value=String(val); return x; };
-  const ql=el("label",{class:"alb-tier",title:"Qualidade das peças: muda o IP e o texto copiado ao Albion. Bom +20, Excepcional +40, Excelente +60, Obra-prima +100 de IP por peça."}); const qs=qsel(1,true); ql.append(qs); bar.append(ql);
-  const pb=el("button",{type:"button",class:"bc-more alb-pp","aria-expanded":"false",text:"Por peça",title:"Escolher a qualidade de cada peça separadamente"}); bar.append(pb);
-  const pecas=el("div",{class:"alb-pecas",hidden:true}); const SLN={w:"Arma",o:"Mão sec.",h:"Elmo",a:"Peito",s:"Botas",c:"Capa"};
-  function buildPecas(){ pecas.textContent=""; albionLoadout(b,set,0); for(const k of albionLoadout.slots){ const l=el("label",{}); l.append(el("span",{text:SLN[k]}));
-      const x=qsel(qp[k]||0,false); x.addEventListener("change",()=>{ if(+x.value) qp[k]=+x.value; else delete qp[k]; refresh(); }); l.append(x); pecas.append(l); } }
-  qs.addEventListener("change",()=>{ qa=+qs.value; for(const k in qp) delete qp[k]; buildPecas(); refresh(); });
-  pb.addEventListener("click",()=>{ pecas.hidden=!pecas.hidden; pb.setAttribute("aria-expanded",String(!pecas.hidden)); if(!pecas.hidden) buildPecas(); });
-  bar.append(pecas);
+  if(opts&&opts.qBar){ const ql=el("label",{class:"alb-tier",title:"Qualidade das peças: muda o IP e o texto copiado ao Albion. Bom +20, Excepcional +40, Excelente +60, Obra-prima +100 de IP por peça."}); const qs=qSelect(bQ(b).a,false,"Qualidade das peças"); qs.addEventListener("change",()=>{ bQ(b).a=+qs.value; refresh(); }); ql.append(qs); bar.append(ql); }
   const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento com o tier escolhido. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
   const msg=el("span",{class:"muted small",role:"status"});
   btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set,tier,qf); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
@@ -168,10 +162,16 @@ function kbPanel(b){
   const sk=b.sk||{}; const box=el("div",{class:"kx"});
   /* esquerda: habilidades e passivas, recomendado x alternativa */
   const L=el("section",{class:"kx-l"}); L.append(el("h4",{text:"Peças, habilidades e passivas"}));
+  const qsl=[];   // seletores por peça, para atualizar quando muda o geral
+  const qtop=el("div",{class:"kx-qtop"}); { const qa=qSelect(bQ(b).a,false,"Qualidade de todas as peças"); qa.addEventListener("change",()=>{ bQ(b).a=+qa.value; bQ(b).p={}; qsl.forEach(([k,x])=>{ x.value="0"; }); if(b._refresh) b._refresh(); });
+    qtop.append(el("span",{text:"Qualidade de todas as peças"}),qa,el("small",{class:"muted",text:"Ou escolha a qualidade de cada peça na lista abaixo. Bom +20, Excepcional +40, Excelente +60, Obra-prima +100 de IP por peça."})); }
+  L.append(qtop);
   const hd=el("div",{class:"kx-cols kx-hd"}); hd.append(el("span",{class:"kx-rec",text:"★ Recomendado"}),el("span",{text:"Alternativa"})); L.append(hd);
   const rows=[["w",[b.w,b.w2].filter(Boolean),sk.w?[sk.w,sk.w2||[]]:[]],["o",b.o,[]],["h",b.h,sk.h||[]],["a",b.a,sk.a||[]],["s",b.s,sk.s||[]],["c",b.c,[]],["p",b.p,[]],["f",b.f,[]]];
   rows.forEach(([k,ids,skl])=>{ if(!ids||!ids.length||!ids[0]) return; const r=el("div",{class:"kx-cols"});
-    r.append(kxItem(ids[0],skl[0])); r.append(ids[1]?kxItem(ids[1],skl[1]):el("div")); L.append(r); });
+    const first=kxItem(ids[0],skl[0]);
+    if("wohasc".includes(k)){ const x=qSelect(bQ(b).p[k]||0,true,"Qualidade: "+itemNome((idInfo(ids[0])||{}).c||"")); x.addEventListener("change",()=>{ if(+x.value) bQ(b).p[k]=+x.value; else delete bQ(b).p[k]; if(b._refresh) b._refresh(); }); qsl.push([k,x]); const tx=first.querySelector(".kx-tx"); (tx||first).append(x); }
+    r.append(first); r.append(ids[1]?kxItem(ids[1],skl[1]):el("div")); L.append(r); });
   box.append(L);
   /* direita: visão geral no formato do killboard (3 colunas) */
   const R=el("section",{class:"kx-r"}); R.append(el("h4",{text:"Visão geral"}));
