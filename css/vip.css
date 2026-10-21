@@ -1077,3 +1077,7 @@ img.nb-xi{width:52px;height:52px}
 .zgear .ip-badge.ip-in .ip-n{font-size:26px}
 .zgear .ip-badge.ip-in .ip-s{max-width:150px;font-size:10px;white-space:normal}
 .zc-top .ip-badge{display:none}
+.ip-badge .ip-s{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;margin-top:6px;max-width:none}
+.ip-badge .ip-c{font:600 10.5px Inter,sans-serif;padding:2px 8px;border-radius:999px;color:var(--gain,#34d399);background:color-mix(in srgb,var(--gain,#34d399) 16%,transparent);white-space:nowrap}
+.ip-badge .ip-c.off{color:var(--parch-2,#cdbf9f);background:rgba(255,255,255,.07)}
+.zgear .ip-badge.ip-in .ip-s{max-width:none}

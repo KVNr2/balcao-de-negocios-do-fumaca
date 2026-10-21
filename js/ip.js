@@ -24,10 +24,10 @@ function ipBuild(b,set,tier){
 }
 /* selo verde grande com o IP; upd(set,tier) recalcula quando a pessoa troca o set ou o tier */
 function albionBadge(b){
-  const w=el("div",{class:"ip-badge",role:"status"}); const num=el("b",{class:"ip-n"}), lab=el("span",{class:"ip-l",text:"IP médio aprox."}), sub=el("small",{class:"ip-s"}); w.append(lab,num,sub);
+  const w=el("div",{class:"ip-badge",role:"status"}); const num=el("b",{class:"ip-n"}), lab=el("span",{class:"ip-l",text:"IP médio aprox."}), sub=el("div",{class:"ip-s"}); w.append(lab,num,sub);
   w._upd=(set,tier)=>{ let r; try{ r=ipBuild(b,set||0,tier||0); }catch(e){ w.hidden=true; return; } w.hidden=false;
     num.textContent="≈ "+Math.round(r.avg).toLocaleString("pt-BR");
-    sub.textContent=(tier?`com tudo em T${tier} equivalente`:"com as peças como na build")+(r.sem?" · sem ficha":" · pela sua ficha");
+    sub.textContent=""; sub.append(el("span",{class:"ip-c",text:tier?`T${tier} equivalente`:"Tier original"}),el("span",{class:"ip-c"+(r.sem?" off":""),text:r.sem?"Sem ficha":"Sua ficha"}));
     w.title="Valor aproximado: depende do tier e da qualidade das peças. Aqui o cálculo usa o tier escolhido em \"Tier das peças\" e qualidade normal (cada qualidade acima soma de +20 a +100 por peça). "+r.parts.map(p=>`${p.slot.toUpperCase()} ${Math.round(p.ip)}`).join(" · ")+(r.sem?". Carregue sua ficha para somar os bônus de maestria e spec.":""); };
   w._upd(0,0); return w;
 }
