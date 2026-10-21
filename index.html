@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="2460f759">
+<html lang="pt-BR" data-v="87adcfeb">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=2460f759">
-<link rel="stylesheet" href="css/vip.css?v=2460f759">
-<link rel="stylesheet" href="css/souk.css?v=2460f759">
+<link rel="stylesheet" href="css/balcao.css?v=87adcfeb">
+<link rel="stylesheet" href="css/vip.css?v=87adcfeb">
+<link rel="stylesheet" href="css/souk.css?v=87adcfeb">
 </head>
 <body>
 <div class="wrap app">
@@ -498,7 +498,6 @@
     <p class="aside">Cada trabalhador da sua ilha ou casa recebe um diário cheio e devolve recursos no dia seguinte. Quanto ele devolve depende da felicidade, que vem da mobília e dos troféus da casa. Os diários enchem sozinhos enquanto você coleta, fabrica, pesca ou mata monstros com eles na bolsa, então dá para vender o diário cheio mesmo sem ter trabalhador.</p>
     <div class="row-ctl">
       <div class="f"><span>Tier do trabalhador</span><div class="seg" role="group" aria-label="Tier do trabalhador" id="wkTier"></div></div>
-      <div class="f"><span>Tier do diário (no máximo o do trabalhador)</span><div class="seg" role="group" aria-label="Tier do diário" id="wkJTier"></div></div>
       <label class="f">Felicidade do trabalhador<span class="hapin"><input type="number" id="wkHap" min="0" max="900" step="10" inputmode="numeric"><span id="wkHapMax">de 900</span></span></label>
       <label class="f">Ou o rendimento que o jogo mostra<span class="hapin"><input type="number" id="wkPct" min="1" max="200" placeholder="—" inputmode="numeric"><span>%</span></span></label>
       <label class="f">Quantos trabalhadores você tem<span class="hapin"><input type="number" id="wkN" min="1" max="99" step="1" value="1" inputmode="numeric"></span></label>
@@ -506,7 +505,6 @@
       <p class="small" id="wkYieldTxt"></p>
     </div>
     <div class="tbl"><table id="wkTable"></table></div>
-    <div class="block" style="margin-top:14px"><h2>Qual diário rende mais por dia</h2><p class="tiny muted">Compra o diário cheio e entrega a um trabalhador do tier escolhido acima, com a felicidade informada. Mostra os 10 melhores entre todos os tiers até o do trabalhador. Renda diária previsível: é só comprar o diário certo na cidade indicada e entregar.</p><div class="tbl" id="wkRank"></div></div>
     <p class="tiny muted" id="wkStatus">Devolução calculada pela tabela de saque do jogo: quantidade base do diário vezes o valor médio de cada sorteio, com o preço típico das cidades. Encantados saem de vez em quando e já entram na média.</p>
     <div class="cols">
       <div class="block">
@@ -518,7 +516,7 @@
         <ul class="list small">
           <li>Comprar cheio e entregar: compra o diário cheio no mercado e entrega para o seu trabalhador. Vale quando o que ele devolve, já com a taxa de venda, passa do preço do diário.</li>
           <li>Encher e vender: compra o vazio, enche fazendo o que você já faria e vende o cheio. É prata extra pelo mesmo tempo de jogo.</li>
-          <li>Trabalhador e diário têm tier separado. Regra do jogo: o trabalhador não aceita diário de tier maior que o dele, então T8 pode usar diário T4 a T8, mas T4 só usa diário T4 (<a href="https://wiki.albiononline.com/wiki/Laborer" target="_blank" rel="noopener">wiki oficial</a>). A felicidade e o rendimento são os do trabalhador.</li>
+          <li>A lista mostra todos os diários que o trabalhador do tier escolhido aceita, do que mais rende para o que menos rende. Regra do jogo: o trabalhador não aceita diário de tier maior que o dele, então T8 pode usar diário T4 a T8, mas T4 só usa diário T4 (<a href="https://wiki.albiononline.com/wiki/Laborer" target="_blank" rel="noopener">wiki oficial</a>). A felicidade e o rendimento são os do trabalhador.</li>
           <li>O diário pede a fama do tier dele ou acima. Diário T8 só enche com recurso, peixe ou craft T8.</li>
           <li>A ilha pessoal aceita trabalhadores conforme o nível; cada um precisa de uma cama e de um tier de casa compatível.</li>
         </ul>
@@ -651,19 +649,19 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=2460f759"></script>
-<script src="js/base.js?v=2460f759"></script>
-<script src="js/fx.js?v=2460f759"></script>
-<script src="js/biz.js?v=2460f759"></script>
-<script src="js/builds.js?v=2460f759"></script>
-<script src="js/nossas.js?v=2460f759"></script>
-<script src="js/ip.js?v=2460f759"></script>
-<script src="js/zvz.js?v=2460f759"></script>
-<script src="js/novos.js?v=2460f759"></script>
-<script src="js/guia.js?v=2460f759"></script>
-<script src="js/ui.js?v=2460f759"></script>
-<script src="js/oficina.js?v=2460f759"></script>
-<script src="js/versao.js?v=2460f759"></script>
-<script src="js/main.js?v=2460f759"></script>
+<script src="js/icons.js?v=87adcfeb"></script>
+<script src="js/base.js?v=87adcfeb"></script>
+<script src="js/fx.js?v=87adcfeb"></script>
+<script src="js/biz.js?v=87adcfeb"></script>
+<script src="js/builds.js?v=87adcfeb"></script>
+<script src="js/nossas.js?v=87adcfeb"></script>
+<script src="js/ip.js?v=87adcfeb"></script>
+<script src="js/zvz.js?v=87adcfeb"></script>
+<script src="js/novos.js?v=87adcfeb"></script>
+<script src="js/guia.js?v=87adcfeb"></script>
+<script src="js/ui.js?v=87adcfeb"></script>
+<script src="js/oficina.js?v=87adcfeb"></script>
+<script src="js/versao.js?v=87adcfeb"></script>
+<script src="js/main.js?v=87adcfeb"></script>
 </body>
 </html>

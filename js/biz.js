@@ -226,7 +226,7 @@ function bmPanel(m){
 let JOURNALS = null;                // data/journals.json: tipo: {tier: [fama, quantidade base, prata do vazio, saque | prata]}
 const WK = [["ORE","Minerador","minerando","minerio"],["FISHING","Pescador","pescando","pesca"],["FIBER","Colhedor de fibra","colhendo fibra","fibra"],["HIDE","Esfolador","esfolando","pelego"],["WOOD","Lenhador","cortando madeira","madeira"],["STONE","Pedreiro","quebrando pedra","pedra"],
   ["WARRIOR","Ferreiro","fabricando placa e armas de guerreiro",null],["HUNTER","Flecheiro","fabricando couro e armas de caçador",null],["MAGE","Imbuidor","fabricando pano e cajados",null],["TOOLMAKER","Funileiro","fabricando ferramentas",null],["MERCENARY","Mercenário","matando monstros",null]];
-let WK_LOADED=false, WK_LOADING=null, wkTierSel=0;
+let WK_SHOW=20, WK_LOADED=false, WK_LOADING=null, wkTierSel=0;
 /* felicidade: a barra do trabalhador tem 100 pontos por segmento e (tier + 1) segmentos (T8: 900).
    Cheia rende 150%; o rendimento cresce em linha com a felicidade. O % que o jogo mostra, se digitado, manda. */
 const hapMax = t => (t+1)*100;
@@ -242,7 +242,6 @@ function ensureWK(){
   WK_LOADING=fetchIds([...ids],DATA.itens,[...CITIES,"Caerleon"]).then(()=>{WK_LOADED=true; return true;}).catch(()=>false).finally(()=>{WK_LOADING=null;});
   return WK_LOADING;
 }
-const wkJ = () => Math.min(wkTierSel,+(store.get("wkJ")||0)||wkTierSel);   // tier do diário: no máximo o do trabalhador (regra do jogo)
 const wkN = () => Math.max(1,Math.min(99,Math.round(+(store.get("wkN")||1)||1)));
 const wkBuyMode = () => store.get("wkBuy")==="ordem"?"ordem":"direto";
 /* onde comprar o diário cheio: direto = menor preço de venda entre as cidades; por ordem = maior ordem de compra aberta + 2,5% de taxa da ordem */
@@ -266,8 +265,6 @@ function setupWK(){
   const top=Math.max(...Object.values(PF.coleta||{}).map(g=>g.tier||0),6); wkTierSel=Math.min(8,Math.max(4,top));
   [4,5,6,7,8].forEach(t=>ts.append(el("button",{type:"button","data-t":String(t),"aria-pressed":String(t===wkTierSel),text:`T${t}`})));
   ts.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ts.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); wkTierSel=+b.dataset.t; renderWK(); });
-  { const js=$("wkJTier"); [0,4,5,6,7,8].forEach(t=>js.append(el("button",{type:"button","data-t":String(t),text:t?`T${t}`:"Igual ao do trabalhador"})));
-    js.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b||b.disabled) return; store.set("wkJ",b.dataset.t); renderWK(); }); }
   { const ni=$("wkN"); ni.value=String(wkN()); ni.addEventListener("change",()=>{ const v=Math.max(1,Math.min(99,Math.round(+ni.value||1))); ni.value=String(v); store.set("wkN",String(v)); renderWK(); });
     const bs=$("wkBuy"); bs.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.m===wkBuyMode())); b.addEventListener("click",()=>{ store.set("wkBuy",b.dataset.m); bs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderWK(); }); }); }
   const hi=$("wkHap"), pi=$("wkPct"); hi.value=wkHap()??""; pi.value=wkPct()??""; hi.placeholder=String(hapMax(wkTierSel));
@@ -280,10 +277,12 @@ async function renderWK(){
   if(!WK_LOADED){ tb.textContent=""; $("wkStatus").dataset.base=$("wkStatus").dataset.base||$("wkStatus").textContent; $("wkStatus").textContent="Consultando os preços dos diários…"; const ok=await ensureWK(); $("wkStatus").textContent=$("wkStatus").dataset.base; if(!ok){ $("wkStatus").textContent="Não consegui consultar os diários agora."; return; } }
   const mx=hapMax(wkTierSel); $("wkHapMax").textContent=`de ${mx}`; $("wkHap").max=String(mx); $("wkHap").placeholder=String(mx);
   $("wkYieldTxt").textContent = wkPct() ? `Usando o rendimento de ${wkPct()}% que você digitou.` : wkHap()==null ? `Sem felicidade digitada: a conta usa a barra cheia (${mx} em T${wkTierSel}), que rende 150%.` : `Felicidade ${Math.min(wkHap(),mx)} de ${mx} em T${wkTierSel}: rende ${Math.round(wkYield(wkTierSel)*100)}% (cheia rende 150%).`;
-  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Trabalhador","Diário vazio","Diário cheio","Comprar o cheio em",`Devolve (${Math.round(wkYield(wkTierSel)*100)}%)`,"Comprar cheio e entregar",`Por dia com ${wkN()} ${wkN()===1?"trabalhador":"trabalhadores"}`,"Encher e vender","Enche com",""].forEach(h=>hr.append(el("th",{text:h})));
-  const body=tb.createTBody(), t=wkJ(), wt=wkTierSel;
-  { const js=$("wkJTier"), sel=+(store.get("wkJ")||0)||0; js.querySelectorAll("button").forEach(b=>{ const bt=+b.dataset.t; b.disabled=bt>wt; b.setAttribute("aria-pressed",String(bt===0?(!sel||sel>wt):(bt===sel&&sel<=wt)&&sel!==0)); b.title=bt>wt?`Um trabalhador T${wt} não aceita diário T${bt}: o diário não pode ser de tier maior que o trabalhador`:""; }); }
-  for(const [ty,nm,how] of WK){ const m=wkModel(ty,t,wt); if(!m) continue; const tr=body.insertRow();
+  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Trabalhador","Diário vazio","Diário cheio","Comprar o cheio em",`Devolve (${Math.round(wkYield(wkTierSel)*100)}%)`,"Comprar cheio e entregar",`Lucro por dia com ${wkN()} ${wkN()===1?"trabalhador":"trabalhadores"}`,"Encher e vender","Enche com",""].forEach(h=>hr.append(el("th",{text:h})));
+  const body=tb.createTBody(), wt=wkTierSel; const all=[];
+  /* todas as combinações de diário até o tier do trabalhador (regra do jogo), da que mais rende para a que menos rende */
+  for(const [ty,nm,how] of WK) for(let t=4;t<=wt;t++){ const m=wkModel(ty,t,wt); if(m) all.push({m,nm,how}); }
+  all.sort((a,b)=>(b.m.buyFull==null?-Infinity:b.m.buyFull)-(a.m.buyFull==null?-Infinity:a.m.buyFull));
+  for(const {m,nm,how} of all.slice(0,WK_SHOW)){ const t=m.t, ty=m.ty; const tr=body.insertRow();
     tr.insertCell().append(withIcon(`T${t}_JOURNAL_${ty}_FULL`,`${nm}: diário T${t}`));
     [[m.empty&&m.empty.p,`T${t}_JOURNAL_${ty}_EMPTY`],[m.full&&m.full.p,`T${t}_JOURNAL_${ty}_FULL`]].forEach(([v,ic])=>{ const c=tr.insertCell(); c.className="num"; const tx=v?fmt(v):"—"; c.append(withIcon(ic,tx)); });
     { const c=tr.insertCell(); c.className="small"; if(m.buyCity){ c.append(el("b",{text:fmt(Math.round(m.buyCity.p))})," ",el("span",{class:"muted",text:m.buyCity.c})); c.title=wkBuyMode()==="ordem"?"Maior ordem de compra aberta nessa cidade, mais 2,5% de taxa para montar a ordem":"Menor preço de venda entre as cidades"; } else c.textContent="—"; }
@@ -293,25 +292,10 @@ async function renderWK(){
     { const c=tr.insertCell(); c.className="num "+(m.fill==null?"":m.fill>=0?"gain":"loss"); c.textContent=m.fill==null?"—":sgn(m.fill); }
     const c=tr.insertCell(); c.className="small muted"; c.textContent=`${fmt(m.fame)} de fama ${how}${m.thin?"; parte do saque sem preço":""}`;
     { const rc=tr.insertCell(); const rb=el("button",{type:"button",class:"btn mn-craft",title:"Abrir o Refino para ver o que fazer com o que o trabalhador devolve",text:"Refino ➜"}); rb.addEventListener("click",()=>{ const b=document.getElementById("t-refino"); if(b) b.click(); }); rc.append(rb); } }
-  renderWKRank();
+
+  { let mb=$("wkMore"); if(!mb){ mb=el("button",{type:"button",id:"wkMore",class:"btn mn-craft"}); tb.parentNode.after(mb); mb.addEventListener("click",()=>{ WK_SHOW+=30; renderWK(); }); } mb.hidden=all.length<=WK_SHOW; mb.textContent=`Mostrar mais (${WK_SHOW} de ${all.length})`; }
   renderWKMine();
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.03,clearProps:"opacity,transform"});
-}
-/* ranking: qual tier de diário rende mais por dia, com o trabalhador do tier escolhido e a quantidade informada */
-function renderWKRank(){
-  const box=$("wkRank"); if(!box) return; box.textContent=""; const wt=wkTierSel, rows=[];
-  for(const [ty,nm] of WK) for(let t=4;t<=wt;t++){ const m=wkModel(ty,t,wt); if(m&&m.buyFull!=null) rows.push({m,nm,v:m.buyFull*wkN()}); }
-  rows.sort((a,b)=>b.v-a.v);
-  if(!rows.length){ box.append(el("p",{class:"small muted",text:"Sem preços suficientes para montar o ranking agora."})); return; }
-  const tb=el("table",{}); const hr=tb.createTHead().insertRow(); ["#","Diário","Comprar o cheio em","Preço do cheio","Devolve","Por diário",`Por dia (${wkN()})`].forEach(h=>hr.append(el("th",{text:h}))); const body=tb.createTBody();
-  rows.slice(0,10).forEach((r,i)=>{ const m=r.m, tr=body.insertRow(); tr.insertCell().textContent=String(i+1);
-    tr.insertCell().append(withIcon(`T${m.t}_JOURNAL_${m.ty}_FULL`,`${r.nm} T${m.t}`));
-    { const c=tr.insertCell(); c.className="small"; c.textContent=m.buyCity?m.buyCity.c:"—"; }
-    { const c=tr.insertCell(); c.className="num"; c.textContent=m.buyCity?fmt(Math.round(m.buyCity.p)):"—"; }
-    { const c=tr.insertCell(); c.className="num"; c.textContent=fmt(m.yieldV); }
-    { const c=tr.insertCell(); c.className="num "+(m.buyFull>=0?"gain":"loss"); c.textContent=sgn(m.buyFull); }
-    { const c=tr.insertCell(); c.className="num bm-profit "+(r.v>=0?"gain":"loss"); c.textContent=sgn(r.v); } });
-  box.append(tb);
 }
 function renderWKMine(){
   const box=$("wkMine"); box.textContent=""; const items=[];
