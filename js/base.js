@@ -189,6 +189,8 @@ const ageSpan = t => t ? el("span",{class:"age"+((Date.now()-t)>12*3600e3?" old"
 /* Ícones do jogo: vêm do Albion Market (pelo código do item). Tenta outros tiers se faltar. */
 /* Tier liberado pela maestria da linha (armas e armaduras de combate): T4 no nível 1, T5 no 10, T6 no 30, T7 no 60, T8 no 100. */
 const tierFromMastery = m => m>=100?8 : m>=60?7 : m>=30?6 : m>=10?5 : m>=1?4 : 3;
+/* tier do ícone de cozinha, alquimia e fazenda: quem libera os tiers é a maestria (Alquimista, Mestre-cuca, Herborista, Fazendeiro, Criador de Animais), no mínimo T4 */
+const iconTier = m => Math.max(4, tierFromMastery(m||0));
 const tierOrder = t => { const o=[t]; for(let i=t-1;i>=1;i--) o.push(i); for(let i=t+1;i<=8;i++) o.push(i); return o; };
 /* o servidor de ícones devolve uma imagem em branco (sem erro) para um tier que o item não tem, então a ordem importa:
    primeiro os tiers que temos salvos no site, e para os poucos itens sem cópia local, o tier em que ele existe */
@@ -566,14 +568,14 @@ function renderSpecs(){
       const curSub=subs[subs.length-1]; curSub._gs.push(g);
       const d=el("details",{class:"spg"}), sm=el("summary"), nmS=el("span",{class:"spn",text:g.nome}), sumS=el("span",{class:"sps",text:spSummary(g)});
       sm.append(nmS,sumS); d.append(sm); const body=el("div",{class:"spgrid"}); d.append(body);
-      const icons=[], combate=g.sec==="combate", tierIc=combate||g.sec==="fazenda";   // tierIc: o tier do ícone segue a maestria (como nas armaduras)
-      const mk=key=>{ const im=itemImg(specCode(g,key), tierIc?tierOrder(tierFromMastery(spMastery(g.k))):null); icons.push(im); return im; };
+      const icons=[], combate=g.sec==="combate", tierIc=combate||g.sec==="fazenda", icT=combate?tierFromMastery:iconTier;   // tierIc: o tier do ícone segue a maestria (como nas armaduras)
+      const mk=key=>{ const im=itemImg(specCode(g,key), tierIc?tierOrder(icT(spMastery(g.k))):null); icons.push(im); return im; };
       const upd=()=>{ const base=spSummary(g); sumS.classList.toggle("on",base!=="sem spec"); sumS.title=base;
         { const sv=spGet(g.k).s||{}, vals=g.it.map(([k])=>+sv[k]||0).filter(v=>v>0), m=spMastery(g.k); sumS.textContent="";
           const chip=(t,c)=>sumS.append(el("span",{class:"spchip "+(c||""),text:t}));
           if(base==="sem spec"){ chip("sem spec","off"); } else { if(m) chip("Maestria "+m,"m"); if(vals.length) chip(`${vals.length}/${g.it.length} itens`,"n"); if(vals.length) chip("Maior "+Math.max(...vals),"mx"); if(combate&&m) chip("Usa até T"+tierFromMastery(m),"t"); if(g.k.startsWith("a:")&&(m||vals.length)){ const [slot,mat]=g.k.slice(2).split("_"); chip("Foco T6.0: "+fmt(craftFocus(slot,mat,6,0,1)),"f"); } }
           d.style.setProperty("--p",(g.it.length?Math.round(vals.length/g.it.length*100):0)+"%"); d.classList.toggle("has",base!=="sem spec"); } refreshSubs();
-        if(tierIc){ const t=tierFromMastery(spMastery(g.k)); icons.forEach(im=>im._tier(t)); } if(combate) lockRows(); };
+        if(tierIc){ const t=icT(spMastery(g.k)); icons.forEach(im=>im._tier(t)); } if(combate) lockRows(); };
       /* sem maestria (abaixo do T4) não dá para usar item nenhuma da linha: some o nome e o ícone, a não ser que o item já tenha nível */
       const rows=[], hint=el("p",{class:"tiny muted splock",text:"Digite a maestria da linha para liberar as armas e peças. Sem maestria não dá para usar nenhuma delas.",hidden:true});
       /* nó de prévia: o que a maestria 1 libera (itens T4), só enquanto a maestria está zerada */
@@ -595,14 +597,15 @@ const MEAL_PT = {SOUP:"Sopa",SALAD:"Salada",SEAWEEDSALAD:"Salada de algas",PIE:"
 function cookTypes(kind){ const m={}; for(const id in COOK.r){ const r=COOK.r[id]; if(r[1]!==kind||!r[3]) continue; const tp=cookType(id); if(!m[tp]) m[tp]= MEAL_PT[tp] || r[0].replace(/^Poção\s+((de|da|do)\s+)?/i,"").replace(/\s+(Menor|Maior)$/,""); } return m; }
 /* ícones da cozinha e da alquimia: começa pelo T4 e, se o prato não existe nele (omelete, por exemplo, é T3, T5 e T7), pega o mais próximo que existe;
    peixe grelhado e salada de algas só existem no T1. O tipo "MOB" é a poção calmante (código POTION_MOB_RESET). */
-const COOK_TIERS=[4,5,6,3,7,8,2,1], COOK_ICON={MOB:"MOB_RESET"};
+const COOK_ICON={MOB:"MOB_RESET"};
 function renderCookProfile(){ const c=$("pfCook"); c.textContent=""; const cg=el("div",{class:"spgroups"}); c.append(cg);
   for(const [k,n,kind] of [["cozinha","Cozinha","f"],["alquimia","Alquimia","p"]]){ const cur=PF[k]||(PF[k]={m:0,s:{}}); cur.s=cur.s||{}; const types=cookTypes(kind);
-    const ic=()=>itemImg(kind==="f"?"MEAL_STEW":"POTION_HEAL",COOK_TIERS);
+    const icons=[], mk=code=>{ const im=itemImg(code,tierOrder(iconTier(cur.m))); icons.push(im); return im; }, retier=()=>{ const t=iconTier(cur.m); icons.forEach(im=>im._tier(t)); };
+    const ic=()=>mk(kind==="f"?"MEAL_STEW":"POTION_HEAL");
     cg.append(spNode(n,ic(),()=>{ const vals=Object.keys(types).map(tp=>cur.s[tp]??cur.all??0).filter(x=>x>0), parts=[]; if(cur.m) parts.push(`maestria ${cur.m}`); if(vals.length) parts.push(`${vals.length} de ${Object.keys(types).length} com nível, maior ${Math.max(...vals)}`); return parts.length?parts.join(", "):"sem spec"; },(body,upd)=>{
-      const save=()=>{ saveProfile(); upd(); };
+      const save=()=>{ saveProfile(); upd(); retier(); };
       body.append(tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${n}`,x=>{ cur.m=x; save(); }),ic()));
-      for(const [tp,label] of Object.entries(types)) body.append(tagIn(label,numIn(cur.s[tp]??cur.all??0,100,`${n}: ${label}`,x=>{ cur.s[tp]=x; save(); }),itemImg((kind==="f"?"MEAL_":"POTION_")+(COOK_ICON[tp]||tp),COOK_TIERS))); })); } }
+      for(const [tp,label] of Object.entries(types)) body.append(tagIn(label,numIn(cur.s[tp]??cur.all??0,100,`${n}: ${label}`,x=>{ cur.s[tp]=x; save(); }),mk((kind==="f"?"MEAL_":"POTION_")+(COOK_ICON[tp]||tp)))); })); } }
 function renderWho(){ $("who").textContent = IS_EXAMPLE ? "Ficha de exemplo: Oleran" : (PF.nome ? `Ficha: ${PF.nome}` : "Ficha sem nome"); $("exampleBanner").hidden=!IS_EXAMPLE; }
 $("pfName").addEventListener("change",()=>{ PF.nome=$("pfName").value.trim().slice(0,40); saveProfile(); });
 $("pfCopy").addEventListener("click",()=>{ const code=btoa(unescape(encodeURIComponent(JSON.stringify(PF)))); const done=()=>$("pfStatus").textContent="Código da ficha copiado. Cole em outro navegador em Colar ficha.";
