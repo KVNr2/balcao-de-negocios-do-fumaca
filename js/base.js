@@ -191,21 +191,21 @@ const ageSpan = t => t ? el("span",{class:"age"+((Date.now()-t)>12*3600e3?" old"
 const tierFromMastery = m => m>=100?8 : m>=60?7 : m>=30?6 : m>=10?5 : m>=1?4 : 3;
 /* tier do ícone de cozinha, alquimia e fazenda: quem libera os tiers é a maestria (Alquimista, Mestre-cuca, Herborista, Fazendeiro, Criador de Animais), no mínimo T4 */
 /* t2: o nó que libera o T2 (Sous Chef para cozinha e alquimia, Ceifeiro para a fazenda), 0 ou 1; vem do programa e não existe se ainda não sincronizou.
-   Maestria 0: sem o nó só dá para fazer T1, com ele T2; sem a informação, T4 (mínimo). Com maestria, o tier da maestria. */
-const iconTier = (m,t2) => m>=1 ? Math.max(4,tierFromMastery(m)) : t2===0 ? 1 : t2===1 ? 2 : 4;
+   Maestria 0: sem o nó só dá para fazer T1, com ele T2; sem a informação do nó, só até o T2. Com maestria, o tier da maestria. */
+const iconTier = (m,t2) => m>=1 ? Math.max(4,tierFromMastery(m)) : t2===0 ? 1 : 2;
 const tierOrder = t => { const o=[t]; for(let i=t-1;i>=1;i--) o.push(i); for(let i=t+1;i<=8;i++) o.push(i); return o; };
 /* o servidor de ícones devolve uma imagem em branco (sem erro) para um tier que o item não tem, então a ordem importa:
    primeiro os tiers que temos salvos no site, e para os poucos itens sem cópia local, o tier em que ele existe */
 const ICON_TIER_HINT = {MOUNT_MULE:[2,3], FARM_CARROT_SEED:[1], FARM_BEAN_SEED:[2], FARM_AGARIC_SEED:[2]};
 /* sementes sem imagem própria: usa a do produto (cenoura, feijão, cogumelo), que temos salva, no tier em que ele existe */
-/* item que só existe a partir de certo tier: se a maestria ainda não chega lá, mostra o ícone desse tier em cinza (ainda não dá para fazer) */
-const ICON_MIN = {FARM_DIREWOLF_BABY:6};
+/* tier mínimo de um item = o menor tier que temos salvo (as sementes sem imagem própria usam o do produto). Serve para mostrar em cinza o que a maestria ainda não libera. */
+const minTierOf = code => { const a=ICON_ALT[code]; if(a) return a[1]; if(typeof ICONS_LOCAL==="undefined") return 0; for(let x=1;x<=8;x++) if(ICONS_LOCAL.has(`T${x}_${code}`)) return x; return 0; };
 const ICON_ALT = {FARM_CARROT_SEED:["CARROT",1], FARM_BEAN_SEED:["BEAN",2], FARM_AGARIC_SEED:["AGARIC",2]};
-function itemImg(code,tiers){ let t=null, i=0; if(ICON_ALT[code]){ const [alt,tr]=ICON_ALT[code]; if(typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${tr}_${alt}`)&&![1,2,3,4,5,6,7,8].some(x=>ICONS_LOCAL.has(`T${x}_${code}`))){ code=alt; tiers=[tr]; } }
+function itemImg(code,tiers,gate){ let t=null, i=0; if(ICON_ALT[code]){ const [alt,tr]=ICON_ALT[code]; if(typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${tr}_${alt}`)&&![1,2,3,4,5,6,7,8].some(x=>ICONS_LOCAL.has(`T${x}_${code}`))){ code=alt; tiers=[tr]; } }
   let lock=false;
-  const ordem=l=>{ const mn=ICON_MIN[code]; lock=!!(mn&&l[0]<mn); if(lock) return [mn,...l.filter(x=>x!==mn)]; const has=x=>typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${x}_${code}`), loc=has(l[0])?[]:l.filter(has); const first=loc.length?loc:(ICON_TIER_HINT[code]||[]); return first.length?[...first,...l.filter(x=>!first.includes(x))]:l; };
+  const ordem=l=>{ const mn=gate?minTierOf(code):0; lock=!!(mn&&l[0]<mn); if(lock) return [mn,...l.filter(x=>x!==mn)]; const has=x=>typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${x}_${code}`), loc=has(l[0])?[]:l.filter(has); const first=loc.length?loc:(ICON_TIER_HINT[code]||[]); return first.length?[...first,...l.filter(x=>!first.includes(x))]:l; };
   t=ordem(tiers||[4,5,6,3,7,8,2,1]);
-  const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer"; const marca=()=>{ im.classList.toggle("nico-lock",lock); if(lock) im.title=`Só existe a partir do T${ICON_MIN[code]}: ainda não dá para fazer com a maestria atual.`; else im.removeAttribute("title"); }; marca();
+  const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer"; const marca=()=>{ im.classList.toggle("nico-lock",lock); if(lock) im.title=`Só existe a partir do T${minTierOf(code)}: ainda não dá para fazer com a maestria atual.`; else im.removeAttribute("title"); }; marca();
   const set=()=>{ const id=`T${t[i]}_${code}`; iconSrc(im,id,fail); };
   const fail=()=>{ if(++i<t.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } };
   im._tier=n=>{ t=ordem(tierOrder(n)); marca(); i=0; im.classList.remove("nico-off"); set(); }; set(); return im; }
@@ -574,7 +574,7 @@ function renderSpecs(){
       const d=el("details",{class:"spg"}), sm=el("summary"), nmS=el("span",{class:"spn",text:g.nome}), sumS=el("span",{class:"sps",text:spSummary(g)});
       sm.append(nmS,sumS); d.append(sm); const body=el("div",{class:"spgrid"}); d.append(body);
       const icons=[], combate=g.sec==="combate", tierIc=combate||g.sec==="fazenda", icT=combate?tierFromMastery:iconTier;   // tierIc: o tier do ícone segue a maestria (como nas armaduras)
-      const mk=key=>{ const im=itemImg(specCode(g,key), tierIc?tierOrder(icT(spMastery(g.k),spGet(g.k).t2)):null); icons.push(im); return im; };
+      const mk=(key,gate)=>{ const im=itemImg(specCode(g,key), tierIc?tierOrder(icT(spMastery(g.k),spGet(g.k).t2)):null, g.sec==="fazenda"&&gate!==false); icons.push(im); return im; };
       const upd=()=>{ const base=spSummary(g); sumS.classList.toggle("on",base!=="sem spec"); sumS.title=base;
         { const sv=spGet(g.k).s||{}, vals=g.it.map(([k])=>+sv[k]||0).filter(v=>v>0), m=spMastery(g.k); sumS.textContent="";
           const chip=(t,c)=>sumS.append(el("span",{class:"spchip "+(c||""),text:t}));
@@ -587,10 +587,10 @@ function renderSpecs(){
       const unl=el("details",{class:"spunlock"}); { const us=el("summary",{text:`Itens liberados com a maestria 1 (T4): ${g.it.length}`}); const ug=el("div",{class:"spunl-grid"}); unl.append(us,ug); let ub=false;
         unl.addEventListener("toggle",()=>{ if(!unl.open||ub) return; ub=true; for(const [key,pt,en] of g.it){ const label=LANG==="en"?en:pt, cell=el("div",{class:"spunl-it",title:label}); const im=itemImg(specCode(g,key),[4,5,6,3,7,8]); cell.append(im,el("span",{text:label})); ug.append(cell); } }); }
       const lockRows=()=>{ if(!combate) return; const open=tierFromMastery(spMastery(g.k))>=4, sv=spGet(g.k).s||{}; let hid=0; unl.style.display=open?"none":""; for(const r of rows){ const hide=!open&&!(+sv[r.key]>0); r.el.style.display=hide?"none":""; if(hide) hid++; } hint.hidden=!hid; };
-      sm.prepend(mk(repKey(g)));
+      sm.prepend(mk(repKey(g),false));
       let built=false;
       d.addEventListener("toggle",()=>{ if(!d.open||built) return; built=true;
-        body.append(tagIn("Maestria",numIn(spMastery(g.k),g.mmax,`Maestria de ${g.nome}`,x=>{ spSetMastery(g.k,x); saveProfile(); upd(); },"—"),mk(repKey(g))));
+        body.append(tagIn("Maestria",numIn(spMastery(g.k),g.mmax,`Maestria de ${g.nome}`,x=>{ spSetMastery(g.k,x); saveProfile(); upd(); },"—"),mk(repKey(g),false)));
         for(const [key,pt,en] of g.it){ const label=LANG==="en"?en:pt;
           const row=tagIn(label,numIn(+(spGet(g.k).s||{})[key]||0,g.max,`${g.nome}: ${label}`,x=>{ const st=spEnsure(g.k); st.s=st.s||{}; if(x) st.s[key]=x; else delete st.s[key]; saveProfile(); upd(); },"—"),mk(key)); rows.push({el:row,key}); body.append(row); }
         if(combate){ body.append(hint); body.append(unl); lockRows(); }
@@ -608,8 +608,8 @@ const COOK_NODES = {
   p:[["ACID","Poção Ácida","POTION_ACID"],["ALCOHOL","Álcool","ALCOHOL"],["BERSERK","Poção de Fúria","POTION_BERSERK"],["CLEANSE","Poção de Invisibilidade","POTION_CLEANSE"],["CLEANSE2","Poção Purificadora","POTION_CLEANSE2"],["COOLDOWN","Poção Venenosa","POTION_COOLDOWN"],["ENERGY","Poção de Energia","POTION_ENERGY"],["GATHER","Poção de Coleta","POTION_GATHER"],["HEAL","Poção de Cura","POTION_HEAL"],["LAVA","Poção Infernal","POTION_LAVA"],["LIFEWARD","Poção Salva-vidas","POTION_LIFEWARD"],["MOB","Poção Calmante","POTION_MOB_RESET"],["REVIVE","Poção de Crescimento","POTION_REVIVE"],["SLOWFIELD","Poção Pegajosa","POTION_SLOWFIELD"],["STONESKIN","Poção de Resistência","POTION_STONESKIN"],["TORNADO","Tornado Engarrafado","POTION_TORNADO"]]};
 function renderCookProfile(){ const c=$("pfCook"); c.textContent=""; const cg=el("div",{class:"spgroups"}); c.append(cg);
   for(const [k,n,kind] of [["cozinha","Cozinha","f"],["alquimia","Alquimia","p"]]){ const cur=PF[k]||(PF[k]={m:0,s:{}}); cur.s=cur.s||{}; const nodes=COOK_NODES[kind], types=Object.fromEntries(nodes.map(x=>[x[0],x[1]])), iconeDe=Object.fromEntries(nodes.map(x=>[x[0],x[2]]));
-    const icons=[], mk=code=>{ const im=itemImg(code,tierOrder(iconTier(cur.m,cur.t2))); icons.push(im); return im; }, retier=()=>{ const t=iconTier(cur.m,cur.t2); icons.forEach(im=>im._tier(t)); };
-    const ic=()=>mk(kind==="f"?"MEAL_STEW":"POTION_HEAL");
+    const icons=[], mk=(code,gate)=>{ const im=itemImg(code,tierOrder(iconTier(cur.m,cur.t2)),gate!==false); icons.push(im); return im; }, retier=()=>{ const t=iconTier(cur.m,cur.t2); icons.forEach(im=>im._tier(t)); };
+    const ic=()=>mk(kind==="f"?"MEAL_STEW":"POTION_HEAL",false);
     cg.append(spNode(n,ic(),()=>{ const vals=Object.keys(types).map(tp=>cur.s[tp]??cur.all??0).filter(x=>x>0), parts=[]; if(cur.m) parts.push(`maestria ${cur.m}`); if(vals.length) parts.push(`${vals.length} de ${Object.keys(types).length} com nível, maior ${Math.max(...vals)}`); return parts.length?parts.join(", "):"sem spec"; },(body,upd)=>{
       const save=()=>{ saveProfile(); upd(); retier(); };
       body.append(tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${n}`,x=>{ cur.m=x; save(); }),ic()));
