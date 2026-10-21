@@ -593,13 +593,16 @@ function renderSpecs(){
     refreshSubs(); } }
 const MEAL_PT = {SOUP:"Sopa",SALAD:"Salada",SEAWEEDSALAD:"Salada de algas",PIE:"Torta",OMELETTE:"Omelete",STEW:"Guisado",SANDWICH:"Sanduíche",ROAST:"Assado",GRILLEDFISH:"Peixe grelhado"};
 function cookTypes(kind){ const m={}; for(const id in COOK.r){ const r=COOK.r[id]; if(r[1]!==kind||!r[3]) continue; const tp=cookType(id); if(!m[tp]) m[tp]= MEAL_PT[tp] || r[0].replace(/^Poção\s+((de|da|do)\s+)?/i,"").replace(/\s+(Menor|Maior)$/,""); } return m; }
+/* ícones da cozinha e da alquimia: começa pelo T4 e, se o prato não existe nele (omelete, por exemplo, é T3, T5 e T7), pega o mais próximo que existe;
+   peixe grelhado e salada de algas só existem no T1. O tipo "MOB" é a poção calmante (código POTION_MOB_RESET). */
+const COOK_TIERS=[4,5,6,3,7,8,2,1], COOK_ICON={MOB:"MOB_RESET"};
 function renderCookProfile(){ const c=$("pfCook"); c.textContent=""; const cg=el("div",{class:"spgroups"}); c.append(cg);
   for(const [k,n,kind] of [["cozinha","Cozinha","f"],["alquimia","Alquimia","p"]]){ const cur=PF[k]||(PF[k]={m:0,s:{}}); cur.s=cur.s||{}; const types=cookTypes(kind);
-    const ic=()=>itemImg(kind==="f"?"MEAL_STEW":"POTION_HEAL",[5,4,6,3,7,8]);
+    const ic=()=>itemImg(kind==="f"?"MEAL_STEW":"POTION_HEAL",COOK_TIERS);
     cg.append(spNode(n,ic(),()=>{ const vals=Object.keys(types).map(tp=>cur.s[tp]??cur.all??0).filter(x=>x>0), parts=[]; if(cur.m) parts.push(`maestria ${cur.m}`); if(vals.length) parts.push(`${vals.length} de ${Object.keys(types).length} com nível, maior ${Math.max(...vals)}`); return parts.length?parts.join(", "):"sem spec"; },(body,upd)=>{
       const save=()=>{ saveProfile(); upd(); };
       body.append(tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${n}`,x=>{ cur.m=x; save(); }),ic()));
-      for(const [tp,label] of Object.entries(types)) body.append(tagIn(label,numIn(cur.s[tp]??cur.all??0,100,`${n}: ${label}`,x=>{ cur.s[tp]=x; save(); }),itemImg((kind==="f"?"MEAL_":"POTION_")+tp,[5,4,6,3,7,8]))); })); } }
+      for(const [tp,label] of Object.entries(types)) body.append(tagIn(label,numIn(cur.s[tp]??cur.all??0,100,`${n}: ${label}`,x=>{ cur.s[tp]=x; save(); }),itemImg((kind==="f"?"MEAL_":"POTION_")+(COOK_ICON[tp]||tp),COOK_TIERS))); })); } }
 function renderWho(){ $("who").textContent = IS_EXAMPLE ? "Ficha de exemplo: Oleran" : (PF.nome ? `Ficha: ${PF.nome}` : "Ficha sem nome"); $("exampleBanner").hidden=!IS_EXAMPLE; }
 $("pfName").addEventListener("change",()=>{ PF.nome=$("pfName").value.trim().slice(0,40); saveProfile(); });
 $("pfCopy").addEventListener("click",()=>{ const code=btoa(unescape(encodeURIComponent(JSON.stringify(PF)))); const done=()=>$("pfStatus").textContent="Código da ficha copiado. Cole em outro navegador em Colar ficha.";
