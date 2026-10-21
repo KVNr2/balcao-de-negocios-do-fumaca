@@ -242,6 +242,7 @@ function ensureWK(){
   WK_LOADING=fetchIds([...ids],DATA.itens,[...CITIES,"Caerleon"]).then(()=>{WK_LOADED=true; return true;}).catch(()=>false).finally(()=>{WK_LOADING=null;});
   return WK_LOADING;
 }
+const wkJ = () => Math.min(wkTierSel,+(store.get("wkJ")||0)||wkTierSel);   // tier do diário: no máximo o do trabalhador (regra do jogo)
 const wkN = () => Math.max(1,Math.min(99,Math.round(+(store.get("wkN")||1)||1)));
 const wkBuyMode = () => store.get("wkBuy")==="ordem"?"ordem":"direto";
 /* onde comprar o diário cheio: direto = menor preço de venda entre as cidades; por ordem = maior ordem de compra aberta + 2,5% de taxa da ordem */
@@ -265,6 +266,8 @@ function setupWK(){
   const top=Math.max(...Object.values(PF.coleta||{}).map(g=>g.tier||0),6); wkTierSel=Math.min(8,Math.max(4,top));
   [4,5,6,7,8].forEach(t=>ts.append(el("button",{type:"button","data-t":String(t),"aria-pressed":String(t===wkTierSel),text:`T${t}`})));
   ts.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ts.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); wkTierSel=+b.dataset.t; renderWK(); });
+  { const js=$("wkJTier"); [0,4,5,6,7,8].forEach(t=>js.append(el("button",{type:"button","data-t":String(t),text:t?`T${t}`:"Igual ao do trabalhador"})));
+    js.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b||b.disabled) return; store.set("wkJ",b.dataset.t); renderWK(); }); }
   { const ni=$("wkN"); ni.value=String(wkN()); ni.addEventListener("change",()=>{ const v=Math.max(1,Math.min(99,Math.round(+ni.value||1))); ni.value=String(v); store.set("wkN",String(v)); renderWK(); });
     const bs=$("wkBuy"); bs.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.m===wkBuyMode())); b.addEventListener("click",()=>{ store.set("wkBuy",b.dataset.m); bs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderWK(); }); }); }
   const hi=$("wkHap"), pi=$("wkPct"); hi.value=wkHap()??""; pi.value=wkPct()??""; hi.placeholder=String(hapMax(wkTierSel));
@@ -278,9 +281,10 @@ async function renderWK(){
   const mx=hapMax(wkTierSel); $("wkHapMax").textContent=`de ${mx}`; $("wkHap").max=String(mx); $("wkHap").placeholder=String(mx);
   $("wkYieldTxt").textContent = wkPct() ? `Usando o rendimento de ${wkPct()}% que você digitou.` : wkHap()==null ? `Sem felicidade digitada: a conta usa a barra cheia (${mx} em T${wkTierSel}), que rende 150%.` : `Felicidade ${Math.min(wkHap(),mx)} de ${mx} em T${wkTierSel}: rende ${Math.round(wkYield(wkTierSel)*100)}% (cheia rende 150%).`;
   tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Trabalhador","Diário vazio","Diário cheio","Comprar o cheio em",`Devolve (${Math.round(wkYield(wkTierSel)*100)}%)`,"Comprar cheio e entregar",`Por dia com ${wkN()} ${wkN()===1?"trabalhador":"trabalhadores"}`,"Encher e vender","Enche com",""].forEach(h=>hr.append(el("th",{text:h})));
-  const body=tb.createTBody(), t=wkTierSel;
-  for(const [ty,nm,how] of WK){ const m=wkModel(ty,t); if(!m) continue; const tr=body.insertRow();
-    tr.insertCell().append(withIcon(`T${t}_JOURNAL_${ty}_FULL`,`${nm} T${t}`));
+  const body=tb.createTBody(), t=wkJ(), wt=wkTierSel;
+  { const js=$("wkJTier"), sel=+(store.get("wkJ")||0)||0; js.querySelectorAll("button").forEach(b=>{ const bt=+b.dataset.t; b.disabled=bt>wt; b.setAttribute("aria-pressed",String(bt===0?(!sel||sel>wt):(bt===sel&&sel<=wt)&&sel!==0)); b.title=bt>wt?`Um trabalhador T${wt} não aceita diário T${bt}: o diário não pode ser de tier maior que o trabalhador`:""; }); }
+  for(const [ty,nm,how] of WK){ const m=wkModel(ty,t,wt); if(!m) continue; const tr=body.insertRow();
+    tr.insertCell().append(withIcon(`T${t}_JOURNAL_${ty}_FULL`,`${nm}: diário T${t}`));
     [[m.empty&&m.empty.p,`T${t}_JOURNAL_${ty}_EMPTY`],[m.full&&m.full.p,`T${t}_JOURNAL_${ty}_FULL`]].forEach(([v,ic])=>{ const c=tr.insertCell(); c.className="num"; const tx=v?fmt(v):"—"; c.append(withIcon(ic,tx)); });
     { const c=tr.insertCell(); c.className="small"; if(m.buyCity){ c.append(el("b",{text:fmt(Math.round(m.buyCity.p))})," ",el("span",{class:"muted",text:m.buyCity.c})); c.title=wkBuyMode()==="ordem"?"Maior ordem de compra aberta nessa cidade, mais 2,5% de taxa para montar a ordem":"Menor preço de venda entre as cidades"; } else c.textContent="—"; }
     { const c=tr.insertCell(); c.className="num"; c.textContent=m.yieldV?fmt(m.yieldV):"—"; }
