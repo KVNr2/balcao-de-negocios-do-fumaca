@@ -1198,7 +1198,7 @@ select.kx-q:not([value="0"]){}
 .bgear .bg-w{display:none}
 .blist{container-type:inline-size}
 @container (min-width:1000px){
-  .blist>.bcard{grid-column:auto;grid-template-columns:250px 500px 168px minmax(0,1fr);grid-auto-flow:row;align-items:center;column-gap:18px;row-gap:10px;padding:12px 16px}
+  .blist>.bcard{grid-column:auto;grid-template-columns:250px 500px 230px minmax(0,1fr);grid-auto-flow:row;align-items:center;column-gap:18px;row-gap:10px;padding:12px 16px}
   .bcard .bc-top{display:contents}
   .bcard .bc-top>img.zbig,.bcard .bc-top>.btile{display:none}
   .bcard .bc-mid{grid-column:1;grid-row:1}
@@ -1206,10 +1206,10 @@ select.kx-q:not([value="0"]){}
   .bcard .bc-more,.bcard .tag{white-space:nowrap}
   .bcard .bgear{grid-column:2;grid-row:1;flex-wrap:nowrap;gap:8px}
   .bcard .bgear .bg-w{display:flex}
-  .bcard .bc-r{grid-column:3;grid-row:1;align-items:center;text-align:center;margin-left:26px;gap:6px}
-  .bcard .bc-r .ip-badge{padding:8px 22px 9px;align-items:center;min-width:128px;border-radius:14px;border-width:1.5px;box-shadow:0 0 18px color-mix(in srgb,var(--gain,#34d399) 22%,transparent)}
+  .bcard .bc-r{grid-column:3;grid-row:1;align-items:center;text-align:center;margin-left:64px;gap:6px}
+  .bcard .bc-r .ip-badge{flex-direction:row;justify-content:center;align-items:baseline;gap:9px;padding:9px 22px;min-width:186px;white-space:nowrap;border-radius:14px;border-width:1.5px;box-shadow:0 0 18px color-mix(in srgb,var(--gain,#34d399) 22%,transparent)}
   .bcard .bc-r .ip-n{font-size:34px}
-  .bcard .bc-r .ip-l{display:block;font-size:10px;margin-bottom:3px}.bcard .bc-r .ip-s{display:none}
+  .bcard .bc-r .ip-l{display:block;font:800 34px/1 Inter,sans-serif;letter-spacing:0;text-transform:none;opacity:1;color:var(--gain,#34d399)}.bcard .bc-r .ip-s{display:none}
   .bcard .bc-r .pop{font-size:.78rem;color:var(--smoke)}
   .bcard .bc-act{grid-column:4;grid-row:1;justify-self:end;flex-wrap:nowrap;margin:0}
   .bcard:not(.open) .kx-alb select,.bcard:not(.open) .kx-alb .alb-tier,.bcard:not(.open) .kx-alb .bc-cost,.bcard:not(.open) .kx-alb .muted{display:none}
