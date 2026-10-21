@@ -121,12 +121,12 @@ function setupBM(){
   qs.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; qs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmQualSel=+b.dataset.q; renderBM(); });
   sel.addEventListener("change",()=>{ store.set("bmGroup",sel.value); bmSel=null; renderBM(); });
   document.querySelectorAll("[data-bm]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-bm]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmMode=b.dataset.bm; renderBM(); }));
-  $("bmFocus").addEventListener("change",renderBM);
+  $("bmFocus").addEventListener("change",renderBM); $("bmAtivo").addEventListener("change",()=>{ store.set("bmAtivo",$("bmAtivo").checked?"1":"0"); renderBM(); });
 }
 async function renderBM(partial){
   const tok=partial?BM_TOK:++BM_TOK;
   if(!BM){ $("bmNote").textContent="Abrindo o livro do Mercado Negro…"; try{ BM=await need("bm"); }catch(e){ $("bmNote").textContent="Não consegui abrir os dados do Mercado Negro."; return; } }
-  setupBM(); const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
+  setupBM(); if(!$("bmAtivo").dataset.init){ $("bmAtivo").dataset.init="1"; try{ $("bmAtivo").checked=store.get("bmAtivo")==="1"; }catch(e){} } const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
   if(g==="*"&&!bmTierSel&&!partial){   // todas as mercadorias e todos os tiers: busca um tier por vez (do T8 ao T2) e mostra o que já chegou
     const falta=[8,7,6,5,4,3,2].filter(t=>!BM_LOADED.has(bmLk("*",t)));
     for(let i=0;i<falta.length;i++){ const t=falta[i];
@@ -136,7 +136,7 @@ async function renderBM(partial){
       if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; }
       if(i<falta.length-1){ await renderBM(true); if(tok!==BM_TOK) return; } }
   } else if(!(partial&&g==="*"&&!bmTierSel)&&!BM_LOADED.has(bmLk(g,bmTierSel))){ tb.textContent=""; note.textContent="Consultando as ordens do Mercado Negro…"; const ok=await ensureBM(g,g==="*"?bmTierSel:0); if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; } if($("bmGroup").value!==g||tok!==BM_TOK) return; }
-  const rows=[]; for(const k of bmKeys(g)) for(let t=2;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) for(let q=1;q<=5;q++){ if(bmQualSel&&q!==bmQualSel) continue; if(!bmHas(bmId(k,t,e),q)) continue; if(g==="*"){ const tp=BM_TOP[bmLk(g,t)]; if(!tp||!tp.has(bmId(k,t,e))) continue; } const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } }
+  const rows=[]; for(const k of bmKeys(g)) for(let t=2;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) for(let q=1;q<=5;q++){ if(bmQualSel&&q!==bmQualSel) continue; if(!bmHas(bmId(k,t,e),q)) continue; if($("bmAtivo").checked&&(bmRec(bmId(k,t,e),q)["Black Market"][2]||0)>BM_ATIVO_H) continue; if(g==="*"){ const tp=BM_TOP[bmLk(g,t)]; if(!tp||!tp.has(bmId(k,t,e))) continue; } const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } }
   const val=m=>bmMode==="flip"?m.flip:m.craft, base=m=>bmMode==="flip"?(m.buy&&m.buy.p):m.cost, pct=m=>{ const b=base(m), v=val(m); return b>0&&v!=null?v/b*100:-Infinity; };
   /* ordem: primeiro pela porcentagem de lucro, depois pelo valor em prata (o cabeçalho de cada coluna inverte a prioridade) */
   const cmp=bmSort==="val"?(a,b)=>val(b)-val(a)||pct(b)-pct(a):(a,b)=>pct(b)-pct(a)||val(b)-val(a);
@@ -175,6 +175,7 @@ async function renderBM(partial){
 const ageTxt=h=>h<1?"agora":h<24?`${Math.round(h)}h`:`${Math.round(h/24)}d`;
 const ageTip=h=>h<1?"Visto agora há pouco por algum jogador.":`Último jogador que viu esse preço: há ${h<24?Math.round(h)+" h":Math.round(h/24)+" dia(s)"}.${h>6?" Pode ter mudado desde então.":""}`;
 /* o que mudou na última atualização de preços: compara o lucro de cada linha com o da atualização anterior */
+const BM_ATIVO_H=6;
 let BM_GEN="", BM_BASE={}, BM_CUR={}, bmSort="pct";
 const volTxt=v=>v==null?"…":v<0?"—":v===0?"0":v<1?"menos de 1":v<10?dec(v):fmt(v);
 // Quantas peças o Mercado Negro comprou por dia na última semana (a API não mostra o tamanho das ordens abertas;
