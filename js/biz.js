@@ -150,7 +150,7 @@ async function renderBM(partial){
     tr.insertCell().append(withIconQ(m.id,m.q,nmKey(m.key,m.name))); tr.insertCell().textContent=`${m.t}.${m.e}`;
     tr.insertCell().append(el("span",{class:"qtag q"+m.q,text:QNAME[m.q]}));
     const c1=tr.insertCell(); c1.className="num"; c1.append(fmt(m.bm.p)," ",el("span",{class:"age"+(m.bm.age>6?" old":""),title:ageTip(m.bm.age),text:ageTxt(m.bm.age)}));
-    { const cm=tr.insertCell(); cm.className="num mk-avg bm-avg"; cm.title="Média do que o Mercado Negro pagou por esta peça (ponderada pelas peças vendidas, últimos 7 dias; se não vendeu nesse período, todo o histórico)"; cm.textContent=avgTxt(bmAvgOf(m.id,m.q)); }
+    { const cm=tr.insertCell(); cm.className="num mk-avg bm-avg"; cm.title="Média do que o Mercado Negro pagou por esta peça (ponderada pelas peças vendidas, últimos 7 dias; se não vendeu nesse período, todo o histórico)"; cm.textContent=avgTxt(bmAvgOf(m.id,m.q)); const ob=el("button",{type:"button",class:"bm-tag",title:"Ver o pedido de compra do Mercado Negro e o que ele pagou por este item (histórico)",text:"pedidos"}); ob.addEventListener("click",ev=>{ ev.stopPropagation(); openItem(m.id,`${nmKey(m.key,m.name)} T${m.t}.${m.e}`,m.q,true); }); ob.addEventListener("keydown",ev=>ev.stopPropagation()); cm.append(" ",ob); }
     if(bmMode==="flip"){ tr.insertCell().textContent=m.buy.c+(m.buy.q>m.q?` (${QNAME[m.buy.q]})`:""); const cb=tr.insertCell(); cb.className="num"; cb.append(fmt(m.buy.p)," ",el("span",{class:"age"+(m.buy.age>6?" old":""),title:ageTip(m.buy.age),text:ageTxt(m.buy.age)})); }
     else { const c2=tr.insertCell(); c2.className="num"; c2.textContent=fmt(m.cost); }
     const v=val(m), pc=pct(m), cp=tr.insertCell(); cp.className="num bm-pct "+(v>=0?"gain":"loss"); cp.textContent=pc===-Infinity?"—":`${v>=0?"+":""}${dec(pc)}%`;
@@ -191,7 +191,7 @@ async function bmVolumes(shown){
         const pm=sw?sp/sw:aw?ap/aw:0; if(pm) av[x.item_id][q]=pm; }
       part.forEach(id=>{ BM_VOL[id]=vol[id]; BM_AVG[id]=av[id]; });
     }catch(e){ part.forEach(id=>{ BM_VOL[id]=-1; BM_AVG[id]=-1; }); }
-    document.querySelectorAll("#bmTable tbody tr").forEach(tr=>{ if(!tr.dataset.id) return; const c=tr.querySelector(".vol"); if(c) c.textContent=volTxt(bmVolOf(tr.dataset.id,+tr.dataset.q||1)); const c2=tr.querySelector(".bm-avg"); if(c2) c2.textContent=avgTxt(bmAvgOf(tr.dataset.id,+tr.dataset.q||1)); });
+    document.querySelectorAll("#bmTable tbody tr").forEach(tr=>{ if(!tr.dataset.id) return; const c=tr.querySelector(".vol"); if(c) c.textContent=volTxt(bmVolOf(tr.dataset.id,+tr.dataset.q||1)); const c2=tr.querySelector(".bm-avg"); if(c2){ const t=avgTxt(bmAvgOf(tr.dataset.id,+tr.dataset.q||1)); if(c2.firstChild&&c2.firstChild.nodeType===3) c2.firstChild.nodeValue=t; else c2.prepend(t); } });
   }
 }
 function bmPanel(m){

@@ -1160,3 +1160,7 @@ img.nb-xi{width:52px;height:52px}
 .bm2t thead th.bm-sort{cursor:pointer;user-select:none}
 .bm2t thead th.bm-sort:hover{color:var(--saffron,#e0a93b)}
 .bm2t tbody tr.bm-row td.bm-pct{font-weight:700}
+
+/* etiqueta pequena ao lado do preço médio do Mercado Negro: abre as ofertas e o histórico do item */
+.bm-tag{font:inherit;font-size:.62rem;line-height:1;letter-spacing:.03em;text-transform:uppercase;padding:2px 6px;margin-left:2px;border-radius:999px;border:1px solid var(--line,#5a4a3a);background:transparent;color:var(--gold,#e8b64a);cursor:pointer;vertical-align:middle}
+.bm-tag:hover,.bm-tag:focus-visible{background:var(--gold,#e8b64a);color:#1b1410}
