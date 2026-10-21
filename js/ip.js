@@ -35,6 +35,7 @@ function ipBuild(b,set,tier,qf){
 function albionBadge(b){
   const w=el("div",{class:"ip-badge",role:"status"}); const num=el("b",{class:"ip-n"}), lab=el("span",{class:"ip-l",text:"IP"}), sub=el("div",{class:"ip-s"}); w.append(lab,num,sub);
   w._upd=(set,tier,qf)=>{ let r; try{ r=ipBuild(b,set||0,tier||0,qf); }catch(e){ w.hidden=true; return; } w.hidden=false;
+    b._ipParts=r.parts; if(typeof ipApply==='function') ipApply(b);
     num.textContent=Math.round(r.avg).toLocaleString("pt-BR");
     sub.textContent=""; sub.append(el("span",{class:"ip-c",text:tier?`T${tier} equivalente`:"Tier original"}),el("span",{class:"ip-c"+(r.sem?" off":""),text:r.sem?"Sem ficha":"Sua ficha"})); { const qs=new Set(r.parts.map(p=>p.q)); if(!(qs.size===1&&qs.has(1))) sub.append(el("span",{class:"ip-c",text:qs.size===1?QNAME[[...qs][0]]:"Qualidades mistas"})); }
     { const N={w:"Arma",o:"Mão secundária",h:"Elmo",a:"Peito",s:"Botas",c:"Capa"}, f=n=>Math.round(n).toLocaleString("pt-BR"), avg=Math.round(r.avg), min=Math.min(...r.parts.map(p=>Math.round(p.ip)));

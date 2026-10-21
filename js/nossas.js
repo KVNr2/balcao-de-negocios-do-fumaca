@@ -41,7 +41,7 @@ function nbCard(b){
     else nbRender(); }); const ib=albionBadge(b); const rt=el("div",{class:"bc-r"}); rt.append(ib,vb); top.append(rt); card.append(top);
   if(b.desc) card.append(el("p",{class:"nb-desc small",text:b.desc}));
   card.append(gbStrip(b));
-  const btn=el("button",{type:"button",class:"bc-more","aria-expanded":String(open),text:open?"Esconder build completa":"Ver build completa"});
+  const btn=el("button",{type:"button",class:"bc-more bc-tog","aria-expanded":String(open),text:open?"Fechar ▴":"Abrir ▾"});
   btn.addEventListener("click",()=>{ nbOpen=open?null:b.id; nbRender(); });
   const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"n:"+b.id));
   if(b.local){ const dl=el("button",{type:"button",class:"bc-more",text:"Baixar arquivo"}); dl.addEventListener("click",()=>nbExport(b));
@@ -49,7 +49,7 @@ function nbCard(b){
     const rm=el("button",{type:"button",class:"bc-more nb-del",text:"Apagar"}); rm.addEventListener("click",()=>{ if(!confirm("Apagar esta build do seu navegador?")) return; nbSaveMine(nbMine().filter(x=>x.id!==b.id)); nbRefreshAll(); nbRender(); });
     if(NB_CLOUD) act.append(rm); else act.append(dl,cp,rm); }
   if(b.local&&NB_CLOUD){ const pb=el("button",{type:"button",class:"bc-more nb-new",text:"Publicar para todos"}); pb.addEventListener("click",async()=>{ pb.disabled=true; pb.textContent="Publicando…"; try{ const o=JSON.parse(nbJson(b)); const r=await nbApi("nb_builds",{method:"POST",body:JSON.stringify({id:b.id,data:o}),headers:{Prefer:"return=minimal"}}); if(!r.ok) throw 0; nbSaveMine(nbMine().filter(x=>x.id!==b.id)); NB_REPO=null; await nbLoad(); nbRender(); }catch(e){ pb.disabled=false; pb.textContent="Falhou, tentar de novo"; } }); act.prepend(pb); }
-  card.append(act); if(open) card.append(kbPanel(b)); return card;
+  card.append(act); if(open){ card.append(kbPanel(b)); qMoveTop(card); } return card;
 }
 const nbJson=b=>{ const o={...b}; delete o.local; delete o.repo; delete o.cloud; delete o.votos; delete o._qs; delete o._qi; delete o._refresh; return JSON.stringify(o,null,2); };
 function nbExport(b){ const a=el("a",{href:URL.createObjectURL(new Blob([nbJson(b)],{type:"application/json"})),download:b.id+".json"}); document.body.append(a); a.click(); a.remove();

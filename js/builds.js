@@ -93,12 +93,18 @@ const SPEC_MIN = 70;
 /* spec da arma específica da build (não a maestria da linha): vem de PF.sp["c:linha"].s[código da arma] */
 const gbSpec = b => b.l ? (+(((PF.sp||{})["c:"+b.l]||{}).s||{})[b.wc]||0) : 0;
 function gbGaps(b){ const miss=new Set(); for(const sl of ["h","a","s"]) for(const id of (b[sl]||[]).slice(0,1)){ const m=/^T\d_(?:HEAD|ARMOR|SHOES)_(PLATE|LEATHER|CLOTH)/.exec(id); const t=m&&({PLATE:"placa",LEATHER:"couro",CLOTH:"pano"})[m[1]]; if(t&&armorLv(t)<1) miss.add(t); } return [...miss]; }
+/* IP de cada peça embaixo do ícone; a mais baixa fica em vermelho (o que puxa a média para baixo) */
+/* "Qualidade de todas as peças" sobe para a barra de controles (junto de Set e Tier) */
+function qMoveTop(card){ const q=card.querySelector(".kx-qtop"), bar=card.querySelector(".kx-alb"); if(!q||!bar) return; const ref=bar.querySelector(".bc-more"); bar.insertBefore(q,ref); }
+function ipApply(b){ const els=b._bipEls, parts=b._ipParts; if(!els||!parts) return; const vals=parts.map(p=>Math.round(p.ip)), min=Math.min(...vals), mix=vals.some(v=>v!==min);
+  for(const k in els){ const p=parts.find(x=>x.slot===k); const e=els[k]; if(!p){ e.textContent=""; e.classList.remove("low"); continue; } const v=Math.round(p.ip); e.textContent=v.toLocaleString("pt-BR"); e.classList.toggle("low",mix&&v===min); e.title=mix&&v===min?"A peça com menor IP: puxa a média da build para baixo":""; } }
 function gbStrip(b){
-  const row=el("div",{class:"bgear"});
-  for(const [sl] of GEAR_SLOTS){ const ids=b[sl]; if(!ids||!ids.length) continue; const box=el("div",{class:"bg"}); const im=qImg(b,sl,ids[0],"nico bi"); if(im) box.append(im);
-    if(ids.length>1){ const alt=el("div",{class:"bg-alt",title:"ou"}); ids.slice(1,3).forEach(i=>{ const x=qImg(b,sl,i,"nico bi-s"); if(x) alt.append(x); }); box.append(alt); } row.append(box); }
+  const row=el("div",{class:"bgear"}); b._bipEls={};
+  for(const [sl] of [["w"],["o"],["h"],["a"],["s"],["c"]]){ const ids=sl==="w"?[b.w]:b[sl]; if(!ids||!ids.length||!ids[0]) continue; const box=el("div",{class:"bg"+(sl==="w"?" bg-w":"")}); const im=qImg(b,sl,ids[0],"nico bi"); if(im) box.append(im);
+    const n=el("span",{class:"bg-ip"}); b._bipEls[sl]=n; box.append(n);
+    if(sl!=="w"&&ids.length>1){ const alt=el("div",{class:"bg-alt",title:"ou"}); ids.slice(1,3).forEach(i=>{ const x=qImg(b,sl,i,"nico bi-s"); if(x) alt.append(x); }); box.append(alt); } row.append(box); }
   const cons=[...(b.p||[]).slice(0,2),...(b.f||[]).slice(0,2)]; if(cons.length){ const box=el("div",{class:"bg cons"}); cons.forEach(i=>{ const x=fullImg(i,"nico bi-s"); if(x) box.append(x); }); row.append(box); }
-  return row;
+  ipApply(b); return row;
 }
 /* Build completa em formato de killboard: uma casa por peça, com ícone grande, nome e tier; alternativas logo abaixo. */
 const KB_CONS_PT={POTION_ACID:"Poção Ácida",POTION_BERSERK:"Poção de Fúria",POTION_CLEANSE:"Poção de Purificação",POTION_CLEANSE2:"Poção de Purificação",POTION_COOLDOWN:"Poção de Recarga",POTION_ENERGY:"Poção de Energia",POTION_GATHER:"Poção de Coleta",POTION_HEAL:"Poção de Cura",POTION_LAVA:"Poção de Lava",POTION_MOB_RESET:"Poção de Reinício de Monstros",POTION_REVIVE:"Poção de Ressurreição",POTION_SLOWFIELD:"Poção Lentidão",POTION_STONESKIN:"Poção Pele de Pedra",POTION_TORNADO:"Poção Tornado",MEAL_OMELETTE:"Omelete",MEAL_OMELETTE_AVALON:"Omelete de Avalon",MEAL_OMELETTE_DRAGONAREA:"Omelete de Dragão",MEAL_OMELETTE_FISH:"Omelete de Peixe",MEAL_PIE:"Torta",MEAL_PIE_FISH:"Torta de Peixe",MEAL_ROAST:"Assado",MEAL_ROAST_FISH:"Assado de Peixe",MEAL_SANDWICH:"Sanduíche",MEAL_SANDWICH_AVALON:"Sanduíche de Avalon",MEAL_SANDWICH_FISH:"Sanduíche de Peixe",MEAL_SOUP:"Sopa",MEAL_STEW:"Ensopado",MEAL_STEW_AVALON:"Ensopado de Avalon",MEAL_STEW_FISH:"Ensopado de Peixe"};
@@ -173,7 +179,7 @@ function kbPanel(b){
   const L=el("section",{class:"kx-l"}); L.append(el("h4",{text:"Peças, habilidades e passivas"}));
   const qsl=[];   // seletores por peça, para atualizar quando muda o geral
   const qtop=el("div",{class:"kx-qtop"}); { const qa=qPick(bQ(b).a,"Qualidade de todas as peças",q=>{ bQ(b).a=q; bQ(b).p={}; qsl.forEach(([k,x])=>{ x.value=String(q); }); if(b._refresh) b._refresh(); });
-    qtop.append(el("span",{class:"kx-qt",text:"Qualidade de todas as peças"}),qa,el("small",{class:"muted",text:"Toque numa bolinha para aplicar a todas. Para mudar só uma peça, use as bolinhas dela na lista. O bônus de IP aparece ao passar o mouse."})); }
+    qtop.append(el("span",{class:"kx-qt",text:"Qualidade de todas as peças"}),qa,el("small",{class:"muted",text:"Aplica a todas as peças. Para mudar só uma, use as bolinhas dela na lista."})); }
   L.append(qtop);
   const hd=el("div",{class:"kx-cols kx-hd"}); hd.append(el("span",{class:"kx-rec",text:"★ Recomendado"}),el("span",{text:"Alternativa"})); L.append(hd);
   const rows=[["w",[b.w,b.w2].filter(Boolean),sk.w?[sk.w,sk.w2||[]]:[]],["o",b.o,[]],["h",b.h,sk.h||[]],["a",b.a,sk.a||[]],["s",b.s,sk.s||[]],["c",b.c,[]],["p",b.p,[]],["f",b.f,[]]];
@@ -213,10 +219,10 @@ function buildCard(b){
   mid.append(meta); top.append(mid);
   const ib=albionBadge(b); const rt=el("div",{class:"bc-r"}); rt.append(ib,el("span",{class:"pop",text:`${b.pop} votos`})); top.append(rt); card.append(top);
   card.append(gbStrip(b));
-  const btn=el("button",{type:"button",class:"bc-more","aria-expanded":String(open),text:open?"Esconder build completa":"Ver build completa"});
+  const btn=el("button",{type:"button",class:"bc-more bc-tog","aria-expanded":String(open),text:open?"Fechar ▴":"Abrir ▾"});
   btn.addEventListener("click",()=>{ bOpen=open?null:b.id; renderBuilds(); });
   const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"g:"+b.id)); card.append(act);
-  if(open) card.append(kbPanel(b));
+  if(open){ card.append(kbPanel(b)); qMoveTop(card); }
   return card;
 }
 const CONT_EXTRA = {COLETA:"Coleta"};   // tipos de conteúdo que só existem nas Nossas builds
