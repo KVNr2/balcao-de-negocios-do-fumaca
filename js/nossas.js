@@ -96,15 +96,15 @@ function nbRender(){
   try{ buildIdx(); }catch(e){} for(const b of NB_ALL){ if(!b.wc&&b.w){ b.wc=b.w.replace(/^T\d_/,"").replace(/@\d$/,""); b.l=(typeof W2LINE!=="undefined"&&W2LINE[b.wc])||""; b.nome=codeName(b.wc); } }
   const used=new Map(); NB_ALL.forEach(b=>nbConts(b).forEach(k=>used.set(k,(used.get(k)||0)+1)));
   const cc=el("div",{class:"seg wrap",role:"group","aria-label":"Conteúdo"}); const mkc=(k,t,n)=>{ const x=el("button",{type:"button","aria-pressed":String(nbCont===k),text:`${t} (${n})`}); x.addEventListener("click",()=>{ nbCont=k; nbLine=""; nbOpen=null; nbRender(); }); cc.append(x); };
-  mkc("","Todos",NB_ALL.length); [...used.keys()].forEach(k=>mkc(k,k?contName(k):"Outro",used.get(k))); box.append(cc);
+  mkc("","Todos os conteúdos",NB_ALL.length); [...used.keys()].forEach(k=>mkc(k,k?contName(k):"Outro",used.get(k))); if(NB_ALL.length) box.append(cc);
   const wg=el("div",{class:"bweapons",role:"group","aria-label":"Filtrar por arma"}); const inCont=NB_ALL.filter(b=>nbCont===""||nbConts(b).includes(nbCont)); const present=new Set(inCont.map(b=>b.l));
-  const all=el("button",{type:"button",class:"bw all","aria-pressed":String(!nbLine),text:"Todas"}); all.addEventListener("click",()=>{ nbLine=""; nbRender(); }); wg.append(all);
+  const all=el("button",{type:"button",class:"bw all","aria-pressed":String(!nbLine),text:"Todas as armas"}); all.addEventListener("click",()=>{ nbLine=""; nbRender(); }); wg.append(all);
   for(const [l,code] of Object.entries(LINE_ICON)){ if(!present.has(l)&&nbLine!==l) continue; const x=el("button",{type:"button",class:"bw","aria-pressed":String(nbLine===l),title:LINE_NAME[l]}); x.append(itemImg(code,[8,7,6,5,4,3])); x.addEventListener("click",()=>{ nbLine=nbLine===l?"":l; nbRender(); }); wg.append(x); }
-  box.append(wg);
+  if(NB_ALL.length) box.append(wg);
   const ord=a=>a.slice().sort((x,y)=>nbSort==="novas"?String(y.data||"").localeCompare(String(x.data||"")):(nbVotesOf(y)-nbVotesOf(x)));
   const flt=a=>a.filter(b=>(!nbCont||nbConts(b).includes(nbCont))&&(!nbLine||b.l===nbLine));
   const sec=(title,sub,list,empty)=>{ const s=el("section",{class:"nb-sec"}); s.append(el("h3",{class:"orn",text:title}),el("p",{class:"muted small",text:sub})); const l=el("div",{class:"blist"}); if(!list.length) l.append(el("p",{class:"empty",text:empty})); const pg=pgSlice("nb:"+title,list,[nbCont,nbLine,nbSort].join("|"),nbRender); pg.items.forEach(b=>l.append(nbCard(b))); s.append(l,pg.bar); box.append(s); };
-  sec("Nossas builds",(NB_CLOUD?"Builds publicadas por todos que usam o site. Seu voto conta para todo mundo, um por navegador.":"Escolhidas pelo Balcão do Fumaça. A contagem de votos vem do arquivo da build; o seu voto soma +1 só para você."),ord(flt((NB_REPO||[]))),NB_REPO?"Ainda não há builds publicadas nesta seleção.":"Carregando…");
+  sec("Nossas builds",(NB_CLOUD?"Builds publicadas por todos que usam o site. Seu voto conta para todo mundo, um por navegador.":"Escolhidas pelo Balcão do Fumaça. A contagem de votos vem do arquivo da build; o seu voto soma +1 só para você."),ord(flt((NB_REPO||[]))),NB_REPO?(NB_ALL.length?"Nenhuma build nesta seleção. Troque o conteúdo ou a arma acima.":"Ainda não há builds publicadas. Seja o primeiro: clique em \"+ Criar build\" ou em \"Importar do Albion\"."):"Carregando…");
   { const n=flt(NB_ALL).length; cnt.textContent=n?`${n} ${n===1?"build":"builds"}`:""; }
   const mine=NB_ALL.filter(b=>b.local); if(mine.length) sec("Suas builds",(NB_CLOUD?"Salvas só neste navegador porque a publicação falhou. Clique em Publicar para todos.":"Salvas só neste navegador. Baixe o arquivo e envie para a pasta builds/ do site para publicar."),ord(flt(mine)),"");
 }
