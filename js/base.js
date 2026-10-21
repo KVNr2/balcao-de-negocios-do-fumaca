@@ -627,11 +627,16 @@ async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.has
 let irSync=false;
 async function irParaSincronia(){ if(irSync) return; irSync=true; const alvo="http://127.0.0.1:47831/", t0=Date.now(), st=$("pfStatus");
   st.textContent="Abrindo o programa… se o Windows perguntar, permita abrir o AlbionSpecs e aceite o aviso de Administrador.";
+  /* O Brave (e alguns outros) bloqueia o site de "perguntar" ao programa se ele já está aberto, então o teste abaixo nunca dá certo ali.
+     Abrir a página do programa direto (navegação normal, não é bloqueada) funciona em qualquer navegador. */
+  let brave=false; try{ brave=!!(navigator.brave&&await navigator.brave.isBrave()); }catch(e){}
+  if(brave){ await new Promise(r=>setTimeout(r,3500)); st.textContent="Abrindo a página do programa… Se aparecer erro de conexão, o AlbionSpecs não está aberto: abra-o, entre no Albion e clique em Sincronizar de novo."; afSet(); await new Promise(r=>setTimeout(r,900)); irSync=false; location.href=alvo; return; }
   while(Date.now()-t0<30000){
     const ok=await new Promise(res=>{ const im=new Image(); im.onload=()=>res(true); im.onerror=()=>res(false); im.src=alvo+"ping.gif?"+Date.now(); });
     if(ok){ afSet(); location.href=alvo; return; }
     await new Promise(r=>setTimeout(r,700)); }
-  st.textContent="Não consegui falar com o programa. Ele está instalado? Baixe em \"Primeira vez? Baixe o programa\", dê dois cliques nele e clique em Sincronizar de novo."; irSync=false; }
+  st.textContent="Não consegui falar com o programa. Confira se o AlbionSpecs está aberto (ícone na barra de tarefas) e se o Albion está com o personagem logado; se estiver, "; 
+  st.append(el("a",{href:alvo,text:"clique aqui para abrir a página do programa direto"}),". Se ainda não baixou o programa, use \"Primeira vez? Baixe o programa\" acima."); irSync=false; }
 /* primeira vez neste navegador: baixa o programa e explica tudo na própria página (o protocolo albion-ficha:// só existe depois de abrir o programa uma vez) */
 const afOk = () => { try{ return localStorage.getItem("afProg")==="1"; }catch(e){ return false; } };
 const afSet = () => { try{ localStorage.setItem("afProg","1"); }catch(e){} };
