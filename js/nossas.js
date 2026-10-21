@@ -51,7 +51,7 @@ function nbCard(b){
   if(b.local&&NB_CLOUD){ const pb=el("button",{type:"button",class:"bc-more nb-new",text:"Publicar para todos"}); pb.addEventListener("click",async()=>{ pb.disabled=true; pb.textContent="Publicando…"; try{ const o=JSON.parse(nbJson(b)); const r=await nbApi("nb_builds",{method:"POST",body:JSON.stringify({id:b.id,data:o}),headers:{Prefer:"return=minimal"}}); if(!r.ok) throw 0; nbSaveMine(nbMine().filter(x=>x.id!==b.id)); NB_REPO=null; await nbLoad(); nbRender(); }catch(e){ pb.disabled=false; pb.textContent="Falhou, tentar de novo"; } }); act.prepend(pb); }
   card.append(act); if(open) card.append(kbPanel(b)); return card;
 }
-const nbJson=b=>{ const o={...b}; delete o.local; delete o.repo; delete o.cloud; delete o.votos; return JSON.stringify(o,null,2); };
+const nbJson=b=>{ const o={...b}; delete o.local; delete o.repo; delete o.cloud; delete o.votos; delete o._qs; delete o._qi; delete o._refresh; return JSON.stringify(o,null,2); };
 function nbExport(b){ const a=el("a",{href:URL.createObjectURL(new Blob([nbJson(b)],{type:"application/json"})),download:b.id+".json"}); document.body.append(a); a.click(); a.remove();
   alert("Arquivo baixado. Para publicar: coloque-o na pasta builds/ do site e acrescente o nome em builds/index.json (veja builds/LEIA-ME.md)."); }
 
@@ -61,14 +61,14 @@ const nbRich=(tag,cls,h)=>{ const e=el(tag,cls?{class:cls}:{}); e.innerHTML=h; r
 function nbParseAlbion(txt){
   let o; try{ o=JSON.parse(String(txt||"").trim()); }catch(e){ return null; }
   if(!o||typeof o!=="object"||!Array.isArray(o.equipment)||!o.equipment.length) return null;
-  const sel={}; let ok=0;
+  const sel={}, q={}; let ok=0;
   for(const e of o.equipment){ const id=e&&e.item, m=/^T\d+_(.+?)(?:@\d)?$/.exec(id||""); if(!m) continue; const c=m[1]; let k=null;
     if(/^(MAIN|2H)_/.test(c)) k="w"; else if(/^OFF_/.test(c)) k="o"; else if(/^HEAD_/.test(c)) k="h"; else if(/^ARMOR_/.test(c)) k="a"; else if(/^SHOES_/.test(c)) k="s"; else if(/^CAPEITEM|^BACKPACK|_BACKPACK_/.test(c)) k="c";
     else if(/^BAG/.test(c)) k="gb"; else if(/^MOUNT_/.test(c)) k="m"; else if(/^POTION_/.test(c)) k="p"; else if(/^MEAL_/.test(c)) k="f";
-    if(k&&!sel[k]){ sel[k]=id; ok++; } }
+    if(k&&!sel[k]){ sel[k]=id; ok++; const qq=Math.round(+e.quality); if("wohasc".includes(k)&&qq>=2&&qq<=5) (q[k]=qq); } }
   if(!ok||!sel.w) return null;
-  if(/^T\d+_2H_/.test(sel.w)) delete sel.o;
-  return {t:String(o.name||"").trim().slice(0,80),sel};
+  if(/^T\d+_2H_/.test(sel.w)){ delete sel.o; delete q.o; }
+  return {t:String(o.name||"").trim().slice(0,80),sel,q};
 }
 async function nbImportAlbion(bar){
   const host=bar.parentNode; host.querySelectorAll(".nb-warn,.nb-imp").forEach(x=>x.remove());
@@ -209,6 +209,7 @@ async function nbForm(pre){ if(!nbSrc||nbSrc!=="nos") return;
     const skl=(st,x)=>{ const l=st.sk[x]||[], n=x==="w"?4:2; if(!st.sel[x]||!l.some(Boolean)) return null; const a=Array.from({length:n},(_,i)=>l[i]||"").filter(Boolean); return a; };
     for(const x of ["w","h","a","s"]){ if(x==="w"){ const a=skl(S1,"w"); if(a) K2.w=a;  } else { const a=[S1,S2].filter(st=>st.sel[x]).map(st=>skl(st,x)||[]); if(a.some(l=>l.length)) K2[x]=a; } }
     if(Object.keys(K2).length) b.sk=K2;
+    if(pre&&pre.q){ const Q={}; for(const k in pre.q) if(S1.sel[k]) Q[k]=pre.q[k]; if(Object.keys(Q).length) b.q=Q; }
     { const X={}; for(const [x] of NB_EXTRAS) if(S1.sel[x]) X[x]=S1.sel[x]; if(Object.keys(X).length) b.x=X; }
     try{ store.set("nbAuthor",au.value.trim()); }catch(e){} const fim=()=>{ nbOpen=b.id; nbRender(); setTimeout(()=>{ const c=document.querySelector("#nbBox .bcard.open"); if(c) c.scrollIntoView({block:"center",behavior:"smooth"}); },100); };
     if(NB_CLOUD){ save.disabled=true; save.textContent="Publicando…"; const o={...b}; delete o.id; delete o.votos; nbApi("nb_builds",{method:"POST",body:JSON.stringify({id:b.id,data:o}),headers:{Prefer:"return=minimal"}}).then(async r=>{ if(!r.ok) throw 0; NB_REPO=null; await nbLoad(); fim(); }).catch(()=>{ const a=nbMine(); a.unshift(b); nbSaveMine(a); err.hidden=false; err.textContent="Não consegui publicar agora; a build ficou salva só no seu navegador. Use \"Publicar para todos\" depois."; save.disabled=false; save.textContent="Salvar build"; nbRender(); }); return; }
