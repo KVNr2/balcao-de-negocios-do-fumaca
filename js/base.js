@@ -636,7 +636,7 @@ const AF_OS = (()=>{ const ua=navigator.userAgent||"", uad=navigator.userAgentDa
   return "windows"; })();
 if(AF_OS!=="windows"){ document.body.classList.add("sem-sync"); const cel=["android","ios","mobile"].includes(AF_OS);
   $("pfSemTit").textContent=cel?"Sincronizar ainda não funciona no celular":"Sincronizar só funciona no Windows";
-  $("pfSemTxt").textContent=cel?"Por enquanto não há suporte para sincronizar a ficha pelo celular. Nesse aparelho você digita tudo manualmente: abra cada seção abaixo (Combate, Craft, Coleta, Refino, Árvore da fazenda e da cozinha) e preencha os níveis do seu Destiny Board. A ficha fica salva neste navegador.":"O programa de sincronia é feito para Windows. Neste sistema você digita os níveis manualmente: abra cada seção abaixo e preencha os do seu Destiny Board. A ficha fica salva neste navegador.";
+  $("pfSemTxt").textContent=cel?"Por enquanto não há suporte para sincronizar a ficha pelo celular. Nesse aparelho você digita tudo manualmente: abra cada seção abaixo (Combate, Craft, Coleta, Refino, Árvore: fazenda, cozinha e rastreamento) e preencha os níveis do seu Destiny Board. A ficha fica salva neste navegador.":"O programa de sincronia é feito para Windows. Neste sistema você digita os níveis manualmente: abra cada seção abaixo e preencha os do seu Destiny Board. A ficha fica salva neste navegador.";
   $("pfSemSync").hidden=false; }
 $("pfAlbion").href="albion-ficha://iniciar?voltar="+encodeURIComponent(location.origin+location.pathname);
 async function lerFichaDoAlbion(txt){ txt=decodeURIComponent(txt);
@@ -932,4 +932,11 @@ function renderArvore(){ const box=$("pfArvore"); if(!box||!SPECS) return; if(bo
   const ceif=no("ceif","Ceifeiro",itemImg("FARM_BEAN_SEED",[2]),()=>rotulo()(gateF()),body=>{
     linhaPorta("Nó liberado (libera o T2)",gateF,v=>gF.forEach(k=>{ spEnsure(k).t2=v; }),body);
     body.append(grupoFaz("z:ervas","Herborista","her"),grupoFaz("z:plantas","Fazendeiro","faz"),grupoFaz("z:animais","Criador de animais","cri")); });
-  box.append(no("apr","Fazendeiro aprendiz",itemImg("FARM_CARROT_SEED",[1]),()=>"1/1 · libera o T1",body=>body.append(sous,ceif))); cnt(); }
+  /* Rastreamento (caçada): Rastreador aprendiz 1/1 > Rastreador experiente (maestria) > 8 especializações. Sem item no jogo para o ícone, então só texto. */
+  const RAST=[["PANTHER","Pantera das Sombras"],["ENT","Espírito Arbóreo"],["DIREBEAR","Urso Espiritual"],["WEREWOLF","Lobisomem"],["IMP","Diabrete Infernal"],["ELEMENTAL_ROCK","Golem de Pedra Rúnica"],["EAGLE","Águia da Alvorada"],["FACTION_MOB","Presa Rara"]];
+  const rast=()=>spEnsure("z:rastreio");
+  const exper=no("rast","Rastreador experiente",el("span",{class:"arv-pata","aria-hidden":"true"},"🐾"),()=>{ const g=spGet("z:rastreio"), sv=g.s||{}, n=RAST.filter(([c])=>+sv[c]>0).length, m=g.m||0; return (m||n)?`maestria ${m} · ${n} de ${RAST.length}`:"sem spec"; },body=>{ const gr=el("div",{class:"spgrid"}); body.append(gr);
+    gr.append(tagIn("Maestria",numIn(spGet("z:rastreio").m||0,100,"Maestria de Rastreador experiente",v=>{ rast().m=v; salvar(); },"—")));
+    RAST.forEach(([c,n])=>{ const lab=tagIn(n,numIn(+(spGet("z:rastreio").s||{})[c]||0,100,"Rastreamento: "+n,v=>{ const st=rast(); st.s=st.s||{}; if(v) st.s[c]=v; else delete st.s[c]; lab.classList.toggle("on",v>0); salvar(); },"—")); lab.classList.add("arv-sp"); lab.classList.toggle("on",+(spGet("z:rastreio").s||{})[c]>0); gr.append(lab); }); });
+  box.append(no("apr","Fazendeiro aprendiz",itemImg("FARM_CARROT_SEED",[1]),()=>"1/1 · libera o T1",body=>body.append(sous,ceif)),
+    no("rap","Rastreador aprendiz",el("span",{class:"arv-pata","aria-hidden":"true"},"🐾"),()=>"1/1",body=>body.append(exper))); cnt(); }
