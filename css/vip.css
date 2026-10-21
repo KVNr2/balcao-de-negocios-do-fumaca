@@ -1068,3 +1068,6 @@ img.nb-xi{width:52px;height:52px}
 .bc-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .zc-top .ip-badge{margin-left:auto;flex:none}
 .zvar>.ip-badge{align-self:flex-start;margin:8px 0}
+.alb-tier{display:flex;flex-direction:column;gap:2px;font:600 11px Inter,sans-serif;color:var(--parch-2,#cdbf9f)}
+.alb-tier select{min-height:40px;height:40px}
+.kx-alb .bc-more{height:40px;align-self:flex-end}.kx-alb select{align-self:flex-end}

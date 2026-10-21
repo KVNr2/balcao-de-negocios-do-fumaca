@@ -27,7 +27,7 @@ function albionBadge(b){
   const w=el("div",{class:"ip-badge",role:"status"}); const num=el("b",{class:"ip-n"}), lab=el("span",{class:"ip-l",text:"IP médio"}), sub=el("small",{class:"ip-s"}); w.append(lab,num,sub);
   w._upd=(set,tier)=>{ let r; try{ r=ipBuild(b,set||0,tier||0); }catch(e){ w.hidden=true; return; } w.hidden=false;
     num.textContent=Math.round(r.avg).toLocaleString("pt-BR");
-    sub.textContent=(tier?`T${tier} equivalente`:"peças da build")+(r.sem?" · sem ficha":" · pela sua ficha")+(r.miss?` · ${r.miss} sem equivalente`:"");
-    w.title="Estimativa em qualidade normal. "+r.parts.map(p=>`${p.slot.toUpperCase()} ${Math.round(p.ip)}`).join(" · ")+(r.sem?". Carregue sua ficha para somar os bônus de maestria e spec.":""); };
+    sub.textContent=(tier?`com tudo em T${tier} equivalente`:"com as peças como na build")+(r.sem?" · sem ficha":" · pela sua ficha");
+    w.title="O IP muda com o tier escolhido em \"Tier das peças\". Estimativa em qualidade normal. "+r.parts.map(p=>`${p.slot.toUpperCase()} ${Math.round(p.ip)}`).join(" · ")+(r.sem?". Carregue sua ficha para somar os bônus de maestria e spec.":""); };
   w._upd(0,0); return w;
 }
