@@ -1177,9 +1177,9 @@ img.nb-xi{width:52px;height:52px}
 .bm2t .hist-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .hist-seg button{font-size:13px;padding:4px 10px}
 
-/* qualidade na barra da build: um seletor geral e um por peça */
-.alb-pecas{display:flex;flex-wrap:wrap;gap:8px 12px;flex-basis:100%;padding:8px 10px;margin-top:4px;border:1px solid var(--line-soft,#3a2d25);border-radius:10px;background:var(--cloth,#241a16)}
-.alb-pecas[hidden]{display:none}
-.alb-pecas label{display:flex;flex-direction:column;gap:3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--smoke,#a99b8b)}
-.alb-pecas select{font-size:13px;text-transform:none;letter-spacing:0}
-.alb-pp[aria-expanded="true"]{background:var(--saffron);color:var(--saffron-ink)}
+/* qualidade dentro da build aberta */
+.kx-qtop{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:8px 10px;margin-bottom:8px;border:1px solid var(--line-soft,#3a2d25);border-radius:10px;background:var(--cloth,#241a16);font-size:13px}
+.kx-qtop>span{font-weight:700;letter-spacing:.04em}
+.kx-qtop small{flex-basis:100%}
+select.kx-q{font-size:12px;padding:3px 6px;margin-top:4px;max-width:150px}
+select.kx-q:not([value="0"]){}

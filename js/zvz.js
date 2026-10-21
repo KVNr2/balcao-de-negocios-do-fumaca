@@ -16,7 +16,7 @@ function zVariante(w,v,idx){
   const mk=(code,t,e,tt)=>{ const w_=el("div",{class:"zg",title:zNome(code)+(e?"."+e:"")}); w_.append(zimg(code,t,e,"nico zi")); w_.append(el("span",{class:"zg-t",text:`${t}.${e||0}`})); return w_; };
   row.append(mk(w,v.arma.t,v.arma.e));
   for(const [k] of ZSLOT){ if(v[k]) row.append(mk(v[k].c,v[k].t,v[k].e)); }
-  const zb=zBuild(w,v), vbadge=albionBadge(zb); vbadge.classList.add("ip-in"); row.append(vbadge); box.append(row,albionBar(zb,vbadge,`z:${w}:${idx}`),el("p",{class:"muted small",text:`${v.n} ${v.n===1?"jogador usou":"jogadores usaram"} este conjunto de elmo, peito e botas ${v.ip?"· IP médio "+v.ip:""}`}));
+  const zb=zBuild(w,v), vbadge=albionBadge(zb); vbadge.classList.add("ip-in"); row.append(vbadge); box.append(row,albionBar(zb,vbadge,`z:${w}:${idx}`,{qBar:true}),el("p",{class:"muted small",text:`${v.n} ${v.n===1?"jogador usou":"jogadores usaram"} este conjunto de elmo, peito e botas ${v.ip?"· IP médio "+v.ip:""}`}));
   return box;
 }
 const zBuild=(w,v)=>{ const zid=x=>x?`T${x.t}_${x.c}${x.e?"@"+x.e:""}`:"";
