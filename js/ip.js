@@ -10,8 +10,8 @@ function ipItem(id){
   let bonus=0, mod=m.t>=5?(m.t-4)*0.05:0;
   if(grp){ const f=(PF&&PF.sp&&PF.sp[grp.k])||{}, s=f.s||{}, off=/^OFF_/.test(m.c), own=+s[m.c]||0;
     let oth=0; for(const [c] of grp.it){ if(c===m.c) continue; oth+=(+s[c]||0)*(IP_ARTE.test(c)?0.1:off?0.6:0.2); }
-    bonus=(+f.m||0)*0.2+own*2.2+oth; }
-  const ip=base+bonus*(1+mod);
+    bonus=(+spMastery(grp.k)||0)*0.2+own*2.2+oth; }   // a maestria das armas fica em PF.armas, não em PF.sp
+  const ip=Math.floor(base+bonus*(1+mod)+1e-9);   // o jogo corta a fração (não arredonda)
   return {ip,base,bonus:bonus*(1+mod),mod};
 }
 /* IP médio da build no set e tier escolhidos; lê as peças já convertidas pelo mesmo caminho do carregamento do Albion */
