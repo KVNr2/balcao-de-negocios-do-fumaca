@@ -193,11 +193,13 @@ const tierOrder = t => { const o=[t]; for(let i=t-1;i>=1;i--) o.push(i); for(let
 /* o servidor de ícones devolve uma imagem em branco (sem erro) para um tier que o item não tem, então a ordem importa:
    primeiro os tiers que temos salvos no site, e para os poucos itens sem cópia local, o tier em que ele existe */
 const ICON_TIER_HINT = {MOUNT_MULE:[2,3], FARM_CARROT_SEED:[1], FARM_BEAN_SEED:[2], FARM_AGARIC_SEED:[2]};
-function itemImg(code,tiers){ let t=tiers||[4,5,6,3,7,8,2,1], i=0;
-  { const has=x=>typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${x}_${code}`), loc=has(t[0])?[]:t.filter(has); const hint=ICON_TIER_HINT[code]||[]; const first=loc.length?loc:hint; if(first.length) t=[...first,...t.filter(x=>!first.includes(x))]; } const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer";
+function itemImg(code,tiers){ let t=null, i=0;
+  const ordem=l=>{ const has=x=>typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${x}_${code}`), loc=has(l[0])?[]:l.filter(has); const first=loc.length?loc:(ICON_TIER_HINT[code]||[]); return first.length?[...first,...l.filter(x=>!first.includes(x))]:l; };
+  t=ordem(tiers||[4,5,6,3,7,8,2,1]);
+  const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer";
   const set=()=>{ const id=`T${t[i]}_${code}`; iconSrc(im,id,fail); };
   const fail=()=>{ if(++i<t.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } };
-  im._tier=n=>{ t=tierOrder(n); i=0; im.classList.remove("nico-off"); set(); }; set(); return im; }
+  im._tier=n=>{ t=ordem(tierOrder(n)); i=0; im.classList.remove("nico-off"); set(); }; set(); return im; }
 /* item que representa a linha de maestria: o básico (SET1) quando existe, senão o primeiro da lista */
 const REP_FIXO = {"z:animais":"FARM_HORSE_BABY","z:ervas":"FARM_AGARIC_SEED"};   // ícone da maestria do grupo quando o primeiro da lista não representa bem (criação de animais: o potro)
 const repKey = g => REP_FIXO[g.k]||(g.it.find(x=>/_SET1$/.test(x[0]))||g.it[0])[0];
@@ -562,14 +564,14 @@ function renderSpecs(){
       const curSub=subs[subs.length-1]; curSub._gs.push(g);
       const d=el("details",{class:"spg"}), sm=el("summary"), nmS=el("span",{class:"spn",text:g.nome}), sumS=el("span",{class:"sps",text:spSummary(g)});
       sm.append(nmS,sumS); d.append(sm); const body=el("div",{class:"spgrid"}); d.append(body);
-      const icons=[], combate=g.sec==="combate";
-      const mk=key=>{ const im=itemImg(specCode(g,key), combate?tierOrder(tierFromMastery(spMastery(g.k))):null); icons.push(im); return im; };
+      const icons=[], combate=g.sec==="combate", tierIc=combate||g.sec==="fazenda";   // tierIc: o tier do ícone segue a maestria (como nas armaduras)
+      const mk=key=>{ const im=itemImg(specCode(g,key), tierIc?tierOrder(tierFromMastery(spMastery(g.k))):null); icons.push(im); return im; };
       const upd=()=>{ const base=spSummary(g); sumS.classList.toggle("on",base!=="sem spec"); sumS.title=base;
         { const sv=spGet(g.k).s||{}, vals=g.it.map(([k])=>+sv[k]||0).filter(v=>v>0), m=spMastery(g.k); sumS.textContent="";
           const chip=(t,c)=>sumS.append(el("span",{class:"spchip "+(c||""),text:t}));
           if(base==="sem spec"){ chip("sem spec","off"); } else { if(m) chip("Maestria "+m,"m"); if(vals.length) chip(`${vals.length}/${g.it.length} itens`,"n"); if(vals.length) chip("Maior "+Math.max(...vals),"mx"); if(combate&&m) chip("Usa até T"+tierFromMastery(m),"t"); if(g.k.startsWith("a:")&&(m||vals.length)){ const [slot,mat]=g.k.slice(2).split("_"); chip("Foco T6.0: "+fmt(craftFocus(slot,mat,6,0,1)),"f"); } }
           d.style.setProperty("--p",(g.it.length?Math.round(vals.length/g.it.length*100):0)+"%"); d.classList.toggle("has",base!=="sem spec"); } refreshSubs();
-        if(combate){ const t=tierFromMastery(spMastery(g.k)); icons.forEach(im=>im._tier(t)); lockRows(); } };
+        if(tierIc){ const t=tierFromMastery(spMastery(g.k)); icons.forEach(im=>im._tier(t)); } if(combate) lockRows(); };
       /* sem maestria (abaixo do T4) não dá para usar item nenhuma da linha: some o nome e o ícone, a não ser que o item já tenha nível */
       const rows=[], hint=el("p",{class:"tiny muted splock",text:"Digite a maestria da linha para liberar as armas e peças. Sem maestria não dá para usar nenhuma delas.",hidden:true});
       /* nó de prévia: o que a maestria 1 libera (itens T4), só enquanto a maestria está zerada */
