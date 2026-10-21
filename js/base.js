@@ -201,13 +201,15 @@ const ICON_TIER_HINT = {MOUNT_MULE:[2,3], FARM_CARROT_SEED:[1], FARM_BEAN_SEED:[
 /* tier mínimo de um item = o menor tier que temos salvo (as sementes sem imagem própria usam o do produto). Serve para mostrar em cinza o que a maestria ainda não libera. */
 /* ícone/tier fixo de uma especialização (nenhum no momento; a galinha usa o pintinho T3, que é o que existe) */
 const ICON_SPEC_TIER = {};
+// tier mínimo para FAZER o item (nos detalhes do spec) quando difere do ícone: Montarias raras começa no Gamo T4, mas o ícone da árvore é o lobo (T6+)
+const SPEC_MIN_TIER = {FARM_DIREWOLF_BABY:4};
 const minTierOf = code => { if(ICON_SPEC_TIER[code]) return ICON_SPEC_TIER[code]; const a=ICON_ALT[code]; if(a) return a[1]; if(typeof ICONS_LOCAL==="undefined") return 0; for(let x=1;x<=8;x++) if(ICONS_LOCAL.has(`T${x}_${code}`)) return x; return 0; };
 const ICON_ALT = {FARM_CARROT_SEED:["CARROT",1], FARM_BEAN_SEED:["BEAN",2], FARM_AGARIC_SEED:["AGARIC",2]};
 function itemImg(code,tiers,gate){ let t=null, i=0; if(ICON_ALT[code]){ const [alt,tr]=ICON_ALT[code]; if(typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${tr}_${alt}`)&&![1,2,3,4,5,6,7,8].some(x=>ICONS_LOCAL.has(`T${x}_${code}`))){ code=alt; tiers=[tr]; } }
   let lock=false;
-  const ordem=l=>{ const sp=ICON_SPEC_TIER[code]; if(sp){ lock=!!(gate&&l[0]<sp); return [sp,...l.filter(x=>x!==sp)]; } const mn=gate?minTierOf(code):0; lock=!!(mn&&l[0]<mn); if(lock) return [mn,...l.filter(x=>x!==mn)]; const has=x=>typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${x}_${code}`), loc=has(l[0])?[]:l.filter(has); const first=loc.length?loc:(ICON_TIER_HINT[code]||[]); return first.length?[...first,...l.filter(x=>!first.includes(x))]:l; };
+  const ordem=l=>{ const sp=ICON_SPEC_TIER[code]; if(sp){ lock=!!(gate&&l[0]<sp); return [sp,...l.filter(x=>x!==sp)]; } const mn=gate?(SPEC_MIN_TIER[code]||minTierOf(code)):0; lock=!!(mn&&l[0]<mn); if(lock){ const sh=minTierOf(code)||mn; return [sh,...l.filter(x=>x!==sh)]; } const has=x=>typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${x}_${code}`), loc=has(l[0])?[]:l.filter(has); const first=loc.length?loc:(ICON_TIER_HINT[code]||[]); return first.length?[...first,...l.filter(x=>!first.includes(x))]:l; };
   t=ordem(tiers||[4,5,6,3,7,8,2,1]);
-  const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer"; const marca=()=>{ im.classList.toggle("nico-lock",lock); if(lock) im.title=`Só existe a partir do T${minTierOf(code)}: ainda não dá para fazer com a maestria atual.`; else im.removeAttribute("title"); }; marca();
+  const im=el("img",{class:"nico",alt:"",width:"28",height:"28",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer"; const marca=()=>{ im.classList.toggle("nico-lock",lock); if(lock) im.title=`Só existe a partir do T${SPEC_MIN_TIER[code]||minTierOf(code)}: ainda não dá para fazer com a maestria atual.`; else im.removeAttribute("title"); }; marca();
   const set=()=>{ const id=`T${t[i]}_${code}`; iconSrc(im,id,fail); };
   const fail=()=>{ if(++i<t.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } };
   im._tier=n=>{ t=ordem(tierOrder(n)); marca(); i=0; im.classList.remove("nico-off"); set(); }; set(); return im; }
