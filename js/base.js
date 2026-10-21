@@ -265,7 +265,8 @@ function cacheGet(url,ttlMin){ try{ const raw=localStorage.getItem(CACHE_PREFIX+
 function cachePut(url,j){ const v=JSON.stringify({t:Date.now(),j}); try{ localStorage.setItem(CACHE_PREFIX+url,v); }catch(e){ try{ Object.keys(localStorage).filter(k=>k.startsWith(CACHE_PREFIX)).forEach(k=>localStorage.removeItem(k)); localStorage.setItem(CACHE_PREFIX+url,v); }catch(e2){} } }
 async function apiJSON(url,ttlMin=10){
   if(!FORCE){ const c=cacheGet(url,ttlMin); if(c){ apiJSON.oldest=Math.min(apiJSON.oldest||Infinity,c.t); return c.j; } }
-  const r=await fetch(url); if(!r.ok) throw new Error("API respondeu "+r.status); const j=await r.json(); cachePut(url,j); return j;
+  let r=await fetch(url); for(let n=0;!r.ok&&(r.status===429||r.status>=500)&&n<3;n++){ await new Promise(f=>setTimeout(f,1500*Math.pow(2,n))); r=await fetch(url); }   // limite de pedidos da API: espera e tenta de novo
+  if(!r.ok) throw new Error("API respondeu "+r.status); const j=await r.json(); cachePut(url,j); return j;
 }
 const CITIES=["Thetford","Fort Sterling","Martlock","Bridgewatch","Lymhurst"];
 const MAX_AGE_H=72;
