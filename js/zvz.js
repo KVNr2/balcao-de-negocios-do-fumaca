@@ -27,8 +27,7 @@ function zLeitura(w,v){ if(!v.ip) return null; let teto; try{ teto=zTeto(w,v); }
   if(exc<=0) cards.push(["ok","Compatível com qualidade Normal","IP "+(-exc)+" abaixo do máximo possível ("+teto+" com spec cheia, qualidade Normal). Sem sinal de overcharge nem de qualidade melhor."+pouco]);
   else if(exc<=20) cards.push(["both","Pouco overcharge e/ou qualidade Boa","IP "+exc+mx+". Pode ser um pouco de overcharge e/ou peças de qualidade Boa (+20), as opções mais baratas."+pouco]);
   else if(exc<=100) cards.push(["over","Overcharge provável","IP "+exc+mx+": "+(exc>=90?"quase todo o":"parte do")+" overcharge possível (até +100 com todas as peças). Qualidade Excepcional ou melhor também explicaria, mas custa bem mais, então o overcharge é o mais provável."+pouco]);
-  else if(exc<=200) cards.push(["both","Overcharge e qualidade melhor","IP "+exc+mx+": passa do overcharge completo (+100), então provavelmente havia também qualidade melhor, de "+zQmin(exc-100)+" na média."+pouco]);
-  else cards.push(["over","Muito acima do possível","IP "+exc+mx+", mais que overcharge completo e qualidade Obra-prima juntos (+200). Provavelmente as peças tinham tier ou encanto maior que o mostrado, ou a estimativa está baixa para esse conjunto."+pouco]);
+  else cards.push(["both","Overcharge e qualidade melhor","IP "+exc+mx+": passa do overcharge completo (+100), então provavelmente havia também qualidade melhor, de "+zQmin(exc-100)+" na média."+pouco]);
   return {teto,cards}; }
 function zVariante(w,v,idx){
   const box=el("div",{class:"zvar"}); const row=el("div",{class:"zgear"});
