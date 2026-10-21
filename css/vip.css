@@ -1239,3 +1239,16 @@ select.kx-q:not([value="0"]){}
 .nb-qa .qp{margin-left:auto}
 @media (max-width:520px){.nb-qr{flex-wrap:wrap}.nb-qr .qp{margin-left:0}}
 .qp-n{min-width:122px}
+
+/* ZvZ: leitura do IP médio da luta (overgear, qualidade) */
+.zobs{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:8px 0 4px}
+.zobs-ip{display:flex;flex-direction:column;justify-content:center;padding:6px 14px;border-radius:12px;border:1px solid var(--line,#4a3527);background:rgba(239,226,196,.05)}
+.zobs-ip small{font:600 10px Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--smoke,#9d8f7f)}
+.zobs-ip b{font:800 24px/1.1 Inter,sans-serif;color:var(--parch,#efe2c4);font-variant-numeric:tabular-nums}
+.zobs-c{display:flex;flex-direction:column;gap:2px;flex:1 1 220px;max-width:380px;padding:7px 12px;border-radius:12px;border:1px solid var(--line,#4a3527);font:500 12px/1.35 Inter,sans-serif;color:var(--parch-2,#cdbd9c)}
+.zobs-c b{font:700 13px Inter,sans-serif}
+.zobs-c.over{border-color:#b9792e;background:rgba(232,171,69,.12)}.zobs-c.over b{color:#f0b43c}
+.zobs-c.qual{border-color:#7b4fb3;background:rgba(176,114,232,.12)}.zobs-c.qual b{color:#c79af0}
+.zobs-c.both{border-color:#c9892f;background:linear-gradient(90deg,rgba(232,171,69,.14),rgba(176,114,232,.14))}.zobs-c.both b{color:#f0c26a}
+.zobs-c.ok{border-color:#2f5a47;background:rgba(124,199,154,.08)}.zobs-c.ok b{color:var(--gain,#7cc79a)}
+.zobs-c.low{border-color:#6b3a33;background:rgba(238,134,112,.08)}.zobs-c.low b{color:var(--loss,#ee8670)}

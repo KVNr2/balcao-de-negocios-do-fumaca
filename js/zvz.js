@@ -13,12 +13,35 @@ const zNome = c => { buildIdx(); return codeName(c); };
 const zPct = (n,t) => t?Math.round(n*1000/t)/10:0;
 function zFonte(){ return ZVZ.papeis; }
 function zDados(){ if(!zAli) return ZVZ.papeis; const a=ZVZ.aliancas.find(x=>x.nome===zAli); return a?a.papeis:ZVZ.papeis; }
+/* ===== Overgear e qualidade, lidos do IP médio que os jogadores tinham na luta =====
+   IP base da variante = média das 6 posições (tier, encanto e base do item; 2 mãos conta em dobro, sem secundária = 0), sem maestria e sem qualidade.
+   Referência de luta = IP médio de todos os jogadores da base (pesado por jogadores). Bônus típico de maestria = mediana de (IP − base) nas variantes com amostra boa.
+   Overgear: IP médio ao menos 100 acima da média da luta (100 = um encanto inteiro). Qualidade acima de Normal: IP maior que o esperado pelos itens (base + bônus típico). */
+const zBase=(w,v)=>{ const pc=x=>x?100*x.t+300+100*(x.e||0)+(IPOFF[x.c]||0):0; const a=pc({t:v.arma.t,e:v.arma.e,c:w}); const two=/^2H_/.test(w);
+  return (a*(two?2:1)+pc(v.off)+pc(v.cabeca)+pc(v.peito)+pc(v.botas)+pc(v.capa))/6; };
+let ZREF=null;
+function zRef(){ if(ZREF&&ZREF.src===ZVZ) return ZREF; let sw=0,sn=0; const rs=[];
+  for(const w in ZVZ.armas) for(const v of ZVZ.armas[w].variantes){ if(!v.ip) continue; sw+=v.ip*v.n; sn+=v.n; rs.push([v.ip-zBase(w,v),v.n]); }
+  const good=rs.filter(x=>x[1]>=5), use=good.length>=5?good:rs, a=use.map(x=>x[0]).sort((x,y)=>x-y);
+  ZREF={src:ZVZ,media:sn?sw/sn:0,bonus:a.length?a[Math.floor(a.length/2)]:0}; return ZREF; }
+function zLeitura(w,v){ if(!v.ip) return null; const R=zRef(), base=zBase(w,v), acima=Math.round(v.ip-R.media), exc=Math.round(v.ip-(base+R.bonus));
+  const over=acima>=100, abaixo=acima<=-100, qual=exc>=25, fraco=exc<=-60;
+  const pouco=v.n<3?` (amostra pequena: ${v.n} ${v.n===1?"jogador":"jogadores"})`:"";
+  const cards=[];
+  if(over&&qual) cards.push(["both","Overgear e qualidade","Os dois podem ter ocorrido: o IP está "+acima+" acima da média da luta ("+Math.round(R.media)+") e cerca de "+exc+" acima do esperado para esses itens em qualidade Normal."+pouco]);
+  else if(over) cards.push(["over","Overgear","IP "+acima+" acima da média da luta ("+Math.round(R.media)+"): esse conjunto estava acima do padrão."+pouco]);
+  else if(qual) cards.push(["qual","Qualidade acima de Normal","O IP está cerca de "+exc+" acima do esperado para esses itens: possivelmente peças Boas ou melhores."+pouco]);
+  if(!over&&abaixo) cards.push(["low","Abaixo da média","IP "+(-acima)+" abaixo da média da luta ("+Math.round(R.media)+")."+pouco]);
+  if(!over&&!qual&&!abaixo) cards.push(["ok","Sem overgear","IP dentro da média da luta ("+Math.round(R.media)+"); itens compatíveis com qualidade Normal."+pouco]);
+  if(fraco&&!qual) cards.push(["low","IP abaixo do esperado","Cerca de "+(-exc)+" abaixo do esperado para esses itens: pouca maestria ou peças de tier/encanto menor entre os jogadores."+pouco]);
+  return cards; }
 function zVariante(w,v,idx){
   const box=el("div",{class:"zvar"}); const row=el("div",{class:"zgear"});
   const mk=(code,t,e,tt)=>{ const w_=el("div",{class:"zg",title:zNome(code)+(e?"."+e:"")}); w_.append(zimg(code,t,e,"nico zi")); w_.append(el("span",{class:"zg-t",text:`${t}.${e||0}`})); return w_; };
   row.append(mk(w,v.arma.t,v.arma.e));
   for(const [k] of ZSLOT){ if(v[k]) row.append(mk(v[k].c,v[k].t,v[k].e)); }
-  const zb=zBuild(w,v), vbadge=albionBadge(zb); vbadge.classList.add("ip-in"); row.append(vbadge); box.append(row,albionBar(zb,vbadge,`z:${w}:${idx}`,{qBar:true}),el("p",{class:"muted small",text:`${v.n} ${v.n===1?"jogador usou":"jogadores usaram"} este conjunto de elmo, peito e botas ${v.ip?"· IP médio "+v.ip:""}`}));
+  const zb=zBuild(w,v), vbadge=albionBadge(zb); vbadge.classList.add("ip-in"); row.append(vbadge); box.append(row,albionBar(zb,vbadge,`z:${w}:${idx}`,{qBar:true}),el("p",{class:"muted small",text:`${v.n} ${v.n===1?"jogador usou":"jogadores usaram"} este conjunto de elmo, peito e botas `}));
+  const lei=zLeitura(w,v); if(lei){ const obs=el("div",{class:"zobs"}); obs.append(el("div",{class:"zobs-ip",title:"IP médio dos jogadores que usaram este conjunto, lido da luta"},el("small",{text:"IP médio na luta"}),el("b",{text:String(v.ip)}))); lei.forEach(([k,t,d])=>{ const c=el("div",{class:"zobs-c "+k}); c.append(el("b",{text:t}),el("span",{text:d})); obs.append(c); }); box.append(obs); }
   return box;
 }
 const zBuild=(w,v)=>{ const zid=x=>x?`T${x.t}_${x.c}${x.e?"@"+x.e:""}`:"";
