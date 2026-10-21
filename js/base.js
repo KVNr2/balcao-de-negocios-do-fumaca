@@ -199,8 +199,8 @@ const tierOrder = t => { const o=[t]; for(let i=t-1;i>=1;i--) o.push(i); for(let
 const ICON_TIER_HINT = {MOUNT_MULE:[2,3], FARM_CARROT_SEED:[1], FARM_BEAN_SEED:[2], FARM_AGARIC_SEED:[2]};
 /* sementes sem imagem própria: usa a do produto (cenoura, feijão, cogumelo), que temos salva, no tier em que ele existe */
 /* tier mínimo de um item = o menor tier que temos salvo (as sementes sem imagem própria usam o do produto). Serve para mostrar em cinza o que a maestria ainda não libera. */
-/* a especialização começa acima do item do nó principal: a galinha usa o pintinho T5 (o T3, Pintos, é do Criador de Animais) */
-const ICON_SPEC_TIER = {FARM_CHICKEN_BABY:5};
+/* ícone/tier fixo de uma especialização (nenhum no momento; a galinha usa o pintinho T3, que é o que existe) */
+const ICON_SPEC_TIER = {};
 const minTierOf = code => { if(ICON_SPEC_TIER[code]) return ICON_SPEC_TIER[code]; const a=ICON_ALT[code]; if(a) return a[1]; if(typeof ICONS_LOCAL==="undefined") return 0; for(let x=1;x<=8;x++) if(ICONS_LOCAL.has(`T${x}_${code}`)) return x; return 0; };
 const ICON_ALT = {FARM_CARROT_SEED:["CARROT",1], FARM_BEAN_SEED:["BEAN",2], FARM_AGARIC_SEED:["AGARIC",2]};
 function itemImg(code,tiers,gate){ let t=null, i=0; if(ICON_ALT[code]){ const [alt,tr]=ICON_ALT[code]; if(typeof ICONS_LOCAL!=="undefined"&&ICONS_LOCAL.has(`T${tr}_${alt}`)&&![1,2,3,4,5,6,7,8].some(x=>ICONS_LOCAL.has(`T${x}_${code}`))){ code=alt; tiers=[tr]; } }
