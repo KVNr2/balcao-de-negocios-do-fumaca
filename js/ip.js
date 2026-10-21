@@ -9,8 +9,9 @@ function ipItem(id){
   const base=100*m.t+300+100*m.e; const gk=W2LINE&&W2LINE[m.c]; const grp=gk&&SPECS&&SPECS.g.find(g=>g.k==="c:"+gk);
   let bonus=0, mod=m.t>=5?(m.t-4)*0.05:0;
   if(grp){ const f=(PF&&PF.sp&&PF.sp[grp.k])||{}, s=f.s||{}, off=/^OFF_/.test(m.c), own=+s[m.c]||0;
-    let oth=0; for(const [c] of grp.it){ if(c===m.c) continue; oth+=(+s[c]||0)*(IP_ARTE.test(c)?0.1:off?0.6:0.2); }
-    bonus=(+spMastery(grp.k)||0)*0.2+own*2.2+oth; }   // a maestria das armas fica em PF.armas, não em PF.sp
+    const cf=c=>IP_ARTE.test(c)?0.1:off?0.6:0.2;   // quanto cada nível de um item dá aos demais do grupo (escudo comum 0,6; artefato 0,1; resto 0,2)
+    let oth=0; for(const [c] of grp.it){ if(c===m.c) continue; oth+=(+s[c]||0)*cf(c); }
+    bonus=(+spMastery(grp.k)||0)*0.2+own*(2+cf(m.c))+oth; }   // a maestria das armas fica em PF.armas, não em PF.sp
   const ip=Math.floor(base+bonus*(1+mod)+1e-9);   // o jogo corta a fração (não arredonda)
   return {ip,base,bonus:bonus*(1+mod),mod};
 }
