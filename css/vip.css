@@ -1164,3 +1164,12 @@ img.nb-xi{width:52px;height:52px}
 /* etiqueta pequena ao lado do preço médio do Mercado Negro: abre as ofertas e o histórico do item */
 .bm-tag{font:inherit;font-size:.62rem;line-height:1;letter-spacing:.03em;text-transform:uppercase;padding:2px 6px;margin-left:2px;border-radius:999px;border:1px solid var(--line,#5a4a3a);background:transparent;color:var(--gold,#e8b64a);cursor:pointer;vertical-align:middle}
 .bm-tag:hover,.bm-tag:focus-visible{background:var(--gold,#e8b64a);color:#1b1410}
+
+/* histórico do Mercado Negro: quadros de resumo e gráfico maior */
+.bm2t .hist svg{height:auto;max-height:260px}
+.hist-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:2px 0 4px}
+.hist-tile{background:var(--cloth,#241a16);border:1px solid var(--line-soft,#3a2d25);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.hist-tile small{font:700 10.5px var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--smoke,#a99b8b)}
+.hist-tile b{font:800 19px var(--f-display,inherit);font-variant-numeric:tabular-nums}
+.hist-tile em{font-style:normal;font-size:11px;color:var(--smoke,#a99b8b)}
+@media(max-width:640px){.hist-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
