@@ -24,6 +24,8 @@ async function bmFetch(ids, locs, allQ=false, step=API_CHUNK){
   }
 }
 /* preços de um item numa qualidade: {cidade: [venda, compra, idade da compra, idade da venda]} */
+/* preço médio do item nas cidades (mediana dos preços de venda, mesma conta do resto do site); null se nenhuma cidade tem anúncio */
+function bmAvg(id,q){ const rec=bmRec(id,q), pts=SHOP_LOCS.map(c=>rec[c]&&rec[c][0]).filter(v=>v>0); return pts.length?{p:median(pts),n:pts.length}:null; }
 const bmRec = (id,q) => q===1 ? (BMP[id]||{}) : (((BMQ[id]||{})[q])||{});
 const bmHas = (id,q) => { const v=bmRec(id,q)["Black Market"]; return !!(v&&v[1]>0); };
 const bmVolOf = (id,q) => { const v=BM_VOL[id]; return v==null ? null : typeof v==="number" ? -1 : (v[q]||0); };
@@ -142,7 +144,7 @@ async function renderBM(partial){
   const shown=ok.slice(0,100);
   if(BM_GEN!==DATA.geradoEm){ BM_BASE=BM_CUR; BM_CUR={}; BM_GEN=DATA.geradoEm; }
   tb.textContent=""; const hr=tb.createTHead().insertRow();
-  (bmMode==="flip"?["Peça","Tier","Qualidade","O MN paga (bruto)","Mais barato em","Preço lá","Lucro %","Lucro por peça","O MN compra por dia"]:["Peça","Tier","Qualidade","O MN paga (bruto)","Custo para fabricar","Lucro %","Lucro por peça","Cidade com bônus","O MN compra por dia"]).concat([""]).forEach(h=>{ const th=el("th",{text:h}), pc=h==="Lucro %", vl=h==="Lucro por peça";
+  (bmMode==="flip"?["Peça","Tier","Qualidade","O MN paga (bruto)","Preço médio","Mais barato em","Preço lá","Lucro %","Lucro por peça","O MN compra por dia"]:["Peça","Tier","Qualidade","O MN paga (bruto)","Preço médio","Custo para fabricar","Lucro %","Lucro por peça","Cidade com bônus","O MN compra por dia"]).concat([""]).forEach(h=>{ const th=el("th",{text:h}), pc=h==="Lucro %", vl=h==="Lucro por peça";
     if(pc||vl){ th.className="bm-sort"; th.tabIndex=0; th.setAttribute("role","button"); const on=pc===(bmSort==="pct"); th.setAttribute("aria-sort",on?"descending":"none"); th.append(on?" ▼":""); th.title=pc?"Ordenar primeiro pela porcentagem de lucro (e depois pelo valor)":"Ordenar primeiro pelo valor do lucro (e depois pela porcentagem)";
       const go=()=>{ bmSort=pc?"pct":"val"; renderBM(); }; th.addEventListener("click",go); th.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); go(); } }); }
     hr.append(th); });
@@ -150,6 +152,7 @@ async function renderBM(partial){
     tr.insertCell().append(withIconQ(m.id,m.q,nmKey(m.key,m.name))); tr.insertCell().textContent=`${m.t}.${m.e}`;
     tr.insertCell().append(el("span",{class:"qtag q"+m.q,text:QNAME[m.q]}));
     const c1=tr.insertCell(); c1.className="num"; c1.append(fmt(m.bm.p)," ",el("span",{class:"age"+(m.bm.age>6?" old":""),title:ageTip(m.bm.age),text:ageTxt(m.bm.age)}));
+    { const av=bmAvg(m.id,m.q), cm=tr.insertCell(); cm.className="num mk-avg"; cm.textContent=av?fmt(Math.round(av.p)):"—"; cm.title=av?`Mediana dos preços de venda nas cidades (${av.n} ${av.n===1?"cidade":"cidades"})`:"Nenhuma cidade com anúncio"; if(!av) cm.classList.add("none"); }
     if(bmMode==="flip"){ tr.insertCell().textContent=m.buy.c+(m.buy.q>m.q?` (${QNAME[m.buy.q]})`:""); const cb=tr.insertCell(); cb.className="num"; cb.append(fmt(m.buy.p)," ",el("span",{class:"age"+(m.buy.age>6?" old":""),title:ageTip(m.buy.age),text:ageTxt(m.buy.age)})); }
     else { const c2=tr.insertCell(); c2.className="num"; c2.textContent=fmt(m.cost); }
     const v=val(m), pc=pct(m), cp=tr.insertCell(); cp.className="num bm-pct "+(v>=0?"gain":"loss"); cp.textContent=pc===-Infinity?"—":`${v>=0?"+":""}${dec(pc)}%`;
@@ -157,7 +160,7 @@ async function renderBM(partial){
     if(bmMode!=="flip"){ const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=`${m.city}${m.thin?", pouca oferta":""}`; }
     const cv=tr.insertCell(); cv.className="num vol"; cv.textContent=volTxt(bmVolOf(m.id,m.q)); tr.dataset.id=m.id; tr.dataset.q=String(m.q);
     const cg=tr.insertCell(); const gb=el("button",{type:"button",class:"btn mn-craft",title:"Abrir no Craft: fabricar este item e vender para o Mercado Negro",text:"Craft ➜"}); if(m.t<4){ gb.disabled=true; gb.title="O Craft calcula a partir do T4"; } gb.addEventListener("click",ev=>{ ev.stopPropagation(); ofFromBM(BM[m.key][1],m); }); gb.addEventListener("keydown",ev=>ev.stopPropagation()); cg.append(gb);
-    const dr=document.createElement("tr"); body.append(dr); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dr.append(dc); dc.colSpan=10;
+    const dr=document.createElement("tr"); body.append(dr); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dr.append(dc); dc.colSpan=11;
     const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open)); if(open){ dc.textContent=""; try{ dc.append(bmPanel(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes: "+(e&&e.message||e)})); } setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8) dr.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"}); }catch(e){} },60); } };
     tr.setAttribute("aria-expanded","false"); tr.addEventListener("click",ev=>{ if(ev.target.closest("a,button")) return; toggle(); }); tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } }); }
   { const w=$("bmWrap"); if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }

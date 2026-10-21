@@ -345,7 +345,7 @@ async function renderMk(){
   const cities=MK.city?[MK.city]:SHOP_LOCS;
   tb.textContent=""; const hr=tb.createTHead().insertRow(); hr.append(el("th",{text:"Item"}));
   cities.forEach(c=>{ const th=el("th",{}); th.append(el("span",{class:"dot",style:`background:${CITY_COLOR[c]||"#999"}`}),c); hr.append(th); });
-  ["Diferença","Atualizado",""].forEach(h=>hr.append(el("th",{text:h})));
+  ["Preço médio","Diferença","Atualizado",""].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody(), src=mq>1?(PQ[mq]||{}):DATA.itens;
   for(const x of rows){ const rec=src[mkKey(x.id)]||{}; const sp=x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0, spp=x.x.smin?sp/x.x.smin.p:0, hot=sp>0, tone=!(x.x.smax&&x.x.smin)?"is-flat":sp>0?"is-gain":"is-warn";
     const tr=body.insertRow(); tr.className="clickrow bm-row mk-row "+tone; tr.tabIndex=0; const nm_=mkName(x.r);
@@ -353,6 +353,7 @@ async function renderMk(){
     const nb=el("span",{class:"inm"}); const tn=el("strong",{}); tn.append(nm_); if(mq>1) tn.append(el("span",{class:"qtag q"+mq,text:QNAME[mq]})); nb.append(tn,el("small",{text:`${x.r[3]?`T${x.r[3]}.${x.e}`:"sem tier"} · ${CATALOG.c[x.r[1]]||""}${x.r[2]&&subName(x.r[2])!==CATALOG.c[x.r[1]]?` › ${subName(x.r[2])}`:""}`})); hd.append(nb); c0.append(hd);
     for(const c of cities){ const v=rec[c], td=tr.insertCell(); td.className="num mk-city"; if(!v||!(v[0]>0)){ td.textContent="—"; td.classList.add("none"); continue; }
       const b=el("b",{class:"mk-pr"+(x.x.smin&&v[0]===x.x.smin.p?" low":x.x.smax&&v[0]===x.x.smax.p&&sp>0?" high":""),text:fmt(v[0])}); td.append(b); }
+    { const pts=cities.map(c=>rec[c]&&rec[c][0]).filter(v=>v>0), pm=tr.insertCell(); pm.className="num mk-avg"; pm.textContent=pts.length?fmt(Math.round(median(pts))):"—"; pm.title="Mediana dos preços de venda nas cidades desta linha"+(pts.length?` (${pts.length} ${pts.length===1?"cidade":"cidades"})`:""); if(!pts.length) pm.classList.add("none"); }
     const d=tr.insertCell(); d.className="num bm-profit "+(hot?"gain":tone==="is-warn"?"warn":""); d.textContent=x.x.smax&&x.x.smin?fmt(sp):"—"; if(x.x.smax&&x.x.smin) d.append(el("small",{text:`${sp>=0?"+":""}${dec(spp*100)}%`})); d.title="Maior venda menos menor venda: o espaço para comprar numa cidade e vender em outra";
     const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean); const tu=tr.insertCell(); tu.className="num"; tu.append(ts.length?(ageSpan(Math.max(...ts))||"—"):"—");
     const ac=tr.insertCell(); const bt=el("button",{type:"button",class:"btn mn-craft",text:"Detalhe"}); ac.append(bt);
