@@ -166,14 +166,14 @@ function kbPanel(b){
   /* esquerda: habilidades e passivas, recomendado x alternativa */
   const L=el("section",{class:"kx-l"}); L.append(el("h4",{text:"Peças, habilidades e passivas"}));
   const qsl=[];   // seletores por peça, para atualizar quando muda o geral
-  const qtop=el("div",{class:"kx-qtop"}); { const qa=qSelect(bQ(b).a,false,"Qualidade de todas as peças"); qa.addEventListener("change",()=>{ bQ(b).a=+qa.value; bQ(b).p={}; qsl.forEach(([k,x])=>{ x.value="0"; }); if(b._refresh) b._refresh(); });
+  const qtop=el("div",{class:"kx-qtop"}); { const qa=qSelect(bQ(b).a,false,"Qualidade de todas as peças"); qa.addEventListener("change",()=>{ bQ(b).a=+qa.value; bQ(b).p={}; qsl.forEach(([k,x])=>{ x.value=String(qa.value); }); if(b._refresh) b._refresh(); });
     qtop.append(el("span",{text:"Qualidade de todas as peças"}),qa,el("small",{class:"muted",text:"Ou escolha a qualidade de cada peça na lista abaixo. Bom +20, Excepcional +40, Excelente +60, Obra-prima +100 de IP por peça."})); }
   L.append(qtop);
   const hd=el("div",{class:"kx-cols kx-hd"}); hd.append(el("span",{class:"kx-rec",text:"★ Recomendado"}),el("span",{text:"Alternativa"})); L.append(hd);
   const rows=[["w",[b.w,b.w2].filter(Boolean),sk.w?[sk.w,sk.w2||[]]:[]],["o",b.o,[]],["h",b.h,sk.h||[]],["a",b.a,sk.a||[]],["s",b.s,sk.s||[]],["c",b.c,[]],["p",b.p,[]],["f",b.f,[]]];
   rows.forEach(([k,ids,skl])=>{ if(!ids||!ids.length||!ids[0]) return; const r=el("div",{class:"kx-cols"});
     const first=kxItem(ids[0],skl[0],b,k);
-    if("wohasc".includes(k)){ const x=qSelect(bQ(b).p[k]||0,true,"Qualidade: "+itemNome((idInfo(ids[0])||{}).c||"")); x.addEventListener("change",()=>{ if(+x.value) bQ(b).p[k]=+x.value; else delete bQ(b).p[k]; if(b._refresh) b._refresh(); }); qsl.push([k,x]); const tx=first.querySelector(".kx-tx"); (tx||first).append(x); }
+    if("wohasc".includes(k)){ const x=qSelect(bQf(b)(k),false,"Qualidade: "+itemNome((idInfo(ids[0])||{}).c||"")); x.addEventListener("change",()=>{ bQ(b).p[k]=+x.value; if(b._refresh) b._refresh(); }); qsl.push([k,x]); const tx=first.querySelector(".kx-tx"); (tx||first).append(x); }
     r.append(first); r.append(ids[1]?kxItem(ids[1],skl[1],b,k):el("div")); L.append(r); });
   box.append(L);
   /* direita: visão geral no formato do killboard (3 colunas) */
