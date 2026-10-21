@@ -140,7 +140,7 @@ const QOPT=[1,2,3,4,5];
 /* imagem de uma peça da build com a borda da qualidade escolhida; guardada para trocar quando a qualidade muda */
 function qImg(b,slot,id,cls){ if(!"wohasc".includes(slot)) return fullImg(id,cls); const im=fullImg(id,cls,bQf(b)(slot)); if(im) (b._qi=b._qi||[]).push([slot,im]); return im; }
 const bQApply=b=>(b._qi||[]).forEach(([k,im])=>{ if(im._q) im._q(bQf(b)(k)); });
-const bQ=b=>b._qs||(b._qs={a:1,p:{}});          // qualidade escolhida na build: a = todas as peças, p = peça específica (vale mais)
+const bQ=b=>b._qs||(b._qs={a:1,p:{...(b.q||{})}});          // qualidade escolhida na build: a = todas as peças, p = peça específica (vale mais)
 const bQf=b=>k=>bQ(b).p[k]||bQ(b).a;
 const qSelect=(val,todas,label)=>{ const x=el("select",{class:"kx-q","aria-label":label||"Qualidade"}); if(todas) x.append(el("option",{value:"0",text:"= todas"})); QOPT.forEach(q=>x.append(el("option",{value:String(q),text:QNAME[q]}))); x.value=String(val); return x; };
 function albionBar(b,badge,costValue,opts){
