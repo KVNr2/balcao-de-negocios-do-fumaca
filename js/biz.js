@@ -9,10 +9,11 @@ const BM_VOL = {};                  // id: {qualidade: peças que o Mercado Negr
 const BM_LOADED = new Set(); let BM_TOK=0, bmMode="craft", bmTierSel=0, bmQualSel=0, bmSel=null, PLANKS_LOADED=false;
 const ageH = d => d&&!d.startsWith("0001") ? (Date.now()-Date.parse(d+"Z"))/3600e3 : Infinity;
 /* allQ: traz as qualidades 1 a 5 (a 1 vai para o BMP, as outras para o BMQ); sem allQ só a qualidade 1, como as outras páginas usam */
-async function bmFetch(ids, locs, allQ=false){
+async function bmFetch(ids, locs, allQ=false, step=40){
   const loc=locs.join(",").replace(/ /g,"%20");
-  for(let i=0;i<ids.length;i+=40){
-    const j=await apiJSON(`${HOST}/api/v2/stats/prices/${ids.slice(i,i+40).join(",")}.json?locations=${loc}&qualities=${allQ?"1,2,3,4,5":"1"}`);
+  const parts=[]; for(let i=0;i<ids.length;i+=step) parts.push(ids.slice(i,i+step));
+  const res=await Promise.all(parts.map(p=>apiJSON(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=${allQ?"1,2,3,4,5":"1"}`)));   // pedaços em paralelo
+  for(const j of res){
     for(const x of j){
       const qx=allQ?+x.quality:1; if(allQ&&!(qx>=1&&qx<=5)) continue;
       const sa=ageH(x.sell_price_min_date), ba=ageH(x.buy_price_max_date);
@@ -29,9 +30,29 @@ const bmVolOf = (id,q) => { const v=BM_VOL[id]; return v==null ? null : typeof v
 const bmId=(key,t,e)=>`T${t}_${key}`+(e?`@${e}`:"");
 const bmKeys=g=>g==="*"?Object.keys(BM):Object.keys(BM).filter(k=>BM[k][1]===g);
 const BM_PEND={}, BM_PL={};
-function ensureBM(g,only=0){ const lk=g==="*"?`*#${only}`:g; if(BM_LOADED.has(lk)) return Promise.resolve(true); return BM_PEND[lk]||(BM_PEND[lk]=ensureBM1(g,only).finally(()=>{ delete BM_PEND[lk]; })); }
+/* Todas as mercadorias em um tier: 1) só o preço do Mercado Negro de tudo, 2) escolhe os BM_TOPN mais promissores
+   (lucro de fabricar, ou preço do Mercado Negro na revenda) e 3) busca as cidades só desses. Poucos pedidos à API. */
+const BM_TOPN=10, BM_TOP={};
+async function ensureBMTop(t,lk){
+  const gear=[], extra=new Set();
+  for(const k of Object.keys(BM)){ if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) gear.push(bmId(k,t,e)); if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
+  for(const r of ["METALBAR","PLANKS","LEATHER","CLOTH"]) if(t<4) extra.add(`T${t}_${r}`);
+  try{
+    await bmFetch(gear,["Black Market"],true,80);
+    if(!PLANKS_LOADED){ BM_PL.p=BM_PL.p||(async()=>{ const pl=[]; for(let x=4;x<=8;x++) for(let e=0;e<=4;e++) pl.push(`T${x}_PLANKS`+(e?`_LEVEL${e}@${e}`:"")); await fetchIds(pl,DATA.itens); PLANKS_LOADED=true; })().finally(()=>{ BM_PL.p=null; }); await BM_PL.p; }
+    if(extra.size) await fetchIds([...extra],DATA.itens,[...CITIES,"Caerleon"]);
+    const sc=new Map();
+    for(const k of Object.keys(BM)){ if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) for(let q=1;q<=5;q++){ const id=bmId(k,t,e); if(!bmHas(id,q)) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(!m.bm) continue; const v=bmMode==="flip"?m.net:m.craft; if(v!=null&&(!sc.has(id)||v>sc.get(id))) sc.set(id,v); } }
+    const top=[...sc.entries()].sort((a,b)=>b[1]-a[1]).slice(0,BM_TOPN).map(x=>x[0]);
+    if(top.length) await bmFetch(top,["Black Market",...SHOP_LOCS],true,40);
+    BM_TOP[lk]=new Set(top); BM_LOADED.add(lk); return true;
+  }catch(e){ return false; }
+}
+const bmLk=(g,only)=>g==="*"?`*#${only}#${bmMode}`:g;
+function ensureBM(g,only=0){ const lk=bmLk(g,only); if(BM_LOADED.has(lk)) return Promise.resolve(true); return BM_PEND[lk]||(BM_PEND[lk]=ensureBM1(g,only).finally(()=>{ delete BM_PEND[lk]; })); }
 async function ensureBM1(g,only=0){
-  const lk=g==="*"?`*#${only}`:g;
+  const lk=bmLk(g,only);
+  if(g==="*"&&only) return ensureBMTop(only,lk);
   const keys=bmKeys(g), gear=[], extra=new Set();
   for(const k of keys) for(let t=(only||2);t<=(only||8);t++){ if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) gear.push(bmId(k,t,e)); if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
   for(const t of [2,3]) for(const r of ["METALBAR","PLANKS","LEATHER","CLOTH"]) extra.add(`T${t}_${r}`);
@@ -82,17 +103,18 @@ async function renderBM(partial){
   if(!BM){ $("bmNote").textContent="Abrindo o livro do Mercado Negro…"; try{ BM=await need("bm"); }catch(e){ $("bmNote").textContent="Não consegui abrir os dados do Mercado Negro."; return; } }
   setupBM(); const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
   if(g==="*"&&!bmTierSel&&!partial){   // todas as mercadorias e todos os tiers: busca um tier por vez (do T8 ao T2) e mostra o que já chegou
-    const falta=[8,7,6,5,4,3,2].filter(t=>!BM_LOADED.has(`*#${t}`));
+    const falta=[8,7,6,5,4,3,2].filter(t=>!BM_LOADED.has(bmLk("*",t)));
     for(let i=0;i<falta.length;i++){ const t=falta[i];
       note.textContent=i?`Consultando T${t} (${i+1} de ${falta.length}); mostrando o que já chegou. ${note.textContent}`:`Consultando as ordens do Mercado Negro, T${t} (1 de ${falta.length})…`;
       if(i+1<falta.length) ensureBM(g,falta[i+1]).catch(()=>{});   // adianta só o próximo tier (a API limita pedidos por minuto)
       const ok=await ensureBM(g,t); if(tok!==BM_TOK) return;
       if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; }
       if(i<falta.length-1){ await renderBM(true); if(tok!==BM_TOK) return; } }
-  } else if(!(partial&&g==="*"&&!bmTierSel)&&!BM_LOADED.has(g==="*"?`*#${bmTierSel}`:g)){ tb.textContent=""; note.textContent="Consultando as ordens do Mercado Negro…"; const ok=await ensureBM(g,g==="*"?bmTierSel:0); if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; } if($("bmGroup").value!==g||tok!==BM_TOK) return; }
-  const rows=[]; for(const k of bmKeys(g)) for(let t=2;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) for(let q=1;q<=5;q++){ if(bmQualSel&&q!==bmQualSel) continue; if(!bmHas(bmId(k,t,e),q)) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } }
+  } else if(!(partial&&g==="*"&&!bmTierSel)&&!BM_LOADED.has(bmLk(g,bmTierSel))){ tb.textContent=""; note.textContent="Consultando as ordens do Mercado Negro…"; const ok=await ensureBM(g,g==="*"?bmTierSel:0); if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; } if($("bmGroup").value!==g||tok!==BM_TOK) return; }
+  const rows=[]; for(const k of bmKeys(g)) for(let t=2;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) for(let q=1;q<=5;q++){ if(bmQualSel&&q!==bmQualSel) continue; if(!bmHas(bmId(k,t,e),q)) continue; if(g==="*"){ const tp=BM_TOP[bmLk(g,t)]; if(!tp||!tp.has(bmId(k,t,e))) continue; } const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } }
   const val=m=>bmMode==="flip"?m.flip:m.craft;
-  const ok=rows.filter(m=>val(m)!=null).sort((a,b)=>val(b)-val(a)), shown=ok.slice(0,100);
+  let ok=rows.filter(m=>val(m)!=null).sort((a,b)=>val(b)-val(a)); if(g==="*"&&!bmTierSel){ const c={}; ok=ok.filter(m=>(c[m.t]=(c[m.t]||0)+1)<=5); }   // todos os tiers: os 5 mais lucrativos de cada um
+  const shown=ok.slice(0,100);
   tb.textContent=""; const hr=tb.createTHead().insertRow();
   (bmMode==="flip"?["Peça","Tier","Qualidade","O MN paga","Mais barato em","Preço lá","Lucro por peça","O MN compra por dia"]:["Peça","Tier","Qualidade","O MN paga","Custo para fabricar","Lucro por peça","Cidade com bônus","O MN compra por dia"]).concat([""]).forEach(h=>hr.append(el("th",{text:h})));
   for(const m of shown){ const body=tb.createTBody(); const tr=document.createElement("tr"); body.append(tr); tr.className="clickrow bm-row "+(val(m)>=0?"is-gain":"is-loss"); tr.tabIndex=0;
@@ -112,7 +134,7 @@ async function renderBM(partial){
   const gname=g==="*"?"todas as mercadorias":BM_GROUPS.find(x=>x[0]===g)[1], pos=ok.filter(m=>val(m)>0).length;
   const qtxt=bmQualSel?` na qualidade ${QNAME[bmQualSel].toLowerCase()}`:"";
   note.textContent = !rows.length ? `Nenhuma ordem do Mercado Negro para ${gname.toLowerCase()}${qtxt} nos últimos 3 dias.`
-    : `${rows.length} ordens de ${gname.toLowerCase()}${qtxt}; ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${ok.length>100?` Mostrando as 100 de maior lucro de ${fmt(ok.length)} registros: não são todos.`:" Do maior para o menor lucro."} Clique numa linha para ver a conta e o histórico.`;
+    : `${rows.length} ordens de ${gname.toLowerCase()}${qtxt}; ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${g==="*"&&!bmTierSel?" Mostrando os 5 mais lucrativos de cada tier (a lista completa de tudo pesa demais para a API; escolha uma mercadoria para ver todos).":ok.length>100?` Mostrando as 100 de maior lucro de ${fmt(ok.length)} registros: não são todos.`:" Do maior para o menor lucro."} Clique numa linha para ver a conta e o histórico.`;
   if(window.gsap&&!RM) gsap.from(tb.querySelectorAll(".bm-row"),{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
   hbar($("bmWrap")); bmVolumes(shown);
 }
