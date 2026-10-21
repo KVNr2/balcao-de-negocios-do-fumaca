@@ -599,15 +599,18 @@ const MEAL_PT = {SOUP:"Sopa",SALAD:"Salada",SEAWEEDSALAD:"Salada de algas",PIE:"
 function cookTypes(kind){ const m={}; for(const id in COOK.r){ const r=COOK.r[id]; if(r[1]!==kind||!r[3]) continue; const tp=cookType(id); if(!m[tp]) m[tp]= MEAL_PT[tp] || r[0].replace(/^Poção\s+((de|da|do)\s+)?/i,"").replace(/\s+(Menor|Maior)$/,""); } return m; }
 /* ícones da cozinha e da alquimia: começa pelo T4 e, se o prato não existe nele (omelete, por exemplo, é T3, T5 e T7), pega o mais próximo que existe;
    peixe grelhado e salada de algas só existem no T1. O tipo "MOB" é a poção calmante (código POTION_MOB_RESET). */
-const COOK_ICON={MOB:"MOB_RESET"};
+/* os nós do jogo (Especialização de Mestre-cuca e de Alquimista), na ordem do jogo: [tipo, nome, item do ícone]. A ficha guarda o nível por tipo. */
+const COOK_NODES = {
+  f:[["MEAT","Carne","MEAT"],["OMELETTE","Omeletes","MEAL_OMELETTE"],["PIE","Tortas","MEAL_PIE"],["PRODUCTS","Ingredientes de cozinha","BREAD"],["ROAST","Assados","MEAL_ROAST"],["SALAD","Saladas","MEAL_SALAD"],["SANDWICH","Sanduíches","MEAL_SANDWICH"],["SOUP","Sopas","MEAL_SOUP"],["STEW","Guisados","MEAL_STEW"]],
+  p:[["ACID","Poção Ácida","POTION_ACID"],["ALCOHOL","Álcool","ALCOHOL"],["BERSERK","Poção de Fúria","POTION_BERSERK"],["CLEANSE","Poção de Invisibilidade","POTION_CLEANSE"],["CLEANSE2","Poção Purificadora","POTION_CLEANSE2"],["COOLDOWN","Poção Venenosa","POTION_COOLDOWN"],["ENERGY","Poção de Energia","POTION_ENERGY"],["GATHER","Poção de Coleta","POTION_GATHER"],["HEAL","Poção de Cura","POTION_HEAL"],["LAVA","Poção Infernal","POTION_LAVA"],["LIFEWARD","Poção Salva-vidas","POTION_LIFEWARD"],["MOB","Poção Calmante","POTION_MOB_RESET"],["REVIVE","Poção de Crescimento","POTION_REVIVE"],["SLOWFIELD","Poção Pegajosa","POTION_SLOWFIELD"],["STONESKIN","Poção de Resistência","POTION_STONESKIN"],["TORNADO","Tornado Engarrafado","POTION_TORNADO"]]};
 function renderCookProfile(){ const c=$("pfCook"); c.textContent=""; const cg=el("div",{class:"spgroups"}); c.append(cg);
-  for(const [k,n,kind] of [["cozinha","Cozinha","f"],["alquimia","Alquimia","p"]]){ const cur=PF[k]||(PF[k]={m:0,s:{}}); cur.s=cur.s||{}; const types=cookTypes(kind);
+  for(const [k,n,kind] of [["cozinha","Cozinha","f"],["alquimia","Alquimia","p"]]){ const cur=PF[k]||(PF[k]={m:0,s:{}}); cur.s=cur.s||{}; const nodes=COOK_NODES[kind], types=Object.fromEntries(nodes.map(x=>[x[0],x[1]])), iconeDe=Object.fromEntries(nodes.map(x=>[x[0],x[2]]));
     const icons=[], mk=code=>{ const im=itemImg(code,tierOrder(iconTier(cur.m,cur.t2))); icons.push(im); return im; }, retier=()=>{ const t=iconTier(cur.m,cur.t2); icons.forEach(im=>im._tier(t)); };
     const ic=()=>mk(kind==="f"?"MEAL_STEW":"POTION_HEAL");
     cg.append(spNode(n,ic(),()=>{ const vals=Object.keys(types).map(tp=>cur.s[tp]??cur.all??0).filter(x=>x>0), parts=[]; if(cur.m) parts.push(`maestria ${cur.m}`); if(vals.length) parts.push(`${vals.length} de ${Object.keys(types).length} com nível, maior ${Math.max(...vals)}`); return parts.length?parts.join(", "):"sem spec"; },(body,upd)=>{
       const save=()=>{ saveProfile(); upd(); retier(); };
       body.append(tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${n}`,x=>{ cur.m=x; save(); }),ic()));
-      for(const [tp,label] of Object.entries(types)) body.append(tagIn(label,numIn(cur.s[tp]??cur.all??0,100,`${n}: ${label}`,x=>{ cur.s[tp]=x; save(); }),mk((kind==="f"?"MEAL_":"POTION_")+(COOK_ICON[tp]||tp)))); })); } }
+      for(const [tp,label] of Object.entries(types)) body.append(tagIn(label,numIn(cur.s[tp]??cur.all??0,100,`${n}: ${label}`,x=>{ cur.s[tp]=x; save(); }),mk(iconeDe[tp]))); })); } }
 function renderWho(){ $("who").textContent = IS_EXAMPLE ? "Ficha de exemplo: Oleran" : (PF.nome ? `Ficha: ${PF.nome}` : "Ficha sem nome"); $("exampleBanner").hidden=!IS_EXAMPLE; }
 $("pfName").addEventListener("change",()=>{ PF.nome=$("pfName").value.trim().slice(0,40); saveProfile(); });
 $("pfCopy").addEventListener("click",()=>{ const code=btoa(unescape(encodeURIComponent(JSON.stringify(PF)))); const done=()=>$("pfStatus").textContent="Código da ficha copiado. Cole em outro navegador em Colar ficha.";
