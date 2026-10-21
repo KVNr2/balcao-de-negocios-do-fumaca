@@ -16,7 +16,7 @@ function zVariante(w,v,idx){
   const mk=(code,t,e,tt)=>{ const w_=el("div",{class:"zg",title:zNome(code)+(e?"."+e:"")}); w_.append(zimg(code,t,e,"nico zi")); w_.append(el("span",{class:"zg-t",text:`${t}.${e||0}`})); return w_; };
   row.append(mk(w,v.arma.t,v.arma.e));
   for(const [k] of ZSLOT){ if(v[k]) row.append(mk(v[k].c,v[k].t,v[k].e)); }
-  const zb=zBuild(w,v), vbadge=albionBadge(zb); box.append(row,vbadge,albionBar(zb,vbadge),custoCtl(`z:${w}:${idx}`),el("p",{class:"muted small",text:`${v.n} ${v.n===1?"jogador usou":"jogadores usaram"} este conjunto de elmo, peito e botas ${v.ip?"· IP médio "+v.ip:""}`}));
+  const zb=zBuild(w,v), vbadge=albionBadge(zb); box.append(row,vbadge,albionBar(zb,vbadge,`z:${w}:${idx}`),el("p",{class:"muted small",text:`${v.n} ${v.n===1?"jogador usou":"jogadores usaram"} este conjunto de elmo, peito e botas ${v.ip?"· IP médio "+v.ip:""}`}));
   return box;
 }
 const zBuild=(w,v)=>{ const zid=x=>x?`T${x.t}_${x.c}${x.e?"@"+x.e:""}`:"";
@@ -26,7 +26,7 @@ function zCard(w,n,total,role){
   const top=el("div",{class:"zc-top"}); top.append(zimg(w,info&&info.variantes[0]?info.variantes[0].arma.t:8,info&&info.variantes[0]?info.variantes[0].arma.e:0,"nico zbig"));
   const mid=el("div",{class:"zc-mid"}); mid.append(el("strong",{text:zNome(w)}),el("span",{class:"muted small",text:`${n} ${n===1?"jogador":"jogadores"} · ${zPct(n,total)}% de ${ROLE_Z(role)}`}));
   const bar=el("div",{class:"zbar"}); bar.append(el("i",{style:`width:${Math.min(100,zPct(n,total)*2.2)}%`})); mid.append(bar); top.append(mid); card.append(top);
-  if(info&&info.variantes.length){ const zb0=zBuild(w,info.variantes[0]), tb=albionBadge(zb0); top.append(tb); const ab=albionBar(zb0,tb); ab.classList.add("z-alb"); ab.title="Copia a build mais usada desta arma"; card.append(ab); }
+  if(info&&info.variantes.length){ const zb0=zBuild(w,info.variantes[0]), tb=albionBadge(zb0); top.append(tb); const ab=albionBar(zb0,tb,`z:${w}:0`); ab.classList.add("z-alb"); ab.title="Copia a build mais usada desta arma"; card.append(ab); }
   if(info&&info.variantes.length){ const det=el("details",{class:"zdet"}); det.append(el("summary",{text:`Build completa (${info.mortes} mortes e abates analisados)`}));
     info.variantes.forEach((v,i)=>det.append(zVariante(w,v,i))); card.append(det); }
   else card.append(el("p",{class:"muted small",text:"Sem build completa nas mortes recentes."}));

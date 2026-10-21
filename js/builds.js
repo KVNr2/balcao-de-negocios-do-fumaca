@@ -135,15 +135,23 @@ function albionLoadout(b,set,tier){
     const e={item:id,quality:1}; if(k==="p") e.stack=10; e.pref=gear?[1,1,2]:food?[0,0,1,1]:[0,0,0]; equipment.push(e); }
   albionLoadout.miss=miss; return JSON.stringify({version:1,name:String(b.t||b.nome||"Build").slice(0,40)+(tier?" T"+tier:""),icon:13,color:12,equipment});
 }
-function albionBar(b,badge){
-  const bar=el("div",{class:"kx-alb"}); let set=0, tier=0;
+/* barra de ações do card: tier das peças (muda o IP, o carregamento e o custo), set, copiar e ver custo */
+function albionBar(b,badge,costValue){
+  const bar=el("div",{class:"kx-alb"}); let set=0, tier=0; try{ tier=+store.get("bTier")||0; }catch(e){}
+  const refresh=()=>{ if(badge) badge._upd(set,tier); };
   const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
-  if(hasAlt){ const sel=el("select",{"aria-label":"Set para o Albion"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; if(badge) badge._upd(set,tier); }); bar.append(sel); }
-  const tsel=el("select",{"aria-label":"Montar como","title":"Todas as peças com a mesma força: T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4; T5 = 5.0 ou 4.1; T4 = 4.0. Cada peça fica no tier dela quando dá."}); tsel.append(el("option",{value:"0",text:"Peças como estão"})); [8,7,6,5,4].forEach(t=>tsel.append(el("option",{value:String(t),text:`Equivalente a T${t}`}))); tsel.addEventListener("change",()=>{ tier=+tsel.value; if(badge) badge._upd(set,tier); }); bar.append(tsel);
-  const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
+  if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; refresh(); }); bar.append(sel); }
+  const lab=el("label",{class:"alb-tier",title:"O tier escolhido vale para o IP, para o texto copiado ao Albion e para o custo. T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4; T5 = 5.0 ou 4.1; T4 = 4.0. Cada peça fica no tier dela quando dá."});
+  lab.append(el("span",{text:"Tier das peças (muda o IP)"})); const tsel=el("select",{"aria-label":"Tier das peças"});
+  tsel.append(el("option",{value:"0",text:"Como na build (tier original)"})); [8,7,6,5,4].forEach(t=>tsel.append(el("option",{value:String(t),text:`T${t} equivalente`}))); tsel.value=String(tier);
+  tsel.addEventListener("change",()=>{ tier=+tsel.value; try{ store.set("bTier",String(tier)); }catch(e){} refresh(); }); lab.append(tsel); bar.append(lab);
+  const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento com o tier escolhido. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
   const msg=el("span",{class:"muted small",role:"status"});
-  btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set,tier); const mi=albionLoadout.miss; try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."+(mi?` ${mi} ${mi===1?"peça não tem":"peças não têm"} equivalente nesse tier e ficou como está.`:""); }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
-  bar.append(btn,msg); return bar;
+  btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set,tier); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
+  bar.append(btn);
+  if(costValue){ const bt=el("button",{type:"button",class:"bc-more bc-cost",text:"Ver custo",title:"Abre o Custo da build no tier escolhido"});
+    bt.addEventListener("click",()=>{ let N=tier; if(!N){ const m=idInfo(set&&b.w2?b.w2:b.w); N=m?Math.min(8,Math.max(4,m.t+m.e)):8; } bcIr(costValue,N); }); bar.append(bt); }
+  bar.append(msg); refresh(); return bar;
 }
 function kbPanel(b){
   const sk=b.sk||{}; const box=el("div",{class:"kx"});
@@ -171,14 +179,6 @@ function kbPanel(b){
     X.append(xg); box.append(X); }
   return box;
 }
-/* botão "montar e ver o custo": escolhe o tier equivalente e leva para a aba Custo da build */
-function custoCtl(value){
-  const w=el("div",{class:"cst-ctl"}); const sel=el("select",{"aria-label":"Tier para calcular o custo"});
-  [4,5,6,7,8].forEach(t=>sel.append(el("option",{value:String(t),text:`T${t} equivalente`}))); try{ sel.value=store.get("cstTier")||"8"; }catch(e){}
-  sel.addEventListener("change",()=>store.set("cstTier",sel.value));
-  const bt=el("button",{type:"button",class:"bc-more bc-cost",text:"Ver custo"}); bt.addEventListener("click",()=>bcIr(value,+sel.value));
-  w.append(sel,bt); return w;
-}
 function buildCard(b){
   const open=bOpen===b.id; const wc=b.wc;
   const card=el("article",{class:"bcard"+(open?" open":"")});
@@ -195,7 +195,7 @@ function buildCard(b){
   card.append(gbStrip(b));
   const btn=el("button",{type:"button",class:"bc-more","aria-expanded":String(open),text:open?"Esconder build completa":"Ver build completa"});
   btn.addEventListener("click",()=>{ bOpen=open?null:b.id; renderBuilds(); });
-  const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib),custoCtl("g:"+b.id)); card.append(act);
+  const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"g:"+b.id)); card.append(act);
   if(open) card.append(kbPanel(b));
   return card;
 }
