@@ -944,8 +944,8 @@ function renderArvore(){ arvoreSecao($("pfArvore"),"arvSum",({ico,cartao,porta})
       gate:porta("Ceifeiro liberado (libera o T2)",gateF,v=>gF.forEach(k=>{ spEnsure(k).t2=v; })),
       cartoes:[faz("z:ervas","Herborista","c-her"),faz("z:plantas","Fazendeiro","c-faz"),faz("z:animais","Criador de animais","c-cri")]}]; }); }
 /* Caçada: a maestria desbloqueia os kits de rastreamento (T?_2H_TOOL_TRACKING, o tier segue a maestria); cada especialização é o rastreio de um tipo de criatura
-   e usa o item que ela solta. Presa Rara não tem item conhecido, então usa as pegadas. */
-const CACA_ITEM={PANTHER:"ALCHEMY_RARE_PANTHER",ENT:"ALCHEMY_RARE_ENT",DIREBEAR:"ALCHEMY_RARE_DIREBEAR",WEREWOLF:"ALCHEMY_RARE_WEREWOLF",IMP:"ALCHEMY_RARE_IMP",ELEMENTAL_ROCK:"ALCHEMY_RARE_ELEMENTAL",EAGLE:"ALCHEMY_RARE_EAGLE"};
+   e usa o item que ela solta. Presa Rara: a sacola de prata (T1 a T8). */
+const CACA_ITEM={PANTHER:"ALCHEMY_RARE_PANTHER",ENT:"ALCHEMY_RARE_ENT",DIREBEAR:"ALCHEMY_RARE_DIREBEAR",WEREWOLF:"ALCHEMY_RARE_WEREWOLF",IMP:"ALCHEMY_RARE_IMP",ELEMENTAL_ROCK:"ALCHEMY_RARE_ELEMENTAL",EAGLE:"ALCHEMY_RARE_EAGLE",FACTION_MOB:"SILVERBAG_NONTRADABLE"};
 function renderCaca(){ arvoreSecao($("pfCaca"),"cacaSum",({ico,cartao})=>{ const rast=()=>spEnsure("z:rastreio"), tier=()=>tierFromMastery(spGet("z:rastreio").m||0);
   return [{nome:"Rastreador aprendiz (1/1)",cartoes:[()=>cartao({id:"c-rast",nome:"Rastreador experiente",ic:()=>ico("2H_TOOL_TRACKING",tier,false),
     itens:CACA.map(([c,l])=>[c,l,CACA_ITEM[c]?t=>ico(CACA_ITEM[c],t,false):pegadas]),tier,getM:()=>spGet("z:rastreio").m||0,setM:v=>{ rast().m=v; },mmax:100,max:100,
