@@ -793,12 +793,12 @@ function renderCookRecs(){
 /* ================= histórico ================= */
 const HIST_CACHE={};
 async function drawHistory(svg,note,id,city,q=1,rich=false,days=30){
-  if(!svg) return; svg.innerHTML=""; note.textContent="Carregando histórico…";
+  if(!svg) return; svg.innerHTML=""; if(rich&&svg.parentNode) svg.parentNode.hidden=false; note.textContent="Carregando histórico…";
   const key=id+"|"+city+(q>1?"|"+q:""); let rows=HIST_CACHE[key];
   if(!rows){ try{ const apiId=/_LEVEL(\d)/.test(id)?`${id}@${id.match(/_LEVEL(\d)/)[1]}`:id;
       const j=await apiJSON(`${HOST}/api/v2/stats/history/${apiId}.json?locations=${encodeURIComponent(city)}&time-scale=24`,360);
       rows=(j.find(x=>x.quality===q)||(q===1?j[0]:null)||{}).data||[]; HIST_CACHE[key]=rows; }catch(e){ rows=null; } }
-  if(!rows||rows.length<(days<=7?2:3)){ note.textContent=`Sem histórico suficiente em ${city}${q>1?`, na qualidade ${QNAME[q].toLowerCase()}`:""}.`; return; }
+  if(!rows||rows.length<(days<=7?2:3)){ if(rich&&svg.parentNode){ svg.parentNode.hidden=true; note.textContent=""; return; } note.textContent=`Sem histórico suficiente em ${city}${q>1?`, na qualidade ${QNAME[q].toLowerCase()}`:""}.`; return; }
   rows=rows.slice(-days);
   const W=rich?1100:520,H=rich?452:150,PL=rich?56:48,PR=rich?64:10,PT=rich?22:10,PB=rich?172:24, v=rows.map(r=>r.avg_price), lo=Math.min(...v), hi=Math.max(...v), pad=(hi-lo)*0.12||hi*0.05;
   const y0=lo-pad, y1=hi+pad, XP=rich?22:0, X=i=>PL+XP+i*(W-PL-PR-2*XP)/(rows.length-1), Y=p=>PT+(1-(p-y0)/(y1-y0))*(H-PT-PB);
