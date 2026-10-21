@@ -41,14 +41,37 @@ async function ensureBMTop(t,lk){
     await bmFetch(gear,["Black Market"],true,150);
     if(!PLANKS_LOADED){ BM_PL.p=BM_PL.p||(async()=>{ const pl=[]; for(let x=4;x<=8;x++) for(let e=0;e<=4;e++) pl.push(`T${x}_PLANKS`+(e?`_LEVEL${e}@${e}`:"")); await fetchIds(pl,DATA.itens); PLANKS_LOADED=true; })().finally(()=>{ BM_PL.p=null; }); await BM_PL.p; }
     if(extra.size) await fetchIds([...extra],DATA.itens,[...CITIES,"Caerleon"]);
-    const sc=new Map();
-    for(const k of Object.keys(BM)){ if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) for(let q=1;q<=5;q++){ const id=bmId(k,t,e); if(!bmHas(id,q)) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(!m.bm) continue; const v=bmMode==="flip"?m.net:m.craft; if(v!=null&&(!sc.has(id)||v>sc.get(id))) sc.set(id,v); } }
-    const top=[...sc.entries()].sort((a,b)=>b[1]-a[1]).slice(0,BM_TOPN).map(x=>x[0]);
+    /* candidatos dos dois modos juntos (fabricar e revender): trocar o modo depois só filtra, sem nova consulta */
+    const topBy=pick=>{ const sc=new Map();
+      for(const k of Object.keys(BM)){ if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) for(let q=1;q<=5;q++){ const id=bmId(k,t,e); if(!bmHas(id,q)) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(!m.bm) continue; const v=pick(m); if(v!=null&&(!sc.has(id)||v>sc.get(id))) sc.set(id,v); } }
+      return [...sc.entries()].sort((a,b)=>b[1]-a[1]).slice(0,BM_TOPN).map(x=>x[0]); };
+    const top=[...new Set([...topBy(m=>m.craft),...topBy(m=>m.net)])];
     if(top.length) await bmFetch(top,["Black Market",...SHOP_LOCS],true);
     BM_TOP[lk]=new Set(top); BM_LOADED.add(lk); return true;
   }catch(e){ return false; }
 }
-const bmLk=(g,only)=>g==="*"?`*#${only}#${bmMode}`:g;
+/* Aquecimento do cache: assim que os preços do site chegam, já busca o Mercado Negro da visão que a pessoa costuma abrir,
+   em segundo plano e devagar (usa no máximo ~45 dos 100 pedidos por minuto da API; o resto fica para o que ela clicar).
+   "Atualizar preços" (force) busca de novo; sem clicar, o próprio cache de 10 minutos vence e a atualização automática refaz. */
+let WARM_RUN=0;
+async function warmBM(force){
+  const run=++WARM_RUN; const sleep=ms=>new Promise(f=>setTimeout(f,ms));
+  try{
+    if(!BM) BM=await need("bm"); if(!$("bmGroup")||!$("bmFocus")) return;
+    const g=(()=>{ try{ return store.get("bmGroup")||bmGroupDefault(); }catch(e){ return bmGroupDefault(); } })();
+    const wait=async()=>{ for(;;){ const now=Date.now(), n=apiStamps.filter(t=>now-t<60e3).length; if(n<=45) return; await sleep(3000); } };
+    const was=FORCE; if(force) FORCE=true;
+    try{
+      if(g==="*"){ for(const t of [8,7,6,5,4,3,2]){ if(run!==WARM_RUN) return; await wait(); await ensureBM("*",t); } }
+      else { await wait(); await ensureBM(g,0); }
+      /* depois, as outras mercadorias, uma por vez: trocar de mercadoria depois também só filtra */
+      for(const [k] of BM_GROUPS){ if(k===g) continue; if(run!==WARM_RUN) return; await wait(); await ensureBM(k,0); await sleep(300); }
+    } finally{ FORCE=was; }
+  }catch(e){}
+}
+// atualização automática: a cada 10 min, se a aba estiver visível, refaz os preços (o cache vencido faz buscar de verdade)
+setInterval(()=>{ if(!document.hidden&&typeof loadLive==="function"&&!$("reload").disabled) loadLive(false); },10.5*60e3);
+const bmLk=(g,only)=>g==="*"?`*#${only}`:g;
 function ensureBM(g,only=0){ const lk=bmLk(g,only); if(BM_LOADED.has(lk)) return Promise.resolve(true); return BM_PEND[lk]||(BM_PEND[lk]=ensureBM1(g,only).finally(()=>{ delete BM_PEND[lk]; })); }
 async function ensureBM1(g,only=0){
   const lk=bmLk(g,only);
