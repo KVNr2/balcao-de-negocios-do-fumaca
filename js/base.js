@@ -263,9 +263,13 @@ const CACHE_PREFIX="c1:";
 let FORCE=false;
 function cacheGet(url,ttlMin){ try{ const raw=localStorage.getItem(CACHE_PREFIX+url); if(!raw) return null; const o=JSON.parse(raw); if(Date.now()-o.t>ttlMin*60e3) return null; return o; }catch(e){ return null; } }
 function cachePut(url,j){ const v=JSON.stringify({t:Date.now(),j}); try{ localStorage.setItem(CACHE_PREFIX+url,v); }catch(e){ try{ Object.keys(localStorage).filter(k=>k.startsWith(CACHE_PREFIX)).forEach(k=>localStorage.removeItem(k)); localStorage.setItem(CACHE_PREFIX+url,v); }catch(e2){} } }
+/* limite global de pedidos simultâneos à API (como um pool de threads): o resto espera a vez */
+const API_MAX=6; let apiBusy=0; const apiQ=[];
+const apiSlot=()=>apiBusy<API_MAX?(apiBusy++,Promise.resolve()):new Promise(f=>apiQ.push(f));
+const apiFree=()=>{ const n=apiQ.shift(); if(n) n(); else apiBusy--; };
 async function apiJSON(url,ttlMin=10){
   if(!FORCE){ const c=cacheGet(url,ttlMin); if(c){ apiJSON.oldest=Math.min(apiJSON.oldest||Infinity,c.t); return c.j; } }
-  let r=await fetch(url); for(let n=0;!r.ok&&(r.status===429||r.status>=500)&&n<3;n++){ await new Promise(f=>setTimeout(f,1500*Math.pow(2,n))); r=await fetch(url); }   // limite de pedidos da API: espera e tenta de novo
+  await apiSlot(); let r; try{ r=await fetch(url); } finally{ apiFree(); } for(let n=0;!r.ok&&(r.status===429||r.status>=500)&&n<3;n++){ await new Promise(f=>setTimeout(f,1500*Math.pow(2,n))); r=await fetch(url); }   // limite de pedidos da API: espera e tenta de novo
   if(!r.ok) throw new Error("API respondeu "+r.status); const j=await r.json(); cachePut(url,j); return j;
 }
 const CITIES=["Thetford","Fort Sterling","Martlock","Bridgewatch","Lymhurst"];
@@ -278,8 +282,9 @@ function familyIds(slot,mat){ const ids=[]; for(let s=1;s<=3;s++) for(let t=4;t<
 /* q: qualidade dos preços (1 a 5). Para q de 2 a 5, passe PQ[q] como target. */
 async function fetchIds(ids, target, locs=CITIES, q=1){
   const loc=locs.join(",").replace(/ /g,"%20");
-  for(let i=0;i<ids.length;i+=40){
-    const j=await apiJSON(`${HOST}/api/v2/stats/prices/${ids.slice(i,i+40).join(",")}.json?locations=${loc}&qualities=${q}`);
+  const parts=[]; for(let i=0;i<ids.length;i+=40) parts.push(ids.slice(i,i+40));
+  const res=await Promise.all(parts.map(p=>apiJSON(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=${q}`)));   // pedaços em paralelo
+  for(const j of res){
     for(const x of j){
       const s=fresh(x.sell_price_min_date)?x.sell_price_min:0, b=fresh(x.buy_price_max_date)?x.buy_price_max:0;
       if(!s&&!b) continue; const k=x.item_id.includes("_LEVEL")?x.item_id.split("@")[0]:x.item_id; (target[k]||(target[k]={}))[x.city]=[s,b,s?Date.parse(x.sell_price_min_date+"Z"):0,b?Date.parse(x.buy_price_max_date+"Z"):0];
