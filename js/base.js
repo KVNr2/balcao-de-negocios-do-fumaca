@@ -526,7 +526,11 @@ const tagIn = (t,inp,ic) => { const w=el("label",{class:"lvt"}), s=el("span",{te
 const bandTxt = n => ["sem spec","começando","média","alta"][band(n)];
 /* nó recolhível da ficha (igual aos das armas): ícone, nome e resumo; o corpo só é montado quando abre */
 function spNode(nome,ic,getSum,build){ const d=el("details",{class:"spg"}), sm=el("summary"), nmS=el("span",{class:"spn",text:nome}), sumS=el("span",{class:"sps"}); sm.append(ic,nmS,sumS); d.append(sm); const body=el("div",{class:"spgrid"}); d.append(body);
-  const upd=()=>{ const t=getSum(); sumS.textContent=t; sumS.classList.toggle("on",t!=="sem spec"); refreshSec(); }; let built=false;
+  /* getSum devolve um texto ou uma lista de chips [[texto, classe]...] (com .p = percentual preenchido), igual aos cartões do Combate */
+  const upd=()=>{ const t=getSum();
+    if(Array.isArray(t)){ sumS.textContent=""; if(!t.length) sumS.append(el("span",{class:"spchip off",text:"sem spec"})); else t.forEach(([x,c])=>sumS.append(el("span",{class:"spchip "+(c||""),text:x}))); sumS.classList.toggle("on",t.length>0); d.classList.toggle("has",t.length>0); d.style.setProperty("--p",(t.p||0)+"%"); }
+    else { sumS.textContent=t; sumS.classList.toggle("on",t!=="sem spec"); }
+    refreshSec(); }; let built=false;
   d.addEventListener("toggle",()=>{ if(!d.open||built) return; built=true; build(body,upd); }); upd(); return d; }
 /* resumo de cada seção da árvore da ficha: quantos nós têm spec */
 const SEC_BOX = {"Combate":"pfCombat","Craft":"pfCraftAll","Coleta":"pfGather","Refino":"pfRefine","Cozinha e alquimia":"pfCook","Fazenda":"pfFarm"};
@@ -537,12 +541,12 @@ function renderProfile(){
   const g=$("pfGather"); g.textContent=""; const gg=el("div",{class:"spgroups"}); g.append(gg);
   for(const [k,n,base] of GATHER){ const cur=PF.coleta[k]||(PF.coleta[k]={s:{}}); cur.s=cur.s||{};
     const code=base||"FISH_FRESHWATER_ALL_COMMON", tiers=t=>tierOrder(t);
-    gg.append(spNode(n,itemImg(code,[4,3,5,2,6,7,8,1]),()=>{ deriveLv(); const lv=Object.values(cur.s).filter(x=>x>0).length+(cur.m>0?1:0); return cur.tier?`coleta até T${cur.tier}`:(lv?`${lv} com nível`:"sem spec"); },(body,upd)=>{
+    gg.append(spNode(n,itemImg(code,[4,3,5,2,6,7,8,1]),()=>{ deriveLv(); const vals=Object.values(cur.s).filter(x=>x>0), ch=[]; if(cur.m>0) ch.push(["Maestria "+cur.m,"m"]); if(vals.length) ch.push([`${vals.length}/${k==="pesca"?1:7} itens`,"n"],["Maior "+Math.max(...vals),"mx"]); if(cur.tier) ch.push(["Coleta até T"+cur.tier,"t"]); ch.p=Math.round(vals.length/(k==="pesca"?1:7)*100); return ch; },(body,upd)=>{
       if(k==="pesca"){ body.append(tagIn("Pescador",numIn(cur.m||0,100,"Pescador",x=>{ cur.m=x; saveProfile(); upd(); }),itemImg(code,[4,3,5,2,6,7,8,1])),tagIn("Especialista",numIn(cur.s[8]||0,100,"Especialista em pesca",x=>{ if(x) cur.s[8]=x; else delete cur.s[8]; saveProfile(); upd(); }),itemImg(code,[8,7,6,5,4,3,2,1]))); }
       else for(let t=2;t<=8;t++) body.append(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${n} T${t}`,x=>{ if(x) cur.s[t]=x; else delete cur.s[t]; saveProfile(); upd(); }),itemImg(code,tiers(t)))); })); }
   const r=$("pfRefine"); r.textContent=""; const rg=el("div",{class:"spgroups"}); r.append(rg);
   for(const k in RES){ const cur=PF.refino[k]||(PF.refino[k]={m:0,s:{}}); cur.s=cur.s||{};
-    rg.append(spNode(RES[k].refName,itemImg(RES[k].ref,[6,5,4,7,8,3,2,1]),()=>{ const vals=Object.values(cur.s).filter(x=>x>0), parts=[]; if(cur.m) parts.push(`maestria ${cur.m}`); if(vals.length) parts.push(`${vals.length} de 7 com nível, maior ${Math.max(...vals)}`); if(parts.length) parts.push(`foco T6.0: ${fmt(refFocus(k,6,0))}`); return parts.length?parts.join(", "):"sem spec"; },(body,upd)=>{
+    rg.append(spNode(RES[k].refName,itemImg(RES[k].ref,[6,5,4,7,8,3,2,1]),()=>{ const vals=Object.values(cur.s).filter(x=>x>0), ch=[]; if(cur.m) ch.push(["Maestria "+cur.m,"m"]); if(vals.length) ch.push([`${vals.length}/7 itens`,"n"],["Maior "+Math.max(...vals),"mx"]); if(ch.length) ch.push(["Foco T6.0: "+fmt(refFocus(k,6,0)),"f"]); ch.p=Math.round(vals.length/7*100); return ch; },(body,upd)=>{
       body.append(tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${RES[k].refName}`,x=>{ cur.m=x; saveProfile(); upd(); }),itemImg(RES[k].ref,[6,5,4,7,8,3,2,1])));
       for(let t=2;t<=8;t++) body.append(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${RES[k].refName} T${t}`,x=>{ if(x) cur.s[t]=x; else delete cur.s[t]; saveProfile(); upd(); }),itemImg(RES[k].ref,tierOrder(t))));
       body.append(tagIn("Foco T6.0 no jogo",numIn(cur.obs||0,99999,`Custo de foco no jogo para ${RES[k].refName} T6.0`,x=>{ cur.obs=x; saveProfile(); upd(); },"—"))); })); }
@@ -614,7 +618,7 @@ function renderCookProfile(){ const c=$("pfCook"); c.textContent=""; const cg=el
   for(const [k,n,kind] of [["cozinha","Cozinha","f"],["alquimia","Alquimia","p"]]){ const cur=PF[k]||(PF[k]={m:0,s:{}}); cur.s=cur.s||{}; const nodes=COOK_NODES[kind], types=Object.fromEntries(nodes.map(x=>[x[0],x[1]])), iconeDe=Object.fromEntries(nodes.map(x=>[x[0],x[2]]));
     const icons=[], mk=(code,gate)=>{ const im=itemImg(code,tierOrder(iconTier(cur.m,cur.t2)),gate!==false); icons.push(im); return im; }, retier=()=>{ const t=iconTier(cur.m,cur.t2); icons.forEach(im=>im._tier(t)); };
     const ic=()=>kind==="f"?itemImg("MEAL_SOUP",[1],false):mk("POTION_HEAL",false);   // ícone da maestria de Cozinha: a sopa T1, fixa
-    cg.append(spNode(n,ic(),()=>{ const vals=Object.keys(types).map(tp=>cur.s[tp]??cur.all??0).filter(x=>x>0), parts=[]; if(cur.m) parts.push(`maestria ${cur.m}`); if(vals.length) parts.push(`${vals.length} de ${Object.keys(types).length} com nível, maior ${Math.max(...vals)}`); return parts.length?parts.join(", "):"sem spec"; },(body,upd)=>{
+    cg.append(spNode(n,ic(),()=>{ const n0=Object.keys(types).length, vals=Object.keys(types).map(tp=>cur.s[tp]??cur.all??0).filter(x=>x>0), ch=[]; if(cur.m) ch.push(["Maestria "+cur.m,"m"]); if(vals.length) ch.push([`${vals.length}/${n0} itens`,"n"],["Maior "+Math.max(...vals),"mx"]); ch.p=Math.round(vals.length/n0*100); return ch; },(body,upd)=>{
       const save=()=>{ saveProfile(); upd(); retier(); };
       body.append(tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${n}`,x=>{ cur.m=x; save(); }),ic()));
       for(const [tp,label] of Object.entries(types)) body.append(tagIn(label,numIn(cur.s[tp]??cur.all??0,100,`${n}: ${label}`,x=>{ cur.s[tp]=x; save(); }),mk(iconeDe[tp]))); })); } }
