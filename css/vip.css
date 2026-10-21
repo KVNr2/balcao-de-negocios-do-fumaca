@@ -1153,3 +1153,5 @@ img.nb-xi{width:52px;height:52px}
 .arv-porta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 12px;font-size:.85rem;opacity:.9}
 .arv-porta .arv-tg{margin-left:0}
 .arv-pata{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:9px;background:rgba(255,255,255,.06);font-size:20px;flex:none}
+.arv-pata{color:var(--saffron,#e0a93b)}
+.arv-pata svg{width:24px;height:24px}

@@ -530,7 +530,7 @@ function spNode(nome,ic,getSum,build){ const d=el("details",{class:"spg"}), sm=e
   d.addEventListener("toggle",()=>{ if(!d.open||built) return; built=true; build(body,upd); }); upd(); return d; }
 /* resumo de cada seção da árvore da ficha: quantos nós têm spec */
 const SEC_BOX = {"Combate":"pfCombat","Craft":"pfCraftAll","Coleta":"pfGather","Refino":"pfRefine","Cozinha e alquimia":"pfCook","Fazenda":"pfFarm"};
-function refreshSec(){ clearTimeout(refreshSec._a); refreshSec._a=setTimeout(()=>{ try{ renderArvore(); }catch(e){} },120); const TOT={on:0,all:0}; for(const [n,id] of Object.entries(SEC_BOX)){ const box=$(id), out=document.querySelector(`.secsum[data-sec="${n}"]`); if(!box||!out) continue; const all=box.querySelectorAll("details.spg"), on=box.querySelectorAll("details.spg .sps.on"); out.textContent=all.length?(on.length?`${on.length} de ${all.length} com spec`:"sem spec"):""; out.classList.toggle("on",on.length>0); out.style.setProperty("--p",(all.length?Math.round(on.length/all.length*100):0)+"%"); TOT.on+=on.length; TOT.all+=all.length; }
+function refreshSec(){ clearTimeout(refreshSec._a); refreshSec._a=setTimeout(()=>{ try{ renderArvore(); renderCaca(); }catch(e){} },120); const TOT={on:0,all:0}; for(const [n,id] of Object.entries(SEC_BOX)){ const box=$(id), out=document.querySelector(`.secsum[data-sec="${n}"]`); if(!box||!out) continue; const all=box.querySelectorAll("details.spg"), on=box.querySelectorAll("details.spg .sps.on"); out.textContent=all.length?(on.length?`${on.length} de ${all.length} com spec`:"sem spec"):""; out.classList.toggle("on",on.length>0); out.style.setProperty("--p",(all.length?Math.round(on.length/all.length*100):0)+"%"); TOT.on+=on.length; TOT.all+=all.length; }
   const pct=TOT.all?Math.round(TOT.on/TOT.all*100):0, pb=$("pfProgBar"); if(pb){ pb.style.width=pct+"%"; $("pfProgTxt").textContent=`${TOT.on} de ${TOT.all} itens com spec (${pct}%)`; $("pfProg").setAttribute("aria-valuenow",String(pct)); $("pfProgHint").textContent=pct===0?"Comece por Combate e Craft: é de lá que saem a maioria das recomendações.":pct<60?"Quanto mais itens você preencher, mais certeiras ficam as recomendações e o custo de foco.":"Ficha bem preenchida. O que faltar, é só deixar em branco."; } }
 function renderProfile(){
   $("pfName").value=PF.nome||"";
@@ -546,7 +546,7 @@ function renderProfile(){
       body.append(tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${RES[k].refName}`,x=>{ cur.m=x; saveProfile(); upd(); }),itemImg(RES[k].ref,[6,5,4,7,8,3,2,1])));
       for(let t=2;t<=8;t++) body.append(tagIn(`T${t}`,numIn(cur.s[t]||0,100,`${RES[k].refName} T${t}`,x=>{ if(x) cur.s[t]=x; else delete cur.s[t]; saveProfile(); upd(); }),itemImg(RES[k].ref,tierOrder(t))));
       body.append(tagIn("Foco T6.0 no jogo",numIn(cur.obs||0,99999,`Custo de foco no jogo para ${RES[k].refName} T6.0`,x=>{ cur.obs=x; saveProfile(); upd(); },"—"))); })); }
-  renderSpecs(); renderCookProfile(); refreshSec(); renderArvore();
+  renderSpecs(); renderCookProfile(); refreshSec(); renderArvore(); renderCaca();
 }
 function renderGatherHint(row,cur){ deriveLv(); const h=row.querySelector(".lvh"); if(h) h.textContent=cur.tier?`coleta até T${cur.tier}`:"sem spec"; }
 
@@ -636,7 +636,7 @@ const AF_OS = (()=>{ const ua=navigator.userAgent||"", uad=navigator.userAgentDa
   return "windows"; })();
 if(AF_OS!=="windows"){ document.body.classList.add("sem-sync"); const cel=["android","ios","mobile"].includes(AF_OS);
   $("pfSemTit").textContent=cel?"Sincronizar ainda não funciona no celular":"Sincronizar só funciona no Windows";
-  $("pfSemTxt").textContent=cel?"Por enquanto não há suporte para sincronizar a ficha pelo celular. Nesse aparelho você digita tudo manualmente: abra cada seção abaixo (Combate, Craft, Coleta, Refino, Árvore: fazenda, cozinha e rastreamento) e preencha os níveis do seu Destiny Board. A ficha fica salva neste navegador.":"O programa de sincronia é feito para Windows. Neste sistema você digita os níveis manualmente: abra cada seção abaixo e preencha os do seu Destiny Board. A ficha fica salva neste navegador.";
+  $("pfSemTxt").textContent=cel?"Por enquanto não há suporte para sincronizar a ficha pelo celular. Nesse aparelho você digita tudo manualmente: abra cada seção abaixo (Combate, Craft, Coleta, Refino, Árvore da fazenda e da cozinha, Caçada) e preencha os níveis do seu Destiny Board. A ficha fica salva neste navegador.":"O programa de sincronia é feito para Windows. Neste sistema você digita os níveis manualmente: abra cada seção abaixo e preencha os do seu Destiny Board. A ficha fica salva neste navegador.";
   $("pfSemSync").hidden=false; }
 $("pfAlbion").href="albion-ficha://iniciar?voltar="+encodeURIComponent(location.origin+location.pathname);
 async function lerFichaDoAlbion(txt){ txt=decodeURIComponent(txt);
@@ -932,11 +932,21 @@ function renderArvore(){ const box=$("pfArvore"); if(!box||!SPECS) return; if(bo
   const ceif=no("ceif","Ceifeiro",itemImg("FARM_BEAN_SEED",[2]),()=>rotulo()(gateF()),body=>{
     linhaPorta("Nó liberado (libera o T2)",gateF,v=>gF.forEach(k=>{ spEnsure(k).t2=v; }),body);
     body.append(grupoFaz("z:ervas","Herborista","her"),grupoFaz("z:plantas","Fazendeiro","faz"),grupoFaz("z:animais","Criador de animais","cri")); });
-  /* Rastreamento (caçada): Rastreador aprendiz 1/1 > Rastreador experiente (maestria) > 8 especializações. Sem item no jogo para o ícone, então só texto. */
-  const RAST=[["PANTHER","Pantera das Sombras"],["ENT","Espírito Arbóreo"],["DIREBEAR","Urso Espiritual"],["WEREWOLF","Lobisomem"],["IMP","Diabrete Infernal"],["ELEMENTAL_ROCK","Golem de Pedra Rúnica"],["EAGLE","Águia da Alvorada"],["FACTION_MOB","Presa Rara"]];
-  const rast=()=>spEnsure("z:rastreio");
-  const exper=no("rast","Rastreador experiente",el("span",{class:"arv-pata","aria-hidden":"true"},"🐾"),()=>{ const g=spGet("z:rastreio"), sv=g.s||{}, n=RAST.filter(([c])=>+sv[c]>0).length, m=g.m||0; return (m||n)?`maestria ${m} · ${n} de ${RAST.length}`:"sem spec"; },body=>{ const gr=el("div",{class:"spgrid"}); body.append(gr);
+  box.append(no("apr","Fazendeiro aprendiz",itemImg("FARM_CARROT_SEED",[1]),()=>"1/1 · libera o T1",body=>body.append(sous,ceif))); cnt(); }
+/* Caçada (Rastreamento no jogo): Rastreador aprendiz 1/1 > Rastreador experiente (maestria) > 8 especializações.
+   Os nós não têm item para servir de ícone, então usam as pegadas. */
+const PEGADAS='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><ellipse cx="7.6" cy="16.2" rx="2.7" ry="3.4"/><circle cx="4.6" cy="11.4" r="1.15"/><circle cx="7.2" cy="9.9" r="1.2"/><circle cx="9.9" cy="10.4" r="1.15"/><circle cx="11.6" cy="12.6" r="1"/><ellipse cx="16.6" cy="8.6" rx="2.5" ry="3.2"/><circle cx="13.8" cy="4.2" r="1.05"/><circle cx="16.2" cy="2.9" r="1.1"/><circle cx="18.7" cy="3.4" r="1.05"/><circle cx="20.2" cy="5.5" r=".95"/></svg>';
+const pegadas=()=>{ const sp=el("span",{class:"arv-pata","aria-hidden":"true"}); sp.innerHTML=PEGADAS; return sp; };
+const CACA=[["PANTHER","Pantera das Sombras"],["ENT","Espírito Arbóreo"],["DIREBEAR","Urso Espiritual"],["WEREWOLF","Lobisomem"],["IMP","Diabrete Infernal"],["ELEMENTAL_ROCK","Golem de Pedra Rúnica"],["EAGLE","Águia da Alvorada"],["FACTION_MOB","Presa Rara"]];
+const CACA_OPEN=new Set();
+function renderCaca(){ const box=$("pfCaca"); if(!box) return; if(box.contains(document.activeElement)&&document.activeElement.tagName==="INPUT") return; box.textContent="";
+  const cnt=()=>{ const on=box.querySelectorAll(".arv-sp.on").length, sm=$("cacaSum"); if(sm){ sm.textContent=on?`${on} de ${CACA.length} com spec`:"sem spec"; sm.classList.toggle("on",on>0); sm.style.setProperty("--p",Math.round(on/CACA.length*100)+"%"); } };
+  const rast=()=>spEnsure("z:rastreio"), upds=[];
+  const no=(id,nome,getSum,filhos)=>{ const d=el("details",{class:"spg"}), sm=el("summary"), sumS=el("span",{class:"sps"}); sm.append(pegadas(),el("span",{class:"spn",text:nome}),sumS); d.append(sm);
+    const body=el("div",{class:"arv-body"}); d.append(body); filhos(body); d.open=CACA_OPEN.has(id); d.addEventListener("toggle",()=>{ d.open?CACA_OPEN.add(id):CACA_OPEN.delete(id); });
+    const upd=()=>{ const t=getSum(); sumS.textContent=t; sumS.classList.toggle("on",!/^(sem spec|1\/1$)/.test(t)); }; upd(); upds.push(upd); return d; };
+  const salvar=()=>{ saveProfile(); upds.forEach(f=>f()); cnt(); };
+  const exper=no("exp","Rastreador experiente",()=>{ const g=spGet("z:rastreio"), sv=g.s||{}, n=CACA.filter(([c])=>+sv[c]>0).length, m=g.m||0; return (m||n)?`maestria ${m} · ${n} de ${CACA.length}`:"sem spec"; },body=>{ const gr=el("div",{class:"spgrid"}); body.append(gr);
     gr.append(tagIn("Maestria",numIn(spGet("z:rastreio").m||0,100,"Maestria de Rastreador experiente",v=>{ rast().m=v; salvar(); },"—")));
-    RAST.forEach(([c,n])=>{ const lab=tagIn(n,numIn(+(spGet("z:rastreio").s||{})[c]||0,100,"Rastreamento: "+n,v=>{ const st=rast(); st.s=st.s||{}; if(v) st.s[c]=v; else delete st.s[c]; lab.classList.toggle("on",v>0); salvar(); },"—")); lab.classList.add("arv-sp"); lab.classList.toggle("on",+(spGet("z:rastreio").s||{})[c]>0); gr.append(lab); }); });
-  box.append(no("apr","Fazendeiro aprendiz",itemImg("FARM_CARROT_SEED",[1]),()=>"1/1 · libera o T1",body=>body.append(sous,ceif)),
-    no("rap","Rastreador aprendiz",el("span",{class:"arv-pata","aria-hidden":"true"},"🐾"),()=>"1/1",body=>body.append(exper))); cnt(); }
+    CACA.forEach(([c,n])=>{ const lab=tagIn(n,numIn(+(spGet("z:rastreio").s||{})[c]||0,100,"Caçada: "+n,v=>{ const st=rast(); st.s=st.s||{}; if(v) st.s[c]=v; else delete st.s[c]; lab.classList.toggle("on",v>0); salvar(); },"—")); lab.classList.add("arv-sp"); lab.classList.toggle("on",+(spGet("z:rastreio").s||{})[c]>0); gr.append(lab); }); });
+  box.append(no("rap","Rastreador aprendiz",()=>"1/1",body=>body.append(exper))); cnt(); }

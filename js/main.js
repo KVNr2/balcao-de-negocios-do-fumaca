@@ -93,7 +93,7 @@ $("muDlg").addEventListener("click",ev=>{ if(ev.target===$("muDlg")) $("muClose"
 
 /* ================= ícones nos títulos de cada tópico (no lugar da estrelinha) ================= */
 (function(){
-  const MAP=[[/combate|arma|zvz/i,"t-zvz"],[/craft|fabric|oficina/i,"t-craft"],[/coleta|miner|colher/i,"t-trab"],[/refin/i,"t-refino"],[/cozinha|aliment|comida|poç|alquimia/i,"t-cozinha"],[/fazenda|ilha|plant|animal|cria/i,"t-fazenda"],[/encant/i,"t-encantar"],[/pesca|mapa|onde (pescar|coletar)|aonde/i,"t-mapas"],[/prata|ganho/i,"t-prata"],[/mercado negro/i,"t-mercado"],[/mercado/i,"t-mk"],[/custo|onde comprar/i,"t-custo"],[/matchup/i,"t-matchup"],[/build/i,"t-builds"],[/patch|mudou/i,"t-patch"],[/fonte|n[uú]mero/i,"t-fontes"],[/vers/i,"t-versao"],[/resumo|dia|ficha|para voc/i,"t-voce"]];
+  const MAP=[[/ca[cç]ada|rastre|pegada/i,"t-pegadas"],[/combate|arma|zvz/i,"t-zvz"],[/craft|fabric|oficina/i,"t-craft"],[/coleta|miner|colher/i,"t-trab"],[/refin/i,"t-refino"],[/cozinha|aliment|comida|poç|alquimia/i,"t-cozinha"],[/fazenda|ilha|plant|animal|cria/i,"t-fazenda"],[/encant/i,"t-encantar"],[/pesca|mapa|onde (pescar|coletar)|aonde/i,"t-mapas"],[/prata|ganho/i,"t-prata"],[/mercado negro/i,"t-mercado"],[/mercado/i,"t-mk"],[/custo|onde comprar/i,"t-custo"],[/matchup/i,"t-matchup"],[/build/i,"t-builds"],[/patch|mudou/i,"t-patch"],[/fonte|n[uú]mero/i,"t-fontes"],[/vers/i,"t-versao"],[/resumo|dia|ficha|para voc/i,"t-voce"]];
   const tabOf=h=>{ const p=h.closest("section.panel"); return p?p.getAttribute("aria-labelledby"):null; };
   function run(root){ (root||document).querySelectorAll("h2:not(.has-ic),h3.orn:not(.has-ic)").forEach(h=>{
       if(h.closest("dialog,header,nav")) return;
