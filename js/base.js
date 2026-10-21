@@ -636,7 +636,7 @@ const AF_OS = (()=>{ const ua=navigator.userAgent||"", uad=navigator.userAgentDa
   return "windows"; })();
 if(AF_OS!=="windows"){ document.body.classList.add("sem-sync"); const cel=["android","ios","mobile"].includes(AF_OS);
   $("pfSemTit").textContent=cel?"Sincronizar ainda não funciona no celular":"Sincronizar só funciona no Windows";
-  $("pfSemTxt").textContent=cel?"Por enquanto não há suporte para sincronizar a ficha pelo celular. Nesse aparelho você digita tudo manualmente: abra cada seção abaixo (Combate, Craft, Coleta, Refino, Cozinha e alquimia, Fazenda) e preencha os níveis do seu Destiny Board. A ficha fica salva neste navegador.":"O programa de sincronia é feito para Windows. Neste sistema você digita os níveis manualmente: abra cada seção abaixo e preencha os do seu Destiny Board. A ficha fica salva neste navegador.";
+  $("pfSemTxt").textContent=cel?"Por enquanto não há suporte para sincronizar a ficha pelo celular. Nesse aparelho você digita tudo manualmente: abra cada seção abaixo (Combate, Craft, Coleta, Refino, Árvore da fazenda e da cozinha) e preencha os níveis do seu Destiny Board. A ficha fica salva neste navegador.":"O programa de sincronia é feito para Windows. Neste sistema você digita os níveis manualmente: abra cada seção abaixo e preencha os do seu Destiny Board. A ficha fica salva neste navegador.";
   $("pfSemSync").hidden=false; }
 $("pfAlbion").href="albion-ficha://iniciar?voltar="+encodeURIComponent(location.origin+location.pathname);
 async function lerFichaDoAlbion(txt){ txt=decodeURIComponent(txt);
@@ -898,18 +898,26 @@ function importFromHash(){
   box.append(el("div",{class:"btnrow"},yes,no)); const p=$("p-voce"); p.prepend(box); showTab("t-voce",true);
 }
 
-/* Árvore da fazenda e da cozinha: leitura da ficha na ordem dos nós do jogo (Fazendeiro aprendiz > Ceifeiro > maestrias; Sous Chef > Mestre-cuca / Alquimista) */
-function renderArvore(){ const box=$("pfArvore"); if(!box) return; box.textContent="";
-  const fz=PF.sp||{}, tg=["z:plantas","z:ervas","z:animais"].map(k=>(fz[k]||{}).t2).find(v=>v!==undefined);
-  const chip=(code,nome,lv,tier,mx)=>{ const c=el("div",{class:"arv-chip"+(lv>0?" on":"")}); c.append(itemImg(code,tierOrder(tier),true),el("span",{class:"arv-cn"},nome),el("b",{class:"arv-cl"},`${lv}/${mx||100}`)); return c; };
-  const no=(titulo,sub,val,ok,filhos)=>{ const n=el("div",{class:"arv-no"+(ok?" on":"")}); const h=el("div",{class:"arv-h"}); h.append(el("span",{class:"arv-t"},titulo),sub?el("span",{class:"arv-s"},sub):"",el("b",{class:"arv-v"},val)); n.append(h); if(filhos) n.append(filhos); return n; };
+/* Árvore da fazenda e da cozinha: é aqui que se vê e se edita a ficha dessa parte, na ordem dos nós do jogo
+   (Fazendeiro aprendiz > Sous Chef > Mestre-cuca / Alquimista > especializações; Fazendeiro aprendiz > Ceifeiro > Herborista / Fazendeiro / Criador de animais > especializações) */
+function renderArvore(){ const box=$("pfArvore"); if(!box||!SPECS) return; if(box.contains(document.activeElement)&&document.activeElement.tagName==="INPUT") return; box.textContent="";
+  const reg=[], retierAll=()=>reg.forEach(r=>r.im._tier(r.tier())), cnt=()=>{ const on=box.querySelectorAll(".arv-chip.on").length, all=box.querySelectorAll(".arv-chip").length, sm=$("arvSum"); if(sm){ sm.textContent=on?`${on} de ${all} com spec`:"sem spec"; sm.classList.toggle("on",on>0); sm.style.setProperty("--p",(all?Math.round(on/all*100):0)+"%"); } };
+  const salvar=()=>{ saveProfile(); retierAll(); cnt(); };
+  const chip=(code,nome,get,set,tier,mx)=>{ const c=el("label",{class:"arv-chip"+(get()>0?" on":"")}), im=itemImg(code,tierOrder(tier()),true); reg.push({im,tier});
+    c.append(im,el("span",{class:"arv-cn"},nome),numIn(get(),mx||100,nome,v=>{ set(v); c.classList.toggle("on",v>0); salvar(); },"0")); return c; };
+  const no=(titulo,sub,ctl,filhos)=>{ const n=el("div",{class:"arv-no"}), h=el("div",{class:"arv-h"}); h.append(el("span",{class:"arv-t"},titulo),sub?el("span",{class:"arv-s"},sub):"",ctl); n.append(h); if(filhos) n.append(filhos); return n; };
   const lista=(...x)=>{ const d=el("div",{class:"arv-fil"}); x.flat().filter(Boolean).forEach(i=>d.append(i)); return d; };
-  const grupoFaz=(k,titulo)=>{ const g=SPECS&&SPECS.g.find(x=>x.k===k); if(!g) return null; const cur=fz[k]||{}, m=cur.m||0, t=iconTier(m,cur.t2), ch=el("div",{class:"arv-chips"});
-    g.it.forEach(it=>ch.append(chip(it[0],it[1],(cur.s||{})[it[0]]||0,t))); return no(titulo,"maestria · especializações",`${m}/100`,m>0,lista(ch)); };
-  const grupoCoz=(k,titulo,kind)=>{ const cur=PF[k]||{}, m=cur.m||0, t=iconTier(m,cur.t2), ch=el("div",{class:"arv-chips"});
-    COOK_NODES[kind].forEach(([tp,label,code])=>ch.append(chip(code,label,(cur.s||{})[tp]??cur.all??0,t))); return no(titulo,"maestria · especializações",`${m}/100`,m>0,lista(ch)); };
-  const ceif=no("Ceifeiro","libera T2",tg===undefined?"—/1":`${tg?1:0}/1`,tg>0,lista(grupoFaz("z:plantas","Fazendeiro"),grupoFaz("z:ervas","Herborista"),grupoFaz("z:animais","Criador de animais")));
-  const sc=(PF.cozinha||{}).t2??(PF.alquimia||{}).t2;
-  const sous=no("Sous Chef","libera T2",sc===undefined?"—/1":`${sc?1:0}/1`,sc>0,lista(grupoCoz("cozinha","Mestre-cuca","f"),grupoCoz("alquimia","Alquimista","p")));
-  box.append(no("Fazendeiro aprendiz","libera T1","1/1",true,lista(sous,ceif)));
-  const on=box.querySelectorAll(".arv-chip.on").length, all=box.querySelectorAll(".arv-chip").length, sm=$("arvSum"); if(sm){ sm.textContent=on?`${on} de ${all} com spec`:"sem spec"; sm.classList.toggle("on",on>0); } }
+  /* nó 0/1 (Ceifeiro, Sous Chef): botão que alterna */
+  const porta=(get,set,rotulo)=>{ const b=el("button",{type:"button",class:"arv-tg","aria-label":rotulo}); const pinta=()=>{ const v=get(); b.textContent=v===undefined?"—/1":`${v?1:0}/1`; b.classList.toggle("on",v>0); b.setAttribute("aria-pressed",v>0?"true":"false"); }; pinta();
+    b.addEventListener("click",()=>{ set(get()>0?0:1); pinta(); const n=b.closest(".arv-no"); if(n) n.classList.toggle("lib",get()>0); salvar(); }); return b; };
+  const mestria=(get,set,max,nome)=>{ const w=el("span",{class:"arv-m"}); w.append(numIn(get(),max,"Maestria de "+nome,v=>{ set(v); salvar(); },"0"),el("b",{class:"arv-v"},"/"+max)); return w; };
+  const grupoFaz=(k,titulo)=>{ const g=SPECS.g.find(x=>x.k===k); if(!g) return null; const ch=el("div",{class:"arv-chips"}), tier=()=>iconTier(spMastery(k),spGet(k).t2);
+    g.it.forEach(it=>ch.append(chip(it[0],it[1],()=>+(spGet(k).s||{})[it[0]]||0,v=>{ const st=spEnsure(k); st.s=st.s||{}; if(v) st.s[it[0]]=v; else delete st.s[it[0]]; },tier,g.max)));
+    return no(titulo,"maestria · especializações",mestria(()=>spMastery(k),v=>spSetMastery(k,v),g.mmax||100,titulo),lista(ch)); };
+  const grupoCoz=(k,titulo,kind)=>{ const ch=el("div",{class:"arv-chips"}), cur=()=>(PF[k]=PF[k]||{m:0,s:{}}), tier=()=>iconTier(cur().m||0,cur().t2);
+    COOK_NODES[kind].forEach(([tp,label,code])=>ch.append(chip(code,label,()=>{ const c=cur(); return (c.s||{})[tp]??c.all??0; },v=>{ const c=cur(); c.s=c.s||{}; c.s[tp]=v; },tier)));
+    return no(titulo,"maestria · especializações",mestria(()=>cur().m||0,v=>{ cur().m=v; },100,titulo),lista(ch)); };
+  const gF=["z:plantas","z:ervas","z:animais"], gC=["cozinha","alquimia"];
+  const ceif=no("Ceifeiro","libera T2",porta(()=>gF.map(k=>(PF.sp||{})[k]&&(PF.sp[k]||{}).t2).find(v=>v!==undefined),v=>gF.forEach(k=>{ spEnsure(k).t2=v; }),"Ceifeiro"),lista(grupoFaz("z:ervas","Herborista"),grupoFaz("z:plantas","Fazendeiro"),grupoFaz("z:animais","Criador de animais")));
+  const sous=no("Sous Chef","libera T2",porta(()=>gC.map(k=>(PF[k]||{}).t2).find(v=>v!==undefined),v=>gC.forEach(k=>{ (PF[k]=PF[k]||{m:0,s:{}}).t2=v; }),"Sous Chef"),lista(grupoCoz("cozinha","Mestre-cuca","f"),grupoCoz("alquimia","Alquimista","p")));
+  box.append(no("Fazendeiro aprendiz","libera T1",el("b",{class:"arv-v on"},"1/1"),lista(sous,ceif))); cnt(); }

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="be3188f7">
+<html lang="pt-BR" data-v="38893474">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=be3188f7">
-<link rel="stylesheet" href="css/vip.css?v=be3188f7">
-<link rel="stylesheet" href="css/souk.css?v=be3188f7">
+<link rel="stylesheet" href="css/balcao.css?v=38893474">
+<link rel="stylesheet" href="css/vip.css?v=38893474">
+<link rel="stylesheet" href="css/souk.css?v=38893474">
 </head>
 <body>
 <div class="wrap app">
@@ -187,16 +187,12 @@
         <p class="tiny muted">Maestria e o nível de cada tier (T2 a T8). Se preferir, digite o custo de foco que o jogo mostra para um item T6.0 (barra, tecido ou couro): ele passa a valer.</p>
         <div class="spsec" id="pfRefine"></div>
       </div></details>
-    <details class="sheet secnode"><summary><h3 class="orn">Cozinha e alquimia</h3><span class="secsum" data-sec="Cozinha e alquimia"></span></summary><div class="secbody">
-      <p class="tiny muted">Maestria e o nível de cada tipo de prato e de poção.</p>
+    <div hidden aria-hidden="true">
       <div class="spsec" id="pfCook"></div>
-    </div></details>
-    <details class="sheet secnode"><summary><h3 class="orn">Fazenda</h3><span class="secsum" data-sec="Fazenda"></span></summary><div class="secbody">
-      <p class="tiny muted">Maestria e o nível de cada planta, erva e animal. A página Ilha e fazenda usa esses números para o custo de foco.</p>
       <div id="pfFarm" class="spsec"></div>
-    </div></details>
+    </div>
     <details class="sheet secnode"><summary><h3 class="orn">Árvore da fazenda e da cozinha</h3><span class="secsum" id="arvSum"></span></summary><div class="secbody">
-      <p class="tiny muted">Os mesmos números da sua ficha, na ordem da árvore do jogo: cada nó libera o de baixo. Nó em cinza ainda não foi liberado.</p>
+      <p class="tiny muted">Fazenda, cozinha e alquimia na ordem da árvore do jogo: cada nó libera o de baixo. Digite a maestria e o nível de cada especialização, ou toque em 0/1 para marcar Sous Chef e Ceifeiro. Ícone em cinza ainda não dá para fazer.</p>
       <div id="pfArvore" class="arv"></div>
     </div></details>
   </section>
@@ -643,19 +639,19 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=be3188f7"></script>
-<script src="js/base.js?v=be3188f7"></script>
-<script src="js/fx.js?v=be3188f7"></script>
-<script src="js/biz.js?v=be3188f7"></script>
-<script src="js/builds.js?v=be3188f7"></script>
-<script src="js/nossas.js?v=be3188f7"></script>
-<script src="js/ip.js?v=be3188f7"></script>
-<script src="js/zvz.js?v=be3188f7"></script>
-<script src="js/novos.js?v=be3188f7"></script>
-<script src="js/guia.js?v=be3188f7"></script>
-<script src="js/ui.js?v=be3188f7"></script>
-<script src="js/oficina.js?v=be3188f7"></script>
-<script src="js/versao.js?v=be3188f7"></script>
-<script src="js/main.js?v=be3188f7"></script>
+<script src="js/icons.js?v=38893474"></script>
+<script src="js/base.js?v=38893474"></script>
+<script src="js/fx.js?v=38893474"></script>
+<script src="js/biz.js?v=38893474"></script>
+<script src="js/builds.js?v=38893474"></script>
+<script src="js/nossas.js?v=38893474"></script>
+<script src="js/ip.js?v=38893474"></script>
+<script src="js/zvz.js?v=38893474"></script>
+<script src="js/novos.js?v=38893474"></script>
+<script src="js/guia.js?v=38893474"></script>
+<script src="js/ui.js?v=38893474"></script>
+<script src="js/oficina.js?v=38893474"></script>
+<script src="js/versao.js?v=38893474"></script>
+<script src="js/main.js?v=38893474"></script>
 </body>
 </html>
