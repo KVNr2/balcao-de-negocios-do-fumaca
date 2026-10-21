@@ -792,7 +792,7 @@ function renderCookRecs(){
 
 /* ================= histórico ================= */
 const HIST_CACHE={};
-async function drawHistory(svg,note,id,city,q=1){
+async function drawHistory(svg,note,id,city,q=1,rich=false){
   if(!svg) return; svg.innerHTML=""; note.textContent="Carregando histórico…";
   const key=id+"|"+city+(q>1?"|"+q:""); let rows=HIST_CACHE[key];
   if(!rows){ try{ const apiId=/_LEVEL(\d)/.test(id)?`${id}@${id.match(/_LEVEL(\d)/)[1]}`:id;
@@ -800,7 +800,7 @@ async function drawHistory(svg,note,id,city,q=1){
       rows=(j.find(x=>x.quality===q)||(q===1?j[0]:null)||{}).data||[]; HIST_CACHE[key]=rows; }catch(e){ rows=null; } }
   if(!rows||rows.length<3){ note.textContent=`Sem histórico suficiente em ${city}${q>1?`, na qualidade ${QNAME[q].toLowerCase()}`:""}.`; return; }
   rows=rows.slice(-30);
-  const W=520,H=150,PL=48,PR=10,PT=10,PB=24, v=rows.map(r=>r.avg_price), lo=Math.min(...v), hi=Math.max(...v), pad=(hi-lo)*0.12||hi*0.05;
+  const W=rich?760:520,H=rich?230:150,PL=rich?56:48,PR=rich?64:10,PT=rich?16:10,PB=24, v=rows.map(r=>r.avg_price), lo=Math.min(...v), hi=Math.max(...v), pad=(hi-lo)*0.12||hi*0.05;
   const y0=lo-pad, y1=hi+pad, X=i=>PL+i*(W-PL-PR)/(rows.length-1), Y=p=>PT+(1-(p-y0)/(y1-y0))*(H-PT-PB);
   const ns="http://www.w3.org/2000/svg", mk=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e.setAttribute(k,a[k]); return e; };
   for(const g of [y0+(y1-y0)*0.15,(y0+y1)/2,y1-(y1-y0)*0.15]){ svg.append(mk("line",{x1:PL,x2:W-PR,y1:Y(g),y2:Y(g),stroke:"var(--line-soft)","stroke-width":1}));
@@ -816,6 +816,20 @@ async function drawHistory(svg,note,id,city,q=1){
   hit.addEventListener("pointermove",ev=>{ const i=at(ev); cross.setAttribute("x1",X(i)); cross.setAttribute("x2",X(i)); cross.setAttribute("opacity",.6); hd.setAttribute("cx",X(i)); hd.setAttribute("cy",Y(v[i])); hd.setAttribute("opacity",1);
     showTip([["v",`${fmt(v[i])} pratas`],["",new Date(rows[i].timestamp+"Z").toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"})],["k",`${fmt(rows[i].item_count)} vendidos no dia em ${city}`]],ev.clientX,ev.clientY); });
   hit.addEventListener("pointerleave",()=>{ cross.setAttribute("opacity",0); hd.setAttribute("opacity",0); tip.hidden=true; });
+  if(rich){   /* versão do Mercado Negro: linha da média, mínimo, máximo, valor de agora e quadros de resumo */
+    svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+    const mn=Math.min(...v), mx=Math.max(...v), av=v.reduce((a,b)=>a+b,0)/v.length, nw=v[v.length-1], dv=(nw-av)/av*100, col=nw<av*0.93?"#6cc06a":nw>av*1.07?"#e8963f":"var(--parch-2)";
+    const lbl=(x,y,txt,fill,anc="start",fw=700)=>{ const t=mk("text",{x,y,"text-anchor":anc,"font-size":11.5,"font-weight":fw,fill}); t.textContent=txt; svg.append(t); };
+    svg.append(mk("line",{x1:PL,x2:W-PR,y1:Y(av),y2:Y(av),stroke:"var(--parch-2)","stroke-width":1.2,"stroke-dasharray":"5 4",opacity:.7})); lbl(PL+4,Y(av)-5,"média","var(--parch-2)","start",500);
+    const iMn=v.indexOf(mn), iMx=v.indexOf(mx);
+    [[iMx,mx,"#e8963f",-9],[iMn,mn,"#6cc06a",16]].forEach(([i,val,c,dy])=>{ svg.append(mk("circle",{cx:X(i),cy:Y(val),r:4,fill:c,stroke:"var(--cloth)","stroke-width":1.5})); lbl(Math.min(Math.max(X(i),PL+26),W-PR-26),Y(val)+dy,fmt(val),c,"middle"); });
+    dot.setAttribute("r",5.5); dot.setAttribute("fill",col);
+    const tg=mk("g",{}); const bx=W-PR+6, by=Y(nw); const rc=mk("rect",{x:bx,y:by-11,width:PR-8,height:22,rx:5,fill:col}); tg.append(rc); svg.append(tg); const tt=mk("text",{x:bx+(PR-8)/2,y:by+4,"text-anchor":"middle","font-size":11.5,"font-weight":800,fill:"#1b1410"}); tt.textContent=fmtS(nw); svg.append(tt);
+    const old=svg.parentNode.querySelector(".hist-tiles"); if(old) old.remove();
+    const tl=el("div",{class:"hist-tiles"}); const tile=(k,val,sub,c)=>{ const d=el("div",{class:"hist-tile"}); d.append(el("small",{text:k}),el("b",{text:val,style:c?`color:${c}`:""})); if(sub) d.append(el("em",{text:sub})); tl.append(d); };
+    tile("Agora",fmt(nw),`${dv>=0?"+":""}${dec(dv)}% vs média`,col); tile("Média",fmt(Math.round(av)),`${rows.length} dias`); tile("Menor",fmt(mn),"mais barato do período","#6cc06a"); tile("Maior",fmt(mx),"mais caro do período","#e8963f");
+    svg.parentNode.insertBefore(tl,svg);
+  }
   const chg=(v[v.length-1]-v[0])/v[0]*100, avg=v.reduce((a,b)=>a+b,0)/v.length, now=v[v.length-1];
   note.textContent=`Média de ${fmt(avg)} em ${rows.length} dias em ${city}; ${chg>=0?"subiu":"caiu"} ${dec(Math.abs(chg))}%. ${now<avg*0.93?"Está abaixo da média: bom momento para comprar.":now>avg*1.07?"Está acima da média: bom momento para vender.":"Está perto da média."}`;
   if(window.gsap&&window.DrawSVGPlugin&&!RM){ gsap.fromTo(line,{drawSVG:"0%"},{drawSVG:"100%",duration:1.1,ease:"power2.inOut"}); gsap.from(dot,{scale:0,transformOrigin:"50% 50%",duration:.4,delay:1,ease:"back.out(3)"}); }

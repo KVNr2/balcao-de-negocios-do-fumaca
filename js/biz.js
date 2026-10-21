@@ -150,7 +150,7 @@ async function renderBM(partial){
     tr.insertCell().append(withIconQ(m.id,m.q,nmKey(m.key,m.name))); tr.insertCell().textContent=`${m.t}.${m.e}`;
     tr.insertCell().append(el("span",{class:"qtag q"+m.q,text:QNAME[m.q]}));
     const c1=tr.insertCell(); c1.className="num"; c1.append(fmt(m.bm.p)," ",el("span",{class:"age"+(m.bm.age>6?" old":""),title:ageTip(m.bm.age),text:ageTxt(m.bm.age)}));
-    { const cm=tr.insertCell(); cm.className="num mk-avg bm-avg"; cm.title="Média do que o Mercado Negro pagou por esta peça (ponderada pelas peças vendidas, últimos 7 dias; se não vendeu nesse período, todo o histórico)"; cm.textContent=avgTxt(bmAvgOf(m.id,m.q)); const ob=el("button",{type:"button",class:"bm-tag",title:"Ver o pedido de compra do Mercado Negro e o que ele pagou por este item (histórico)",text:"pedidos"}); ob.addEventListener("click",ev=>{ ev.stopPropagation(); openItem(m.id,`${nmKey(m.key,m.name)} T${m.t}.${m.e}`,m.q,true); }); ob.addEventListener("keydown",ev=>ev.stopPropagation()); cm.append(" ",ob); }
+    { const cm=tr.insertCell(); cm.className="num mk-avg bm-avg"; cm.title="Média do que o Mercado Negro pagou por esta peça (ponderada pelas peças vendidas nos últimos 7 dias; sem valor se não vendeu nesse período)"; cm.textContent=avgTxt(bmAvgOf(m.id,m.q)); }
     if(bmMode==="flip"){ tr.insertCell().textContent=m.buy.c+(m.buy.q>m.q?` (${QNAME[m.buy.q]})`:""); const cb=tr.insertCell(); cb.className="num"; cb.append(fmt(m.buy.p)," ",el("span",{class:"age"+(m.buy.age>6?" old":""),title:ageTip(m.buy.age),text:ageTxt(m.buy.age)})); }
     else { const c2=tr.insertCell(); c2.className="num"; c2.textContent=fmt(m.cost); }
     const v=val(m), pc=pct(m), cp=tr.insertCell(); cp.className="num bm-pct "+(v>=0?"gain":"loss"); cp.textContent=pc===-Infinity?"—":`${v>=0?"+":""}${dec(pc)}%`;
@@ -188,7 +188,7 @@ async function bmVolumes(shown){
       const vol={}, av={}; part.forEach(id=>{ vol[id]={}; av[id]={}; }); const since=Date.now()-7*86400e3;
       for(const x of j){ const v=vol[x.item_id]; if(!v) continue; const q=+x.quality||1; let sum=0; for(const d of (x.data||[])) if(Date.parse(d.timestamp+"Z")>=since) sum+=d.item_count; v[q]=(v[q]||0)+sum/7;
         let sw=0,sp=0,aw=0,ap=0; for(const d of (x.data||[])){ const w=d.item_count||0, pr=d.avg_price||0; if(!w||!pr) continue; aw+=w; ap+=w*pr; if(Date.parse(d.timestamp+"Z")>=since){ sw+=w; sp+=w*pr; } }
-        const pm=sw?sp/sw:aw?ap/aw:0; if(pm) av[x.item_id][q]=pm; }
+        const pm=sw?sp/sw:0; if(pm) av[x.item_id][q]=pm; }
       part.forEach(id=>{ BM_VOL[id]=vol[id]; BM_AVG[id]=av[id]; });
     }catch(e){ part.forEach(id=>{ BM_VOL[id]=-1; BM_AVG[id]=-1; }); }
     document.querySelectorAll("#bmTable tbody tr").forEach(tr=>{ if(!tr.dataset.id) return; const c=tr.querySelector(".vol"); if(c) c.textContent=volTxt(bmVolOf(tr.dataset.id,+tr.dataset.q||1)); const c2=tr.querySelector(".bm-avg"); if(c2){ const t=avgTxt(bmAvgOf(tr.dataset.id,+tr.dataset.q||1)); if(c2.firstChild&&c2.firstChild.nodeType===3) c2.firstChild.nodeValue=t; else c2.prepend(t); } });
@@ -206,7 +206,7 @@ function bmPanel(m){
   left.append(row("sale","VENDA INST",m.id,m.q,nmI,`${QNAME[m.q]} ou melhor`,m.bm.p,ageT(m.bm.age),"Black Market","1x"));
   if(bmMode!=="flip"&&m.cost!=null) for(const p of m.parts) left.append(row("buy","COMPRA INST",(p.id||m.id).replace(/_LEVEL(\d)$/,"_LEVEL$1@$1"),1,p.nm,p.art?"artefato não volta":"preço típico nas cidades",p.p,"—",m.city,`${fmt(p.q)}x`));
   if(bmMode==="flip"&&m.flip!=null&&m.buy) left.append(row("buy","COMPRA INST",m.id,m.buy.q,nmI,`${m.buy.q>m.q?QNAME[m.buy.q]+" · ":""}mais barato nas cidades`,m.buy.p,ageT(m.buy.age),m.buy.c,"1x"));
-  const hist=el("div",{class:"hist"}); const hh=el("div",{class:"hist-h"}); hh.append(el("span",{text:"O que o Mercado Negro pagou em 30 dias"})); const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("viewBox","0 0 520 150"); svg.setAttribute("role","img"); const hn=el("p",{class:"tiny muted"}); hist.append(hh,svg,hn); left.append(hist);
+  const hist=el("div",{class:"hist"}); const hh=el("div",{class:"hist-h"}); hh.append(el("span",{text:"O que o Mercado Negro pagou em 30 dias"})); const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("viewBox","0 0 760 230"); svg.setAttribute("role","img"); const hn=el("p",{class:"tiny muted"}); hist.append(hh,svg,hn); left.append(hist);
   const card=(cls,title,lines,tot)=>{ const c=el("div",{class:"of-xcard "+cls}); c.append(el("h4",{class:"of-xh",text:title})); for(const [k,v,cc] of lines){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{class:cc||"",text:v})); c.append(l); } if(tot){ const l=el("div",{class:"of-xline of-xtot"}); l.append(el("span",{text:tot[0]}),el("b",{text:tot[1]})); c.append(l); } return c; };
   const vv=bmVolOf(m.id,m.q), tax=st.prem?4:8, bruto=m.bm.p, taxV=bruto-m.net;
   const crafting=bmMode!=="flip"&&m.cost!=null&&m.craft!=null, flipping=bmMode==="flip"&&m.flip!=null;
@@ -217,7 +217,7 @@ function bmPanel(m){
   if(crafting&&bmMode!=="flip") lines.push(["Cidade com bônus",m.city],["Foco gasto",m.focus?fmt(m.fc):"desligado"]);
   if(vv!=null&&vv>=0) lines.push(["O MN compra por dia (7 dias)",volTxt(vv)]);
   { const rc=card(lucro!=null&&lucro<0?"res neg":"res",lucro!=null&&lucro<0?"Resultado (−)":"Resultado (+)",lines,[bmMode==="flip"?"Lucro revendendo":"Lucro fabricando",lucro==null?"—":sgn(lucro)]); right.append(rc); }
-  d.append(left,right); drawHistory(svg,hn,m.id,"Black Market",m.q); return d;
+  d.append(left,right); drawHistory(svg,hn,m.id,"Black Market",m.q,true); return d;
 }
 
 /* ================= trabalhadores ================= */
