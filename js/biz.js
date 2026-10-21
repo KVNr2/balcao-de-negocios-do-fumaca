@@ -83,9 +83,9 @@ async function renderBM(partial){
   setupBM(); const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
   if(g==="*"&&!bmTierSel&&!partial){   // todas as mercadorias e todos os tiers: busca um tier por vez (do T8 ao T2) e mostra o que já chegou
     const falta=[8,7,6,5,4,3,2].filter(t=>!BM_LOADED.has(`*#${t}`));
-    falta.forEach(t=>{ ensureBM(g,t).catch(()=>{}); });   // dispara todos os tiers ao mesmo tempo; abaixo só espera na ordem
     for(let i=0;i<falta.length;i++){ const t=falta[i];
       note.textContent=i?`Consultando T${t} (${i+1} de ${falta.length}); mostrando o que já chegou. ${note.textContent}`:`Consultando as ordens do Mercado Negro, T${t} (1 de ${falta.length})…`;
+      if(i+1<falta.length) ensureBM(g,falta[i+1]).catch(()=>{});   // adianta só o próximo tier (a API limita pedidos por minuto)
       const ok=await ensureBM(g,t); if(tok!==BM_TOK) return;
       if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; }
       if(i<falta.length-1){ await renderBM(true); if(tok!==BM_TOK) return; } }
