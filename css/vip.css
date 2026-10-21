@@ -1108,3 +1108,7 @@ img.nb-xi{width:52px;height:52px}
 .nb-imp textarea{width:100%;min-height:96px;resize:vertical}
 .nb-imp-msg{margin:0;font:500 13px Inter,sans-serif;min-height:1.2em}.nb-imp-msg.bad{color:#f0a36a}
 .nb-imp-act{display:flex;gap:8px;flex-wrap:wrap}
+#nbBox>.row-ctl{background:rgba(239,226,196,.03);border:1px solid var(--line-soft);border-radius:10px;padding:14px 18px;margin:12px 0}
+.alb-tier select{min-width:0;max-width:100%}
+.kx-alb .bc-more{padding:0 12px;font-size:13px}
+.kx-alb .alb-tier select{width:150px;font-size:13px;padding-left:10px;padding-right:26px}
