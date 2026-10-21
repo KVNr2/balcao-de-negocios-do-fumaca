@@ -142,6 +142,12 @@ function qImg(b,slot,id,cls){ if(!"wohasc".includes(slot)) return fullImg(id,cls
 const bQApply=b=>(b._qi||[]).forEach(([k,im])=>{ if(im._q) im._q(bQf(b)(k)); });
 const bQ=b=>b._qs||(b._qs={a:1,p:{...(b.q||{})}});          // qualidade escolhida na build: a = todas as peças, p = peça específica (vale mais)
 const bQf=b=>k=>bQ(b).p[k]||bQ(b).a;
+const QCOL={1:"#b9b2a6",2:"#5fbf6a",3:"#4aa3e8",4:"#b072e8",5:"#f0b43c"}, QIP={1:0,2:20,3:40,4:60,5:100};
+/* escolha de qualidade em 5 bolinhas coloridas (cor = qualidade no jogo); .value funciona como num select */
+function qPick(val,label,fn){ const g=el("div",{class:"qp",role:"radiogroup","aria-label":label||"Qualidade"}), nm=el("span",{class:"qp-n"}), bs=[];
+  const paint=()=>{ bs.forEach(([q,bt])=>{ const on=q===g._v; bt.classList.toggle("on",on); bt.setAttribute("aria-checked",on?"true":"false"); }); nm.textContent=QNAME[g._v]+(QIP[g._v]?" +"+QIP[g._v]:""); nm.style.color=g._v>1?QCOL[g._v]:""; };
+  QOPT.forEach(q=>{ const bt=el("button",{type:"button",class:"qp-d",role:"radio",title:QNAME[q]+(QIP[q]?" (+"+QIP[q]+" de IP)":" (sem bônus)"),"aria-label":QNAME[q]}); bt.style.setProperty("--qc",QCOL[q]); bt.addEventListener("click",()=>{ if(g._v===q) return; g._v=q; paint(); if(fn) fn(q); }); bs.push([q,bt]); g.append(bt); });
+  g.append(nm); g._v=+val||1; Object.defineProperty(g,"value",{get:()=>String(g._v),set:v=>{ g._v=+v||1; paint(); }}); paint(); return g; }
 const qSelect=(val,todas,label)=>{ const x=el("select",{class:"kx-q","aria-label":label||"Qualidade"}); if(todas) x.append(el("option",{value:"0",text:"= todas"})); QOPT.forEach(q=>x.append(el("option",{value:String(q),text:QNAME[q]}))); x.value=String(val); return x; };
 function albionBar(b,badge,costValue,opts){
   const bar=el("div",{class:"kx-alb"}); let set=0, tier=0; const qf=bQf(b);
@@ -166,14 +172,14 @@ function kbPanel(b){
   /* esquerda: habilidades e passivas, recomendado x alternativa */
   const L=el("section",{class:"kx-l"}); L.append(el("h4",{text:"Peças, habilidades e passivas"}));
   const qsl=[];   // seletores por peça, para atualizar quando muda o geral
-  const qtop=el("div",{class:"kx-qtop"}); { const qa=qSelect(bQ(b).a,false,"Qualidade de todas as peças"); qa.addEventListener("change",()=>{ bQ(b).a=+qa.value; bQ(b).p={}; qsl.forEach(([k,x])=>{ x.value=String(qa.value); }); if(b._refresh) b._refresh(); });
-    qtop.append(el("span",{text:"Qualidade de todas as peças"}),qa,el("small",{class:"muted",text:"Ou escolha a qualidade de cada peça na lista abaixo. Bom +20, Excepcional +40, Excelente +60, Obra-prima +100 de IP por peça."})); }
+  const qtop=el("div",{class:"kx-qtop"}); { const qa=qPick(bQ(b).a,"Qualidade de todas as peças",q=>{ bQ(b).a=q; bQ(b).p={}; qsl.forEach(([k,x])=>{ x.value=String(q); }); if(b._refresh) b._refresh(); });
+    qtop.append(el("span",{class:"kx-qt",text:"Qualidade de todas as peças"}),qa,el("small",{class:"muted",text:"Toque numa bolinha para aplicar a todas. Para mudar só uma peça, use as bolinhas dela na lista. O bônus de IP aparece ao passar o mouse."})); }
   L.append(qtop);
   const hd=el("div",{class:"kx-cols kx-hd"}); hd.append(el("span",{class:"kx-rec",text:"★ Recomendado"}),el("span",{text:"Alternativa"})); L.append(hd);
   const rows=[["w",[b.w,b.w2].filter(Boolean),sk.w?[sk.w,sk.w2||[]]:[]],["o",b.o,[]],["h",b.h,sk.h||[]],["a",b.a,sk.a||[]],["s",b.s,sk.s||[]],["c",b.c,[]],["p",b.p,[]],["f",b.f,[]]];
   rows.forEach(([k,ids,skl])=>{ if(!ids||!ids.length||!ids[0]) return; const r=el("div",{class:"kx-cols"});
     const first=kxItem(ids[0],skl[0],b,k);
-    if("wohasc".includes(k)){ const x=qSelect(bQf(b)(k),false,"Qualidade: "+itemNome((idInfo(ids[0])||{}).c||"")); x.addEventListener("change",()=>{ bQ(b).p[k]=+x.value; if(b._refresh) b._refresh(); }); qsl.push([k,x]); const tx=first.querySelector(".kx-tx"); (tx||first).append(x); }
+    if("wohasc".includes(k)){ const x=qPick(bQf(b)(k),"Qualidade: "+itemNome((idInfo(ids[0])||{}).c||""),q=>{ bQ(b).p[k]=q; if(b._refresh) b._refresh(); }); qsl.push([k,x]); const tx=first.querySelector(".kx-tx"); (tx||first).append(x); }
     r.append(first); r.append(ids[1]?kxItem(ids[1],skl[1],b,k):el("div")); L.append(r); });
   box.append(L);
   /* direita: visão geral no formato do killboard (3 colunas) */
