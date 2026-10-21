@@ -368,25 +368,28 @@ async function renderMk(){
 /* quadro de detalhe de um item */
 const CITY_COLOR = {"Thetford":"#a46ad8","Fort Sterling":"#e9e4d8","Martlock":"#4aa3df","Bridgewatch":"#e8963f","Lymhurst":"#6cc06a","Caerleon":"#d0463f","Brecilien":"#3ec3b0","Black Market":"#8d8d99"};
 let DLG={days:30,series:null,q:1};
-async function openItem(apiId,name,q=1){
+async function openItem(apiId,name,q=1,soMN=false){
   const dlg=$("itemDlg"); const key=apiId.includes("_LEVEL")?apiId.split("@")[0]:apiId;
   $("dlgTitle").textContent=name||nmKey(apiId.replace(/^T\d_/,"").replace(/@\d$/,""),apiId); iconSrc($("dlgIcon"),apiId,()=>{},q); $("dlgSub").textContent=apiId+(q>1?` · ${QNAME[q]}`:"");
   const tm=/^T(\d)_/.exec(apiId); $("dlgTier").textContent=tm?`T${tm[1]}`:""; $("dlgTier").hidden=!tm;
   const S=$("dlgSum"), SE=$("dlgSell"), BU=$("dlgBuy"); [S,SE,BU].forEach(b=>b.textContent=""); S.textContent="Consultando…"; $("dlgChart").textContent=""; $("dlgNote").textContent="";
   if(dlg.showModal&&!dlg.open) dlg.showModal(); else dlg.setAttribute("open","");
-  const locs=[...SHOP_LOCS,"Black Market"];
+  const locs=soMN?["Black Market"]:[...SHOP_LOCS,"Black Market"];
+  SE.parentNode.hidden=soMN; BU.parentNode.firstChild.textContent=soMN?"Pedido de compra do Mercado Negro":"Ofertas de compra";
   const tgt={}; try{ await fetchIds([apiId],tgt,locs,q); }catch(e){}
   const r=tgt[key]||{}, dot=c=>el("span",{class:"dot",style:`background:${CITY_COLOR[c]||"#999"}`});
   const list=(box,idx,tidx,asc)=>{ const rows=Object.entries(r).filter(([c,v])=>v[idx]>0&&(idx===1||c!=="Black Market")).sort((a,b)=>asc?a[1][idx]-b[1][idx]:b[1][idx]-a[1][idx]);
     if(!rows.length){ box.append(el("p",{class:"small muted",text:"Sem ofertas recentes."})); return null; }
     rows.forEach(([c,v],i)=>{ const row=el("div",{class:"dlg-of"+(i===0?" best":"")}); row.append(el("b",{class:"pr",text:fmt(v[idx])})); const cc=el("span",{class:"cc"}); const nm1=el("span",{}); nm1.append(dot(c),c); cc.append(nm1,el("small",{},ageSpan(v[tidx])||"")); row.append(cc); box.append(row); }); return rows[0]; };
-  const lo=list(SE,0,2,true), hi=list(BU,1,3,false);
+  const lo=soMN?null:list(SE,0,2,true), hi=list(BU,1,3,false);
   S.textContent=""; const line=(k,v,sub,cls)=>{ const l=el("div",{class:"dlg-sum"}); l.append(el("span",{text:k}),el("b",{class:cls||"",text:v})); if(sub) l.append(el("small",{text:sub})); S.append(l); };
-  if(lo) line("Menor venda",fmt(lo[1][0]),lo[0]); else line("Menor venda","—");
-  if(hi) line("Melhor compra",fmt(hi[1][1]),hi[0]); else line("Melhor compra","—");
+  if(soMN){ if(hi) line("Pedido de compra",fmt(hi[1][1]),"Mercado Negro"); else line("Pedido de compra","—"); }
+  else { if(lo) line("Menor venda",fmt(lo[1][0]),lo[0]); else line("Menor venda","—");
+  if(hi) line("Melhor compra",fmt(hi[1][1]),hi[0]); else line("Melhor compra","—"); }
   if(lo&&hi) line("Diferença bruta",(hi[1][1]-lo[1][0]>=0?"+":"")+fmt(hi[1][1]-lo[1][0]),"melhor compra menos menor venda",hi[1][1]-lo[1][0]>=0?"gain":"loss");
   const ts=Object.values(r).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean); if(ts.length){ const l=el("div",{class:"dlg-sum"}); l.append(el("span",{text:"Atualizado"}),el("b",{},ageSpan(Math.max(...ts))||"—")); S.append(l); }
   if(!lo&&!hi) S.textContent="Nenhum anúncio recente desse item.";
+  if(soMN){ const av=typeof bmAvgOf==="function"?bmAvgOf(apiId,q):null; if(av){ const l=el("div",{class:"dlg-sum"}); l.append(el("span",{text:"Média paga (7 dias)"}),el("b",{text:fmt(Math.round(av))})); S.append(l); } }
   DLG.series=null; DLG.q=q; DLG.id=apiId;
   try{ const j=await apiJSON(`${HOST}/api/v2/stats/history/${apiId}.json?locations=${locs.join(",").replace(/ /g,"%20")}&time-scale=24`,360); DLG.series=q>1?j.filter(s=>+s.quality===q):j; drawStack($("dlgChart"),DLG.series,DLG.days); }catch(e){ $("dlgNote").textContent="Sem histórico agora."; }
 }
