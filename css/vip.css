@@ -1173,3 +1173,6 @@ img.nb-xi{width:52px;height:52px}
 .hist-tile b{font:800 19px var(--f-display,inherit);font-variant-numeric:tabular-nums}
 .hist-tile em{font-style:normal;font-size:11px;color:var(--smoke,#a99b8b)}
 @media(max-width:640px){.hist-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.bm2t .hist-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hist-seg button{font-size:13px;padding:4px 10px}
