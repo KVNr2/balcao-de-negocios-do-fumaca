@@ -800,7 +800,7 @@ async function drawHistory(svg,note,id,city,q=1,rich=false,days=30){
       rows=(j.find(x=>x.quality===q)||(q===1?j[0]:null)||{}).data||[]; HIST_CACHE[key]=rows; }catch(e){ rows=null; } }
   if(!rows||rows.length<(days<=7?2:3)){ note.textContent=`Sem histórico suficiente em ${city}${q>1?`, na qualidade ${QNAME[q].toLowerCase()}`:""}.`; return; }
   rows=rows.slice(-days);
-  const W=rich?1100:520,H=rich?430:150,PL=rich?56:48,PR=rich?64:10,PT=rich?22:10,PB=rich?150:24, v=rows.map(r=>r.avg_price), lo=Math.min(...v), hi=Math.max(...v), pad=(hi-lo)*0.12||hi*0.05;
+  const W=rich?1100:520,H=rich?452:150,PL=rich?56:48,PR=rich?64:10,PT=rich?22:10,PB=rich?172:24, v=rows.map(r=>r.avg_price), lo=Math.min(...v), hi=Math.max(...v), pad=(hi-lo)*0.12||hi*0.05;
   const y0=lo-pad, y1=hi+pad, X=i=>PL+i*(W-PL-PR)/(rows.length-1), Y=p=>PT+(1-(p-y0)/(y1-y0))*(H-PT-PB);
   const ns="http://www.w3.org/2000/svg", mk=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e.setAttribute(k,a[k]); return e; };
   for(const g of [y0+(y1-y0)*0.15,(y0+y1)/2,y1-(y1-y0)*0.15]){ svg.append(mk("line",{x1:PL,x2:W-PR,y1:Y(g),y2:Y(g),stroke:"var(--line-soft)","stroke-width":1}));
