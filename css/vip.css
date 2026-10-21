@@ -1227,3 +1227,15 @@ select.kx-q:not([value="0"]){}
 .kx-alb .kx-qtop{border:0;background:none;padding:0;margin:0 4px 0 0;flex-wrap:nowrap}
 .kx-alb .kx-qtop small{display:none}
 .kx-alb .kx-qt{font:600 12px Inter,sans-serif;color:var(--parch-2,#cdbf9f);white-space:nowrap}
+
+/* Criar build: qualidade das peças */
+.nb-q{display:grid;gap:6px;margin:14px 0;padding:12px 14px;border:1px solid var(--line-soft,#33251f);border-radius:12px;background:rgba(239,226,196,.03);max-width:640px}
+.nb-q h4{margin:0;font:700 1rem var(--f-display,serif)}
+.nb-qr{display:flex;align-items:center;gap:12px;padding:6px 0;border-top:1px solid var(--line-soft,#33251f)}
+.nb-qr .qp{margin-top:0;margin-left:auto}
+.nb-qa{border-top:0;font-weight:700}
+.nb-qr img.nb-qi{width:36px;height:36px;border-radius:8px}
+.nb-qn{font:600 .92rem var(--f-body,sans-serif);flex:1;min-width:0}
+.nb-qa .qp{margin-left:auto}
+@media (max-width:520px){.nb-qr{flex-wrap:wrap}.nb-qr .qp{margin-left:0}}
+.qp-n{min-width:122px}
