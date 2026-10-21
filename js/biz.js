@@ -58,7 +58,7 @@ async function warmBM(force){
   const run=++WARM_RUN; const sleep=ms=>new Promise(f=>setTimeout(f,ms));
   try{
     if(!BM) BM=await need("bm"); if(!$("bmGroup")||!$("bmFocus")) return;
-    const g=(()=>{ try{ return store.get("bmGroup")||bmGroupDefault(); }catch(e){ return bmGroupDefault(); } })();
+    const g=(()=>{ try{ const sg=store.get("bmGroup"); return sg&&sg!=="*"?sg:bmGroupDefault(); }catch(e){ return bmGroupDefault(); } })();
     const wait=async()=>{ for(;;){ const now=Date.now(), n=apiStamps.filter(t=>now-t<60e3).length; if(n<=45) return; await sleep(3000); } };
     const was=FORCE; if(force) FORCE=true;
     try{
@@ -110,9 +110,9 @@ function bmGroupDefault(){ const mine=LINES.filter(([k])=>wl(k)>=2).sort((a,b)=>
 function setupBM(){
   const sel=$("bmGroup"); if(sel.options.length) return;
   const mine=new Set(LINES.filter(([k])=>wl(k)>=2).map(([k])=>k));
-  sel.append(el("option",{value:"*",text:"Todas as mercadorias"})); const og1=el("optgroup",{label:"Suas armas"}), og2=el("optgroup",{label:"Outras armas"}), og3=el("optgroup",{label:"Armaduras e mão secundária"});
+  const og1=el("optgroup",{label:"Suas armas"}), og2=el("optgroup",{label:"Outras armas"}), og3=el("optgroup",{label:"Armaduras e mão secundária"});
   for(const [k,n] of BM_GROUPS){ const o=el("option",{value:k,text:n}); (k.startsWith("a_")||k==="mao"?og3:mine.has(k)?og1:og2).append(o); }
-  [og1,og2,og3].forEach(g=>{ if(g.children.length) sel.append(g); }); sel.value=store.get("bmGroup")||bmGroupDefault();
+  [og1,og2,og3].forEach(g=>{ if(g.children.length) sel.append(g); }); { const sg=store.get("bmGroup"); sel.value=(sg&&sg!=="*"&&BM_GROUPS.some(x=>x[0]===sg)||LINES.some(x=>x[0]===sg))?sg:bmGroupDefault(); if(!sel.value) sel.value=bmGroupDefault(); }
   const ts=$("bmTier"); ["Todos",2,3,4,5,6,7,8].forEach((t,i)=>ts.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String(i===0),text:i?`T${t}`:t})));
   ts.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ts.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmTierSel=+b.dataset.t; renderBM(); });
   const qs=$("bmQual"); ["Todas",1,2,3,4,5].forEach((q,i)=>qs.append(el("button",{type:"button","data-q":String(i?q:0),"aria-pressed":String(i===0),text:i?QNAME[q]:q})));
