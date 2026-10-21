@@ -146,7 +146,7 @@ async function nbForm(pre){ if(!nbSrc||nbSrc!=="nos") return;
   const g1=el("div",{class:"nb-g"}); g1.append(fld("Nome da build",nome),fld("Autor",au),); body.append(g1); { const l1=el("div",{class:"nb-f nb-wide"}); l1.append(el("span",{text:"Conteúdo (escolha um ou mais)"}),K.box); const l2=el("div",{class:"nb-f nb-wide"}); l2.append(el("span",{text:"Características (opcional, aparecem como etiquetas no cartão)"}),T.box); body.append(l1,l2); } body.append(fld("Descrição",ds));
   body.append(el("h4",{text:"Peças e habilidades"}),el("p",{class:"muted small",text:"Clique em uma casa para escolher a peça e as habilidades dela. Use Set 1 / Set 2 para montar uma alternativa (no Set 2 só a mão secundária muda)."}));
   let SKD={i:{},s:{}}; try{ SKD=await skLoad()||SKD; }catch(e){}
-  let sk=SETS[0].sk; const setBar=el("div",{class:"seg nb-sets",role:"group","aria-label":"Set"}); const wrap=el("div",{class:"nb-vg"}); const grid=el("div",{class:"kx-g nb-kg"}); const pick=el("div",{class:"nb-pick"}); const exBox=el("div",{class:"nb-ex"}); wrap.append(grid); body.append(setBar,wrap,exBox,pick);
+  let sk=SETS[0].sk; const setBar=el("div",{class:"seg nb-sets",role:"group","aria-label":"Set"}); const wrap=el("div",{class:"nb-vg"}); const grid=el("div",{class:"kx-g nb-kg"}); const pick=el("div",{class:"nb-pick"}); const exBox=el("div",{class:"nb-ex"}); wrap.append(grid); const qBox=el("section",{class:"nb-q"}); const QS={}; if(pre&&pre.q) Object.assign(QS,pre.q); body.append(setBar,wrap,qBox,exBox,pick);
   const code=id=>String(id||"").replace(/^T\d+_/,"").replace(/@\d$/,"");
   /* todas as habilidades que a peça realmente tem no jogo (data/skills.json, gerado do ao-bin-dumps) */
   const spellOpts=(s,id)=>{ const o=(SKD.i||{})[code(id)]; return o||[]; };
@@ -165,7 +165,13 @@ async function nbForm(pre){ if(!nbSrc||nbSrc!=="nos") return;
       if(sel[s]){ const x=el("span",{class:"nb-x",role:"button",tabindex:"0",title:"Remover "+lab.toLowerCase(),"aria-label":"Remover "+lab.toLowerCase(),text:"✕"});
         const rm=ev=>{ ev.stopPropagation(); ev.preventDefault(); delete sel[s]; delete sk[s]; if(cs===0&&s==="w") delete SETS[1].sel.w; if(curPick&&curPick[0]===s){ curPick=null; pick.textContent=""; } draw(); };
         x.addEventListener("click",rm); x.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" ") rm(ev); }); cell.append(x); }
-      cell.addEventListener("click",()=>openPick(s,lab)); grid.append(cell); }); drawSets(); drawEx(); };
+      cell.addEventListener("click",()=>openPick(s,lab)); grid.append(cell); }); drawSets(); drawEx(); drawQ(); };
+  /* qualidade de cada peça de equipamento (vale para os dois sets); "todas" aplica a todas de uma vez */
+  const drawQ=()=>{ qBox.textContent=""; const ks=["w","o","h","a","s","c"].filter(k=>SETS[0].sel[k]&&!(k==="o"&&is2h())); if(!ks.length) return;
+    qBox.append(el("h4",{text:"Qualidade das peças"}),el("p",{class:"muted small",text:"Normal por padrão. Muda o IP da build e o que vai ao Albion ao copiar."}));
+    const rows=[]; const all=el("div",{class:"nb-qr nb-qa"}); const apick=qPick(ks.every(k=>(QS[k]||1)===(QS[ks[0]]||1))?(QS[ks[0]]||1):1,"Qualidade de todas as peças",q=>{ ks.forEach(k=>{ QS[k]=q; }); rows.forEach(([k,x])=>{ x.value=String(q); }); });
+    all.append(el("b",{text:"Todas as peças"}),apick); qBox.append(all);
+    ks.forEach(k=>{ const id=SETS[0].sel[k], i=idInfo(id)||{c:""}; const r=el("div",{class:"nb-qr"}); const im=fullImg(id,"nico nb-qi",QS[k]||1); const x=qPick(QS[k]||1,"Qualidade: "+itemNome(i.c),q=>{ QS[k]=q; if(im&&im._q) im._q(q); }); rows.push([k,x]); if(im) r.append(im); r.append(el("span",{class:"nb-qn",text:itemNome(i.c)}),x); qBox.append(r); }); };
   /* coleta e extras: ferramenta, set de coleta, bolsa e montaria (iguais nos dois sets; edite no Set 1) */
   const drawEx=()=>{ exBox.textContent=""; exBox.append(el("h4",{text:"Extras"}),el("p",{class:"muted small",text:cs===1?"Iguais ao Set 1.":"Bolsa e montaria. São as mesmas nos dois sets."}));
     const row=el("div",{class:"nb-exg"}); NB_EXTRAS.forEach(([x,lab])=>{ const id=SETS[0].sel[x]; const c=el("button",{type:"button",class:"nb-xc"+(id?" on":"")+(cs===1?" nb-lock2":""),title:lab,disabled:cs===1});
@@ -209,7 +215,7 @@ async function nbForm(pre){ if(!nbSrc||nbSrc!=="nos") return;
     const skl=(st,x)=>{ const l=st.sk[x]||[], n=x==="w"?4:2; if(!st.sel[x]||!l.some(Boolean)) return null; const a=Array.from({length:n},(_,i)=>l[i]||"").filter(Boolean); return a; };
     for(const x of ["w","h","a","s"]){ if(x==="w"){ const a=skl(S1,"w"); if(a) K2.w=a;  } else { const a=[S1,S2].filter(st=>st.sel[x]).map(st=>skl(st,x)||[]); if(a.some(l=>l.length)) K2[x]=a; } }
     if(Object.keys(K2).length) b.sk=K2;
-    if(pre&&pre.q){ const Q={}; for(const k in pre.q) if(S1.sel[k]) Q[k]=pre.q[k]; if(Object.keys(Q).length) b.q=Q; }
+    { const Q={}; for(const k in QS) if(S1.sel[k]&&QS[k]>1&&!(k==="o"&&is2h())) Q[k]=QS[k]; if(Object.keys(Q).length) b.q=Q; }
     { const X={}; for(const [x] of NB_EXTRAS) if(S1.sel[x]) X[x]=S1.sel[x]; if(Object.keys(X).length) b.x=X; }
     try{ store.set("nbAuthor",au.value.trim()); }catch(e){} const fim=()=>{ nbOpen=b.id; nbRender(); setTimeout(()=>{ const c=document.querySelector("#nbBox .bcard.open"); if(c) c.scrollIntoView({block:"center",behavior:"smooth"}); },100); };
     if(NB_CLOUD){ save.disabled=true; save.textContent="Publicando…"; const o={...b}; delete o.id; delete o.votos; nbApi("nb_builds",{method:"POST",body:JSON.stringify({id:b.id,data:o}),headers:{Prefer:"return=minimal"}}).then(async r=>{ if(!r.ok) throw 0; NB_REPO=null; await nbLoad(); fim(); }).catch(()=>{ const a=nbMine(); a.unshift(b); nbSaveMine(a); err.hidden=false; err.textContent="Não consegui publicar agora; a build ficou salva só no seu navegador. Use \"Publicar para todos\" depois."; save.disabled=false; save.textContent="Salvar build"; nbRender(); }); return; }
