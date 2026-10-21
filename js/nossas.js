@@ -38,12 +38,12 @@ function nbCard(b){
   vb.append(el("span",{class:"nb-arrow",text:"▲"}),el("b",{text:String(nbVotesOf(b))}),el("small",{text:"votos"}));
   vb.addEventListener("click",async()=>{ const had=nbVotes().has(b.id); nbVote(b.id);
     if(b.cloud){ b.votos=Math.max(0,(+b.votos||0)+(had?-1:1)); nbRender(); try{ if(had) await nbApi(`nb_votos?build_id=eq.${encodeURIComponent(b.id)}&voter=eq.${encodeURIComponent(nbVoter())}`,{method:"DELETE"}); else await nbApi("nb_votos",{method:"POST",body:JSON.stringify({build_id:b.id,voter:nbVoter()}),headers:{Prefer:"return=minimal"}}); }catch(e){} }
-    else nbRender(); }); const rt=el("div",{class:"bc-r"}); rt.append(vb); top.append(rt); card.append(top);
+    else nbRender(); }); const ib=albionBadge(b); const rt=el("div",{class:"bc-r"}); rt.append(ib,vb); top.append(rt); card.append(top);
   if(b.desc) card.append(el("p",{class:"nb-desc small",text:b.desc}));
   card.append(gbStrip(b));
   const btn=el("button",{type:"button",class:"bc-more","aria-expanded":String(open),text:open?"Esconder build completa":"Ver build completa"});
   btn.addEventListener("click",()=>{ nbOpen=open?null:b.id; nbRender(); });
-  const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b),custoCtl("n:"+b.id));
+  const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib),custoCtl("n:"+b.id));
   if(b.local){ const dl=el("button",{type:"button",class:"bc-more",text:"Baixar arquivo"}); dl.addEventListener("click",()=>nbExport(b));
     const cp=el("button",{type:"button",class:"bc-more",text:"Copiar código"}); cp.addEventListener("click",()=>{ navigator.clipboard&&navigator.clipboard.writeText(nbJson(b)); cp.textContent="Copiado"; setTimeout(()=>cp.textContent="Copiar código",1500); });
     const rm=el("button",{type:"button",class:"bc-more nb-del",text:"Apagar"}); rm.addEventListener("click",()=>{ if(!confirm("Apagar esta build do seu navegador?")) return; nbSaveMine(nbMine().filter(x=>x.id!==b.id)); nbRefreshAll(); nbRender(); });
