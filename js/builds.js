@@ -144,8 +144,9 @@ function albionLoadout(b,set,tier,qf){
 /* barra de ações do card: tier das peças (muda o IP, o carregamento e o custo), set, copiar e ver custo */
 const QOPT=[1,2,3,4,5];
 /* imagem de uma peça da build com a borda da qualidade escolhida; guardada para trocar quando a qualidade muda */
-function qImg(b,slot,id,cls){ if(!"wohasc".includes(slot)) return fullImg(id,cls); const im=fullImg(id,cls,bQf(b)(slot)); if(im) (b._qi=b._qi||[]).push([slot,im]); return im; }
-const bQApply=b=>(b._qi||[]).forEach(([k,im])=>{ if(im._q) im._q(bQf(b)(k)); });
+function qImg(b,slot,id,cls){ if(!"wohasc".includes(slot)) return fullImg(id,cls); const im=fullImg(id,cls,bQf(b)(slot)); if(im){ im._orig=id; (b._qi=b._qi||[]).push([slot,im]); } return im; }
+/* troca qualidade e tier (equivalente) dos ícones da build conforme as escolhas */
+const bQApply=b=>(b._qi||[]).forEach(([k,im])=>{ const T=b._tier||0, e=im._orig?albionEquiv(im._orig,T).id:null, m=e&&/^T(\d)_.+?(?:@(\d))?$/.exec(e); if(m&&im._id) im._id(+m[1],+(m[2]||0)); if(im._q) im._q(bQf(b)(k)); });
 const bQ=b=>b._qs||(b._qs={a:1,p:{...(b.q||{})}});          // qualidade escolhida na build: a = todas as peças, p = peça específica (vale mais)
 const bQf=b=>k=>bQ(b).p[k]||bQ(b).a;
 const QCOL={1:"#b9b2a6",2:"#5fbf6a",3:"#4aa3e8",4:"#b072e8",5:"#f0b43c"}, QIP={1:0,2:20,3:40,4:60,5:100};
@@ -157,12 +158,12 @@ function qPick(val,label,fn){ const g=el("div",{class:"qp",role:"radiogroup","ar
 const qSelect=(val,todas,label)=>{ const x=el("select",{class:"kx-q","aria-label":label||"Qualidade"}); if(todas) x.append(el("option",{value:"0",text:"= todas"})); QOPT.forEach(q=>x.append(el("option",{value:String(q),text:QNAME[q]}))); x.value=String(val); return x; };
 function albionBar(b,badge,costValue,opts){
   const bar=el("div",{class:"kx-alb"}); let set=0, tier=0; const qf=bQf(b);
-  const refresh=()=>{ if(badge) badge._upd(set,tier,qf); bQApply(b); }; b._refresh=refresh;
+  const refresh=()=>{ b._tier=tier; if(badge) badge._upd(set,tier,qf); bQApply(b); }; b._refresh=refresh;
   const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
   if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; refresh(); }); bar.append(sel); }
   const lab=el("label",{class:"alb-tier",title:"O tier escolhido vale para o IP, para o texto copiado ao Albion e para o custo. T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4; T5 = 5.0 ou 4.1; T4 = 4.0. Cada peça fica no tier dela quando dá."});
   const tsel=el("select",{"aria-label":"Tier das peças"});
-  tsel.append(el("option",{value:"0",text:"Tier: original"})); [8,7,6,5,4].forEach(t=>tsel.append(el("option",{value:String(t),text:`Tier: T${t} equivalente`}))); tsel.value=String(tier);
+  tsel.append(el("option",{value:"0",text:"Tier original"})); [4,5,6,7,8].forEach(t=>tsel.append(el("option",{value:String(t),text:`T${t}`}))); tsel.value=String(tier);
   tsel.addEventListener("change",()=>{ tier=+tsel.value; refresh(); }); lab.append(tsel); bar.append(lab);
   if(opts&&opts.qBar){ const ql=el("label",{class:"alb-tier",title:"Qualidade das peças: muda o IP e o texto copiado ao Albion. Bom +20, Excepcional +40, Excelente +60, Obra-prima +100 de IP por peça."}); const qs=qSelect(bQ(b).a,false,"Qualidade das peças"); qs.addEventListener("change",()=>{ bQ(b).a=+qs.value; refresh(); }); ql.append(qs); bar.append(ql); }
   const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento com o tier escolhido. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
@@ -179,7 +180,7 @@ function kbPanel(b){
   const L=el("section",{class:"kx-l"}); L.append(el("h4",{text:"Peças, habilidades e passivas"}));
   const qsl=[];   // seletores por peça, para atualizar quando muda o geral
   const qtop=el("div",{class:"kx-qtop"}); { const qa=qPick(bQ(b).a,"Qualidade de todas as peças",q=>{ bQ(b).a=q; bQ(b).p={}; qsl.forEach(([k,x])=>{ x.value=String(q); }); if(b._refresh) b._refresh(); });
-    qtop.append(el("span",{class:"kx-qt",text:"Qualidade de todas as peças"}),qa,el("small",{class:"muted",text:"Aplica a todas as peças. Para mudar só uma, use as bolinhas dela na lista."})); }
+    qtop.append(el("span",{class:"kx-qt",text:"Qualidade (todas)"}),qa,el("small",{class:"muted",text:"Aplica a todas as peças. Para mudar só uma, use as bolinhas dela na lista."})); }
   L.append(qtop);
   const hd=el("div",{class:"kx-cols kx-hd"}); hd.append(el("span",{class:"kx-rec",text:"★ Recomendado"}),el("span",{text:"Alternativa"})); L.append(hd);
   const rows=[["w",[b.w,b.w2].filter(Boolean),sk.w?[sk.w,sk.w2||[]]:[]],["o",b.o,[]],["h",b.h,sk.h||[]],["a",b.a,sk.a||[]],["s",b.s,sk.s||[]],["c",b.c,[]],["p",b.p,[]],["f",b.f,[]]];
