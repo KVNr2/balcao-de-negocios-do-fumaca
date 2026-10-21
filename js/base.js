@@ -801,7 +801,7 @@ async function drawHistory(svg,note,id,city,q=1,rich=false,days=30){
   if(!rows||rows.length<(days<=7?2:3)){ note.textContent=`Sem histórico suficiente em ${city}${q>1?`, na qualidade ${QNAME[q].toLowerCase()}`:""}.`; return; }
   rows=rows.slice(-days);
   const W=rich?1100:520,H=rich?452:150,PL=rich?56:48,PR=rich?64:10,PT=rich?22:10,PB=rich?172:24, v=rows.map(r=>r.avg_price), lo=Math.min(...v), hi=Math.max(...v), pad=(hi-lo)*0.12||hi*0.05;
-  const y0=lo-pad, y1=hi+pad, X=i=>PL+i*(W-PL-PR)/(rows.length-1), Y=p=>PT+(1-(p-y0)/(y1-y0))*(H-PT-PB);
+  const y0=lo-pad, y1=hi+pad, XP=rich?22:0, X=i=>PL+XP+i*(W-PL-PR-2*XP)/(rows.length-1), Y=p=>PT+(1-(p-y0)/(y1-y0))*(H-PT-PB);
   const ns="http://www.w3.org/2000/svg", mk=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e.setAttribute(k,a[k]); return e; };
   for(const g of [y0+(y1-y0)*0.15,(y0+y1)/2,y1-(y1-y0)*0.15]){ svg.append(mk("line",{x1:PL,x2:W-PR,y1:Y(g),y2:Y(g),stroke:"var(--line-soft)","stroke-width":1}));
     const t=mk("text",{x:PL-6,y:Y(g)+4,"text-anchor":"end","font-size":11,fill:"var(--smoke)"}); t.textContent=fmtS(g); svg.append(t); }
@@ -812,7 +812,7 @@ async function drawHistory(svg,note,id,city,q=1,rich=false,days=30){
   [[0,"start"],[rows.length-1,"end"]].forEach(([i,a])=>{ const t=mk("text",{x:X(i),y:H-6,"text-anchor":a,"font-size":11,fill:"var(--smoke)"}); t.textContent=new Date(rows[i].timestamp+"Z").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}); svg.append(t); });
   const cross=mk("line",{y1:PT,y2:H-PB,stroke:"var(--parch-2)","stroke-width":1,opacity:0}); const hd=mk("circle",{r:4,fill:"var(--parch)",opacity:0}); svg.append(cross,hd);
   const hit=mk("rect",{x:PL,y:PT,width:W-PL-PR,height:H-PT-PB,fill:"transparent"}); svg.append(hit);
-  const at=ev=>{ const b=svg.getBoundingClientRect(); const sx=(ev.clientX-b.left)*W/b.width; const i=Math.max(0,Math.min(rows.length-1,Math.round((sx-PL)/((W-PL-PR)/(rows.length-1))))); return i; };
+  const at=ev=>{ const b=svg.getBoundingClientRect(); const sx=(ev.clientX-b.left)*W/b.width; const i=Math.max(0,Math.min(rows.length-1,Math.round((sx-PL-XP)/((W-PL-PR-2*XP)/(rows.length-1))))); return i; };
   hit.addEventListener("pointermove",ev=>{ const i=at(ev); cross.setAttribute("x1",X(i)); cross.setAttribute("x2",X(i)); cross.setAttribute("opacity",.6); hd.setAttribute("cx",X(i)); hd.setAttribute("cy",Y(v[i])); hd.setAttribute("opacity",1);
     showTip([["v",`${fmt(v[i])} pratas`],["",new Date(rows[i].timestamp+"Z").toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"})],["k",`${fmt(rows[i].item_count)} vendidos no dia em ${city}`]],ev.clientX,ev.clientY); });
   hit.addEventListener("pointerleave",()=>{ cross.setAttribute("opacity",0); hd.setAttribute("opacity",0); tip.hidden=true; });
@@ -822,7 +822,7 @@ async function drawHistory(svg,note,id,city,q=1,rich=false,days=30){
     const cnt=rows.map(r=>r.item_count||0), cmx=Math.max(1,...cnt), yb=H-22, bhm=98, bw=Math.max(3,Math.min(26,(W-PL-PR)/rows.length*0.62)), bars=[];
     svg.append(mk("line",{x1:PL,x2:W-PR,y1:yb,y2:yb,stroke:"var(--line-soft)","stroke-width":1}));
     cnt.forEach((c,i)=>{ const h=c?Math.max(2,c/cmx*bhm):0, b=mk("rect",{x:X(i)-bw/2,y:yb-h,width:bw,height:h,rx:2,fill:"var(--saffron)",opacity:.6,"pointer-events":"none"}); svg.append(b); bars.push(b); if(c&&(rows.length<=16||bw>=16)){ const ct=mk("text",{x:X(i),y:yb-h-4,"text-anchor":"middle","font-size":rows.length>16?11:13,"font-weight":800,fill:"var(--parch)","pointer-events":"none"}); ct.textContent=fmt(c); svg.append(ct); } });
-    { const t=mk("text",{x:PL-6,y:yb-bhm+8,"text-anchor":"end","font-size":11,fill:"var(--smoke)"}); t.textContent=fmt(cmx); svg.append(t); const t2=mk("text",{x:PL-6,y:yb+1,"text-anchor":"end","font-size":10.5,fill:"var(--smoke)"}); t2.textContent="0"; svg.append(t2); const t3=mk("text",{x:PL,y:yb-bhm-26,"text-anchor":"start","font-size":10.5,"font-weight":700,fill:"var(--smoke)"}); t3.textContent="PEÇAS VENDIDAS POR DIA";t3.setAttribute("font-size",12.5);t3.setAttribute("fill","var(--saffron)"); svg.append(t3); const t4=mk("text",{x:PL,y:PT-8,"text-anchor":"start","font-size":10.5,"font-weight":700,fill:"var(--smoke)"}); t4.textContent="PREÇO MÉDIO PAGO NO DIA"; svg.append(t4); }
+    { const t3=mk("text",{x:PL,y:yb-bhm-26,"text-anchor":"start","font-size":10.5,"font-weight":700,fill:"var(--smoke)"}); t3.textContent="PEÇAS VENDIDAS POR DIA";t3.setAttribute("font-size",12.5);t3.setAttribute("fill","var(--saffron)"); svg.append(t3); const t4=mk("text",{x:PL,y:PT-8,"text-anchor":"start","font-size":10.5,"font-weight":700,fill:"var(--smoke)"}); t4.textContent="PREÇO MÉDIO PAGO NO DIA"; svg.append(t4); }
     const nt=Math.min(rows.length,rows.length>14?7:rows.length); for(let k=1;k<nt-1;k++){ const i=Math.round(k*(rows.length-1)/(nt-1)); const t=mk("text",{x:X(i),y:H-6,"text-anchor":"middle","font-size":9.5,fill:"var(--smoke)",opacity:.75}); t.textContent=new Date(rows[i].timestamp+"Z").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}); svg.append(t); }
     cross.setAttribute("y2",yb); hit.setAttribute("height",yb-PT);
     hit.addEventListener("pointermove",ev=>{ const i=at(ev); bars.forEach((b,k)=>b.setAttribute("opacity",k===i?1:.6)); });
