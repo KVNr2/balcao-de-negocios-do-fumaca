@@ -15,7 +15,7 @@ function zFonte(){ return ZVZ.papeis; }
 function zDados(){ if(!zAli) return ZVZ.papeis; const a=ZVZ.aliancas.find(x=>x.nome===zAli); return a?a.papeis:ZVZ.papeis; }
 /* ===== Overgear e qualidade, lidos do IP médio que os jogadores tinham na luta =====
    Teto = IP médio que esse conjunto (arma, secundária, elmo, peito, botas, capa) alcança com a ficha cheia (maestria e todas as specs no máximo) em qualidade Normal.
-   A maioria dos jogadores não é cheia em tudo; então IP até o teto é compatível com Normal. Até +40 acima do teto, qualidade barata (Bom/Excepcional) explica; acima disso é provável overgear, pois em ZvZ Excelente/Obra-prima são raras pelo custo. */
+   A maioria dos jogadores não é cheia em tudo; então IP até o teto é compatível com Normal. Overgear = overcharge do Albion (até +100 de IP com todas as peças). Acima do teto: até +20 qualidade Boa e/ou pouco overcharge; até +100 provável overcharge; acima de +100 overcharge completo mais qualidade melhor (em ZvZ Excelente/Obra-prima são raras pelo custo). */
 const zTeto=(w,v)=>{ const zid=x=>x?`T${x.t}_${x.c}${x.e?"@"+x.e:""}`:""; const two=/^2H_/.test(w);
   const ids=[`T${v.arma.t}_${w}${v.arma.e?"@"+v.arma.e:""}`,zid(v.off),zid(v.cabeca),zid(v.peito),zid(v.botas),zid(v.capa)]; let sum=0;
   for(let i=0;i<ids.length;i++){ if(!ids[i]) continue; const r=ipItemFull(ids[i]); if(!r) return null; sum+=r.ip*(i===0&&two?2:1); }
@@ -24,9 +24,10 @@ const zQmin=x=>x<=20?"Bom":x<=40?"Excepcional":x<=60?"Excelente":"Obra-prima";
 function zLeitura(w,v){ if(!v.ip) return null; let teto; try{ teto=zTeto(w,v); }catch(e){ return null; } if(!teto) return null;
   const exc=v.ip-teto, pouco=v.n<3?` (amostra pequena: ${v.n} ${v.n===1?"jogador":"jogadores"})`:"", cards=[];
   if(exc<=0) cards.push(["ok","Compatível com qualidade Normal","IP "+(-exc)+" abaixo do máximo possível ("+teto+" com spec cheia, qualidade Normal). Sem sinal de overgear nem de qualidade melhor."+pouco]);
-  else if(exc<=20) cards.push(["both","Qualidade Boa e/ou overgear leve","IP "+exc+" acima do máximo possível em Normal ("+teto+"). Peças Boas (+20, qualidade barata) explicam; um overgear leve também pode ter ocorrido."+pouco]);
-  else if(exc<=40) cards.push(["both","Overgear provável (ou Excepcional)","IP "+exc+" acima do máximo possível em Normal ("+teto+"). Pode ser Excepcional (+40) em todas as peças, mas é mais fácil e mais barato ter dado overgear (cerca de "+(exc/100).toFixed(1).replace(".",",")+" encanto a mais por peça)."+pouco]);
-  else cards.push(["over","Overgear","IP "+exc+" acima do máximo possível em Normal ("+teto+"), equivale a cerca de "+(exc/100).toFixed(1).replace(".",",")+" encanto a mais em todas as peças. Ir de Excelente ou Obra-prima em tudo custa muito mais que subir encanto/tier, então é provável overgear"+(exc>100?"; nem Obra-prima em todas as peças explicaria (+100)":"")+"."+pouco]);
+  else if(exc<=20) cards.push(["both","Overgear leve e/ou qualidade Boa","IP "+exc+" acima do máximo possível em Normal ("+teto+"). Pode ser um pouco de overcharge (overgear) e/ou peças Boas (+20), as duas opções mais baratas."+pouco]);
+  else if(exc<=100) cards.push(["over","Overgear (overcharge) provável","IP "+exc+" acima do máximo possível em Normal ("+teto+"), "+(exc>=90?"quase todo o":"cerca de "+exc+"% do")+" overcharge possível (até +100 com todas as peças). Qualidade Excepcional ou melhor também explicaria, mas custa bem mais, então o overgear é o mais provável."+pouco]);
+  else if(exc<=200) cards.push(["both","Overgear e qualidade melhor","IP "+exc+" acima do máximo possível em Normal ("+teto+"): passa do overcharge completo (+100), então além do overgear provavelmente havia qualidade melhor, cerca de "+zQmin(exc-100)+" na média."+pouco]);
+  else cards.push(["over","Muito acima do possível","IP "+exc+" acima do máximo possível em Normal ("+teto+"), mais que overcharge completo e Obra-prima juntos (+200). Provável que as peças tivessem tier ou encanto maior que o mostrado, ou que a estimativa esteja baixa para esse conjunto."+pouco]);
   return {teto,cards}; }
 function zVariante(w,v,idx){
   const box=el("div",{class:"zvar"}); const row=el("div",{class:"zgear"});
