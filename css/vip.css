@@ -1119,3 +1119,22 @@ img.nb-xi{width:52px;height:52px}
 
 /* ícone de item ainda não liberado pela maestria */
 .nico-lock{filter:grayscale(1) opacity(.6)}
+
+/* árvore da fazenda e da cozinha (ficha) */
+.arv{display:flex;flex-direction:column;gap:6px}
+.arv-sec{margin:10px 0 2px;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#9a8f80)}
+.arv-no{border-left:2px solid rgba(255,255,255,.12);padding:6px 0 4px 12px;position:relative}
+.arv-no.on{border-left-color:var(--gold,#d6b25e)}
+.arv-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.arv-t{font-weight:600}
+.arv-s{font-size:.75rem;opacity:.65}
+.arv-v{margin-left:auto;font-variant-numeric:tabular-nums;opacity:.6}
+.arv-no.on>.arv-h .arv-v{opacity:1;color:var(--gold,#d6b25e)}
+.arv-no:not(.on)>.arv-h .arv-t{opacity:.6}
+.arv-fil{margin-top:6px;margin-left:4px;display:flex;flex-direction:column;gap:6px}
+.arv-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px}
+.arv-chip{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:8px;background:rgba(255,255,255,.04);font-size:.82rem;min-width:0}
+.arv-chip:not(.on) .arv-cn,.arv-chip:not(.on) .arv-cl{opacity:.55}
+.arv-chip.on{background:rgba(214,178,94,.12)}
+.arv-cn{flex:1;min-width:0;line-height:1.2;overflow-wrap:anywhere}
+.arv-cl{font-variant-numeric:tabular-nums}
