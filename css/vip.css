@@ -1059,3 +1059,12 @@ img.nb-xi{width:52px;height:52px}
   .blist,#zList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
   .blist>.bcard.open,.blist>.pager,.blist>.empty,.blist>p,#zList>.pager,#zList>.block,#zList>.empty,#zList>p,#zList>.zcard:has(details[open]){grid-column:1/-1}
 }
+/* IP estimado: selo verde grande */
+.ip-badge{display:flex;flex-direction:column;align-items:flex-end;line-height:1.05;text-align:right;padding:6px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--gain,#34d399) 55%,transparent);background:color-mix(in srgb,var(--gain,#34d399) 12%,transparent)}
+.ip-badge[hidden]{display:none}
+.ip-badge .ip-l{font:600 11px Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--gain,#34d399);opacity:.85}
+.ip-badge .ip-n{font:800 34px/1 Inter,sans-serif;color:var(--gain,#34d399);font-variant-numeric:tabular-nums}
+.ip-badge .ip-s{font:500 11px Inter,sans-serif;color:var(--parch-2,#cdbf9f);margin-top:2px;max-width:190px}
+.bc-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.zc-top .ip-badge{margin-left:auto;flex:none}
+.zvar>.ip-badge{align-self:flex-start;margin:8px 0}
