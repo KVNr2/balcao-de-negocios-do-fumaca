@@ -135,30 +135,36 @@ async function renderBM(partial){
       if(i<falta.length-1){ await renderBM(true); if(tok!==BM_TOK) return; } }
   } else if(!(partial&&g==="*"&&!bmTierSel)&&!BM_LOADED.has(bmLk(g,bmTierSel))){ tb.textContent=""; note.textContent="Consultando as ordens do Mercado Negro…"; const ok=await ensureBM(g,g==="*"?bmTierSel:0); if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; } if($("bmGroup").value!==g||tok!==BM_TOK) return; }
   const rows=[]; for(const k of bmKeys(g)) for(let t=2;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) for(let q=1;q<=5;q++){ if(bmQualSel&&q!==bmQualSel) continue; if(!bmHas(bmId(k,t,e),q)) continue; if(g==="*"){ const tp=BM_TOP[bmLk(g,t)]; if(!tp||!tp.has(bmId(k,t,e))) continue; } const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } }
-  const val=m=>bmMode==="flip"?m.flip:m.craft;
-  let ok=rows.filter(m=>val(m)!=null).sort((a,b)=>val(b)-val(a)); if(g==="*"&&!bmTierSel){ const c={}; ok=ok.filter(m=>(c[m.t]=(c[m.t]||0)+1)<=5); }   // todos os tiers: os 5 mais lucrativos de cada um
+  const val=m=>bmMode==="flip"?m.flip:m.craft, base=m=>bmMode==="flip"?(m.buy&&m.buy.p):m.cost, pct=m=>{ const b=base(m), v=val(m); return b>0&&v!=null?v/b*100:-Infinity; };
+  /* ordem: primeiro pela porcentagem de lucro, depois pelo valor em prata (o cabeçalho de cada coluna inverte a prioridade) */
+  const cmp=bmSort==="val"?(a,b)=>val(b)-val(a)||pct(b)-pct(a):(a,b)=>pct(b)-pct(a)||val(b)-val(a);
+  let ok=rows.filter(m=>val(m)!=null).sort(cmp); if(g==="*"&&!bmTierSel){ const c={}; ok=ok.filter(m=>(c[m.t]=(c[m.t]||0)+1)<=5); }   // todos os tiers: os 5 mais lucrativos de cada um
   const shown=ok.slice(0,100);
   if(BM_GEN!==DATA.geradoEm){ BM_BASE=BM_CUR; BM_CUR={}; BM_GEN=DATA.geradoEm; }
   tb.textContent=""; const hr=tb.createTHead().insertRow();
-  (bmMode==="flip"?["Peça","Tier","Qualidade","O MN paga","Mais barato em","Preço lá","Lucro por peça","O MN compra por dia"]:["Peça","Tier","Qualidade","O MN paga","Custo para fabricar","Lucro por peça","Cidade com bônus","O MN compra por dia"]).concat([""]).forEach(h=>hr.append(el("th",{text:h})));
+  (bmMode==="flip"?["Peça","Tier","Qualidade","O MN paga (bruto)","Mais barato em","Preço lá","Lucro %","Lucro por peça","O MN compra por dia"]:["Peça","Tier","Qualidade","O MN paga (bruto)","Custo para fabricar","Lucro %","Lucro por peça","Cidade com bônus","O MN compra por dia"]).concat([""]).forEach(h=>{ const th=el("th",{text:h}), pc=h==="Lucro %", vl=h==="Lucro por peça";
+    if(pc||vl){ th.className="bm-sort"; th.tabIndex=0; th.setAttribute("role","button"); const on=pc===(bmSort==="pct"); th.setAttribute("aria-sort",on?"descending":"none"); th.append(on?" ▼":""); th.title=pc?"Ordenar primeiro pela porcentagem de lucro (e depois pelo valor)":"Ordenar primeiro pelo valor do lucro (e depois pela porcentagem)";
+      const go=()=>{ bmSort=pc?"pct":"val"; renderBM(); }; th.addEventListener("click",go); th.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); go(); } }); }
+    hr.append(th); });
   for(const m of shown){ const body=tb.createTBody(); const tr=document.createElement("tr"); body.append(tr); tr.className="clickrow bm-row "+(val(m)>=0?"is-gain":"is-loss"); tr.tabIndex=0;
     tr.insertCell().append(withIconQ(m.id,m.q,nmKey(m.key,m.name))); tr.insertCell().textContent=`${m.t}.${m.e}`;
     tr.insertCell().append(el("span",{class:"qtag q"+m.q,text:QNAME[m.q]}));
     const c1=tr.insertCell(); c1.className="num"; c1.append(fmt(m.bm.p)," ",el("span",{class:"age"+(m.bm.age>6?" old":""),title:ageTip(m.bm.age),text:ageTxt(m.bm.age)}));
     if(bmMode==="flip"){ tr.insertCell().textContent=m.buy.c+(m.buy.q>m.q?` (${QNAME[m.buy.q]})`:""); const cb=tr.insertCell(); cb.className="num"; cb.append(fmt(m.buy.p)," ",el("span",{class:"age"+(m.buy.age>6?" old":""),title:ageTip(m.buy.age),text:ageTxt(m.buy.age)})); }
     else { const c2=tr.insertCell(); c2.className="num"; c2.textContent=fmt(m.cost); }
-    const v=val(m), c3=tr.insertCell(); c3.className="num bm-profit "+(v>=0?"gain":"loss"); c3.textContent=sgn(v); { const key=m.id+"|"+m.q+"|"+bmMode, old=BM_BASE[key]; BM_CUR[key]=v; if(old!=null&&Math.abs(v-old)>=1){ const up=v>old; c3.prepend(el("span",{class:"bm-chg "+(up?"up":"dn"),title:`${up?"Subiu":"Caiu"} desde a última atualização: o lucro era ${sgn(old)}`,text:up?"▲":"▼"})," "); } } c3.append(el("small",{text:(m.cost||m.buy&&m.buy.p)?`${v>=0?"+":""}${dec(v/(bmMode==="flip"?m.buy.p:m.cost)*100)}%`:""}));
+    const v=val(m), pc=pct(m), cp=tr.insertCell(); cp.className="num bm-pct "+(v>=0?"gain":"loss"); cp.textContent=pc===-Infinity?"—":`${v>=0?"+":""}${dec(pc)}%`;
+    const c3=tr.insertCell(); c3.className="num bm-profit "+(v>=0?"gain":"loss"); c3.textContent=sgn(v); { const key=m.id+"|"+m.q+"|"+bmMode, old=BM_BASE[key]; BM_CUR[key]=v; if(old!=null&&Math.abs(v-old)>=1){ const up=v>old; c3.prepend(el("span",{class:"bm-chg "+(up?"up":"dn"),title:`${up?"Subiu":"Caiu"} desde a última atualização: o lucro era ${sgn(old)}`,text:up?"▲":"▼"})," "); } }
     if(bmMode!=="flip"){ const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=`${m.city}${m.thin?", pouca oferta":""}`; }
     const cv=tr.insertCell(); cv.className="num vol"; cv.textContent=volTxt(bmVolOf(m.id,m.q)); tr.dataset.id=m.id; tr.dataset.q=String(m.q);
     const cg=tr.insertCell(); const gb=el("button",{type:"button",class:"btn mn-craft",title:"Abrir no Craft: fabricar este item e vender para o Mercado Negro",text:"Craft ➜"}); if(m.t<4){ gb.disabled=true; gb.title="O Craft calcula a partir do T4"; } gb.addEventListener("click",ev=>{ ev.stopPropagation(); ofFromBM(BM[m.key][1],m); }); gb.addEventListener("keydown",ev=>ev.stopPropagation()); cg.append(gb);
-    const dr=document.createElement("tr"); body.append(dr); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dr.append(dc); dc.colSpan=9;
+    const dr=document.createElement("tr"); body.append(dr); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dr.append(dc); dc.colSpan=10;
     const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open)); if(open){ dc.textContent=""; try{ dc.append(bmPanel(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes: "+(e&&e.message||e)})); } setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8) dr.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"}); }catch(e){} },60); } };
     tr.setAttribute("aria-expanded","false"); tr.addEventListener("click",ev=>{ if(ev.target.closest("a,button")) return; toggle(); }); tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } }); }
   { const w=$("bmWrap"); if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }
   const gname=g==="*"?"todas as mercadorias":BM_GROUPS.find(x=>x[0]===g)[1], pos=ok.filter(m=>val(m)>0).length;
   const qtxt=bmQualSel?` na qualidade ${QNAME[bmQualSel].toLowerCase()}`:"";
   note.textContent = !rows.length ? `Nenhuma ordem do Mercado Negro para ${gname.toLowerCase()}${qtxt} nos últimos 3 dias.`
-    : `${rows.length} ordens de ${gname.toLowerCase()}${qtxt}; ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${g==="*"&&!bmTierSel?" Mostrando os 5 mais lucrativos de cada tier (a lista completa de tudo pesa demais para a API; escolha uma mercadoria para ver todos).":ok.length>100?` Mostrando as 100 de maior lucro de ${fmt(ok.length)} registros: não são todos.`:" Do maior para o menor lucro."} Clique numa linha para ver a conta e o histórico.`;
+    : `${rows.length} ordens de ${gname.toLowerCase()}${qtxt}; ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${g==="*"&&!bmTierSel?" Mostrando os 5 mais lucrativos de cada tier (a lista completa de tudo pesa demais para a API; escolha uma mercadoria para ver todos).":ok.length>100?` Mostrando as 100 de maior lucro de ${fmt(ok.length)} registros: não são todos.`:(bmSort==="val"?" Ordenado pelo valor do lucro e, se empatar, pela porcentagem.":" Ordenado pela porcentagem de lucro e, se empatar, pelo valor.")} Clique numa linha para ver a conta e o histórico.`;
   if(window.gsap&&!RM) gsap.from(tb.querySelectorAll(".bm-row"),{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
   hbar($("bmWrap")); bmVolumes(shown);
 }
@@ -166,7 +172,7 @@ async function renderBM(partial){
 const ageTxt=h=>h<1?"agora":h<24?`${Math.round(h)}h`:`${Math.round(h/24)}d`;
 const ageTip=h=>h<1?"Visto agora há pouco por algum jogador.":`Último jogador que viu esse preço: há ${h<24?Math.round(h)+" h":Math.round(h/24)+" dia(s)"}.${h>6?" Pode ter mudado desde então.":""}`;
 /* o que mudou na última atualização de preços: compara o lucro de cada linha com o da atualização anterior */
-let BM_GEN="", BM_BASE={}, BM_CUR={};
+let BM_GEN="", BM_BASE={}, BM_CUR={}, bmSort="pct";
 const volTxt=v=>v==null?"…":v<0?"—":v===0?"0":v<1?"menos de 1":v<10?dec(v):fmt(v);
 // Quantas peças o Mercado Negro comprou por dia na última semana (a API não mostra o tamanho das ordens abertas;
 // o histórico de vendas dele é o melhor sinal de quanto ele absorve).
