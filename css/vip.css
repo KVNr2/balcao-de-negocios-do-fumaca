@@ -1138,3 +1138,13 @@ img.nb-xi{width:52px;height:52px}
 .arv-chip.on{background:rgba(214,178,94,.12)}
 .arv-cn{flex:1;min-width:0;line-height:1.2;overflow-wrap:anywhere}
 .arv-cl{font-variant-numeric:tabular-nums}
+
+.arv-tg{margin-left:auto;font:inherit;font-weight:700;font-variant-numeric:tabular-nums;padding:2px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:inherit;cursor:pointer}
+.arv-tg.on{border-color:var(--gold,#d6b25e);color:var(--gold,#d6b25e);background:rgba(214,178,94,.14)}
+.arv-m{margin-left:auto;display:inline-flex;align-items:center;gap:3px}
+.arv-chip .lvn,.arv-m .lvn{width:58px;text-align:right}
+.arv-v.on{opacity:1;color:var(--gold,#d6b25e)}
+.arv-no>.arv-h .arv-t{opacity:1}
+.arv-m .lvn{width:76px}
+.arv-chip .lvn{width:56px;padding-left:4px;padding-right:4px}
+.arv-cn{hyphens:auto;overflow-wrap:break-word}
