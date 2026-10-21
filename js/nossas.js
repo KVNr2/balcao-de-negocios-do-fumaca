@@ -55,12 +55,35 @@ const nbJson=b=>{ const o={...b}; delete o.local; delete o.repo; delete o.cloud;
 function nbExport(b){ const a=el("a",{href:URL.createObjectURL(new Blob([nbJson(b)],{type:"application/json"})),download:b.id+".json"}); document.body.append(a); a.click(); a.remove();
   alert("Arquivo baixado. Para publicar: coloque-o na pasta builds/ do site e acrescente o nome em builds/index.json (veja builds/LEIA-ME.md)."); }
 
+/* importar do Albion: lê o texto "Copiar como texto" do Loadouts (JSON com equipment) e devolve o que o formulário usa */
+function nbParseAlbion(txt){
+  let o; try{ o=JSON.parse(String(txt||"").trim()); }catch(e){ return null; }
+  if(!o||typeof o!=="object"||!Array.isArray(o.equipment)||!o.equipment.length) return null;
+  const sel={}; let ok=0;
+  for(const e of o.equipment){ const id=e&&e.item, m=/^T\d+_(.+?)(?:@\d)?$/.exec(id||""); if(!m) continue; const c=m[1]; let k=null;
+    if(/^(MAIN|2H)_/.test(c)) k="w"; else if(/^OFF_/.test(c)) k="o"; else if(/^HEAD_/.test(c)) k="h"; else if(/^ARMOR_/.test(c)) k="a"; else if(/^SHOES_/.test(c)) k="s"; else if(/^CAPEITEM|^BACKPACK|_BACKPACK_/.test(c)) k="c";
+    else if(/^BAG/.test(c)) k="gb"; else if(/^MOUNT_/.test(c)) k="m"; else if(/^POTION_/.test(c)) k="p"; else if(/^MEAL_/.test(c)) k="f";
+    if(k&&!sel[k]){ sel[k]=id; ok++; } }
+  if(!ok||!sel.w) return null;
+  if(/^T\d+_2H_/.test(sel.w)) delete sel.o;
+  return {t:String(o.name||"").trim().slice(0,80),sel};
+}
+async function nbImportAlbion(bar){
+  let warn=bar.parentNode.querySelector(".nb-warn"); if(!warn){ warn=el("div",{class:"nb-warn",role:"alert"}); bar.after(warn); } warn.hidden=true; warn.textContent="";
+  const falha=(msg)=>{ warn.hidden=false; warn.textContent=""; warn.append(el("b",{text:msg}),el("span",{text:" No jogo, abra Loadouts, clique em \"Copiar como texto\" e depois clique em \"Importar do Albion\" de novo."})); };
+  let txt=""; try{ txt=await navigator.clipboard.readText(); }catch(e){ 
+    warn.hidden=false; warn.append(el("span",{text:"O navegador não deixou ler a área de transferência. Cole o texto do Albion aqui:"})); const ta=el("textarea",{rows:"3",placeholder:"Texto copiado do Loadouts do Albion"}); const go=el("button",{type:"button",class:"bc-more",text:"Importar"});
+    go.addEventListener("click",()=>{ const p=nbParseAlbion(ta.value); if(p) nbForm(p); else { warn.textContent=""; falha("Esse texto não é um loadout do Albion."); } }); warn.append(ta,go); return; }
+  if(!txt.trim()) return falha("A área de transferência está vazia.");
+  const p=nbParseAlbion(txt); if(!p) return falha("O texto copiado não é uma build do Albion.");
+  nbForm(p);
+}
 function nbRender(){
   const box=$("nbBox"); if(!box) return; box.textContent=""; if(!nbRender._l){ nbRender._l=1; nbLoad().then(()=>nbRender()); catLoad().then(()=>nbRender()); } nbRefreshAll();
   const bar=el("div",{class:"nb-bar"}); const mk=el("button",{type:"button",class:"bc-more nb-new",text:"+ Criar build"}); mk.addEventListener("click",()=>nbForm());
   const imp=el("button",{type:"button",class:"bc-more",text:"Colar código"}); imp.addEventListener("click",()=>{ const t=prompt("Cole aqui o código da build:"); if(!t) return; try{ const b=JSON.parse(t); if(!b.w||!b.t) throw 0; b.id=b.id||nbId(b.t); const a=nbMine(); if(!a.some(x=>x.id===b.id)) a.unshift(b); nbSaveMine(a); nbRender(); }catch(e){ alert("Código inválido."); } });
   const sort=el("select",{"aria-label":"Ordem"}); [["votos","Mais votadas"],["novas","Mais novas"]].forEach(([v,t])=>sort.append(el("option",{value:v,text:t}))); sort.value=nbSort; sort.addEventListener("change",()=>{ nbSort=sort.value; nbRender(); });
-  const cnt=el("span",{class:"muted small",id:"nbCount"}); bar.append(mk,imp,sort,cnt); box.append(bar);
+  const cnt=el("span",{class:"muted small",id:"nbCount"}); const alb=el("button",{type:"button",class:"bc-more",text:"Importar do Albion",title:"Lê o texto copiado do Loadouts do Albion e abre a criação da build já preenchida"}); alb.addEventListener("click",()=>nbImportAlbion(bar)); bar.append(mk,alb,imp,sort,cnt); box.append(bar);
   try{ buildIdx(); }catch(e){} for(const b of NB_ALL){ if(!b.wc&&b.w){ b.wc=b.w.replace(/^T\d_/,"").replace(/@\d$/,""); b.l=(typeof W2LINE!=="undefined"&&W2LINE[b.wc])||""; b.nome=codeName(b.wc); } }
   const used=new Map(); NB_ALL.forEach(b=>nbConts(b).forEach(k=>used.set(k,(used.get(k)||0)+1)));
   const cc=el("div",{class:"seg wrap",role:"group","aria-label":"Conteúdo"}); const mkc=(k,t,n)=>{ const x=el("button",{type:"button","aria-pressed":String(nbCont===k),text:`${t} (${n})`}); x.addEventListener("click",()=>{ nbCont=k; nbLine=""; nbOpen=null; nbRender(); }); cc.append(x); };
@@ -83,7 +106,7 @@ let NB_CAT=null, NB_REFRESH=null;
 const NB_FILTER={ t:r=>r[1]==="gathering"&&/_TOOL_/.test(r[0]), gh:r=>r[1]==="gathering"&&/_HEAD_GATHERER_/.test(r[0]), ga:r=>r[1]==="gathering"&&/_ARMOR_GATHERER_/.test(r[0]), gs:r=>r[1]==="gathering"&&/_SHOES_GATHERER_/.test(r[0]), gk:r=>r[1]==="gathering"&&/_BACKPACK_GATHERER_/.test(r[0]), gb:r=>r[1]==="bags", m:r=>r[1]==="mounts",
   /* itens de coleta entram nas peças a que pertencem: ferramenta = arma, chapéu/traje/botas = elmo/peito/botas, mochila = capa */
   w:r=>r[1]==="weapons"||(r[1]==="gathering"&&/_TOOL_/.test(r[0])), o:r=>r[1]==="offhands", h:r=>r[1]==="head"||(r[1]==="gathering"&&/_HEAD_GATHERER_/.test(r[0])), a:r=>r[1]==="armors"||(r[1]==="gathering"&&/_ARMOR_GATHERER_/.test(r[0])), s:r=>r[1]==="shoes"||(r[1]==="gathering"&&/_SHOES_GATHERER_/.test(r[0])), c:r=>(r[1]==="capes"&&r[2]!=="other")||(r[1]==="gathering"&&/_BACKPACK_GATHERER_/.test(r[0])), p:r=>r[1]==="consumables"&&r[2]==="potions", f:r=>r[1]==="consumables"&&r[2]==="food" };
-async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
+async function nbForm(pre){ if(!nbSrc||nbSrc!=="nos") return;
   /* tela própria dentro da aba, com botão para voltar à lista */
   const host=$("nbBox"); host.textContent=""; const dlg={close:()=>{ nbRender(); const a=$("p-builds"); if(a) a.scrollIntoView({block:"start"}); }};
   const body=el("div",{class:"nb-form"}); host.append(body);
@@ -91,7 +114,8 @@ async function nbForm(){ if(!nbSrc||nbSrc!=="nos") return;
   body.append(back,el("h3",{class:"orn",text:"Criar build"})); window.scrollTo({top:0,behavior:"smooth"});
   if(!NB_CAT){ body.append(el("p",{class:"muted small",text:"Abrindo o catálogo de itens…"})); try{ NB_CAT=await need("catalog"); await catLoad(); }catch(e){ body.textContent="Não consegui abrir o catálogo."; return; } body.lastChild.remove(); }
   let curPick=null; const SETS=[{sel:{},sk:{}},{sel:{},sk:{}}]; let cs=0, sel=SETS[0].sel; const fld=(lab,node)=>{ const l=el("label",{class:"nb-f"}); l.append(el("span",{text:lab}),node); return l; };
-  const nome=el("input",{type:"text",maxlength:"80",placeholder:"Ex.: Lamina Aclarada para Fame Farm"}), au=el("input",{type:"text",maxlength:"40",placeholder:"Seu nome"}); try{ au.value=store.get("nbAuthor")||""; }catch(e){}
+  if(pre) Object.assign(SETS[0].sel,pre.sel);
+  const nome=el("input",{type:"text",maxlength:"80",placeholder:"Ex.: Lamina Aclarada para Fame Farm"}), au=el("input",{type:"text",maxlength:"40",placeholder:"Seu nome"}); try{ au.value=store.get("nbAuthor")||""; }catch(e){} if(pre&&pre.t) nome.value=pre.t;
   /* conteúdo: várias opções; características: etiquetas que aparecem no cartão */
   /* caixa de seleção múltipla (estilo SelectCheckboxMenu): botão com resumo, painel com marcar todos, filtro e lista de caixas */
   const msel=(opts,{max,ph})=>{ const st=new Set(), box=el("div",{class:"ms"}), tr=el("button",{type:"button",class:"ms-tr","aria-haspopup":"listbox","aria-expanded":"false"}), val=el("span",{class:"ms-val"}); tr.append(val,el("span",{class:"ms-ar",text:"▾","aria-hidden":"true"}));
