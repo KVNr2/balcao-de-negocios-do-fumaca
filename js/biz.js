@@ -242,20 +242,31 @@ function ensureWK(){
   WK_LOADING=fetchIds([...ids],DATA.itens,[...CITIES,"Caerleon"]).then(()=>{WK_LOADED=true; return true;}).catch(()=>false).finally(()=>{WK_LOADING=null;});
   return WK_LOADING;
 }
-function wkModel(ty,t){
+const wkN = () => Math.max(1,Math.min(99,Math.round(+(store.get("wkN")||1)||1)));
+const wkBuyMode = () => store.get("wkBuy")==="ordem"?"ordem":"direto";
+/* onde comprar o diário cheio: direto = menor preço de venda entre as cidades; por ordem = maior ordem de compra aberta + 2,5% de taxa da ordem */
+function wkCost(id){
+  const r=(DATA.itens||{})[id]||{}; let best=null; const ord=wkBuyMode()==="ordem";
+  for(const c of SHOP_LOCS){ const v=r[c]; if(!v) continue; const p=ord?v[1]:v[0]; if(!(p>0)) continue; const cost=ord?p*1.025:p; if(!best||cost<best.p) best={c,p:cost}; }
+  return best;
+}
+function wkModel(ty,t,wt=t){
   const j=JOURNALS[ty]&&JOURNALS[ty][t]; if(!j) return null;
   const empty=typical(`T${t}_JOURNAL_${ty}_EMPTY`,0), full=typical(`T${t}_JOURNAL_${ty}_FULL`,0);
   let yieldV=null, thin=false;
   if(Array.isArray(j[3])){ let sw=0, sv=0, wAll=0; for(const [iid,w,q] of j[3]){ wAll+=w; const p=typical(lootKey(iid),0); if(!p) continue; sw+=w; sv+=w*q*p.p; }
-    if(sw>=wAll*0.8){ yieldV=j[1]*(sv/sw)*wkYield(t)*(1-taxOf()); thin=sw<wAll*0.97; } }
-  else yieldV=j[3]*wkYield(t);
-  return {ty,t,fame:j[0],empty,full,yieldV,thin,buyFull:yieldV!=null&&full?yieldV-full.p:null,fill:full&&empty?full.p*(1-taxOf())-empty.p:null};
+    if(sw>=wAll*0.8){ yieldV=j[1]*(sv/sw)*wkYield(wt)*(1-taxOf()); thin=sw<wAll*0.97; } }
+  else yieldV=j[3]*wkYield(wt);
+  const bc=wkCost(`T${t}_JOURNAL_${ty}_FULL`);
+  return {ty,t,fame:j[0],empty,full,yieldV,thin,buyCity:bc,buyFull:yieldV!=null&&bc?yieldV-bc.p:null,fill:full&&empty?full.p*(1-taxOf())-empty.p:null};
 }
 function setupWK(){
   const ts=$("wkTier"); if(ts.children.length) return;
   const top=Math.max(...Object.values(PF.coleta||{}).map(g=>g.tier||0),6); wkTierSel=Math.min(8,Math.max(4,top));
   [4,5,6,7,8].forEach(t=>ts.append(el("button",{type:"button","data-t":String(t),"aria-pressed":String(t===wkTierSel),text:`T${t}`})));
   ts.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ts.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); wkTierSel=+b.dataset.t; renderWK(); });
+  { const ni=$("wkN"); ni.value=String(wkN()); ni.addEventListener("change",()=>{ const v=Math.max(1,Math.min(99,Math.round(+ni.value||1))); ni.value=String(v); store.set("wkN",String(v)); renderWK(); });
+    const bs=$("wkBuy"); bs.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.m===wkBuyMode())); b.addEventListener("click",()=>{ store.set("wkBuy",b.dataset.m); bs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderWK(); }); }); }
   const hi=$("wkHap"), pi=$("wkPct"); hi.value=wkHap()??""; pi.value=wkPct()??""; hi.placeholder=String(hapMax(wkTierSel));
   hi.addEventListener("change",()=>{ const v=Math.max(0,Math.round(+hi.value||0)); hi.value=v?String(v):""; store.set("wkHap",v?String(v):""); renderWK(); });
   pi.addEventListener("change",()=>{ const v=Math.max(0,Math.round(+pi.value||0)); pi.value=v?String(v):""; store.set("wkPct",v?String(v):""); renderWK(); });
@@ -266,15 +277,37 @@ async function renderWK(){
   if(!WK_LOADED){ tb.textContent=""; $("wkStatus").dataset.base=$("wkStatus").dataset.base||$("wkStatus").textContent; $("wkStatus").textContent="Consultando os preços dos diários…"; const ok=await ensureWK(); $("wkStatus").textContent=$("wkStatus").dataset.base; if(!ok){ $("wkStatus").textContent="Não consegui consultar os diários agora."; return; } }
   const mx=hapMax(wkTierSel); $("wkHapMax").textContent=`de ${mx}`; $("wkHap").max=String(mx); $("wkHap").placeholder=String(mx);
   $("wkYieldTxt").textContent = wkPct() ? `Usando o rendimento de ${wkPct()}% que você digitou.` : wkHap()==null ? `Sem felicidade digitada: a conta usa a barra cheia (${mx} em T${wkTierSel}), que rende 150%.` : `Felicidade ${Math.min(wkHap(),mx)} de ${mx} em T${wkTierSel}: rende ${Math.round(wkYield(wkTierSel)*100)}% (cheia rende 150%).`;
-  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Trabalhador","Diário vazio","Diário cheio",`Devolve (${Math.round(wkYield(wkTierSel)*100)}%)`,"Comprar cheio e entregar","Encher e vender","Enche com"].forEach(h=>hr.append(el("th",{text:h})));
+  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Trabalhador","Diário vazio","Diário cheio","Comprar o cheio em",`Devolve (${Math.round(wkYield(wkTierSel)*100)}%)`,"Comprar cheio e entregar",`Por dia com ${wkN()} ${wkN()===1?"trabalhador":"trabalhadores"}`,"Encher e vender","Enche com",""].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody(), t=wkTierSel;
   for(const [ty,nm,how] of WK){ const m=wkModel(ty,t); if(!m) continue; const tr=body.insertRow();
     tr.insertCell().append(withIcon(`T${t}_JOURNAL_${ty}_FULL`,`${nm} T${t}`));
-    [[m.empty&&m.empty.p,`T${t}_JOURNAL_${ty}_EMPTY`],[m.full&&m.full.p,`T${t}_JOURNAL_${ty}_FULL`],[m.yieldV,null]].forEach(([v,ic])=>{ const c=tr.insertCell(); c.className="num"; const tx=v?fmt(v):"—"; if(ic) c.append(withIcon(ic,tx)); else c.textContent=tx; });
-    for(const v of [m.buyFull,m.fill]){ const c=tr.insertCell(); c.className="num "+(v==null?"":v>=0?"gain":"loss"); c.textContent=v==null?"—":sgn(v); }
-    const c=tr.insertCell(); c.className="small muted"; c.textContent=`${fmt(m.fame)} de fama ${how}${m.thin?"; parte do saque sem preço":""}`; }
+    [[m.empty&&m.empty.p,`T${t}_JOURNAL_${ty}_EMPTY`],[m.full&&m.full.p,`T${t}_JOURNAL_${ty}_FULL`]].forEach(([v,ic])=>{ const c=tr.insertCell(); c.className="num"; const tx=v?fmt(v):"—"; c.append(withIcon(ic,tx)); });
+    { const c=tr.insertCell(); c.className="small"; if(m.buyCity){ c.append(el("b",{text:fmt(Math.round(m.buyCity.p))})," ",el("span",{class:"muted",text:m.buyCity.c})); c.title=wkBuyMode()==="ordem"?"Maior ordem de compra aberta nessa cidade, mais 2,5% de taxa para montar a ordem":"Menor preço de venda entre as cidades"; } else c.textContent="—"; }
+    { const c=tr.insertCell(); c.className="num"; c.textContent=m.yieldV?fmt(m.yieldV):"—"; }
+    { const c=tr.insertCell(); c.className="num "+(m.buyFull==null?"":m.buyFull>=0?"gain":"loss"); c.textContent=m.buyFull==null?"—":sgn(m.buyFull); }
+    { const c=tr.insertCell(); const v=m.buyFull==null?null:m.buyFull*wkN(); c.className="num bm-profit "+(v==null?"":v>=0?"gain":"loss"); c.textContent=v==null?"—":sgn(v); c.title=`${sgn(m.buyFull||0)} por diário × ${wkN()}, um diário por trabalhador por dia`; }
+    { const c=tr.insertCell(); c.className="num "+(m.fill==null?"":m.fill>=0?"gain":"loss"); c.textContent=m.fill==null?"—":sgn(m.fill); }
+    const c=tr.insertCell(); c.className="small muted"; c.textContent=`${fmt(m.fame)} de fama ${how}${m.thin?"; parte do saque sem preço":""}`;
+    { const rc=tr.insertCell(); const rb=el("button",{type:"button",class:"btn mn-craft",title:"Abrir o Refino para ver o que fazer com o que o trabalhador devolve",text:"Refino ➜"}); rb.addEventListener("click",()=>{ const b=document.getElementById("t-refino"); if(b) b.click(); }); rc.append(rb); } }
+  renderWKRank();
   renderWKMine();
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.03,clearProps:"opacity,transform"});
+}
+/* ranking: qual tier de diário rende mais por dia, com o trabalhador do tier escolhido e a quantidade informada */
+function renderWKRank(){
+  const box=$("wkRank"); if(!box) return; box.textContent=""; const wt=wkTierSel, rows=[];
+  for(const [ty,nm] of WK) for(let t=4;t<=wt;t++){ const m=wkModel(ty,t,wt); if(m&&m.buyFull!=null) rows.push({m,nm,v:m.buyFull*wkN()}); }
+  rows.sort((a,b)=>b.v-a.v);
+  if(!rows.length){ box.append(el("p",{class:"small muted",text:"Sem preços suficientes para montar o ranking agora."})); return; }
+  const tb=el("table",{}); const hr=tb.createTHead().insertRow(); ["#","Diário","Comprar o cheio em","Preço do cheio","Devolve","Por diário",`Por dia (${wkN()})`].forEach(h=>hr.append(el("th",{text:h}))); const body=tb.createTBody();
+  rows.slice(0,10).forEach((r,i)=>{ const m=r.m, tr=body.insertRow(); tr.insertCell().textContent=String(i+1);
+    tr.insertCell().append(withIcon(`T${m.t}_JOURNAL_${m.ty}_FULL`,`${r.nm} T${m.t}`));
+    { const c=tr.insertCell(); c.className="small"; c.textContent=m.buyCity?m.buyCity.c:"—"; }
+    { const c=tr.insertCell(); c.className="num"; c.textContent=m.buyCity?fmt(Math.round(m.buyCity.p)):"—"; }
+    { const c=tr.insertCell(); c.className="num"; c.textContent=fmt(m.yieldV); }
+    { const c=tr.insertCell(); c.className="num "+(m.buyFull>=0?"gain":"loss"); c.textContent=sgn(m.buyFull); }
+    { const c=tr.insertCell(); c.className="num bm-profit "+(r.v>=0?"gain":"loss"); c.textContent=sgn(r.v); } });
+  box.append(tb);
 }
 function renderWKMine(){
   const box=$("wkMine"); box.textContent=""; const items=[];
