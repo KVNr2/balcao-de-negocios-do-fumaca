@@ -3,8 +3,7 @@
    bônus = maestria do grupo × 0,2 + spec do próprio item × 2,0 (+ 0,2 de cada nível dela) + demais specs do grupo × 0,2 (0,1 nas de artefato/real/avalon/cristal; 0,6 nas mãos secundárias simples)
    modificador de maestria: T5 5%, T6 10%, T7 15%, T8 20%. Qualidade normal. Capa, bolsa, montaria e comida não recebem bônus de spec.
    IP médio = (elmo + peito + botas + capa + arma + mão secundária) ÷ 6; arma de duas mãos conta nas duas posições; sem mão secundária conta 0. */
-/* Nó de cristal: +0,025 por nível a todas as armas da mesma categoria (g=guerreiro, c=caçador, m=mago) e a todas as mãos secundárias,
-   de qualquer grupo. Conferido no jogo com maça, escudo e arco; as categorias de lança, bordão, natureza, metamorfo, besta, livro e tocha ainda não foram vistas no jogo. */
+/* Nó de cristal: +0,025 por nível às armas e mãos secundárias da mesma categoria (g=guerreiro, c=caçador, m=mago; escudo=g, tocha=c, livro=m). Conferido no jogo com maça, escudo e arco; as categorias de lança, bordão, natureza, metamorfo, besta, livro e tocha ainda não foram vistas no jogo. */
 const IP_CLS={espada:"g",machado:"g",maca:"g",martelo:"g",luvas:"g",besta:"g",escudo:"g",arco:"c",lanca:"c",adaga:"c",bordao:"c",natureza:"c",metamorfo:"c",tocha:"c",fogo:"m",gelo:"m",arcano:"m",sagrado:"m",maldito:"m",livro:"m"};
 const IP_CRIST=/_CRYSTAL$/;
 /* base de poder de item de cada item além da do tier (data/ipoff.json, tirado do items.json do jogo): artefatos e itens de 1 mão/2 mãos especiais têm +25, +50, +75 ou +100 */
@@ -18,7 +17,7 @@ function ipItem(id){
     const cf=c=>IP_ARTE.test(c)?0.1:off?0.6:0.2;   // quanto cada nível de um item dá aos demais do grupo (escudo comum 0,6; artefato 0,1; resto 0,2)
     let oth=0; for(const [c] of grp.it){ if(c===m.c||IP_CRIST.test(c)) continue; oth+=(+s[c]||0)*cf(c); }
     let cry=0; const cls=IP_CLS[gk];   // cristais de todas as linhas da mesma categoria (mão secundária recebe de todas)
-    if(cls||off) for(const g2 of SPECS.g){ const ln=g2.k.slice(2); if(!g2.k.startsWith("c:")||!IP_CLS[ln]||!(off||IP_CLS[ln]===cls)) continue; const s2=((PF&&PF.sp&&PF.sp[g2.k])||{}).s||{}; for(const [c] of g2.it) if(IP_CRIST.test(c)) cry+=(+s2[c]||0)*0.025; }
+    if(cls) for(const g2 of SPECS.g){ const ln=g2.k.slice(2); if(!g2.k.startsWith("c:")||IP_CLS[ln]!==cls) continue; const s2=((PF&&PF.sp&&PF.sp[g2.k])||{}).s||{}; for(const [c] of g2.it) if(IP_CRIST.test(c)) cry+=(+s2[c]||0)*0.025; }
     bonus=(+spMastery(grp.k)||0)*0.2+own*(2+(ownCr?0:cf(m.c)))+oth+cry; }   // a maestria das armas fica em PF.armas, não em PF.sp
   const ip=Math.floor(base+bonus*(1+mod)+1e-9);   // o jogo corta a fração (não arredonda)
   return {ip,base,bonus:bonus*(1+mod),mod};
