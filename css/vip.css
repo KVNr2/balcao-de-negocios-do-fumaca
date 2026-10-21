@@ -1100,3 +1100,11 @@ img.nb-xi{width:52px;height:52px}
   .vip-top .status{height:32px;padding:0 10px}
   .alb-tier{flex-wrap:wrap}
 }
+.nb-how{margin:6px 0 10px;max-width:72ch}
+.nb-imp{margin:10px 0 14px;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:rgba(239,226,196,.04);display:grid;gap:10px;max-width:640px}
+.nb-imp h4{margin:0;font:700 1.05rem var(--f-display,serif);color:var(--saffron,#e8ab45)}
+.nb-imp ol{margin:0;padding-left:1.2em;display:grid;gap:4px;font:500 13.5px/1.4 Inter,sans-serif;color:var(--parch-2,#cdbf9f)}
+.nb-imp kbd{font:600 12px var(--f-mono,monospace);padding:1px 6px;border-radius:6px;border:1px solid var(--line);background:#0b0f17}
+.nb-imp textarea{width:100%;min-height:96px;resize:vertical}
+.nb-imp-msg{margin:0;font:500 13px Inter,sans-serif;min-height:1.2em}.nb-imp-msg.bad{color:#f0a36a}
+.nb-imp-act{display:flex;gap:8px;flex-wrap:wrap}

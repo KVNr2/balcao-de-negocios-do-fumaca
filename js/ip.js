@@ -20,7 +20,8 @@ function ipBuild(b,set,tier){
   for(const e of eq){ const m=idInfo(e.item); if(!m) continue; let slot=null;
     if(/^(MAIN|2H)_/.test(m.c)){ slot="w"; two=/^2H_/.test(m.c); } else if(/^OFF_/.test(m.c)) slot="o"; else if(/^HEAD_/.test(m.c)) slot="h"; else if(/^ARMOR_/.test(m.c)) slot="a"; else if(/^SHOES_/.test(m.c)) slot="s"; else if(/^CAPEITEM/.test(m.c)) slot="c";
     if(!slot) continue; const r=ipItem(e.item); if(!r) continue; parts.push({id:e.item,slot,ip:r.ip}); sum+=r.ip; if(slot==="w"&&two) sum+=r.ip; }
-  return {avg:sum/6,parts,miss,sem:!(PF&&PF.sp&&Object.keys(PF.sp).length)};
+  const n=b.noOff?(parts.length+(two?1:0)):6;   // ZvZ não informa a mão secundária: média só das peças que aparecem
+  return {avg:sum/Math.max(1,n),parts,miss,noOff:!!b.noOff,sem:!(PF&&PF.sp&&Object.keys(PF.sp).length)};
 }
 /* selo verde grande com o IP; upd(set,tier) recalcula quando a pessoa troca o set ou o tier */
 function albionBadge(b){
@@ -28,6 +29,6 @@ function albionBadge(b){
   w._upd=(set,tier)=>{ let r; try{ r=ipBuild(b,set||0,tier||0); }catch(e){ w.hidden=true; return; } w.hidden=false;
     num.textContent="≈ "+Math.round(r.avg).toLocaleString("pt-BR");
     sub.textContent=""; sub.append(el("span",{class:"ip-c",text:tier?`T${tier} equivalente`:"Tier original"}),el("span",{class:"ip-c"+(r.sem?" off":""),text:r.sem?"Sem ficha":"Sua ficha"}));
-    w.title="Valor aproximado: depende do tier e da qualidade das peças. Aqui o cálculo usa o tier escolhido em \"Tier das peças\" e qualidade normal (cada qualidade acima soma de +20 a +100 por peça). "+"\nIP de cada peça:\n"+r.parts.map(p=>`${({w:"Arma",o:"Mão secundária",h:"Elmo",a:"Peito",s:"Botas",c:"Capa"})[p.slot]}: ${Math.round(p.ip).toLocaleString("pt-BR")}`).join("\n")+(r.sem?". Carregue sua ficha para somar os bônus de maestria e spec.":""); };
+    w.title="Valor aproximado: depende do tier e da qualidade das peças. Aqui o cálculo usa o tier escolhido em \"Tier das peças\" e qualidade normal (cada qualidade acima soma de +20 a +100 por peça). "+"\nIP de cada peça:\n"+r.parts.map(p=>`${({w:"Arma",o:"Mão secundária",h:"Elmo",a:"Peito",s:"Botas",c:"Capa"})[p.slot]}: ${Math.round(p.ip).toLocaleString("pt-BR")}`).join("\n")+(r.noOff?"\nMão secundária não informada nesta build: média só das outras peças.":"")+(r.sem?"\nCarregue sua ficha para somar os bônus de maestria e spec.":""); };
   w._upd(0,0); return w;
 }
