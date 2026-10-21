@@ -56,6 +56,8 @@ function nbExport(b){ const a=el("a",{href:URL.createObjectURL(new Blob([nbJson(
   alert("Arquivo baixado. Para publicar: coloque-o na pasta builds/ do site e acrescente o nome em builds/index.json (veja builds/LEIA-ME.md)."); }
 
 /* importar do Albion: lê o texto "Copiar como texto" do Loadouts (JSON com equipment) e devolve o que o formulário usa */
+/* texto fixo do próprio site com negrito/teclas (nunca recebe dado de fora) */
+const nbRich=(tag,cls,h)=>{ const e=el(tag,cls?{class:cls}:{}); e.innerHTML=h; return e; };
 function nbParseAlbion(txt){
   let o; try{ o=JSON.parse(String(txt||"").trim()); }catch(e){ return null; }
   if(!o||typeof o!=="object"||!Array.isArray(o.equipment)||!o.equipment.length) return null;
@@ -69,21 +71,28 @@ function nbParseAlbion(txt){
   return {t:String(o.name||"").trim().slice(0,80),sel};
 }
 async function nbImportAlbion(bar){
-  let warn=bar.parentNode.querySelector(".nb-warn"); if(!warn){ warn=el("div",{class:"nb-warn",role:"alert"}); bar.after(warn); } warn.hidden=true; warn.textContent="";
-  const falha=(msg)=>{ warn.hidden=false; warn.textContent=""; warn.append(el("b",{text:msg}),el("span",{text:" No jogo, abra Loadouts, clique em \"Copiar como texto\" e depois clique em \"Importar do Albion\" de novo."})); };
-  let txt=""; try{ txt=await navigator.clipboard.readText(); }catch(e){ 
-    warn.hidden=false; warn.append(el("span",{text:"O navegador não deixou ler a área de transferência. Cole o texto do Albion aqui:"})); const ta=el("textarea",{rows:"3",placeholder:"Texto copiado do Loadouts do Albion"}); const go=el("button",{type:"button",class:"bc-more",text:"Importar"});
-    go.addEventListener("click",()=>{ const p=nbParseAlbion(ta.value); if(p) nbForm(p); else { warn.textContent=""; falha("Esse texto não é um loadout do Albion."); } }); warn.append(ta,go); return; }
+  const host=bar.parentNode; host.querySelectorAll(".nb-warn,.nb-imp").forEach(x=>x.remove());
+  const anc=host.querySelector(".nb-how")||bar; const warn=el("div",{class:"nb-warn",role:"alert"}); anc.after(warn);
+  const falha=(msg)=>{ warn.textContent=""; warn.append(el("b",{text:msg}),el("span",{text:" No jogo, abra Loadouts, clique em \"Copiar como texto\" e depois clique em \"Importar do Albion\" de novo."})); };
+  const painel=()=>{ warn.remove(); const p=el("section",{class:"nb-imp","aria-label":"Importar do Albion"});
+    p.append(el("h4",{text:"Importar do Albion"}),
+      nbRich("ol","","<li>No jogo, abra <b>Loadouts</b> e escolha o loadout.</li><li>Clique em <b>Copiar como texto</b>.</li><li>Cole o texto na caixa abaixo (<kbd>Ctrl</kbd>+<kbd>V</kbd>). A importação começa sozinha.</li>"));
+    const ta=el("textarea",{rows:"4",placeholder:"Cole aqui o texto copiado do Loadouts do Albion","aria-label":"Texto do Loadouts do Albion"}); const msg=el("p",{class:"nb-imp-msg",role:"status"});
+    const go=()=>{ const r=nbParseAlbion(ta.value); if(r) nbForm(r); else if(ta.value.trim()){ msg.textContent="Esse texto não é uma build do Albion. Confira se copiou com \"Copiar como texto\" no Loadouts."; msg.className="nb-imp-msg bad"; } };
+    ta.addEventListener("paste",()=>setTimeout(go,0));
+    const ok=el("button",{type:"button",class:"bc-more nb-new",text:"Importar"}); ok.addEventListener("click",go);
+    const no=el("button",{type:"button",class:"bc-more",text:"Cancelar"}); no.addEventListener("click",()=>p.remove());
+    const row=el("div",{class:"nb-imp-act"}); row.append(ok,no); p.append(ta,msg,row); anc.after(p); ta.focus(); };
+  let txt=""; try{ txt=await navigator.clipboard.readText(); }catch(e){ return painel(); }
   if(!txt.trim()) return falha("A área de transferência está vazia.");
   const p=nbParseAlbion(txt); if(!p) return falha("O texto copiado não é uma build do Albion.");
-  nbForm(p);
+  warn.remove(); nbForm(p);
 }
 function nbRender(){
   const box=$("nbBox"); if(!box) return; box.textContent=""; if(!nbRender._l){ nbRender._l=1; nbLoad().then(()=>nbRender()); catLoad().then(()=>nbRender()); } nbRefreshAll();
   const bar=el("div",{class:"nb-bar"}); const mk=el("button",{type:"button",class:"bc-more nb-new",text:"+ Criar build"}); mk.addEventListener("click",()=>nbForm());
-  const imp=el("button",{type:"button",class:"bc-more",text:"Colar código"}); imp.addEventListener("click",()=>{ const t=prompt("Cole aqui o código da build:"); if(!t) return; try{ const b=JSON.parse(t); if(!b.w||!b.t) throw 0; b.id=b.id||nbId(b.t); const a=nbMine(); if(!a.some(x=>x.id===b.id)) a.unshift(b); nbSaveMine(a); nbRender(); }catch(e){ alert("Código inválido."); } });
   const sort=el("select",{"aria-label":"Ordem"}); [["votos","Mais votadas"],["novas","Mais novas"]].forEach(([v,t])=>sort.append(el("option",{value:v,text:t}))); sort.value=nbSort; sort.addEventListener("change",()=>{ nbSort=sort.value; nbRender(); });
-  const cnt=el("span",{class:"muted small",id:"nbCount"}); const alb=el("button",{type:"button",class:"bc-more",text:"Importar do Albion",title:"Lê o texto copiado do Loadouts do Albion e abre a criação da build já preenchida"}); alb.addEventListener("click",()=>nbImportAlbion(bar)); bar.append(mk,alb,imp,sort,cnt); box.append(bar);
+  const cnt=el("span",{class:"muted small",id:"nbCount"}); const alb=el("button",{type:"button",class:"bc-more",text:"Importar do Albion",title:"Lê o texto copiado do Loadouts do Albion e abre a criação da build já preenchida"}); alb.addEventListener("click",()=>nbImportAlbion(bar)); bar.append(mk,alb,sort,cnt); box.append(bar); box.append(nbRich("p","muted small nb-how","<b>Importar uma build do Albion:</b> no jogo, abra <b>Loadouts</b>, escolha o loadout e clique em <b>Copiar como texto</b>. Volte aqui, clique em <b>Importar do Albion</b>, dê um nome, escolha o conteúdo e salve."));
   try{ buildIdx(); }catch(e){} for(const b of NB_ALL){ if(!b.wc&&b.w){ b.wc=b.w.replace(/^T\d_/,"").replace(/@\d$/,""); b.l=(typeof W2LINE!=="undefined"&&W2LINE[b.wc])||""; b.nome=codeName(b.wc); } }
   const used=new Map(); NB_ALL.forEach(b=>nbConts(b).forEach(k=>used.set(k,(used.get(k)||0)+1)));
   const cc=el("div",{class:"seg wrap",role:"group","aria-label":"Conteúdo"}); const mkc=(k,t,n)=>{ const x=el("button",{type:"button","aria-pressed":String(nbCont===k),text:`${t} (${n})`}); x.addEventListener("click",()=>{ nbCont=k; nbLine=""; nbOpen=null; nbRender(); }); cc.append(x); };
