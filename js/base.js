@@ -199,7 +199,7 @@ function itemImg(code,tiers){ let t=tiers||[4,5,6,3,7,8,2,1], i=0;
   const fail=()=>{ if(++i<t.length) set(); else { im.onerror=null; im.classList.add("nico-off"); } };
   im._tier=n=>{ t=tierOrder(n); i=0; im.classList.remove("nico-off"); set(); }; set(); return im; }
 /* item que representa a linha de maestria: o básico (SET1) quando existe, senão o primeiro da lista */
-const REP_FIXO = {"z:animais":"FARM_HORSE_BABY"};   // ícone da maestria do grupo quando o primeiro da lista não representa bem (criação de animais: o potro)
+const REP_FIXO = {"z:animais":"FARM_HORSE_BABY","z:ervas":"FARM_CARROT_SEED"};   // ícone da maestria do grupo quando o primeiro da lista não representa bem (criação de animais: o potro)
 const repKey = g => REP_FIXO[g.k]||(g.it.find(x=>/_SET1$/.test(x[0]))||g.it[0])[0];
 /* armaduras do craft: 1, 2, 3 são os sets básicos (…_SET1); as de facção/artefato têm o código sem SET (HEAD_PLATE_UNDEAD) */
 const specCode = (g,key) => g.k.startsWith("a:") ? (/^\d+$/.test(key)?`${g.k.slice(2)}_SET${key}`:`${g.k.slice(2)}_${key}`) : key;
