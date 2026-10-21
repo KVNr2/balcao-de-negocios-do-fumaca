@@ -613,7 +613,7 @@ const COOK_NODES = {
 function renderCookProfile(){ const c=$("pfCook"); c.textContent=""; const cg=el("div",{class:"spgroups"}); c.append(cg);
   for(const [k,n,kind] of [["cozinha","Cozinha","f"],["alquimia","Alquimia","p"]]){ const cur=PF[k]||(PF[k]={m:0,s:{}}); cur.s=cur.s||{}; const nodes=COOK_NODES[kind], types=Object.fromEntries(nodes.map(x=>[x[0],x[1]])), iconeDe=Object.fromEntries(nodes.map(x=>[x[0],x[2]]));
     const icons=[], mk=(code,gate)=>{ const im=itemImg(code,tierOrder(iconTier(cur.m,cur.t2)),gate!==false); icons.push(im); return im; }, retier=()=>{ const t=iconTier(cur.m,cur.t2); icons.forEach(im=>im._tier(t)); };
-    const ic=()=>mk(kind==="f"?"MEAL_STEW":"POTION_HEAL",false);
+    const ic=()=>kind==="f"?itemImg("MEAL_SOUP",[1],false):mk("POTION_HEAL",false);   // ícone da maestria de Cozinha: a sopa T1, fixa
     cg.append(spNode(n,ic(),()=>{ const vals=Object.keys(types).map(tp=>cur.s[tp]??cur.all??0).filter(x=>x>0), parts=[]; if(cur.m) parts.push(`maestria ${cur.m}`); if(vals.length) parts.push(`${vals.length} de ${Object.keys(types).length} com nível, maior ${Math.max(...vals)}`); return parts.length?parts.join(", "):"sem spec"; },(body,upd)=>{
       const save=()=>{ saveProfile(); upd(); retier(); };
       body.append(tagIn("Maestria",numIn(cur.m||0,100,`Maestria de ${n}`,x=>{ cur.m=x; save(); }),ic()));
