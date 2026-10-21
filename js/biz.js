@@ -64,8 +64,8 @@ async function warmBM(force){
     try{
       if(g==="*"){ for(const t of [8,7,6,5,4,3,2]){ if(run!==WARM_RUN) return; await wait(); await ensureBM("*",t); } }
       else { await wait(); await ensureBM(g,0); }
-      /* depois, as outras mercadorias, uma por vez: trocar de mercadoria depois também só filtra */
-      for(const [k] of BM_GROUPS){ if(k===g) continue; if(run!==WARM_RUN) return; await wait(); await ensureBM(k,0); await sleep(300); }
+      /* só a visão que a pessoa abre: as outras mercadorias são buscadas quando ela clicar (uma vez, depois ficam no cache),
+         para não pesar na API da comunidade com dezenas de pedidos por visita */
     } finally{ FORCE=was; }
   }catch(e){}
 }
