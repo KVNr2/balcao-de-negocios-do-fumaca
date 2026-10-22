@@ -1393,3 +1393,9 @@ td.wk-act .mn-craft+.mn-craft{margin-left:6px}
 .kx-ov.kx-left{right:calc(100% + 8px)}
 .nb-L .kx-g{padding-left:76px}
 @media (max-width:640px){.kx-g{gap:62px 10px;padding:0 0 56px 52px}.kx-ov.kx-left{right:calc(100% + 6px)}}
+/* criar build: ícone à esquerda; nome, qualidade e encantamento um abaixo do outro, alinhados na mesma coluna */
+.nb-qr{display:grid;grid-template-columns:36px minmax(0,1fr);column-gap:12px;row-gap:6px;align-items:center}
+.nb-qr img.nb-qi{grid-column:1;grid-row:1/4;align-self:start}
+.nb-qr>.nb-qn,.nb-qr>b,.nb-qr>.qp,.nb-qr>.ep{grid-column:2}
+.nb-qr .qp,.nb-qr .ep{margin:0;justify-self:start;flex-wrap:wrap}
+.nb-qr .qp-n{min-width:0}.nb-qr .ep-n{min-width:0}
