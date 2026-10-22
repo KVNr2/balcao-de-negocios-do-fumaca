@@ -308,7 +308,42 @@ const API_CHUNK=120;   // itens por pedido (a API aceitou 160 sem problema)
 const API_BUDGET=70, apiStamps=[];
 async function apiPace(){ for(;;){ const now=Date.now(); while(apiStamps.length&&now-apiStamps[0]>60e3) apiStamps.shift(); if(apiStamps.length<API_BUDGET){ apiStamps.push(now); return; } await new Promise(f=>setTimeout(f,Math.max(250,60e3-(now-apiStamps[0])+50))); } }
 const apiResetMs=txt=>{ const m=/resets at (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/.exec(txt||""); if(!m) return 0; const t=Date.parse(m[1]+"T"+m[2]+"Z")-Date.now(); return Math.min(65e3,Math.max(1e3,t+1000)); };
+/* Preços coletados pelo AlbionSpecs (tabela market_latest no Supabase, mesmo formato do Albion Data).
+   Para cada item/cidade/qualidade vale o valor mais recente entre o Albion Data e o nosso. */
+const CROWD_MEM=new Map(); let CROWD_OFF=false; const CROWD={hits:0};
+async function crowdMerge(url,j){
+  if(CROWD_OFF||!Array.isArray(j)) return j;
+  try{
+    const m=/stats\/prices\/([^?]+)\.json\?(.*)$/.exec(url); if(!m) return j;
+    const ids=decodeURIComponent(m[1]).split(","), q=new URLSearchParams(m[2]);
+    const locs=(q.get("locations")||"").split(",").filter(Boolean), quals=(q.get("qualities")||"1").split(",");
+    const key=m[1]+"|"+m[2]; let rows; const hit=CROWD_MEM.get(key);
+    if(hit&&Date.now()-hit.t<60e3) rows=hit.r;
+    else{
+      const cfg=await need("nuvem"); if(!(cfg.url&&cfg.key)){ CROWD_OFF=true; return j; }
+      const qs=`select=item_id,quality,city,sell_min,sell_min_at,sell_amt,buy_max,buy_max_at,buy_amt&item_id=in.(${ids.map(encodeURIComponent).join(",")})`+(locs.length?`&city=in.(${locs.map(c=>encodeURIComponent(c)).join(",")})`:"")+`&quality=in.(${quals.join(",")})&limit=5000`;
+      const ctl=new AbortController(); const tm=setTimeout(()=>ctl.abort(),5000);
+      try{ const r=await fetch(cfg.url.replace(/\/$/,"")+"/rest/v1/market_latest?"+qs,{signal:ctl.signal,headers:{apikey:cfg.key,Authorization:"Bearer "+cfg.key}}); if(!r.ok) return j; rows=await r.json(); }
+      finally{ clearTimeout(tm); }
+      CROWD_MEM.set(key,{t:Date.now(),r:rows});
+    }
+    if(!rows||!rows.length) return j;
+    const out=j.map(x=>({...x})), idx=new Map(out.map(x=>[x.item_id+"|"+x.city+"|"+x.quality,x]));
+    const iso=t=>new Date(t).toISOString().slice(0,19), ms=d=>d&&!d.startsWith("0001")?Date.parse(d+"Z"):0;
+    for(const c of rows){
+      const k=c.item_id+"|"+c.city+"|"+c.quality; let x=idx.get(k);
+      if(!x){ x={item_id:c.item_id,city:c.city,quality:c.quality,sell_price_min:0,sell_price_min_date:"0001-01-01T00:00:00",sell_price_max:0,sell_price_max_date:"0001-01-01T00:00:00",buy_price_min:0,buy_price_min_date:"0001-01-01T00:00:00",buy_price_max:0,buy_price_max_date:"0001-01-01T00:00:00"}; out.push(x); idx.set(k,x); }
+      if(c.sell_min&&c.sell_min_at&&Date.parse(c.sell_min_at)>ms(x.sell_price_min_date)){ x.sell_price_min=c.sell_min; x.sell_price_min_date=iso(c.sell_min_at); x.sell_amt=c.sell_amt; x._src="app"; CROWD.hits++; }
+      if(c.buy_max&&c.buy_max_at&&Date.parse(c.buy_max_at)>ms(x.buy_price_max_date)){ x.buy_price_max=c.buy_max; x.buy_price_max_date=iso(c.buy_max_at); x.buy_amt=c.buy_amt; x._src="app"; CROWD.hits++; }
+    }
+    return out;
+  }catch(e){ return j; }
+}
 async function apiJSON(url,ttlMin=10){
+  const j=await apiJSON0(url,ttlMin);
+  return url.includes("/stats/prices/")?crowdMerge(url,j):j;
+}
+async function apiJSON0(url,ttlMin=10){
   if(!FORCE){ const c=cacheGet(url,ttlMin); if(c){ apiJSON.oldest=Math.min(apiJSON.oldest||Infinity,c.t); return c.j; } }
   let r;
   for(let n=0;;n++){
