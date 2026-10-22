@@ -3,7 +3,7 @@
 Fonte: API oficial (gameinfo.albiononline.com). O conteúdo de cada morte é deduzido por uma árvore treinada com os rótulos do killboard-1 (tools/treinar_pvp.py).
 Jogadores: sementes em data/pvp-sementes.json (criadas dos rótulos na primeira vez e renovadas a cada rodada pelos mais ativos de cada conteúdo).
 Janela: últimos 90 dias. Se algo falhar ou vierem poucos eventos, NÃO sobrescreve o arquivo atual."""
-import json, os, re, sys, time, datetime, collections, urllib.request
+import json, os, re, sys, time, datetime, collections, urllib.request, urllib.error
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pvp_comum as C
@@ -13,13 +13,18 @@ DIAS = 90; PAGINAS = int(os.environ.get("PVP_PAGINAS", "3")); ORCAMENTO = int(os
 CONT = ["hg2", "hg5", "corrompida", "solo", "depths"]
 SLOT = {"MainHand": "w", "OffHand": "o", "Head": "h", "Armor": "a", "Shoes": "s", "Cape": "c", "Potion": "p", "Food": "f"}
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
-def get(path, tries=3):
+FALHAS = collections.Counter()
+def get(path, tries=4):
     for i in range(tries):
         try:
-            with urllib.request.urlopen(urllib.request.Request(B + path, headers=UA), timeout=25) as r: return json.load(r)
+            with urllib.request.urlopen(urllib.request.Request(B + path, headers=UA), timeout=30) as r: return json.load(r)
+        except urllib.error.HTTPError as e:
+            FALHAS[e.code] += 1
+            if e.code == 404: return None
+            time.sleep(4 * (i + 1) if e.code in (429, 503) else 1 + i)
         except Exception as e:
-            if i == tries - 1: return None
-            time.sleep(1 + i)
+            FALHAS["rede"] += 1; time.sleep(1 + i)
+    return None
 def base(t):
     m = re.match(r"T(\d)_(.+?)(?:@(\d))?$", t or ""); return m.group(2) if m else None
 def pessoas(e):
@@ -74,11 +79,11 @@ def main():
             except Exception: pass
         return out
     tarefas = [(pid, t) for pid in jog for t in ("kills", "deaths")]
-    with ThreadPoolExecutor(24) as ex:
+    with ThreadPoolExecutor(int(os.environ.get("PVP_THREADS", "10"))) as ex:
         for k, evs in enumerate(ex.map(uma, tarefas)):
             for e in evs: eventos[e["EventId"]] = e
-            if k % 50 == 0: print("lidas", k, "de", len(tarefas), "listas;", len(eventos), "eventos;", int(time.time() - inicio), "s", flush=True)
-    print("eventos únicos:", len(eventos))
+            if k % 50 == 0: print("lidas", k, "de", len(tarefas), "listas;", len(eventos), "eventos;", int(time.time() - inicio), "s; falhas", dict(FALHAS), flush=True)
+    print("eventos únicos:", len(eventos), "falhas:", dict(FALHAS))
     # classificar e agregar
     S = {}   # (conteudo, tamanho) -> dados
     ativos = {c: collections.Counter() for c in CONT}; nomes_at = {}
@@ -135,6 +140,10 @@ def main():
         reg(v, False)
         if kv:
             for kk in kvs: A["x"][(kk, kv)][0] += 1      # kk venceu kv
+    try: ant = json.load(open(os.path.join(ROOT, "data", "pvp.json")))["janela"]["eventos"]
+    except Exception: ant = 0
+    if ant and sum(n_class.values()) < 0.6 * ant:
+        print("muito menos eventos que o arquivo atual:", sum(n_class.values()), "contra", ant, "- não sobrescrevo"); sys.exit(1)
     if sum(n_class.values()) < 300:
         print("poucos eventos classificados:", dict(n_class), "- não sobrescrevo"); sys.exit(1)
     # sementes novas: os mais ativos de cada conteúdo
