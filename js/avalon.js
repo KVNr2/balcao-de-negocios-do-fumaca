@@ -3,7 +3,7 @@ const AV_RES={ORE:["Minério","ore"],FIBER:["Fibra","fiber"],WOOD:["Madeira","wo
 const AV_TYPE_G=g=>/^HIDEOUT/.test(g)?"HO":/^ROYAL/.test(g)?"ROYAL":/^BLACK/.test(g)?"BLACK":"TUNNEL";
 const AV_G_PT={HO:"Hideout",ROYAL:"Royal",BLACK:"Black",TUNNEL:"Tunnel"};
 const AV_Y_PT={ROYAL:"Royal",ROYAL_RED:"Red",BLACK_LOW:"Black, risco baixo",BLACK_MEDIUM:"Black, risco médio",BLACK_HIGH:"Black, risco alto",LOW:"Tunnel, risco baixo",MEDIUM:"Tunnel, risco médio",HIGH:"Tunnel, risco alto",DEEP:"Tunnel profundo",DEEP_RAID:"Tunnel profundo com raid",HIDEOUT:"Hideout",HIDEOUT_DEEP:"Hideout profundo"};
-const AV_EXTRA={solo:["Dungeon solo",m=>m.s>0],group:["Dungeon de grupo",m=>m.g>0],raid:["Raid",m=>m.e>0],mist:["Portal da Brecilien",m=>m.mi>0]};
+const AV_EXTRA={blue:["Baú azul",m=>m.cb>0],green:["Baú verde",m=>m.cg>0],solo:["Dungeon solo",m=>m.s>0],group:["Dungeon de grupo",m=>m.g>0],raid:["Raid",m=>m.e>0],mist:["Portal da Brecilien",m=>m.mi>0]};
 const AV_TZ=[["local","Do meu navegador"],["UTC","UTC"],["America/Sao_Paulo","São Paulo"],["America/New_York","Nova York"],["Europe/London","Londres"],["Europe/Berlin","Berlim"],["Asia/Tokyo","Tóquio"]];
 const AV={data:null,q:"",tier:0,type:"",sort:"nome",res:new Set(),extra:new Set(),shown:60,saved:[],hist:[],inited:false};
 const avNorm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
@@ -41,8 +41,9 @@ const avTypeTxt=y=>{ if(y==="ROYAL_RED") return "Red"; const g=AV_G_PT[AV_TYPE_G
 function avInfo(m){ const o=[]; const add=(cls,txt,n,tip)=>{ if(n>0) o.push({cls,txt,n,tip}); };
   add("solo","Dungeon solo",m.s,"Dungeons de 1 jogador"); add("grp","Dungeon de grupo",m.g,"Dungeons de grupo"); add("raid","Raid",m.e,"Raids");
   add("ptl","Portais",m.p+(m.ho||0)+(m.mi||0),"Portais para outros mapas"); add("ho","Hideout",m.ho||0,"Portais de hideout"); add("mist","Brecilien",m.mi||0,"Portal para a Brecilien");
+  if(m.cb) o.push({cls:"blue",txt:"Baú azul",chest:1,tip:"Tem baú azul (raro)"}); if(m.cg) o.push({cls:"green",txt:"Baú verde",chest:1,tip:"Tem baú verde (comum)"});
   return o; }
-const avTag=(x,big)=>el("span",{class:"av-it "+x.cls+(big?" big":""),title:x.tip},el("span",{class:"av-itn",text:x.txt}),el("b",{text:"×"+x.n}));
+const avTag=(x,big)=>el("span",{class:"av-it "+x.cls+(big?" big":""),title:x.tip},el("span",{class:"av-itn",text:x.txt}),...(x.chest?[]:[el("b",{text:"×"+x.n})]));
 function avZoom(m,pic){
   const old=document.getElementById("avZoom"); if(old) old.remove();
   const ov=el("div",{id:"avZoom",class:"av-zoom",role:"dialog","aria-modal":"true","aria-label":`Mapa ${m.n}`});

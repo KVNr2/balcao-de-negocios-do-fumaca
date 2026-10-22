@@ -1421,6 +1421,7 @@ td.wk-act .mn-craft+.mn-craft{margin-left:6px}
 .av-it{display:inline-flex;align-items:center;gap:6px;padding:3px 4px 3px 9px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,.25)}
 .av-it b{background:rgba(0,0,0,.35);border-radius:99px;padding:0 7px;font-size:12.5px}
 .av-it.solo{background:#a8283c}.av-it.grp{background:#9a5420}.av-it.raid{background:#7b45b8}.av-it.ptl{background:#1f5e9e}.av-it.ho{background:#5a2b86}.av-it.mist{background:#1f7a62}
+.av-it.blue{background:#1d6fd6}.av-it.green{background:#2e8b3d}.av-it.blue,.av-it.green{padding:3px 10px}.av-it.big.blue,.av-it.big.green{padding:5px 12px}
 .av-it.none{background:rgba(255,255,255,.07);color:var(--ink-2,#c9b99a);padding:3px 10px;font-weight:600}
 .av-it.big{font-size:14px;padding:5px 6px 5px 12px}.av-it.big b{font-size:15px}
 .av-zbox{width:min(1280px,100%)}
