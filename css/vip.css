@@ -1267,3 +1267,8 @@ select.kx-q:not([value="0"]){}
 #ofSlotRef{margin-bottom:6px}
 #p-refino h2.sub{margin-top:26px}
 .wk-sw{align-self:flex-end;min-width:170px}
+
+/* efeito de comidas, poções e capas */
+.kx-fx{margin-top:4px;font-size:12px;line-height:1.35;color:var(--ink-2,#c9b99a);white-space:pre-line;max-width:46ch}
+.kx-fx .kx-fxi{display:flex;flex-direction:column;gap:2px}
+.kx-fx .kx-fxi b{color:var(--saffron,#e8b04a);font-size:12.5px}

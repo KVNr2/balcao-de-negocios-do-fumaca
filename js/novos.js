@@ -8,7 +8,9 @@ const FOOD_MAP = [[/eel stew/i,"T8_MEAL_STEW_FISH"],[/puremist|snapper/i,"T7_MEA
 const POT_MAP = [[/cura/i,"T6_POTION_HEAL"],[/gigantify/i,"T7_POTION_REVIVE"],[/veneno/i,"T8_POTION_COOLDOWN"],[/invisib/i,"T8_POTION_CLEANSE"],[/resist/i,"T7_POTION_STONESKIN"]];
 const CONS_PT = {T8_MEAL_STEW_FISH:"Deadwater Eel Stew",T7_MEAL_ROAST_FISH:"Roasted Puremist Snapper",T8_MEAL_SANDWICH:"Beef Sandwich",T8_MEAL_STEW:"Beef Stew",T7_MEAL_OMELETTE:"Pork Omelette",T7_MEAL_ROAST:"Roast Pork",T6_POTION_HEAL:"Poção de cura maior",T7_POTION_REVIVE:"Poção de Gigantify maior",T8_POTION_COOLDOWN:"Poção de veneno maior",T8_POTION_CLEANSE:"Poção de invisibilidade",T7_POTION_STONESKIN:"Poção de resistência maior"};
 const CONTENT_PT = {brumas:"Brumas",corrompidas:"Corrompidas",barato:"Abadias, set barato",pve:"PvE"};
-let bcSel = {}, bcLast = "";
+let bcSel = {}, bcLast = "", bcKeepQ = false;
+let BC_Q = {a:1,p:{}}; try{ const q=JSON.parse(store.get("bcQ")||"null"); if(q&&q.a) BC_Q={a:+q.a||1,p:q.p||{}}; }catch(e){}
+const saveBCQ = () => store.set("bcQ",JSON.stringify(BC_Q));
 let BC_CUSTOM = {}; try{ BC_CUSTOM=JSON.parse(store.get("bcCustom")||"{}"); }catch(e){}
 const CONS_KEYS = {f:["T8_MEAL_STEW_FISH","T7_MEAL_ROAST_FISH","T8_MEAL_STEW","T8_MEAL_SANDWICH","T7_MEAL_OMELETTE","T7_MEAL_ROAST"],p:["T6_POTION_HEAL","T7_POTION_REVIVE","T8_POTION_COOLDOWN","T7_POTION_STONESKIN","T8_POTION_CLEANSE"]};
 let GEAR_EN = null; const enOf = k => { if(!GEAR_EN){ GEAR_EN={}; for(const [nm_,k_] of Object.entries(GEAR.n)) GEAR_EN[k_]=GEAR_EN[k_]||nm_; } return GEAR_EN[k]||CONS_PT[k]||k; };
@@ -56,6 +58,7 @@ function bcEquivs(sum){ const out=[]; const push=(t,e)=>{ if(t>=4&&t<=8&&e>=0&&e
 const priceIn = (id,city) => { const r=BMP[id]&&BMP[id][city]; return r&&r[0]>0?r[0]:null; };
 function cheapest(id){ let best=null; for(const c of SHOP_LOCS){ const p=priceIn(id,c); if(p&&(!best||p<best.p)) best={p,c}; } return best; }
 function setupBC(){
+  cosLoad().then(()=>{ try{ renderBC(); }catch(e){} });
   const sel=$("bcBuild"); const rk=`${BUILDS.length}|${LANG}|${(window.NB_ALL||[]).length}|${((BC_GB||{}).builds||[]).length}|${Object.keys((BC_ZV||{}).armas||{}).length}`; if(sel.dataset.ready===rk) return; sel.textContent=""; sel.dataset.ready=rk;
   const mine=new Set(LINES.filter(([k])=>wl(k)>=2).map(([k])=>k));
   const own=el("optgroup",{label:"Seu set"}); own.append(el("option",{value:"custom",text:"Montar peça por peça"})); sel.append(own);
@@ -71,6 +74,8 @@ function setupBC(){
     if(og.children.length) sel.append(og); } }
   const saved=store.get("bcBuild"); if(saved&&sel.querySelector(`option[value="${saved}"]`)) sel.value=saved; else { const first=sel.querySelector('option:not([value="custom"])'); if(first) sel.value=first.value; }
   for(const [id,def,tipo] of [["bcFT","8","t"],["bcFE","0","e"],["bcPT","8","t"],["bcPE","0","e"]]){ const x=$(id); if(!x.options.length){ if(tipo==="t") for(let t=1;t<=8;t++) x.append(el("option",{value:String(t),text:`T${t}`})); else [0,1,2,3].forEach(e=>x.append(el("option",{value:String(e),text:`.${e}`}))); x.value=store.get(id)||def; } }
+  if(!$("bcCity").options.length){ const c=$("bcCity"); c.append(el("option",{value:"auto",text:"Melhor cidade (tudo numa viagem)"}),el("option",{value:"multi",text:"Cada peça na mais barata"})); SHOP_LOCS.forEach(x=>c.append(el("option",{value:x,text:`Tudo em ${x}`}))); c.value=store.get("bcCity")||"auto"; if(!c.value) c.value="auto";
+    const q=$("bcQual"); for(let i=1;i<=5;i++) q.append(el("option",{value:String(i),text:QNAME[i]})); q.value=String(BC_Q.a||1); }
   if(!$("bcCons").dataset.ok){ $("bcCons").dataset.ok="1"; $("bcCons").value=store.get("bcCons")||"off"; }
   const tier=$("bcTier"), ench=$("bcEnch"); if(!tier.options.length){ [4,5,6,7,8].forEach(t=>tier.append(el("option",{value:String(t),text:`T${t}`}))); tier.value=store.get("bcTier")||"6"; ench.append(el("option",{value:"eq",text:"Equivalente (o mais barato)"})); [0,1,2,3,4].forEach(e=>ench.append(el("option",{value:String(e),text:`.${e}`}))); ench.value=store.get("bcEnch")||"eq"; }
 }
@@ -84,42 +89,54 @@ async function renderBC(){
   document.querySelectorAll(".bcConsX").forEach(x=>x.hidden=cons!=="custom");
   const equivs=eq?bcEquivs(t):[[t,e]];
   let slots; if(custom){ slots={}; for(const s of SLOT_ORDER){ if(s==="o"&&BC_CUSTOM.w&&/^2H_/.test(BC_CUSTOM.w)) continue; slots[s]=BC_CUSTOM[s]?[{key:BC_CUSTOM[s],label:enOf(BC_CUSTOM[s])}]:[]; } } else slots=info.slots;
-  const stateKey=()=>[$("bcBuild").value,$("bcTier").value,$("bcEnch").value,$("bcCons").value,$("bcFT").value,$("bcFE").value,$("bcPT").value,$("bcPE").value].join("|"); const key=stateKey();
+  const GS=["w","o","h","a","s","c"], isG=x=>GS.includes(x), isC=x=>x==="f"||x==="p";
+  const stateKey=()=>[$("bcBuild").value,$("bcTier").value,$("bcEnch").value,$("bcCons").value,$("bcFT").value,$("bcFE").value,$("bcPT").value,$("bcPE").value,$("bcCity").value,JSON.stringify(BC_Q)].join("|"); const key=stateKey();
   $("bcCopy").hidden=custom;
-  if(bcLast!==sel.value){ bcSel={}; bcLast=sel.value; }
-  const idOfSlot=(slot,k,tt=t,ee=e)=>slot==="f"||slot==="p"?(cons==="custom"?`T${cv[slot][0]}_${bcCode(k)}`+(cv[slot][1]?`@${cv[slot][1]}`:""):k):`T${tt}_${k}`+(ee?`@${ee}`:"");
-  const ids=[]; for(const s in slots) if(!((s==="f"||s==="p")&&cons==="off")) for(const c of slots[s]) for(const [tt,ee] of equivs) ids.push(idOfSlot(s,c.key,tt,ee));
+  if(bcLast!==sel.value){ bcSel={}; if(!bcKeepQ) BC_Q.p={}; bcKeepQ=false; bcLast=sel.value; $("bcQual").value=String(BC_Q.a||1); }
+  const qOf=x=>isG(x)?(BC_Q.p[x]||BC_Q.a||1):1;
+  const idOfSlot=(slot,k,tt=t,ee=e)=>isC(slot)?(cons==="custom"?`T${cv[slot][0]}_${bcCode(k)}`+(cv[slot][1]?`@${cv[slot][1]}`:""):k):`T${tt}_${k}`+(ee?`@${ee}`:"");
+  const picks={}; for(const x of SLOT_ORDER){ const l=slots[x]; if(l&&l.length&&!(isC(x)&&cons==="off")) picks[x]=l.find(c=>c.key===bcSel[x])||l[0]; }
+  const ids=[]; for(const x in picks) for(const [tt,ee] of equivs) ids.push(idOfSlot(x,picks[x].key,tt,ee));
+  const anyQ=Object.keys(picks).some(x=>qOf(x)>1);
   note.textContent="Procurando as peças nas cidades…"; tb.textContent="";
-  try{ await bmFetch([...new Set(ids)],SHOP_LOCS); }catch(err){ note.textContent="Não consegui consultar os preços agora."; return; }
+  try{ await bmFetch([...new Set(ids)],SHOP_LOCS,anyQ); }catch(err){ note.textContent="Não consegui consultar os preços agora."; return; }
   if(stateKey()!==key) return;
-  const tl=eq?`T${t} equivalente`:`T${t}.${e}`; $("bcTitle").textContent=custom?`Seu set em ${tl}`:`${info.title} em ${tl}`;
-  const hr=tb.createTHead().insertRow(); ["Parte","Peça","Mais barato","Onde",""].forEach(h=>hr.append(el("th",{text:h})));
-  const body=tb.createTBody(); let total=0, missing=0, consTot=0; const chosen={};
-  for(const s of SLOT_ORDER){ const list=slots[s]; if(!list) continue; if((s==="f"||s==="p")&&cons==="off") continue;
-    if(custom){ const tr=body.insertRow(); tr.insertCell().textContent=SLOT_PT[s]; const c1=tr.insertCell(); const opts=slotOptions(s);
-      const ss=el("select",{"aria-label":`Escolher ${SLOT_PT[s].toLowerCase()}`}); ss.append(el("option",{value:"",text:"escolha…"})); opts.forEach(o=>ss.append(el("option",{value:o.key,text:o.label}))); ss.value=BC_CUSTOM[s]||"";
-      ss.addEventListener("change",()=>{ if(ss.value) BC_CUSTOM[s]=ss.value; else delete BC_CUSTOM[s]; saveCustom(); renderBC(); }); c1.append(ss);
-      if(!list.length){ tr.insertCell().textContent="—"; tr.insertCell().textContent=""; tr.insertCell(); continue; } }
-    const pick=list.find(c=>c.key===bcSel[s])||list[0]; let escolha=[t,e]; chosen[s]=idOfSlot(s,pick.key);
-    if(eq&&s!=="f"&&s!=="p"){ let best=null; for(const [tt,ee] of equivs){ const ch0=cheapest(idOfSlot(s,pick.key,tt,ee)); if(ch0&&(!best||ch0.p<best.p)) best={p:ch0.p,tt,ee}; } if(best){ escolha=[best.tt,best.ee]; chosen[s]=idOfSlot(s,pick.key,best.tt,best.ee); } else escolha=equivs[0]; }
-    let tr, c1; if(custom){ tr=body.rows[body.rows.length-1]; } else { tr=body.insertRow(); tr.insertCell().textContent=SLOT_PT[s]; c1=tr.insertCell(); }
-    if(custom){} else if(list.length>1){ const ss=el("select",{"aria-label":`Escolher ${SLOT_PT[s].toLowerCase()}`}); list.forEach(c=>ss.append(el("option",{value:c.key,text:nmKey(c.key,c.label)}))); ss.value=pick.key; ss.addEventListener("change",()=>{ bcSel[s]=ss.value; renderBC(); }); c1.append(ss); } else c1.textContent=nmKey(pick.key,pick.label);
-    { const pc=tr.cells[1]; if(pc&&chosen[s]){ const w=el("span",{class:"cell-ic"}), tx=el("span",{class:"cell-tx"}); while(pc.firstChild) tx.append(pc.firstChild); const im=iconImg(chosen[s],36); im.classList.add("t"); w.append(im,tx); pc.append(w); } }
-    const ch=cheapest(chosen[s]); const c2=tr.insertCell(); c2.className="num"; c2.textContent=ch?fmt(ch.p):"—"; tr.insertCell().textContent=ch?ch.c:"sem anúncio";
-    const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=s==="f"||s==="p"?"por unidade":"";
-    if(s==="f"||s==="p"){ if(ch) consTot+=ch.p; } else if(ch) total+=ch.p; else missing++; }
-  const tr=body.insertRow(); tr.className="total"; tr.insertCell().textContent="Set"; tr.insertCell().textContent=missing?`${missing} peça${missing>1?"s":""} sem anúncio`:"comprando cada peça onde é mais barata";
-  const tc=tr.insertCell(); tc.className="num"; tc.textContent=fmt(total); tr.insertCell().textContent=consTot?`+ ${fmt(consTot)} de comida e poção`:""; tr.insertCell();
-  // uma cidade só
-  const gearSlots=Object.keys(chosen).filter(s=>s!=="f"&&s!=="p"), rows=[];
-  for(const c of SHOP_LOCS){ let sum=0, miss=0; for(const s of gearSlots){ const p=priceIn(chosen[s],c); if(p) sum+=p; else miss++; } rows.push({c,sum,miss}); }
-  rows.sort((a,b)=>(a.miss-b.miss)||(a.sum-b.sum));
+  /* menor preço de uma peça na qualidade pedida, entre as versões equivalentes (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), numa cidade ou em todas */
+  const priceQ=(id,c,q)=>{ const r=bmRec(id,q)[c]; return r&&r[0]>0?r[0]:null; };
+  const bestFor=(x,q,only)=>{ let best=null; for(const [tt,ee] of equivs){ const id=idOfSlot(x,picks[x].key,tt,ee); for(const c of (only?[only]:SHOP_LOCS)){ const pr=priceQ(id,c,q); if(pr&&(!best||pr<best.p)) best={p:pr,c,tt,ee,id}; } } return best; };
+  const gearList=GS.filter(x=>picks[x]);
+  const cityRows=SHOP_LOCS.map(c=>{ let sum=0, miss=0; for(const x of gearList){ const bf=bestFor(x,qOf(x),c); if(bf) sum+=bf.p; else miss++; } return {c,sum,miss}; }).sort((x,y)=>(x.miss-y.miss)||(x.sum-y.sum));
+  const cityMode=$("bcCity").value; store.set("bcCity",cityMode);
+  const useCity=cityMode==="multi"?null:cityMode==="auto"?(cityRows[0]&&cityRows[0].miss<gearList.length?cityRows[0].c:null):cityMode;
+  let multiTot=0, multiMiss=0; for(const x of gearList){ const bf=bestFor(x,qOf(x),null); if(bf) multiTot+=bf.p; else multiMiss++; }
+  const tl=eq?`T${t} equivalente`:`T${t}.${e}`; $("bcTitle").textContent=(custom?`Seu set em ${tl}`:`${info.title} em ${tl}`)+(useCity?`, comprando em ${useCity}`:"");
+  const hr=tb.createTHead().insertRow(); ["Parte","Peça","Qualidade","Preço","Onde","Versão"].forEach(h=>hr.append(el("th",{text:h})));
+  const body=tb.createTBody(); let total=0, missing=0, consTot=0, outras=0;
+  for(const x of SLOT_ORDER){ const list=slots[x]; if(!list) continue; if(isC(x)&&cons==="off") continue;
+    const tr=body.insertRow(); tr.insertCell().textContent=SLOT_PT[x]; let c1;
+    if(custom){ c1=tr.insertCell(); const opts=slotOptions(x);
+      const ss=el("select",{"aria-label":`Escolher ${SLOT_PT[x].toLowerCase()}`}); ss.append(el("option",{value:"",text:"escolha…"})); opts.forEach(o=>ss.append(el("option",{value:o.key,text:o.label}))); ss.value=BC_CUSTOM[x]||"";
+      ss.addEventListener("change",()=>{ if(ss.value) BC_CUSTOM[x]=ss.value; else delete BC_CUSTOM[x]; saveCustom(); renderBC(); }); c1.append(ss);
+      if(!list.length){ for(let i=0;i<4;i++) tr.insertCell(); continue; } }
+    const pick=picks[x], q=qOf(x); let ch=bestFor(x,q,useCity), fora=false; if(!ch&&useCity&&isC(x)){ ch=bestFor(x,q,null); fora=!!ch; }
+    if(!custom){ c1=tr.insertCell(); if(list.length>1){ const ss=el("select",{"aria-label":`Escolher ${SLOT_PT[x].toLowerCase()}`}); list.forEach(c=>ss.append(el("option",{value:c.key,text:nmKey(c.key,c.label)}))); ss.value=pick.key; ss.addEventListener("change",()=>{ bcSel[x]=ss.value; renderBC(); }); c1.append(ss); } else c1.textContent=nmKey(pick.key,pick.label); }
+    { const iid=ch?ch.id:idOfSlot(x,pick.key); const w=el("span",{class:"cell-ic"}), tx=el("span",{class:"cell-tx"}); while(c1.firstChild) tx.append(c1.firstChild); const im=iconImg(iid,36,q); im.classList.add("t"); w.append(im,tx); c1.append(w); }
+    const cq=tr.insertCell(); if(isG(x)){ const qs=el("select",{class:"bc-q","aria-label":`Qualidade: ${SLOT_PT[x].toLowerCase()}`}); for(let i=1;i<=5;i++) qs.append(el("option",{value:String(i),text:QNAME[i]})); qs.value=String(q);
+      qs.addEventListener("change",()=>{ BC_Q.p[x]=+qs.value; saveBCQ(); renderBC(); }); cq.append(qs); } else cq.textContent="—";
+    const c2=tr.insertCell(); c2.className="num"; c2.textContent=ch?fmt(ch.p):"—";
+    const c3=tr.insertCell(); c3.textContent=ch?ch.c:(useCity?`sem anúncio em ${useCity}`:"sem anúncio"); if(fora||(ch&&useCity&&ch.c!==useCity)){ c3.className="loss"; c3.title="Sem anúncio na cidade escolhida: preço de outra cidade"; }
+    const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=isC(x)?"por unidade":(ch&&eq?`T${ch.tt}.${ch.ee}`:`T${t}.${e}`);
+    if(isC(x)){ if(ch) consTot+=ch.p; } else if(ch){ total+=ch.p; if(useCity&&ch.c!==useCity) outras++; } else missing++; }
+  const tr=body.insertRow(); tr.className="total"; tr.insertCell().textContent="Set"; tr.insertCell().textContent=missing?`${missing} peça${missing>1?"s":""} sem anúncio${useCity?` em ${useCity}`:""}`:useCity?`tudo em ${useCity}`:"cada peça onde é mais barata";
+  tr.insertCell(); const tc=tr.insertCell(); tc.className="num"; tc.textContent=fmt(total); tr.insertCell().textContent=useCity||"várias cidades"; tr.insertCell().textContent=consTot?`+ ${fmt(consTot)} de comida e poção`:"";
   const box=$("bcWhere"); box.textContent="";
-  const semNada=!gearSlots.length||rows.every(r=>r.miss===gearSlots.length);
-  if(semNada) box.append(el("p",{class:"muted small",text:!gearSlots.length?"Escolha as peças para ver onde comprar.":"Nenhuma peça tem anúncio agora, então não dá para indicar cidade."}));
-  else rows.slice(0,3).forEach((r,i)=>box.append(recItem(`${i===0?"Melhor cidade: ":""}${r.c}`,[r.miss===gearSlots.length?"Nenhuma peça anunciada":`${fmt(r.sum)} pelas ${gearSlots.length-r.miss} peças que tem lá`,r.miss?`Faltam ${r.miss}: compre ${r.miss>1?"essas":"essa"} em outra cidade`:`O set inteiro numa viagem só; ${r.sum>total?`${fmtS(r.sum-total)} a mais que caçar peça por peça`:"o mesmo que caçar peça por peça"}`])));
+  const semNada=!gearList.length||cityRows.every(r=>r.miss===gearList.length);
+  if(semNada) box.append(el("p",{class:"muted small",text:!gearList.length?"Escolha as peças para ver onde comprar.":"Nenhuma peça tem anúncio agora nessa qualidade, então não dá para indicar cidade."}));
+  else { cityRows.slice(0,3).forEach((r,i)=>box.append(recItem(`${i===0?"Melhor cidade: ":""}${r.c}`,[r.miss===gearList.length?"Nenhuma peça anunciada":`${fmt(r.sum)} pelas ${gearList.length-r.miss} peças que tem lá`,r.miss?`Faltam ${r.miss}: compre ${r.miss>1?"essas":"essa"} em outra cidade`:`O set inteiro numa viagem só${multiMiss?"":`; ${r.sum>multiTot?`${fmtS(r.sum-multiTot)} a mais que caçar peça por peça`:"o mesmo que caçar peça por peça"}`}`])));
+    if(!multiMiss&&gearList.length>1) box.append(recItem("Caçando peça por peça",[`${fmt(multiTot)} no total, cada peça na cidade mais barata`,"Mais viagens e mais risco, mas é o menor preço possível"])); }
   const bmIdx=missing===0&&total>0?el("li",{},el("strong",{text:"Quanto dá para perder"}),el("span",{text:`Com 1 milhão de pratas, este set morre ${Math.floor(1e6/total)} vezes antes de acabar o dinheiro.`})):null; if(bmIdx) box.append(bmIdx);
-  note.textContent=`Menor preço de venda anunciado nas cidades reais, Caerleon e Brecilien, qualidade normal, anúncios de até 3 dias. Comida e poção estão por unidade. ${cons==="off"?"Comida e poção não entram na conta. ":""}${eq?`No modo equivalente, cada peça usa a versão mais barata entre ${equivs.map(x=>x.join(".")).join(", ")}; se o preço empatar, vale a ordem 4.4 e depois do maior tier para o menor. `:""}${custom?"O seu set fica salvo neste navegador.":info.src==="pesquisa"?"Esta build é de pesquisa, sem conferência.":""}`;
+  const qtxt=BC_Q.a>1||Object.keys(BC_Q.p).length?"na qualidade escolhida de cada peça":"em qualidade normal";
+  note.textContent=`Menor preço de venda anunciado ${qtxt}, nas cidades reais, Caerleon e Brecilien, anúncios de até 3 dias. ${useCity?`Todas as peças são buscadas em ${useCity}. `:"Cada peça vem da cidade onde sai mais barata. "}Comida e poção estão por unidade. ${cons==="off"?"Comida e poção não entram na conta. ":""}${eq?`No modo equivalente, cada peça usa a versão mais barata ${useCity?"nessa cidade ":""}entre ${equivs.map(x=>x.join(".")).join(", ")} (mesmo IP); se o preço empatar, vale a ordem 4.4 e depois do maior tier para o menor. `:""}${custom?"O seu set fica salvo neste navegador.":info.src==="pesquisa"?"Esta build é de pesquisa, sem conferência.":""}`;
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.03,clearProps:"opacity,transform"});
 }
 
@@ -280,11 +297,13 @@ async function renderFZ(){
 document.querySelectorAll("[data-fz]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-fz]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); fzKind=b.dataset.fz; renderFZ(); }));
 $("fzFocus").addEventListener("change",renderFZ);
 $("fzPlots").addEventListener("input",()=>{ if(FARM&&FZ_LOADED) renderFZ(); });
-["bcBuild","bcTier","bcEnch","bcCons","bcFT","bcFE","bcPT","bcPE"].forEach(id=>$(id).addEventListener("change",renderBC));
+["bcBuild","bcTier","bcEnch","bcCons","bcFT","bcFE","bcPT","bcPE","bcCity"].forEach(id=>$(id).addEventListener("change",renderBC));
+$("bcQual").addEventListener("change",()=>{ BC_Q={a:+$("bcQual").value||1,p:{}}; saveBCQ(); renderBC(); });
 $("bcCopy").addEventListener("click",()=>{ const sel=$("bcBuild"); if(sel.value==="custom") return; const r=bcSlotsFor(sel.value); if(!r) return; const slots=r.slots; BC_CUSTOM={}; for(const s in slots){ const pick=slots[s].find(c=>c.key===bcSel[s])||slots[s][0]; if(pick) BC_CUSTOM[s]=pick.key; } saveCustom(); sel.value="custom"; renderBC(); });
 
 /* ir para o Custo da build já com a build e o tier escolhidos (usado pelos botões das abas Builds e Build ZvZ) */
-function bcIr(value,tier){
+function bcIr(value,tier,qs){
+  if(qs){ BC_Q={a:qs.a||1,p:{...(qs.p||{})}}; saveBCQ(); bcKeepQ=true; if($("bcQual").options.length) $("bcQual").value=String(BC_Q.a); }
   store.set("bcBuild",value); store.set("bcTier",String(tier)); store.set("bcEnch","eq");
   const sel=$("bcBuild"); sel.dataset.ready=""; if($("bcTier").options.length){ $("bcTier").value=String(tier); $("bcEnch").value="eq"; }
   bcLast=""; showTab("t-custo");
