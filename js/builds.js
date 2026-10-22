@@ -171,9 +171,46 @@ function qPick(val,label,fn){ const g=el("div",{class:"qp",role:"radiogroup","ar
   QOPT.forEach(q=>{ const bt=el("button",{type:"button",class:"qp-d",role:"radio",title:QNAME[q]+(QIP[q]?" (+"+QIP[q]+" de IP)":" (sem bônus)"),"aria-label":QNAME[q]}); bt.style.setProperty("--qc",QCOL[q]); bt.addEventListener("click",()=>{ if(g._v===q) return; g._v=q; paint(); if(fn) fn(q); }); bs.push([q,bt]); g.append(bt); });
   g.append(nm); g._v=+val||1; Object.defineProperty(g,"value",{get:()=>String(g._v),set:v=>{ g._v=+v||1; paint(); }}); paint(); return g; }
 const qSelect=(val,todas,label)=>{ const x=el("select",{class:"kx-q","aria-label":label||"Qualidade"}); if(todas) x.append(el("option",{value:"0",text:"= todas"})); QOPT.forEach(q=>x.append(el("option",{value:String(q),text:QNAME[q]}))); x.value=String(val); return x; };
+/* custo da build direto na aba: compra tudo numa cidade, na qualidade escolhida, e usa o equivalente mais barato (T8 = 8.0, 7.1, 6.2, 5.3, 4.4) */
+let BLD_CITY=(()=>{ try{ return localStorage.getItem("bldCity")||"auto"; }catch(e){ return "auto"; } })();
+const BLD_PANELS=new Set();
+function costPanel(b,get){
+  cosLoad().then(()=>{ if(box._upd) box._upd(); }); const box=el("div",{class:"bld-cost"}), lab=el("label",{class:"alb-tier",title:"Cidade onde você vai comprar a build inteira"}); const cs=el("select",{"aria-label":"Cidade de compra"});
+  cs.append(el("option",{value:"auto",text:"Melhor cidade"})); SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
+  lab.append(el("span",{text:"Comprar em "}),cs); const out=el("div",{class:"bld-tot",role:"status"}), det=el("details",{class:"bld-det"}); det.append(el("summary",{text:"Ver peças"}));
+  const list=el("div",{class:"bld-list"}); det.append(list); box.append(lab,out,det);
+  let seen=false, run=0;
+  box._upd=async()=>{ if(!seen) return; const my=++run; const {set,tier,qf}=get(); const pick=(arr)=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
+    const w=set&&b.w2?b.w2:b.w; const base=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o)],["h",pick(b.h)],["a",pick(b.a)],["s",pick(b.s)],["c",pick(b.c)]].filter(x=>x[1]);
+    const cons=[["p",pick(b.p)],["f",pick(b.f)]].filter(x=>x[1]);
+    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); const eq=m.t<4?[[m.t,m.e]]:bcEquivs(sum); return {k,code:m.c,q:qf(k)||1,eq,orig:[m.t,m.e]}; }).filter(Boolean);
+    const idOf=(g,t,e)=>`T${t}_${g.code}`+(e?`@${e}`:"");
+    out.textContent="Calculando o custo…";
+    const ids=[...new Set([...gear.flatMap(g=>g.eq.map(([t,e])=>idOf(g,t,e))),...cons.map(x=>x[1])])];
+    try{ await bmFetch(ids,SHOP_LOCS,gear.some(g=>g.q>1)); }catch(err){ if(my===run) out.textContent="Não consegui consultar os preços agora."; return; }
+    if(my!==run) return;
+    const pr=(id,c,q)=>{ const r=bmRec(id,q)[c]; return r&&r[0]>0?r[0]:null; };
+    const bestIn=(g,c)=>{ let best=null; for(const [t,e] of g.eq){ const p=pr(idOf(g,t,e),c,g.q); if(p&&(!best||p<best.p)) best={p,t,e}; } return best; };
+    const rows=SHOP_LOCS.map(c=>{ let sum=0,miss=0; for(const g of gear){ const x=bestIn(g,c); if(x) sum+=x.p; else miss++; } return {c,sum,miss}; }).sort((x,y)=>(x.miss-y.miss)||(x.sum-y.sum));
+    const city=BLD_CITY==="auto"?(rows[0]&&rows[0].miss<gear.length?rows[0].c:null):BLD_CITY;
+    if(!city){ out.textContent="Sem preço para esta build nas cidades agora."; list.textContent=""; return; }
+    let tot=0, miss=0; list.textContent="";
+    for(const g of gear){ const x=bestIn(g,city), r=el("div",{class:"bld-r"}); const nm=itemNome(g.code);
+      if(x){ tot+=x.p; r.append(el("span",{text:nm+(g.q>1?` (${QNAME[g.q]})`:"")}),el("span",{class:"bld-v"+(x.e?" eq":""),text:x.e?`T${x.t}.${x.e}`:`T${x.t}`}),el("b",{text:fmt(x.p)})); }
+      else{ miss++; r.append(el("span",{text:nm}),el("span",{class:"muted",text:"sem preço aqui"}),el("b",{text:"—"})); }
+      list.append(r); }
+    let ct=0; for(const [k,id] of cons){ const p=pr(id,city,1), r=el("div",{class:"bld-r"}); const ii=idInfo(id); const cx=cosInfo(id); r.append(el("span",{text:(cx&&cx.n)||itemNome(ii.c)}),el("span",{class:"muted",text:`T${ii.t}${ii.e?"."+ii.e:""}`}),el("b",{text:p?fmt(p):"—"})); if(p) ct+=p; list.append(r); }
+    out.textContent=""; out.append(el("b",{text:fmt(tot)}),document.createTextNode(` de prata em ${city}`+(miss?` (faltam ${miss} peça${miss>1?"s":""} sem preço)`:"")+(ct?`, mais ${fmt(ct)} de comida e poção`:"")));
+  };
+  cs.addEventListener("change",()=>{ BLD_CITY=cs.value; try{ localStorage.setItem("bldCity",BLD_CITY); }catch(e){} BLD_PANELS.forEach(p=>p._sync()); });
+  box._sync=()=>{ cs.value=BLD_CITY; box._upd(); }; BLD_PANELS.add(box);
+  const start=()=>{ if(!seen){ seen=true; box._upd(); } };
+  if("IntersectionObserver" in window){ const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)) start(); }); io.observe(box); } else start();
+  return box;
+}
 function albionBar(b,badge,costValue,opts){
   const bar=el("div",{class:"kx-alb"}); let set=0, tier=0; const qf=bQf(b);
-  const refresh=()=>{ b._tier=tier; if(badge) badge._upd(set,tier,qf); bQApply(b); }; b._refresh=refresh;
+  const refresh=()=>{ b._tier=tier; if(badge) badge._upd(set,tier,qf); bQApply(b); if(b._cost) b._cost._upd(); }; b._refresh=refresh;
   const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
   if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; refresh(); }); bar.append(sel); }
   const lab=el("label",{class:"alb-tier",title:"O tier escolhido vale para o IP, para o texto copiado ao Albion e para o custo. T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4; T5 = 5.0 ou 4.1; T4 = 4.0. Cada peça fica no tier dela quando dá."});
@@ -185,9 +222,8 @@ function albionBar(b,badge,costValue,opts){
   const msg=el("span",{class:"muted small",role:"status"});
   btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set,tier,qf); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
   bar.append(btn);
-  if(costValue){ const bt=el("button",{type:"button",class:"bc-more bc-cost",text:"Ver custo",title:"Abre o Custo da build no tier escolhido"});
-    bt.addEventListener("click",()=>{ let N=tier; if(!N){ const m=idInfo(set&&b.w2?b.w2:b.w); N=m?Math.min(8,Math.max(4,m.t+m.e)):8; } bcIr(costValue,N,{a:bQ(b).a,p:bQ(b).p}); }); bar.append(bt); }
-  bar.append(msg); refresh(); return bar;
+  bar.append(msg); const cp=costPanel(b,()=>({set,tier,qf})); b._cost=cp; bar.append(cp);
+  refresh(); return bar;
 }
 function kbPanel(b){
   const sk=b.sk||{}; const box=el("div",{class:"kx"});
