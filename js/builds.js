@@ -172,20 +172,25 @@ function qPick(val,label,fn){ const g=el("div",{class:"qp",role:"radiogroup","ar
   g.append(nm); g._v=+val||1; Object.defineProperty(g,"value",{get:()=>String(g._v),set:v=>{ g._v=+v||1; paint(); }}); paint(); return g; }
 const qSelect=(val,todas,label)=>{ const x=el("select",{class:"kx-q","aria-label":label||"Qualidade"}); if(todas) x.append(el("option",{value:"0",text:"= todas"})); QOPT.forEach(q=>x.append(el("option",{value:String(q),text:QNAME[q]}))); x.value=String(val); return x; };
 /* custo da build direto na aba: compra tudo numa cidade, na qualidade escolhida, e usa o equivalente mais barato (T8 = 8.0, 7.1, 6.2, 5.3, 4.4) */
-/* preços das peças da build, só desta aba: aceita preço antigo (marcado) e guarda a idade, sem misturar com o BMP das outras abas */
+/* preços das peças da build: média do histórico de vendas na cidade escolhida, dos últimos 7 dias; se não houver venda, dos últimos 30 dias.
+   Ficam à parte do BMP, para não misturar com as outras abas. */
 const BLD_P={}, BLD_F={};
-async function bldFetch(ids,cities,allQ){
-  const key=(id,c)=>`${id}|${c}|${allQ?5:1}`; const todo=[]; for(const id of new Set(ids)) if(cities.some(c=>!BLD_F[key(id,c)]||Date.now()-BLD_F[key(id,c)]>6e5)) todo.push(id);
-  if(!todo.length) return; const loc=cities.join(",").replace(/ /g,"%20"); const parts=[]; for(let i=0;i<todo.length;i+=API_CHUNK) parts.push(todo.slice(i,i+API_CHUNK));
-  const res=await Promise.all(parts.map(p=>apiJSON(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=${allQ?"1,2,3,4,5":"1"}`)));
-  for(const j of res) for(const x of j){ const s=x.sell_price_min; if(!(s>0)||!x.sell_price_min_date||x.sell_price_min_date.startsWith("0001")) continue; const q=allQ?+x.quality:1; BLD_P[`${x.item_id}|${x.city}|${q}`]={p:s,age:ageH(x.sell_price_min_date)}; }
-  for(const id of todo) for(const c of cities) BLD_F[key(id,c)]=Date.now();
+async function bldFetch(ids,city){
+  const todo=[...new Set(ids)].filter(id=>!BLD_F[`${id}|${city}`]||Date.now()-BLD_F[`${id}|${city}`]>6*36e5);
+  const loc=encodeURIComponent(city), t7=Date.now()-7*864e5, t30=Date.now()-30*864e5;
+  for(let i=0;i<todo.length;i+=20){ const part=todo.slice(i,i+20);
+    const j=await apiJSON(`${HOST}/api/v2/stats/history/${part.join(",")}.json?locations=${loc}&time-scale=24`,360);
+    for(const x of j){ const k=`${x.item_id}|${city}|${+x.quality||1}`; let n7=0,v7=0,n30=0,v30=0;
+      for(const d of (x.data||[])){ const t=Date.parse(d.timestamp+"Z"), n=d.item_count||0; if(!(d.avg_price>0)||!n) continue; if(t>=t30){ n30+=n; v30+=d.avg_price*n; } if(t>=t7){ n7+=n; v7+=d.avg_price*n; } }
+      BLD_P[k]={p7:n7?v7/n7:0,p30:n30?v30/n30:0}; }
+    for(const id of part) BLD_F[`${id}|${city}`]=Date.now(); }
 }
-const bldPrice=(id,c,q,maxA)=>{ const r=BLD_P[`${id}|${c}|${q}`]; return r&&r.age<=maxA?r:null; };
+/* d = 7 pede só a média de 7 dias; d = 30 aceita a de 30 dias */
+const bldPrice=(id,c,q,d)=>{ const r=BLD_P[`${id}|${c}|${q}`]; if(!r) return null; if(d===7) return r.p7?{p:r.p7,d:7}:null; return r.p30?{p:r.p30,d:30}:null; };
 let BLD_CITY=(()=>{ try{ const c=localStorage.getItem("bldCity"); return c&&c!=="auto"?c:"Caerleon"; }catch(e){ return "Caerleon"; } })();
 const BLD_PANELS=new Set();
 function costPanel(b,get,tsel){
-  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade onde você vai comprar a build inteira"});
+  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade de referência: o valor é a média de vendas dos últimos 7 dias nela (30 dias se não houver)"});
   SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
   const out=el("span",{class:"bld-tot",role:"status","aria-live":"polite"});
   const ts=el("select",{"aria-label":"Tier das peças",title:"Tier da build: cada peça usa o equivalente mais barato (T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4). O encantamento aparece só quando o equivalente é usado."});
@@ -196,33 +201,26 @@ function costPanel(b,get,tsel){
   box._upd=async()=>{ if(!seen) return; const my=++run; const {set,tier,qf}=get(); ts.value=String(tier||0); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
     const w=set&&b.w2?b.w2:b.w; const base=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o)],["h",pick(b.h)],["a",pick(b.a)],["s",pick(b.s)],["c",pick(b.c)]].filter(x=>x[1]);
     const cons=[pick(b.p),pick(b.f)].filter(Boolean);
-    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,code:m.c,q:qf(k)||1,groups:m.t<4?[[[m.t,m.e]]]:[sum,sum-1,sum-2,sum+1].filter(n=>n>=4).map(n=>bcEquivs(n)).filter(x=>x.length)}; }).filter(Boolean);
+    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,code:m.c,q:qf(k)||1,groups:[m.t<4?[[m.t,m.e]]:bcEquivs(sum)]}; }).filter(Boolean);
     const idOf=(g,t,e)=>`T${t}_${g.code}`+(e?`@${e}`:"");
     out.classList.add("load"); out.textContent="…";
     const ids=[...new Set([...gear.flatMap(g=>g.groups.flat().map(([t,e])=>idOf(g,t,e))),...cons])];
-    const allQ=gear.some(g=>g.q>1);
-    try{ await bldFetch(ids,[BLD_CITY],allQ); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
+    try{ await bldFetch(ids,BLD_CITY); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
     if(my!==run) return;
-    /* melhor versão equivalente de uma peça: primeiro as do tier pedido (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), depois as dos tiers vizinhos; preço recente antes do antigo */
-    const find=(g,cities,maxA,g0,g1)=>{ for(let gi=g0;gi<Math.min(g1,g.groups.length);gi++){ let best=null; for(const [t,e] of g.groups[gi]) for(const c of cities){ const r=bldPrice(idOf(g,t,e),c,g.q,maxA); if(r&&(!best||r.p<best.p)) best={...r,t,e,c,gi}; } if(best) return best; } return null; };
-    const oth=SHOP_LOCS.filter(c=>c!==BLD_CITY), HI=99;
-    /* ordem: equivalente exato na cidade (recente, depois antigo) > exato em outra cidade > tiers vizinhos na cidade > vizinhos em outra cidade */
-    const att=[[[BLD_CITY],72,0,1],[[BLD_CITY],336,0,1],[oth,72,0,1],[oth,336,0,1],[[BLD_CITY],72,1,HI],[[BLD_CITY],336,1,HI],[oth,72,1,HI],[oth,336,1,HI]];
-    const pickX=g=>{ for(const [cs,ma,g0,g1] of att){ const x=find(g,cs,ma,g0,g1); if(x){ if(cs===oth) x.other=true; return x; } } return null; };
-    let sel=gear.map(g=>({g,x:pickX(g)}));
-    if(sel.some(r=>!r.x||r.x.other||r.x.gi>0)){ const lack=sel.filter(r=>!r.x||r.x.other||r.x.gi>0); try{ await bldFetch(lack.flatMap(r=>r.g.groups.flat().map(([t,e])=>idOf(r.g,t,e))),oth,allQ); }catch(err){} if(my!==run) return; sel=gear.map(g=>({g,x:pickX(g)})); }
-    const pr=id=>{ const r=bldPrice(id,BLD_CITY,1,24*14); return r?r.p:null; };
-    let tot=0, miss=0, other=0, stale=0; const tip=[], names=[];
+    /* só equivalentes do tier pedido (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), na cidade escolhida: média de 7 dias; sem ela, média de 30 dias. Nada de outra cidade nem de tier abaixo */
+    const find=(g,d)=>{ let best=null; for(const [t,e] of g.groups[0]){ const r=bldPrice(idOf(g,t,e),BLD_CITY,g.q,d); if(r&&(!best||r.p<best.p)) best={...r,t,e}; } return best; };
+    const sel=gear.map(g=>({g,x:find(g,7)||find(g,30)}));
+    const pr=id=>{ const r=bldPrice(id,BLD_CITY,1,7)||bldPrice(id,BLD_CITY,1,30); return r?r.p:null; };
+    let tot=0, miss=0, old=0; const tip=[], names=[];
     for(const {g,x} of sel){ const nm=itemNome(g.code);
-      if(x){ tot+=x.p; if(x.other) other++; if(x.age>72) stale++;
-        tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}: ${fmt(x.p)}`+(x.other?` (não tem em ${BLD_CITY}; preço de ${x.c})`:"")+(x.gi>0?" (tier vizinho, não achei no pedido)":"")+(x.age>72?` (preço de ${fmtAge(Date.now()-x.age*3600e3)} atrás)`:"")); }
-      else { miss++; names.push(nm); tip.push(`${nm}: sem preço em nenhuma cidade`); } }
+      if(x){ tot+=x.p; if(x.d===30) old++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}: ${fmt(x.p)} (média de ${x.d} dias)`); }
+      else { miss++; names.push(nm); tip.push(`${nm}: sem vendas em ${BLD_CITY} nos últimos 30 dias`); } }
     for(const id of cons){ const p=pr(id), ii=idInfo(id), cx=cosInfo(id); if(p) tot+=p; tip.push(`${(cx&&cx.n)||itemNome(ii.c)}: ${p?fmt(p):"sem preço"}`); }
     out.classList.remove("load"); out.textContent=""; out.title=tip.join("\n");
     if(!tot){ out.textContent="sem preço nesta cidade"; return; }
     out.append(el("b",{text:fmt(tot)}),document.createTextNode(" prata"));
-    const wn=[]; if(miss) wn.push(`faltam ${miss}`); if(other) wn.push(`${other} de outra cidade`); if(stale) wn.push(`${stale} com preço antigo`);
-    if(wn.length) out.append(el("span",{class:"bld-warn",text:wn.join(" · "),title:(miss?`Sem preço em nenhuma cidade: ${names.join(", ")}. O total não inclui.\n`:"")+"Passe o mouse no valor para ver peça por peça."}));
+    const wn=[]; if(miss) wn.push(`faltam ${miss}`); if(old) wn.push(`${old} com média de 30 dias`);
+    if(wn.length) out.append(el("span",{class:"bld-warn",text:wn.join(" · "),title:(miss?`Sem vendas em ${BLD_CITY} nos últimos 30 dias: ${names.join(", ")}. O total não inclui.\n`:"")+"Passe o mouse no valor para ver peça por peça."}));
   };
   cs.addEventListener("change",()=>{ BLD_CITY=cs.value; try{ localStorage.setItem("bldCity",BLD_CITY); }catch(e){} BLD_PANELS.forEach(p=>p._sync()); });
   box._sync=()=>{ cs.value=BLD_CITY; box._upd(); }; BLD_PANELS.add(box);
