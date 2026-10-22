@@ -229,10 +229,12 @@ const WK = [["ORE","Minerador","minerando","minerio"],["FISHING","Pescador","pes
 let WK_SHOW=20, WK_LOADED=false, WK_LOADING=null, wkTierSel=0;
 /* felicidade: a barra do trabalhador tem 100 pontos por segmento e (tier + 1) segmentos (T8: 900).
    Cheia rende 150%; o rendimento cresce em linha com a felicidade. O % que o jogo mostra, se digitado, manda. */
-const hapMax = t => (t+1)*100;
+const hapMax = t => 105*t-5;   // felicidade de uma casa mobiliada no tier do trabalhador (T8 = 835, T7 = 730, T6 = 625...), tabela da comunidade
 const wkHap = () => { const v=+(store.get("wkHap")||""); return v>0?v:null; };
 const wkPct = () => { const v=+(store.get("wkPct")||""); return v>0?v:null; };
-const wkYield = t => wkPct() ? wkPct()/100 : (wkHap()==null ? 1.5 : Math.min(wkHap(),hapMax(t))/hapMax(t)*1.5);
+/* rendimento do diário de tier jt com felicidade h: o jogo pede 100 de felicidade por tier do diário. Abaixo disso rende h ÷ (100 × jt);
+   acima rende 100% + 0,5% por ponto de sobra, no máximo 150% (wiki oficial do Laborer e tabela albiononlinegrind). Conferido: T8 com 835 e diário T8 = 117,5%; diário T7 = 150%; T7 com 730 e diário T8 = 91,25%. */
+const wkYield = (jt,wt) => { if(wkPct()) return wkPct()/100; const h=wkHap()??hapMax(wt), need=100*jt; return h>=need ? 1+Math.min(0.5,(h-need)*0.005) : h/need; };
 const lootKey = id => id;
 const lootApi = id => { const m=id.match(/_LEVEL(\d)$/); return m?`${id}@${m[1]}`:id; };
 function ensureWK(){
@@ -254,7 +256,7 @@ function wkCost(id){
    O recurso que volta custa zero aqui (o custo do diário entra depois); a barra do tier anterior é comprada. Só para minério, fibra e pelego. */
 const WK_REF={ORE:"metal",FIBER:"cloth",HIDE:"leather"};
 function wkRefine(ty,t,j,wt){ const res=WK_REF[ty]; if(!res||!Array.isArray(j[3])) return null;
-  const foc=st.focus?1:0, rr=foc?rrr(0.40,true,st.daily):rrr(0.40,false,st.daily), qtot=j[1]*wkYield(wt); let sw=0; for(const [,w,q] of j[3]) sw+=w*q; if(!sw) return null;
+  const foc=st.focus?1:0, rr=foc?rrr(0.40,true,st.daily):rrr(0.40,false,st.daily), qtot=j[1]*wkYield(t,wt); let sw=0; for(const [,w,q] of j[3]) sw+=w*q; if(!sw) return null;
   let net=0, bars=0, focus=0, thin=false;
   for(const [iid,w,q] of j[3]){ const lv=/_LEVEL(\d)$/.exec(iid), e=lv?+lv[1]:0, cnt=qtot*w*q/sw; if(!(cnt>0)) continue;
     const m=model(res,t,e,{raw:0}); if(!m) return null; const n=cnt/(N[t]*(1-rr)); const pb=foc?m.p1:m.p0; net+=n*pb; bars+=n; if(foc) focus+=n*m.fc; if(m.thin) thin=true; }
@@ -264,8 +266,8 @@ function wkModel(ty,t,wt=t){
   const empty=typical(`T${t}_JOURNAL_${ty}_EMPTY`,0), full=typical(`T${t}_JOURNAL_${ty}_FULL`,0);
   let yieldV=null, thin=false;
   if(Array.isArray(j[3])){ let sw=0, sv=0, wAll=0; for(const [iid,w,q] of j[3]){ wAll+=w; const p=typical(lootKey(iid),0); if(!p) continue; sw+=w; sv+=w*q*p.p; }
-    if(sw>=wAll*0.8){ yieldV=j[1]*(sv/sw)*wkYield(wt)*(1-taxOf()); thin=sw<wAll*0.97; } }
-  else yieldV=j[3]*wkYield(wt);
+    if(sw>=wAll*0.8){ yieldV=j[1]*(sv/sw)*wkYield(t,wt)*(1-taxOf()); thin=sw<wAll*0.97; } }
+  else yieldV=j[3]*wkYield(t,wt);
   const bc=wkCost(`T${t}_JOURNAL_${ty}_FULL`);
   const ref=bc?wkRefine(ty,t,j,wt):null, direct=yieldV!=null&&bc?yieldV-bc.p:null, indirect=ref&&bc?ref.net-bc.p:null;
   const best=direct==null&&indirect==null?null:(indirect!=null&&(direct==null||indirect>direct)?"refino":"venda");
@@ -286,9 +288,9 @@ async function renderWK(){
   if(!JOURNALS){ try{ JOURNALS=await need("journals"); }catch(e){ $("wkStatus").textContent="Não consegui abrir os dados dos diários."; return; } }
   setupWK(); const tb=$("wkTable");
   if(!WK_LOADED){ tb.textContent=""; $("wkStatus").dataset.base=$("wkStatus").dataset.base||$("wkStatus").textContent; $("wkStatus").textContent="Consultando os preços dos diários…"; const ok=await ensureWK(); $("wkStatus").textContent=$("wkStatus").dataset.base; if(!ok){ $("wkStatus").textContent="Não consegui consultar os diários agora."; return; } }
-  const mx=hapMax(wkTierSel); $("wkHapMax").textContent=`de ${mx}`; $("wkHap").max=String(mx); $("wkHap").placeholder=String(mx);
-  $("wkYieldTxt").textContent = wkPct() ? `Usando o rendimento de ${wkPct()}% que você digitou.` : wkHap()==null ? `Sem felicidade digitada: a conta usa a barra cheia (${mx} em T${wkTierSel}), que rende 150%.` : `Felicidade ${Math.min(wkHap(),mx)} de ${mx} em T${wkTierSel}: rende ${Math.round(wkYield(wkTierSel)*100)}% (cheia rende 150%).`;
-  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Trabalhador","Diário vazio","Diário cheio","Comprar o cheio em",`Devolve (${Math.round(wkYield(wkTierSel)*100)}%)`,"Lucro vendendo o que volta","Lucro refinando o que volta",`Lucro por dia com ${wkN()} ${wkN()===1?"trabalhador":"trabalhadores"}`,"Encher e vender","Enche com",""].forEach(h=>hr.append(el("th",{text:h})));
+  const mx=hapMax(wkTierSel); $("wkHapMax").textContent=`casa T${wkTierSel} cheia: ${mx}`; $("wkHap").max="2000"; $("wkHap").placeholder=String(mx);
+  $("wkYieldTxt").textContent = wkPct() ? `Usando o rendimento de ${wkPct()}% que você digitou, igual para todos os diários.` : `Felicidade ${wkHap()??mx}${wkHap()==null?` (casa T${wkTierSel} mobiliada, a do jogo aparece ao selecionar o trabalhador)`:""}: o jogo pede 100 por tier do diário. Diário do mesmo tier rende ${Math.round(wkYield(wkTierSel,wkTierSel)*100)}%; diário de tier menor rende até 150%; de tier maior rende menos que 100%. O % de cada diário aparece na coluna Devolve.`;
+  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Trabalhador","Diário vazio","Diário cheio","Comprar o cheio em","Devolve (rendimento)","Lucro vendendo o que volta","Lucro refinando o que volta",`Lucro por dia com ${wkN()} ${wkN()===1?"trabalhador":"trabalhadores"}`,"Encher e vender","Enche com",""].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody(), wt=wkTierSel; const all=[];
   /* todas as combinações de diário até o tier do trabalhador (regra do jogo), da que mais rende para a que menos rende */
   for(const [ty,nm,how] of WK) for(let t=4;t<=wt;t++){ const m=wkModel(ty,t,wt); if(m) all.push({m,nm,how}); }
@@ -297,7 +299,7 @@ async function renderWK(){
     tr.insertCell().append(withIcon(`T${t}_JOURNAL_${ty}_FULL`,`${nm}: diário T${t}`));
     [[m.empty&&m.empty.p,`T${t}_JOURNAL_${ty}_EMPTY`],[m.full&&m.full.p,`T${t}_JOURNAL_${ty}_FULL`]].forEach(([v,ic])=>{ const c=tr.insertCell(); c.className="num"; const tx=v?fmt(v):"—"; c.append(withIcon(ic,tx)); });
     { const c=tr.insertCell(); c.className="small"; if(m.buyCity){ c.append(el("b",{text:fmt(Math.round(m.buyCity.p))})," ",el("span",{class:"muted",text:m.buyCity.c})); c.title=wkBuyMode()==="ordem"?"Maior ordem de compra aberta nessa cidade, mais 2,5% de taxa para montar a ordem":"Menor preço de venda entre as cidades"; } else c.textContent="—"; }
-    { const c=tr.insertCell(); c.className="num"; c.textContent=m.yieldV?fmt(m.yieldV):"—"; }
+    { const c=tr.insertCell(); c.className="num"; if(m.yieldV){ c.append(fmt(m.yieldV)," ",el("span",{class:"muted small",text:`${Math.round(wkYield(t,wt)*100)}%`})); c.title=`Rende ${Math.round(wkYield(t,wt)*100)}% neste diário (T${t}) com o trabalhador T${wt}`; } else c.textContent="—"; }
     { const c=tr.insertCell(); c.className="num "+(m.direct==null?"":m.direct>=0?"gain":"loss")+(m.best==="venda"?" wk-best":""); c.textContent=m.direct==null?"—":sgn(m.direct); c.title="Vende tudo o que volta e desconta as taxas de venda, menos o preço do diário cheio"; }
     { const c=tr.insertCell(); const rf=m.ref; c.className="num "+(m.indirect==null?"":m.indirect>=0?"gain":"loss")+(m.best==="refino"?" wk-best":""); if(m.indirect==null){ c.textContent=WK_REF[ty]?"—":"n/d"; c.title=WK_REF[ty]?"Faltam preços para o refino":"Esse diário devolve itens que não entram no refino"; } else { c.textContent=sgn(m.indirect); c.title=`Refina ${Math.round(rf.bars)} ${rf.bars>=1.5?"unidades":"unidade"} com retorno de ${dec(rf.rr*100)}% ${rf.foc?"e foco (gasta cerca de "+fmt(Math.round(rf.focus))+" de foco)":"sem foco"}, vende e desconta o preço do diário cheio. Mesmas configurações da aba Refino${rf.thin?"; alguns preços têm poucas ofertas":""}`; } }
     { const c=tr.insertCell(); const v=m.buyFull==null?null:m.buyFull*wkN(); c.className="num bm-profit "+(v==null?"":v>=0?"gain":"loss"); c.textContent=v==null?"—":sgn(v); c.title=`${sgn(m.buyFull||0)} por diário (${m.best==="refino"?"refinando":"vendendo"}, o melhor dos dois) × ${wkN()}, um diário por trabalhador por dia`; }
