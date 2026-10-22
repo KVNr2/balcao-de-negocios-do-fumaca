@@ -1,47 +1,213 @@
 {
- "kb1": {
-  "/": {
-   "status": 403,
-   "len": 0,
-   "titulo": ""
+ "jogadores": {
+  "Rema67": {
+   "id": "wb2WkFK1T2ukU8S9jLmVTg",
+   "n": 20,
+   "KillArea": {
+    "OPEN_WORLD": 20
+   },
+   "Location": {
+    "None": 20
+   },
+   "Category": {
+    "None": 20
+   },
+   "Type": {
+    "KILL": 20
+   },
+   "gvg": 0,
+   "part": {
+    "2": 20
+   },
+   "chaves": [
+    "BattleId",
+    "Category",
+    "EventId",
+    "GroupMembers",
+    "GvGMatch",
+    "KillArea",
+    "Killer",
+    "Location",
+    "Participants",
+    "TimeStamp",
+    "TotalVictimKillFame",
+    "Type",
+    "Version",
+    "Victim",
+    "groupMemberCount",
+    "numberOfParticipants"
+   ]
   },
-  "/leaderboard": {
-   "status": 403,
-   "len": 0,
-   "titulo": ""
+  "Mandaryn": {
+   "id": "-bbdFKv5Sxa_T3h-o_nE3A",
+   "n": 20,
+   "KillArea": {
+    "OPEN_WORLD": 20
+   },
+   "Location": {
+    "None": 20
+   },
+   "Category": {
+    "None": 20
+   },
+   "Type": {
+    "KILL": 20
+   },
+   "gvg": 0,
+   "part": {
+    "2": 16,
+    "4": 3,
+    "3": 1
+   },
+   "chaves": [
+    "BattleId",
+    "Category",
+    "EventId",
+    "GroupMembers",
+    "GvGMatch",
+    "KillArea",
+    "Killer",
+    "Location",
+    "Participants",
+    "TimeStamp",
+    "TotalVictimKillFame",
+    "Type",
+    "Version",
+    "Victim",
+    "groupMemberCount",
+    "numberOfParticipants"
+   ]
   },
-  "/hellgate": {
-   "status": 403,
-   "len": 0,
-   "titulo": ""
+  "L4CKY": {
+   "id": "WazR2Z6PTZuF7BuDXziYow",
+   "n": 20,
+   "KillArea": {
+    "OPEN_WORLD": 20
+   },
+   "Location": {
+    "None": 20
+   },
+   "Category": {
+    "None": 20
+   },
+   "Type": {
+    "KILL": 20
+   },
+   "gvg": 0,
+   "part": {
+    "2": 19,
+    "1": 1
+   },
+   "chaves": [
+    "BattleId",
+    "Category",
+    "EventId",
+    "GroupMembers",
+    "GvGMatch",
+    "KillArea",
+    "Killer",
+    "Location",
+    "Participants",
+    "TimeStamp",
+    "TotalVictimKillFame",
+    "Type",
+    "Version",
+    "Victim",
+    "groupMemberCount",
+    "numberOfParticipants"
+   ]
   },
-  "/corrupted": {
-   "status": 403,
-   "len": 0,
-   "titulo": ""
+  "Tensheyy": {
+   "id": "FGwmtxP2T5OG2iXmfcUFfA",
+   "n": 20,
+   "KillArea": {
+    "OPEN_WORLD": 20
+   },
+   "Location": {
+    "None": 20
+   },
+   "Category": {
+    "None": 20
+   },
+   "Type": {
+    "KILL": 20
+   },
+   "gvg": 0,
+   "part": {
+    "4": 6,
+    "2": 14
+   },
+   "chaves": [
+    "BattleId",
+    "Category",
+    "EventId",
+    "GroupMembers",
+    "GvGMatch",
+    "KillArea",
+    "Killer",
+    "Location",
+    "Participants",
+    "TimeStamp",
+    "TotalVictimKillFame",
+    "Type",
+    "Version",
+    "Victim",
+    "groupMemberCount",
+    "numberOfParticipants"
+   ]
   },
-  "/mists": {
-   "status": 403,
-   "len": 0,
-   "titulo": ""
-  },
-  "/depths": {
-   "status": 403,
-   "len": 0,
-   "titulo": ""
-  },
-  "/builds": {
-   "status": 403,
-   "len": 0,
-   "titulo": ""
-  },
-  "/stats": {
-   "status": 403,
-   "len": 0,
-   "titulo": ""
-  },
-  "links": [],
-  "scripts": [],
-  "endpoints": []
- }
+  "Plamenev": {
+   "id": "yHM_-KNlR_Kj4AptylsWxQ",
+   "n": 20,
+   "KillArea": {
+    "OPEN_WORLD": 20
+   },
+   "Location": {
+    "None": 20
+   },
+   "Category": {
+    "None": 20
+   },
+   "Type": {
+    "KILL": 20
+   },
+   "gvg": 0,
+   "part": {
+    "2": 20
+   },
+   "chaves": [
+    "BattleId",
+    "Category",
+    "EventId",
+    "GroupMembers",
+    "GvGMatch",
+    "KillArea",
+    "Killer",
+    "Location",
+    "Participants",
+    "TimeStamp",
+    "TotalVictimKillFame",
+    "Type",
+    "Version",
+    "Victim",
+    "groupMemberCount",
+    "numberOfParticipants"
+   ]
+  }
+ },
+ "exemplo": {
+  "numberOfParticipants": 2,
+  "groupMemberCount": 2,
+  "EventId": 451680512,
+  "TimeStamp": "2026-10-22T19:57:41.393867600Z",
+  "Version": 4,
+  "TotalVictimKillFame": 189540,
+  "Location": null,
+  "GvGMatch": null,
+  "BattleId": 451680425,
+  "KillArea": "OPEN_WORLD",
+  "Category": null,
+  "Type": "KILL"
+ },
+ "exemplo_equip": null
 }
