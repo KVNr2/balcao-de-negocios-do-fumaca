@@ -223,7 +223,8 @@ const ofFB = it => it.bonus===0.40?0.40:0.15;
 /* ganho extra de usar foco, por ponto de foco gasto: (lucro com foco − lucro sem foco) ÷ foco */
 function ofSpf(m){ if(m.spf!=null) return m.spf; const fb=ofFB(m.it), a=ofModel(m.it,rrr(fb,true,st.daily)), b=ofModel(m.it,rrr(fb,false,st.daily));
   m.spf=a&&b&&!a.miss&&!b.miss&&a.fc>0?(a.profit-b.profit)/a.fc:-Infinity; m.pF=a&&!a.miss?a:null; m.pN=b&&!b.miss?b:null; return m.spf; }
-function ofSorter(){ if(OF.sort==="pct") return (a,b)=>b.pct-a.pct; if(OF.sort==="focus") return (a,b)=>ofSpf(b)-ofSpf(a); return (a,b)=>b.profit-a.profit; }
+const ofDayProfit=m=>{ const h=OF2.hs[nk(m.it.id)+"|"+m.sale.c], v=h&&h.vol>0?h.vol:0; return m.units>0?m.profit/m.units*Math.min(m.units,v):m.profit; };   // lucro que dá para realizar em 1 dia de venda
+function ofSorter(){ if(OF.sort==="day") return (a,b)=>ofDayProfit(b)-ofDayProfit(a); if(OF.sort==="pct") return (a,b)=>b.pct-a.pct; if(OF.sort==="focus") return (a,b)=>ofSpf(b)-ofSpf(a); return (a,b)=>b.profit-a.profit; }
 async function renderOf(){
   const note=$("ofNote"), tb=$("ofTable");
   if(!BM){ try{ BM=await need("bm"); }catch(e){ note.textContent="Não consegui abrir as receitas."; return; } }
@@ -240,7 +241,9 @@ async function renderOf(){
   if(OF2.qual>1&&isG){ note.textContent=`Consultando preços de venda em qualidade ${QNAME[OF2.qual].toLowerCase()}…`; if(!await ensureOfQ(items)){ note.textContent="Não consegui consultar a qualidade agora."; return; } if(stale()) return; }
   if(OF.sellS==='medio'||OF.buyS==='medio'){ note.textContent='Consultando valores médios…'; await ofPrefetchAvg(items); if(stale()) return; }
   OF2.sample=items[0];
-  const rows=items.map(it=>ofModel(it)).filter(Boolean), ok=rows.filter(m=>!m.miss).sort(ofSorter()), LIM=agg?120:60, shown=ok.slice(0,LIM);
+  const rows=items.map(it=>ofModel(it)).filter(Boolean); let ok0=rows.filter(m=>!m.miss);
+  if(OF.sort==="day"){ note.textContent="Consultando as vendas por dia…"; ok0=ok0.slice().sort((a,b)=>b.profit-a.profit).slice(0,200); await histFetch(ok0.map(m=>nk(m.it.id)+"|"+m.sale.c)); if(stale()) return; }
+  const ok=ok0.sort(ofSorter()), LIM=agg?120:60, shown=ok.slice(0,LIM);
   ofSyncRR();
   tb.textContent=""; const hr=el("div",{class:"of-lh"}); [["Item",""],["Custo","Custo total real: materiais, taxa da estação, taxas de compra e de venda"],["Venda","Venda bruta, antes das taxas"],["Lucro","Lucro total das receitas"],["Venda e compra","O número no ícone é a quantidade: unidades a vender e materiais a comprar"]].forEach(([h,t])=>hr.append(el("span",{text:h,title:t}))); tb.append(hr);
   const fitW=()=>{ const w=tb.parentNode; if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }; fitW(); if(!OF2.rs){ OF2.rs=1; addEventListener("resize",()=>{ const w=$("ofTable").parentNode; w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }); }
