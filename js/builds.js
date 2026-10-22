@@ -174,13 +174,16 @@ const qSelect=(val,todas,label)=>{ const x=el("select",{class:"kx-q","aria-label
 /* custo da build direto na aba: compra tudo numa cidade, na qualidade escolhida, e usa o equivalente mais barato (T8 = 8.0, 7.1, 6.2, 5.3, 4.4) */
 let BLD_CITY=(()=>{ try{ const c=localStorage.getItem("bldCity"); return c&&c!=="auto"?c:"Caerleon"; }catch(e){ return "Caerleon"; } })();
 const BLD_PANELS=new Set();
-function costPanel(b,get){
+function costPanel(b,get,tsel){
   const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade onde você vai comprar a build inteira"});
   SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
   const out=el("span",{class:"bld-tot",role:"status","aria-live":"polite"});
-  box.append(el("span",{class:"bld-k",text:"Custo em"}),cs,out);
+  const ts=el("select",{"aria-label":"Tier das peças",title:"Tier da build: cada peça usa o equivalente mais barato (T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4). O encantamento aparece só quando o equivalente é usado."});
+  ts.append(el("option",{value:"0",text:"Tier original"})); [4,5,6,7,8].forEach(t=>ts.append(el("option",{value:String(t),text:`T${t} equivalente`})));
+  if(tsel) ts.addEventListener("change",()=>{ tsel.value=ts.value; tsel.dispatchEvent(new Event("change")); });
+  box.append(el("span",{class:"bld-k",text:"Tier"}),ts,el("span",{class:"bld-k",text:"Custo em"}),cs,out);
   let seen=false, run=0;
-  box._upd=async()=>{ if(!seen) return; const my=++run; const {set,tier,qf}=get(); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
+  box._upd=async()=>{ if(!seen) return; const my=++run; const {set,tier,qf}=get(); ts.value=String(tier||0); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
     const w=set&&b.w2?b.w2:b.w; const base=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o)],["h",pick(b.h)],["a",pick(b.a)],["s",pick(b.s)],["c",pick(b.c)]].filter(x=>x[1]);
     const cons=[pick(b.p),pick(b.f)].filter(Boolean);
     const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,code:m.c,q:qf(k)||1,groups:m.t<4?[[[m.t,m.e]]]:[sum,sum-1,sum-2,sum+1].filter(n=>n>=4).map(n=>bcEquivs(n)).filter(x=>x.length)}; }).filter(Boolean);
@@ -220,7 +223,7 @@ function albionBar(b,badge,costValue,opts){
   const msg=el("span",{class:"muted small",role:"status"});
   btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set,tier,qf); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
   bar.append(btn);
-  bar.append(msg); const cp=costPanel(b,()=>({set,tier,qf})); b._cost=cp; (opts&&opts.costHost||bar).append(cp);
+  bar.append(msg); const cp=costPanel(b,()=>({set,tier,qf}),tsel); b._cost=cp; (opts&&opts.costHost||bar).append(cp);
   refresh(); return bar;
 }
 function kbPanel(b){
