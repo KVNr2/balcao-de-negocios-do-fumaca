@@ -19,12 +19,13 @@ def feat(e):
             "mountK": bool(eqs(K).get("Mount")), "mountV": bool(eqs(V).get("Mount")), "bagV": bool(eqs(V).get("Bag")), "capeV": bool(eqs(V).get("Cape")),
             "foodV": bool(eqs(V).get("Food")), "potionV": bool(eqs(V).get("Potion")), "invV": sum(1 for v in (V.get("Inventory") or []) if v),
             "fame": e.get("TotalVictimKillFame"), "guildV": bool(V.get("GuildName")), "allyV": bool(V.get("AllianceName")),
-            "ipMaxPart": max(ips) if ips else 0, "ipMinPart": min(ips) if ips else 0}
+            "potT": ((eqs(V).get("Potion") or {}).get("Type") or "-").split("@")[0], "foodT": ((eqs(V).get("Food") or {}).get("Type") or "-").split("@")[0], "mountT": ((eqs(V).get("Mount") or {}).get("Type") or "-").split("@")[0], "ipMaxPart": max(ips) if ips else 0, "ipMinPart": min(ips) if ips else 0}
 def resumo(fs):
     r = {"n": len(fs)}
     for k in fs[0]:
         vals = [f[k] for f in fs if f[k] is not None]
         if not vals: continue
+        if all(isinstance(v, str) for v in vals): r[k] = dict(collections.Counter(vals).most_common(6)); continue
         if all(isinstance(v, bool) for v in vals): r[k] = round(sum(vals) / len(vals), 2)
         else: r[k] = [min(vals), round(st.median(vals)), max(vals)]
     return r
