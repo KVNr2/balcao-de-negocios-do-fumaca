@@ -44,7 +44,8 @@ function avCard(m){
   const tg=el("div",{class:"av-tags"}); tg.append(el("span",{class:"tag t"+m.t,text:`T${m.t}`}),el("span",{class:"tag mute",title:AV_Y_PT[m.y]||m.y,text:avTypeTxt(m.y)}));
   if(m.y==="ROYAL_RED") tg.append(el("span",{class:"tag bad",text:"Vermelha"}));
   if(m.mi) tg.append(el("span",{class:"tag good",title:"Tem portal para a Brecilien",text:"Brecilien"}));
-  card.append(tg,avMini(m));
+  const pic=AV.img&&AV.img[avNorm(m.n).replace(/ /g,"-")];
+  if(pic){ const im=el("img",{class:"av-pic",src:`imagens/avalon/${pic}`,alt:`Mapa ${m.n}`,loading:"lazy",decoding:"async"}); const mini=avMini(m); im.addEventListener("error",()=>im.replaceWith(mini)); card.append(tg,im); } else card.append(tg,avMini(m));
   const rs=el("div",{class:"av-res"});
   for(const k of Object.keys(AV_RES)){ const n=avRes(m,k); if(!n) continue; const t=Object.keys(m.r[k]).sort().map(x=>`T${x}: ${m.r[k][x]}`).join(" · "); const c=el("span",{class:"av-r"+(AV.res.has(k)?" hi":""),title:`${AV_RES[k][0]} (${t})`}); const mt=Math.max(...Object.keys(m.r[k]).map(Number)); const ic=fullImg(`T${mt}_${k}`,"av-ri"); c.append(ic||el("i",{class:"av-rd r-"+AV_RES[k][1]}),document.createTextNode(`${AV_RES[k][0]} ${n}`)); rs.append(c); }
   if(!rs.children.length) rs.append(el("span",{class:"muted small",text:"Sem recursos"}));
@@ -101,6 +102,7 @@ function avInit(){
 }
 async function renderAv(){
   if(!AV.data){ $("avCount").textContent="Abrindo os mapas…"; try{ AV.data=await need("avalon"); }catch(e){ $("avCount").textContent="Não consegui abrir os mapas."; return; } AV.byId={}; for(const m of AV.data){ m._n=avNorm(m.n); AV.byId[m.i]=m; } }
+  if(AV.img===undefined){ try{ const r=await fetch(`imagens/avalon/index.json?v=${VER}`); AV.img=r.ok?await r.json():null; }catch(e){ AV.img=null; } if($("avLeg")) $("avLeg").hidden=!!AV.img; }
   if(!AV.inited) avInit();
   let l=AV.data.filter(avMatch); const so=AV.sort;
   l.sort((a,b)=>((so==="rec"?avResTot(b)-avResTot(a):so==="dg"?avDg(b)-avDg(a):so==="tier"?b.t-a.t:0)||a.n.localeCompare(b.n,"pt")));
