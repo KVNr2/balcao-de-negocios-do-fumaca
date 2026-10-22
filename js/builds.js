@@ -172,40 +172,38 @@ function qPick(val,label,fn){ const g=el("div",{class:"qp",role:"radiogroup","ar
   g.append(nm); g._v=+val||1; Object.defineProperty(g,"value",{get:()=>String(g._v),set:v=>{ g._v=+v||1; paint(); }}); paint(); return g; }
 const qSelect=(val,todas,label)=>{ const x=el("select",{class:"kx-q","aria-label":label||"Qualidade"}); if(todas) x.append(el("option",{value:"0",text:"= todas"})); QOPT.forEach(q=>x.append(el("option",{value:String(q),text:QNAME[q]}))); x.value=String(val); return x; };
 /* custo da build direto na aba: compra tudo numa cidade, na qualidade escolhida, e usa o equivalente mais barato (T8 = 8.0, 7.1, 6.2, 5.3, 4.4) */
-let BLD_CITY=(()=>{ try{ return localStorage.getItem("bldCity")||"auto"; }catch(e){ return "auto"; } })();
+let BLD_CITY=(()=>{ try{ const c=localStorage.getItem("bldCity"); return c&&c!=="auto"?c:"Caerleon"; }catch(e){ return "Caerleon"; } })();
 const BLD_PANELS=new Set();
 function costPanel(b,get){
-  cosLoad().then(()=>{ if(box._upd) box._upd(); }); const box=el("div",{class:"bld-cost"}), lab=el("label",{class:"alb-tier",title:"Cidade onde você vai comprar a build inteira"}); const cs=el("select",{"aria-label":"Cidade de compra"});
-  cs.append(el("option",{value:"auto",text:"Melhor cidade"})); SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
-  lab.append(el("span",{text:"Comprar em "}),cs); const out=el("div",{class:"bld-tot",role:"status"}), det=el("details",{class:"bld-det"}); det.append(el("summary",{text:"Ver peças"}));
-  const list=el("div",{class:"bld-list"}); det.append(list); box.append(lab,out,det);
+  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade onde você vai comprar a build inteira"});
+  SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
+  const out=el("span",{class:"bld-tot",role:"status","aria-live":"polite"});
+  box.append(el("span",{class:"bld-k",text:"Custo em"}),cs,out);
   let seen=false, run=0;
-  box._upd=async()=>{ if(!seen) return; const my=++run; const {set,tier,qf}=get(); const pick=(arr)=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
+  box._upd=async()=>{ if(!seen) return; const my=++run; const {set,tier,qf}=get(); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
     const w=set&&b.w2?b.w2:b.w; const base=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o)],["h",pick(b.h)],["a",pick(b.a)],["s",pick(b.s)],["c",pick(b.c)]].filter(x=>x[1]);
-    const cons=[["p",pick(b.p)],["f",pick(b.f)]].filter(x=>x[1]);
-    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); const eq=m.t<4?[[m.t,m.e]]:bcEquivs(sum); return {k,code:m.c,q:qf(k)||1,eq,orig:[m.t,m.e]}; }).filter(Boolean);
+    const cons=[pick(b.p),pick(b.f)].filter(Boolean);
+    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,code:m.c,q:qf(k)||1,eq:m.t<4?[[m.t,m.e]]:bcEquivs(sum)}; }).filter(Boolean);
     const idOf=(g,t,e)=>`T${t}_${g.code}`+(e?`@${e}`:"");
-    out.textContent="Calculando o custo…";
-    const ids=[...new Set([...gear.flatMap(g=>g.eq.map(([t,e])=>idOf(g,t,e))),...cons.map(x=>x[1])])];
-    try{ await bmFetch(ids,SHOP_LOCS,gear.some(g=>g.q>1)); }catch(err){ if(my===run) out.textContent="Não consegui consultar os preços agora."; return; }
+    out.classList.add("load"); out.textContent="…";
+    const ids=[...new Set([...gear.flatMap(g=>g.eq.map(([t,e])=>idOf(g,t,e))),...cons])];
+    try{ await bmFetch(ids,[BLD_CITY],gear.some(g=>g.q>1)); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
     if(my!==run) return;
-    const pr=(id,c,q)=>{ const r=bmRec(id,q)[c]; return r&&r[0]>0?r[0]:null; };
-    const bestIn=(g,c)=>{ let best=null; for(const [t,e] of g.eq){ const p=pr(idOf(g,t,e),c,g.q); if(p&&(!best||p<best.p)) best={p,t,e}; } return best; };
-    const rows=SHOP_LOCS.map(c=>{ let sum=0,miss=0; for(const g of gear){ const x=bestIn(g,c); if(x) sum+=x.p; else miss++; } return {c,sum,miss}; }).sort((x,y)=>(x.miss-y.miss)||(x.sum-y.sum));
-    const city=BLD_CITY==="auto"?(rows[0]&&rows[0].miss<gear.length?rows[0].c:null):BLD_CITY;
-    if(!city){ out.textContent="Sem preço para esta build nas cidades agora."; list.textContent=""; return; }
-    let tot=0, miss=0; list.textContent="";
-    for(const g of gear){ const x=bestIn(g,city), r=el("div",{class:"bld-r"}); const nm=itemNome(g.code);
-      if(x){ tot+=x.p; r.append(el("span",{text:nm+(g.q>1?` (${QNAME[g.q]})`:"")}),el("span",{class:"bld-v"+(x.e?" eq":""),text:x.e?`T${x.t}.${x.e}`:`T${x.t}`}),el("b",{text:fmt(x.p)})); }
-      else{ miss++; r.append(el("span",{text:nm}),el("span",{class:"muted",text:"sem preço aqui"}),el("b",{text:"—"})); }
-      list.append(r); }
-    let ct=0; for(const [k,id] of cons){ const p=pr(id,city,1), r=el("div",{class:"bld-r"}); const ii=idInfo(id); const cx=cosInfo(id); r.append(el("span",{text:(cx&&cx.n)||itemNome(ii.c)}),el("span",{class:"muted",text:`T${ii.t}${ii.e?"."+ii.e:""}`}),el("b",{text:p?fmt(p):"—"})); if(p) ct+=p; list.append(r); }
-    out.textContent=""; out.append(el("b",{text:fmt(tot)}),document.createTextNode(` de prata em ${city}`+(miss?` (faltam ${miss} peça${miss>1?"s":""} sem preço)`:"")+(ct?`, mais ${fmt(ct)} de comida e poção`:"")));
+    const pr=(id,q)=>{ const r=bmRec(id,q)[BLD_CITY]; return r&&r[0]>0?r[0]:null; };
+    let tot=0, miss=0; const tip=[];
+    for(const g of gear){ let best=null; for(const [t,e] of g.eq){ const p=pr(idOf(g,t,e),g.q); if(p&&(!best||p<best.p)) best={p,t,e}; }
+      if(best){ tot+=best.p; tip.push(`${itemNome(g.code)} T${best.t}${best.e?"."+best.e:""}: ${fmt(best.p)}`); } else { miss++; tip.push(`${itemNome(g.code)}: sem preço`); } }
+    for(const id of cons){ const p=pr(id,1), ii=idInfo(id), cx=cosInfo(id); if(p) tot+=p; tip.push(`${(cx&&cx.n)||itemNome(ii.c)}: ${p?fmt(p):"sem preço"}`); }
+    out.classList.remove("load"); out.textContent=""; out.title=tip.join("\n");
+    if(!tot){ out.textContent="sem preço nesta cidade"; return; }
+    out.append(el("b",{text:fmt(tot)}),document.createTextNode(" prata"));
+    if(miss) out.append(el("span",{class:"bld-warn",text:` · faltam ${miss}`,title:`${miss} peça${miss>1?"s":""} sem preço em ${BLD_CITY}; o total não inclui`}));
   };
   cs.addEventListener("change",()=>{ BLD_CITY=cs.value; try{ localStorage.setItem("bldCity",BLD_CITY); }catch(e){} BLD_PANELS.forEach(p=>p._sync()); });
   box._sync=()=>{ cs.value=BLD_CITY; box._upd(); }; BLD_PANELS.add(box);
   const start=()=>{ if(!seen){ seen=true; box._upd(); } };
   if("IntersectionObserver" in window){ const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)) start(); }); io.observe(box); } else start();
+  cosLoad().then(()=>{ if(seen) box._upd(); });
   return box;
 }
 function albionBar(b,badge,costValue,opts){
