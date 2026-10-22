@@ -216,7 +216,7 @@ def main():
         "fonte": fonte, "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
         "janela": {"batalhas": len(bats), "jogadores": total_j, "mortes": mortes, "de": min(horas) if horas else "", "ate": max(horas) if horas else ""},
         "papeis": pap(papeis), "vencedores": pap(venc),
-        "armas": {w: d for w, d in armas.items() if d["jogadores"] >= 3},
+        "armas": {w: d for w, d in armas.items() if d.get("jogadores", 0) >= 3},
         "aliancas": [{"nome": n, "jogadores": a["jog"], "batalhas": a["bat"], "k": a["k"], "d": a["d"], "ip": round(a["ips"] / a["ipn"]) if a["ipn"] else 0, "papeis": pap(a["papeis"])} for n, a in top_al],
     }
     if sum(v["total"] for v in novo["papeis"].values()) < 300: print("::error::poucos jogadores com função:", novo["papeis"].keys()); sys.exit(1)
