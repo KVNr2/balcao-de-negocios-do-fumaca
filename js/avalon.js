@@ -20,6 +20,21 @@ function avMatch(m){
   if(AV.q){ const n=m._n; for(const w of avNorm(AV.q).split(" ")) if(w&&!n.includes(w)) return false; }
   return true;
 }
+const AV_MC={o:"#c98b4a",w:"#b07a46",f:"#7fc16b",h:"#d9b78e",s:"#a9a9b4"}, AV_MN={o:"Minério",w:"Madeira",f:"Fibra",h:"Couro",s:"Pedra",D:"Dungeon solo",G:"Dungeon de grupo",E:"Raid",P:"Portal",B:"Portal da Brecilien"};
+/* minimapa desenhado com as posições do jogo: círculos = recursos, losango = dungeon solo, quadrado = grupo, estrela = raid, anel = portal */
+function avMini(m){
+  const NS="http://www.w3.org/2000/svg", [bx,by,W,H]=m.b||[0,0,1,1], vh=Math.max(40,Math.round(100*H/W)); const sv=document.createElementNS(NS,"svg"); sv.setAttribute("viewBox",`0 0 100 ${vh}`); sv.setAttribute("class","av-mini"); sv.setAttribute("role","img"); sv.setAttribute("aria-label",`Minimapa de ${m.n}`);
+  const add=(tag,at,tx)=>{ const e=document.createElementNS(NS,tag); for(const k in at) e.setAttribute(k,at[k]); if(tx){ const t=document.createElementNS(NS,"title"); t.textContent=tx; e.append(t); } sv.append(e); return e; };
+  add("rect",{x:0,y:0,width:100,height:vh,rx:4,class:"av-mbg"});
+  for(let g=1;g<4;g++){ add("line",{x1:g*25,y1:0,x2:g*25,y2:vh,class:"av-mg"}); add("line",{x1:0,y1:vh*g/4,x2:100,y2:vh*g/4,class:"av-mg"}); }
+  for(const [k,x,y] of m.m||[]){ const X=(x-bx)/W*100, Y=(y-by)/H*vh; if(!(X>=0&&X<=100&&Y>=0&&Y<=vh)) continue; const tt=AV_MN[k];
+    if(AV_MC[k]) add("circle",{cx:X,cy:Y,r:3,fill:AV_MC[k],class:"av-md"},tt);
+    else if(k==="D") add("rect",{x:X-2.6,y:Y-2.6,width:5.2,height:5.2,transform:`rotate(45 ${X} ${Y})`,class:"av-mdg solo"},tt);
+    else if(k==="G") add("rect",{x:X-2.7,y:Y-2.7,width:5.4,height:5.4,class:"av-mdg grp"},tt);
+    else if(k==="E") add("path",{d:`M${X} ${Y-4}L${X+1.3} ${Y-1.3}L${X+4} ${Y}L${X+1.3} ${Y+1.3}L${X} ${Y+4}L${X-1.3} ${Y+1.3}L${X-4} ${Y}L${X-1.3} ${Y-1.3}Z`,class:"av-mdg raid"},tt);
+    else add("circle",{cx:X,cy:Y,r:3.2,class:"av-mp"+(k==="B"?" mist":"")},tt); }
+  return sv;
+}
 const avTypeTxt=y=>{ const g=AV_G_PT[AV_TYPE_G(y)], r=/(LOW|MEDIUM|HIGH)$/.exec(y); return r?`${g} · ${{LOW:"baixo",MEDIUM:"médio",HIGH:"alto"}[r[1]]}`:/DEEP/.test(y)?`${g} · profundo`:g; };
 function avCard(m){
   const saved=AV.saved.some(x=>x.i===m.i), card=el("article",{class:"av-card"+(saved?" on":"")});
@@ -29,9 +44,9 @@ function avCard(m){
   const tg=el("div",{class:"av-tags"}); tg.append(el("span",{class:"tag t"+m.t,text:`T${m.t}`}),el("span",{class:"tag mute",title:AV_Y_PT[m.y]||m.y,text:avTypeTxt(m.y)}));
   if(m.y==="ROYAL_RED") tg.append(el("span",{class:"tag bad",text:"Vermelha"}));
   if(m.mi) tg.append(el("span",{class:"tag good",title:"Tem portal para a Brecilien",text:"Brecilien"}));
-  card.append(tg);
+  card.append(tg,avMini(m));
   const rs=el("div",{class:"av-res"});
-  for(const k of Object.keys(AV_RES)){ const n=avRes(m,k); if(!n) continue; const t=Object.keys(m.r[k]).sort().map(x=>`T${x}: ${m.r[k][x]}`).join(" · "); const c=el("span",{class:"av-r"+(AV.res.has(k)?" hi":""),title:`${AV_RES[k][0]} (${t})`}); c.append(el("i",{class:"av-ri r-"+AV_RES[k][1]}),document.createTextNode(`${AV_RES[k][0]} ${n}`)); rs.append(c); }
+  for(const k of Object.keys(AV_RES)){ const n=avRes(m,k); if(!n) continue; const t=Object.keys(m.r[k]).sort().map(x=>`T${x}: ${m.r[k][x]}`).join(" · "); const c=el("span",{class:"av-r"+(AV.res.has(k)?" hi":""),title:`${AV_RES[k][0]} (${t})`}); const mt=Math.max(...Object.keys(m.r[k]).map(Number)); const ic=fullImg(`T${mt}_${k}`,"av-ri"); c.append(ic||el("i",{class:"av-rd r-"+AV_RES[k][1]}),document.createTextNode(`${AV_RES[k][0]} ${n}`)); rs.append(c); }
   if(!rs.children.length) rs.append(el("span",{class:"muted small",text:"Sem recursos"}));
   card.append(rs);
   const ft=el("div",{class:"av-ft"}); const dg=[]; if(m.s) dg.push(`${m.s} solo`); if(m.g) dg.push(`${m.g} grupo`); if(m.e) dg.push(`${m.e} raid`);
