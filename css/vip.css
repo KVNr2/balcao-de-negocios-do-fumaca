@@ -1253,3 +1253,5 @@ select.kx-q:not([value="0"]){}
 .zobs-c.ok{border-color:#2f5a47;background:rgba(124,199,154,.08)}.zobs-c.ok b{color:var(--gain,#7cc79a)}
 .zobs-c.low{border-color:#6b3a33;background:rgba(238,134,112,.08)}.zobs-c.low b{color:var(--loss,#ee8670)}
 .zobs-max b{color:var(--parch-2,#cdbd9c)}
+
+.wk-best{font-weight:800;box-shadow:inset 0 -2px 0 var(--gain,#7cc79a)}
