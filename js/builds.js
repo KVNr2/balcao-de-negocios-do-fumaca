@@ -152,7 +152,7 @@ function albionLoadout(b,set,tier,qf){
   const pick=(arr,i)=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[i]||arr[0]||""; };
   const w=set&&b.w2?b.w2:b.w, x=b.x||{};
   const slots=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o,set)],["h",pick(b.h,set)],["a",pick(b.a,set)],["s",pick(b.s,set)],["c",pick(b.c,set)],["gb",x.gb||""],["m",x.m||""],["p",pick(b.p,set)],["f",pick(b.f,set)]];
-  const equipment=[]; let miss=0; albionLoadout.slots=[]; for(let [k,id] of slots){ if(!id) continue; if(tier&&["w","o","h","a","s","c"].includes(k)){ const q=albionEquiv(id,tier); if(!q.ok) miss++; id=q.id; } const gear=["w","o","h","a","s","c"].includes(k), food=k==="p"||k==="f";
+  const equipment=[]; let miss=0; albionLoadout.slots=[]; for(let [k,id] of slots){ if(!id) continue; const cs=b._costSel&&b._costSel[k]; if(cs&&cs.from===id) id=cs.id; else if(tier&&["w","o","h","a","s","c"].includes(k)){ const q=albionEquiv(id,tier); if(!q.ok) miss++; id=q.id; } const gear=["w","o","h","a","s","c"].includes(k), food=k==="p"||k==="f";
     const e={item:id,quality:gear&&qf?(qf(k)||1):1}; if(gear) (albionLoadout.slots=albionLoadout.slots||[]).push(k); if(k==="p") e.stack=10; e.pref=gear?[1,1,2]:food?[0,0,1,1]:[0,0,0]; equipment.push(e); }
   albionLoadout.miss=miss; return JSON.stringify({version:1,name:String(b.t||b.nome||"Build").slice(0,40)+(tier?" T"+tier:""),icon:13,color:12,equipment});
 }
@@ -161,7 +161,7 @@ const QOPT=[1,2,3,4,5];
 /* imagem de uma peça da build com a borda da qualidade escolhida; guardada para trocar quando a qualidade muda */
 function qImg(b,slot,id,cls){ if(!"wohasc".includes(slot)) return fullImg(id,cls); const im=fullImg(id,cls,bQf(b)(slot)); if(im){ im._orig=id; (b._qi=b._qi||[]).push([slot,im]); } return im; }
 /* troca qualidade e tier (equivalente) dos ícones da build conforme as escolhas */
-const bQApply=b=>(b._qi||[]).forEach(([k,im])=>{ const T=b._tier||0, e=im._orig?albionEquiv(im._orig,T).id:null, m=e&&/^T(\d)_.+?(?:@(\d))?$/.exec(e); if(m&&im._id) im._id(+m[1],+(m[2]||0)); if(im._q) im._q(bQf(b)(k)); });
+const bQApply=b=>(b._qi||[]).forEach(([k,im])=>{ const T=b._tier||0, cs=b._costSel&&b._costSel[k], e=im._orig?(cs&&cs.from===im._orig?cs.id:albionEquiv(im._orig,T).id):null, m=e&&/^T(\d)_.+?(?:@(\d))?$/.exec(e); if(m&&im._id) im._id(+m[1],+(m[2]||0)); if(im._q) im._q(bQf(b)(k)); });
 const bQ=b=>b._qs||(b._qs={a:1,p:{...(b.q||{})}});          // qualidade escolhida na build: a = todas as peças, p = peça específica (vale mais)
 const bQf=b=>k=>bQ(b).p[k]||bQ(b).a;
 const QCOL={1:"#b9b2a6",2:"#5fbf6a",3:"#4aa3e8",4:"#b072e8",5:"#f0b43c"}, QIP={1:0,2:20,3:40,4:60,5:100};
@@ -198,10 +198,10 @@ function costPanel(b,get,tsel){
   if(tsel) ts.addEventListener("change",()=>{ tsel.value=ts.value; tsel.dispatchEvent(new Event("change")); });
   box.append(el("span",{class:"bld-k",text:"Tier"}),ts,el("span",{class:"bld-k",text:"Custo em"}),cs,out);
   let seen=false, run=0;
-  box._upd=async()=>{ if(!seen) return; const my=++run; const {set,tier,qf}=get(); ts.value=String(tier||0); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
+  box._upd=async(force)=>{ if(!seen&&!force) return; seen=true; const my=++run; const {set,tier,qf}=get(); ts.value=String(tier||0); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
     const w=set&&b.w2?b.w2:b.w; const base=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o)],["h",pick(b.h)],["a",pick(b.a)],["s",pick(b.s)],["c",pick(b.c)]].filter(x=>x[1]);
     const cons=[pick(b.p),pick(b.f)].filter(Boolean);
-    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,code:m.c,q:qf(k)||1,groups:[m.t<4?[[m.t,m.e]]:bcEquivs(sum)]}; }).filter(Boolean);
+    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,src:id,code:m.c,q:qf(k)||1,groups:[m.t<4?[[m.t,m.e]]:bcEquivs(sum)]}; }).filter(Boolean);
     const idOf=(g,t,e)=>`T${t}_${g.code}`+(e?`@${e}`:"");
     out.classList.add("load"); out.textContent="…";
     const ids=[...new Set([...gear.flatMap(g=>g.groups.flat().map(([t,e])=>idOf(g,t,e))),...cons])];
@@ -210,6 +210,7 @@ function costPanel(b,get,tsel){
     /* só equivalentes do tier pedido (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), na cidade escolhida: média de 7 dias; sem ela, média de 30 dias. Nada de outra cidade nem de tier abaixo */
     const find=(g,d)=>{ let best=null; for(const [t,e] of g.groups[0]){ const r=bldPrice(idOf(g,t,e),BLD_CITY,g.q,d); if(r&&(!best||r.p<best.p)) best={...r,t,e}; } return best; };
     const sel=gear.map(g=>({g,x:find(g,7)||find(g,30)}));
+    b._costSel={}; for(const {g,x} of sel) if(x) b._costSel[g.k]={from:g.src,id:idOf(g,x.t,x.e)}; bQApply(b);
     const pr=id=>{ const r=bldPrice(id,BLD_CITY,1,7)||bldPrice(id,BLD_CITY,1,30); return r?r.p:null; };
     let tot=0, miss=0, old=0; const tip=[], names=[];
     for(const {g,x} of sel){ const nm=itemNome(g.code);
@@ -241,7 +242,7 @@ function albionBar(b,badge,costValue,opts){
   if(opts&&opts.qBar){ const ql=el("label",{class:"alb-tier",title:"Qualidade das peças: muda o IP e o texto copiado ao Albion. Bom +20, Excepcional +40, Excelente +60, Obra-prima +100 de IP por peça."}); const qs=qSelect(bQ(b).a,false,"Qualidade das peças"); qs.addEventListener("change",()=>{ bQ(b).a=+qs.value; refresh(); }); ql.append(qs); bar.append(ql); }
   const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento com o tier escolhido. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
   const msg=el("span",{class:"muted small",role:"status"});
-  btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set,tier,qf); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
+  btn.addEventListener("click",async()=>{ if(b._cost){ msg.textContent="Calculando as peças…"; try{ await b._cost._upd(true); }catch(e){} msg.textContent=""; } const t=albionLoadout(b,set,tier,qf); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
   bar.append(btn);
   bar.append(msg); const cp=costPanel(b,()=>({set,tier,qf}),tsel); b._cost=cp; (opts&&opts.costHost||bar).append(cp);
   refresh(); return bar;
