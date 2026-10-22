@@ -246,7 +246,7 @@ const prevId = (res,t,e) => t===4 ? `T3_${RES[res].ref}` : idOf(t-1,RES[res].ref
 const st={res:"metal",focus:1,daily:0,prem:1,sell:"order",bc:"brumas"};
 /* FOCO por dia (igual em todas as abas): Premium gera 10.000 por dia e guarda até 30.000; sem Premium não há foco. O foco só aumenta o retorno de recursos ao refinar/craftar. */
 const FOC_DIA=10000, FOC_MAX=30000, FOC_UIS=new Set();
-const focBud=()=>{ if(!st.prem) return 0; let v=store.get("focBud"); if(v==null||v==="") v=store.get("wkFocBud"); return v==null||v===""?FOC_DIA:Math.max(0,Math.min(FOC_MAX,Math.round(+v)||0)); };
+const focBud=()=>{ let v=store.get("focBud"); if(v==null||v==="") v=store.get("wkFocBud"); return v==null||v===""?(st.prem?FOC_DIA:0):Math.max(0,Math.min(FOC_MAX,Math.round(+v)||0)); };
 const focSet=v=>store.set("focBud",String(Math.max(0,Math.min(FOC_MAX,Math.round(+v||0)))));
 /* painel do foco por dia (barra, número e atalhos); onChange recalcula a aba. _sync() atualiza os valores e desliga tudo sem Premium. */
 function focBudUI(onChange,note){ const box=el("div",{class:"wk-foc"}); const w=el("div",{class:"wk-fbud"}), rng=el("input",{type:"range",min:"0",max:String(FOC_MAX),step:"500","aria-label":"Foco por dia"}), num=el("input",{type:"number",min:"0",max:String(FOC_MAX),step:"500","aria-label":"Foco por dia"}), pre=el("div",{class:"seg",role:"group","aria-label":"Atalhos de foco"}), hint=el("p",{class:"tiny wk-foct"});
@@ -254,8 +254,8 @@ function focBudUI(onChange,note){ const box=el("div",{class:"wk-foc"}); const w=
   [[10000,"1 dia · 10.000","Um dia de foco do Premium"],[20000,"2 dias · 20.000","Dois dias guardados"],[30000,"Cheio · 30.000","Reserva cheia (máximo)"]].forEach(([v,t,tt])=>{ const b=el("button",{type:"button",text:t,title:tt}); b.dataset.f=String(v); b.addEventListener("click",()=>{ focSet(v); box._sync(); if(onChange) onChange(); }); pre.append(b); });
   num.addEventListener("change",()=>{ focSet(num.value); box._sync(); if(onChange) onChange(); }); rng.addEventListener("input",()=>{ num.value=rng.value; }); rng.addEventListener("change",()=>{ focSet(rng.value); box._sync(); if(onChange) onChange(); });
   box.append(f,hint);
-  box._sync=()=>{ const v=focBud(); rng.disabled=num.disabled=!st.prem; rng.value=num.value=String(v); pre.querySelectorAll("button").forEach(b=>{ b.disabled=!st.prem; b.setAttribute("aria-pressed",String(st.prem&&+b.dataset.f===v)); });
-    hint.textContent=st.prem?`Premium: ${fmt(FOC_DIA)} de foco por dia, guardando até ${fmt(FOC_MAX)}. ${note||""}`:"Sem Premium não há foco: tudo sai sem foco (retorno menor) e a taxa de venda sobe de 4% para 8%."; };
+  box._sync=()=>{ const v=focBud(); rng.disabled=num.disabled=false; rng.value=num.value=String(v); pre.querySelectorAll("button").forEach(b=>{ b.disabled=false; b.setAttribute("aria-pressed",String(+b.dataset.f===v)); });
+    hint.textContent=st.prem?`Premium: ${fmt(FOC_DIA)} de foco por dia, guardando até ${fmt(FOC_MAX)}. ${note||""}`:`Sem Premium você não ganha foco novo (e a taxa de venda é 8%), mas pode usar o foco que já tem guardado: informe quanto você tem. ${note||""}`; };
   FOC_UIS.add(box); box._sync(); return box; }
 const rrr=(cityB,focus,daily)=>{const b=0.18+cityB+(focus?0.59:0)+daily; return b/(1+b);};
 const taxOf=()=> (st.prem?0.04:0.08)+(st.sell==="order"?0.025:0);

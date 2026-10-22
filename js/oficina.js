@@ -213,7 +213,7 @@ function ofDetail(m){
       ln(`Sem foco, retorno ${ofPct(m.pN.rr)}`,pr(m.pN),m.pN.profit>=0?"gain":"loss"); ln(`Com foco, retorno ${ofPct(m.pF.rr)}`,pr(m.pF),m.pF.profit>=0?"gain":"loss");
       ln("Foco gasto por unidade",fmt(m.pF.fc1)); ln("Foco gasto no total",fmt(m.pF.fc)); ln("Ganho extra por ponto de foco",dec(m.spf));
       const bud=focBud(), day=Math.floor(bud/m.pF.fc1); if(day>0){ const perU=m.pF.profit/m.pF.units; ln(`Com ${fmt(bud)} de foco por dia`,`${fmt(day*m.it.q)} un. · ${sgn(day*m.it.q*perU)}`,perU>=0?"gain":"loss"); }
-      else ln(`Com ${fmt(bud)} de foco por dia`,st.prem?"não dá para 1 unidade":"sem Premium não há foco"); }
+      else ln(`Com ${fmt(bud)} de foco por dia`,"não dá para 1 unidade"); }
     else c.append(el("p",{class:"tiny muted",text:"Faltam preços para comparar."}));
     c.append(el("p",{class:"tiny muted",text:"O foco entra só no retorno de recursos; o custo de foco usa as specs da sua ficha."}));
     right.append(c); }
@@ -303,6 +303,11 @@ async function fillVolumes(shown){
   const keys=[]; for(const m of shown){ keys.push(nk(m.it.id)+"|"+m.sale.c); for(const g of m.parts) if(g.b) keys.push(nk(g.id)+"|"+g.b.c); }
   await histFetch(keys);
   document.querySelectorAll("#ofTable .of-blk").forEach(w=>{ const h=OF2.hs[w.dataset.hk]; if(!h) return; w.querySelector(".hs-avg").textContent=h.avg>0?fmt(h.avg):"—"; const u=w.querySelector(".hs-vol"); u.textContent=fmtU(h.vol); w.title="Média e unidades por dia nos últimos 7 dias nessa cidade, todas as qualidades"; });
+  /* venda diária: o mercado só absorve algumas unidades por dia; o lucro de 100 unidades não é "de verdade" se vendem 5 por dia */
+  for(const r of (OF2.rows||[])){ const m=r.m, tr=r.tr; if(!tr||!tr.isConnected) continue; const h=OF2.hs[nk(m.it.id)+"|"+m.sale.c], nm=tr.querySelector(".inm"); if(!nm) continue; nm.querySelectorAll(".of-vd").forEach(x=>x.remove()); if(!h||!(h.vol>=0)||!(m.units>0)) continue;
+    const v=h.vol, perU=m.profit/m.units, dayU=Math.min(m.units,v), days=v>0?Math.ceil(m.units/v):Infinity, over=m.units>v*1.0001;
+    const c=el("span",{class:"of-vd"+(over?" warn":""),title:`Média de ${fmtU(v)} unidades vendidas por dia nos últimos 7 dias em ${m.sale.c} (todas as qualidades). ${over?`Para vender ${fmt(m.units)} unidades levaria ${v>0?fmt(days)+" dias":"muito tempo"}; o lucro total mostrado só vale se você vender tudo. `:""}Lucro vendendo o que o mercado absorve em 1 dia: ${sgn(Math.round(dayU*perU))}.`});
+    c.append(el("span",{class:"wk-fl",text:"Venda/dia"}),el("b",{text:`~${fmtU(v)}`}),over?el("small",{text:v>0?` · ${fmt(m.units)} un. levam ${fmt(days)} ${days===1?"dia":"dias"} · lucro/dia ${sgn(Math.round(dayU*perU))}`:" · sem vendas recentes"}):el("small",{text:" · cabe em 1 dia"})); nm.append(c); }
   ofUpdateQty();
 }
 /* cartões de cidade e estratégia, como no albionvip */
