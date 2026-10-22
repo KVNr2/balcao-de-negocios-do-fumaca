@@ -1,0 +1,12 @@
+diff --git a/index.html b/index.html
+index 272bbdbd..b0f664da 100644
+--- a/index.html
++++ b/index.html
+@@ -135,6 +135,7 @@
+         <label class="f" style="max-width:280px">Nome do personagem<input id="pfName" type="text" maxlength="40" placeholder="Ex.: Oleran"></label>
+         <div class="btnrow">
+           <a class="btn" id="pfAlbion" href="albion-ficha://iniciar" title="Abre o programa no seu PC, espera você entrar no jogo e traz os níveis do Destiny Board para cá">Sincronizar</a>
++          <a class="btn" id="pfMerc" href="albion-ficha://mercado" title="Abre o AlbionSpecs na bandeja do Windows: enquanto você olha o mercado no jogo, os preços mais recentes vão para o site (só preços, nada do personagem). Feche pelo ícone da bandeja.">Coletar preços do mercado</a>
+           <button type="button" class="btn ghost" id="pfClear">Limpar ficha</button>
+         </div>
+         <p class="tiny muted" id="pfDica" style="margin:.5rem 0 0">Primeira vez? É só clicar em <b>Sincronizar</b>: o site baixa o programa e explica cada passo. <a href="programa/leia-me.html">Como funciona</a>.</p>
