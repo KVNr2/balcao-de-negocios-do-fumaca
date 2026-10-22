@@ -1448,3 +1448,4 @@ td.wk-act .mn-craft+.mn-craft{margin-left:6px}
 .facts #mkBtn{text-decoration:none;color:var(--parch,#f1e6d0);font-weight:600;display:inline-flex;align-items:center;gap:6px;padding:0 14px;cursor:pointer}
 .facts #mkBtn svg{width:15px;height:15px;fill:none;stroke:var(--saffron);stroke-width:2;stroke-linecap:round}
 .facts #mkBtn:hover{border-color:var(--saffron);color:var(--saffron)}
+.v-prog{margin-top:14px}.v-prog .v-code{font-size:clamp(1.4rem,4vw,2rem)}
