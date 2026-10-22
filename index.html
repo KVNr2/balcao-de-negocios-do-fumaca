@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="db88f997">
+<html lang="pt-BR" data-v="b968e65e">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=db88f997">
-<link rel="stylesheet" href="css/vip.css?v=db88f997">
-<link rel="stylesheet" href="css/souk.css?v=db88f997">
+<link rel="stylesheet" href="css/balcao.css?v=b968e65e">
+<link rel="stylesheet" href="css/vip.css?v=b968e65e">
+<link rel="stylesheet" href="css/souk.css?v=b968e65e">
 </head>
 <body>
 <div class="wrap app">
@@ -53,6 +53,7 @@
       <button role="tab" id="t-mercado" aria-controls="p-mercado" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v15M7 20h10M5 7.5h14"/><path d="M5 7.5L2.5 13a2.6 2.6 0 0 0 5 0zM19 7.5L16.5 13a2.6 2.6 0 0 0 5 0z"/></svg><span class="tl">Mercado Negro</span><em class="fl">fl. 10</em></button>
       <button role="tab" id="t-prata" aria-controls="p-prata" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1.6 3.2c3.6 1.6 5.6 4.8 5.6 7.8a5 5 0 0 1-5 5h-4a5 5 0 0 1-5-5c0-3 2-6.2 5.6-7.8z"/><path d="M12 11v5M10.5 12.3h2.3a1 1 0 0 1 0 2h-1.6a1 1 0 0 0 0 2h2.3"/></svg><span class="tl">Onde está a prata</span><em class="fl">fl. 11</em></button>
       <span class="grp" aria-hidden="true">Estrada</span>
+      <button role="tab" id="t-avalon" aria-controls="p-avalon" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 3.5v5.5M12 15v5.5M3.5 12H9M15 12h5.5"/></svg><span class="tl">Avalon</span><em class="fl">Estradas</em></button>
       <button role="tab" id="t-mapas" aria-controls="p-mapas" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg><span class="tl">Mapas</span><em class="fl">fl. 12</em></button>
       <button role="tab" id="t-builds" aria-controls="p-builds" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 3.5H20v5.5L9.5 19.5l-5-5z"/><path d="M6 13l5 5M3.5 20.5L6 18"/></svg><span class="tl">Builds</span><em class="fl">fl. 13</em></button>
       <button role="tab" id="t-zvz" aria-controls="p-zvz" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l11 11M20 4L9 15"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg><span class="tl">Build ZvZ</span></button>
@@ -351,6 +352,36 @@
     <p class="small muted" id="ckNote">Lucro de uma fornada com foco, na cidade com bônus, comprando os ingredientes pelo preço típico. Clique numa linha para ver os ingredientes e o histórico.</p>
     <div class="tbl"><table id="ckTable"></table></div>
     <p class="tiny muted">Taxa da estação estimada pela nutrição da comida; poções saem sem taxa na conta. Confira o valor que aparece no jogo.</p>
+  </section>
+
+  <!-- AVALON -->
+  <section class="panel" id="p-avalon" role="tabpanel" aria-labelledby="t-avalon" hidden>
+    <p class="aside">Os 400 mapas das Estradas de Avalon, com os dados do jogo: tier, tipo, recursos por tier, dungeons e portais. Procure pelo nome, filtre por tier, tipo e recurso, salve até 6 mapas e monte a rota com o horário em que cada portal fecha. A conexão entre os mapas muda toda semana e não existe nos arquivos do jogo, então ela você anota na rota.</p>
+    <div class="sheet av-ctl">
+      <div class="av-search"><input id="avQ" type="search" placeholder="Nome do mapa (ex.: Casitos Alieam)" autocomplete="off" aria-label="Buscar mapa"><button type="button" class="linkbtn" id="avClear">Limpar filtros</button></div>
+      <div id="avHist" class="av-hist"></div>
+      <div class="av-filters">
+        <div class="ctl">Tier<div class="seg" id="avTier" role="group" aria-label="Tier"></div></div>
+        <div class="ctl">Tipo<select id="avType" aria-label="Tipo de mapa"></select></div>
+        <div class="ctl">Ordenar<select id="avSort" aria-label="Ordenar"><option value="nome">Nome</option><option value="rec">Mais recursos</option><option value="dg">Mais dungeons</option><option value="tier">Maior tier</option></select></div>
+      </div>
+      <div class="av-filters"><div class="ctl">Recursos<div class="seg av-multi" id="avRes" role="group" aria-label="Recursos"></div></div><div class="ctl">Também<div class="seg av-multi" id="avExtra" role="group" aria-label="Outros filtros"></div></div></div>
+    </div>
+    <div class="cols av-cols">
+      <div class="sheet"><h2 id="avCount">Mapas</h2><div id="avList" class="av-list"></div><div class="row-ctl"><button type="button" class="bc-more" id="avMore" hidden>Mostrar mais</button></div></div>
+      <div class="sheet av-side">
+        <h2>Rota <small id="avSavedN"></small></h2>
+        <p class="muted small">Salve até 6 mapas com a estrela. Para cada um, diga em quanto tempo o portal fecha.</p>
+        <div id="avSaved"></div>
+        <div class="av-rp">
+          <label>Fuso<select id="avTz"></select></label>
+          <label>Formato<select id="avFmt"><option value="rel">Relativo (daqui a 2h)</option><option value="full">Completo (data e hora)</option></select></label>
+          <label>Agora é<input id="avNow" type="datetime-local"></label>
+        </div>
+        <textarea id="avOut" rows="6" readonly aria-label="Texto da rota"></textarea>
+        <div class="row-ctl"><button type="button" class="bc-more" id="avCopy">Copiar rota</button><button type="button" class="bc-more" id="avDel">Apagar rota</button><span class="muted small" id="avMsg" role="status"></span></div>
+      </div>
+    </div>
   </section>
 
   <!-- MAPAS -->
@@ -661,19 +692,20 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=db88f997"></script>
-<script src="js/base.js?v=db88f997"></script>
-<script src="js/fx.js?v=db88f997"></script>
-<script src="js/biz.js?v=db88f997"></script>
-<script src="js/builds.js?v=db88f997"></script>
-<script src="js/nossas.js?v=db88f997"></script>
-<script src="js/ip.js?v=db88f997"></script>
-<script src="js/zvz.js?v=db88f997"></script>
-<script src="js/novos.js?v=db88f997"></script>
-<script src="js/guia.js?v=db88f997"></script>
-<script src="js/ui.js?v=db88f997"></script>
-<script src="js/oficina.js?v=db88f997"></script>
-<script src="js/versao.js?v=db88f997"></script>
-<script src="js/main.js?v=db88f997"></script>
+<script src="js/icons.js?v=b968e65e"></script>
+<script src="js/base.js?v=b968e65e"></script>
+<script src="js/fx.js?v=b968e65e"></script>
+<script src="js/biz.js?v=b968e65e"></script>
+<script src="js/builds.js?v=b968e65e"></script>
+<script src="js/nossas.js?v=b968e65e"></script>
+<script src="js/ip.js?v=b968e65e"></script>
+<script src="js/zvz.js?v=b968e65e"></script>
+<script src="js/novos.js?v=b968e65e"></script>
+<script src="js/guia.js?v=b968e65e"></script>
+<script src="js/ui.js?v=b968e65e"></script>
+<script src="js/avalon.js?v=b968e65e"></script>
+<script src="js/oficina.js?v=b968e65e"></script>
+<script src="js/versao.js?v=b968e65e"></script>
+<script src="js/main.js?v=b968e65e"></script>
 </body>
 </html>
