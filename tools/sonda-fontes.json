@@ -1,213 +1,136 @@
 {
- "jogadores": {
-  "Rema67": {
-   "id": "wb2WkFK1T2ukU8S9jLmVTg",
-   "n": 20,
-   "KillArea": {
-    "OPEN_WORLD": 20
-   },
-   "Location": {
-    "None": 20
-   },
-   "Category": {
-    "None": 20
-   },
-   "Type": {
-    "KILL": 20
-   },
-   "gvg": 0,
-   "part": {
-    "2": 20
-   },
-   "chaves": [
-    "BattleId",
-    "Category",
-    "EventId",
-    "GroupMembers",
-    "GvGMatch",
-    "KillArea",
-    "Killer",
-    "Location",
-    "Participants",
-    "TimeStamp",
-    "TotalVictimKillFame",
-    "Type",
-    "Version",
-    "Victim",
-    "groupMemberCount",
-    "numberOfParticipants"
-   ]
-  },
-  "Mandaryn": {
-   "id": "-bbdFKv5Sxa_T3h-o_nE3A",
-   "n": 20,
-   "KillArea": {
-    "OPEN_WORLD": 20
-   },
-   "Location": {
-    "None": 20
-   },
-   "Category": {
-    "None": 20
-   },
-   "Type": {
-    "KILL": 20
-   },
-   "gvg": 0,
-   "part": {
-    "2": 16,
-    "4": 3,
-    "3": 1
-   },
-   "chaves": [
-    "BattleId",
-    "Category",
-    "EventId",
-    "GroupMembers",
-    "GvGMatch",
-    "KillArea",
-    "Killer",
-    "Location",
-    "Participants",
-    "TimeStamp",
-    "TotalVictimKillFame",
-    "Type",
-    "Version",
-    "Victim",
-    "groupMemberCount",
-    "numberOfParticipants"
-   ]
-  },
-  "L4CKY": {
-   "id": "WazR2Z6PTZuF7BuDXziYow",
-   "n": 20,
-   "KillArea": {
-    "OPEN_WORLD": 20
-   },
-   "Location": {
-    "None": 20
-   },
-   "Category": {
-    "None": 20
-   },
-   "Type": {
-    "KILL": 20
-   },
-   "gvg": 0,
-   "part": {
-    "2": 19,
-    "1": 1
-   },
-   "chaves": [
-    "BattleId",
-    "Category",
-    "EventId",
-    "GroupMembers",
-    "GvGMatch",
-    "KillArea",
-    "Killer",
-    "Location",
-    "Participants",
-    "TimeStamp",
-    "TotalVictimKillFame",
-    "Type",
-    "Version",
-    "Victim",
-    "groupMemberCount",
-    "numberOfParticipants"
-   ]
-  },
-  "Tensheyy": {
-   "id": "FGwmtxP2T5OG2iXmfcUFfA",
-   "n": 20,
-   "KillArea": {
-    "OPEN_WORLD": 20
-   },
-   "Location": {
-    "None": 20
-   },
-   "Category": {
-    "None": 20
-   },
-   "Type": {
-    "KILL": 20
-   },
-   "gvg": 0,
-   "part": {
-    "4": 6,
-    "2": 14
-   },
-   "chaves": [
-    "BattleId",
-    "Category",
-    "EventId",
-    "GroupMembers",
-    "GvGMatch",
-    "KillArea",
-    "Killer",
-    "Location",
-    "Participants",
-    "TimeStamp",
-    "TotalVictimKillFame",
-    "Type",
-    "Version",
-    "Victim",
-    "groupMemberCount",
-    "numberOfParticipants"
-   ]
-  },
-  "Plamenev": {
-   "id": "yHM_-KNlR_Kj4AptylsWxQ",
-   "n": 20,
-   "KillArea": {
-    "OPEN_WORLD": 20
-   },
-   "Location": {
-    "None": 20
-   },
-   "Category": {
-    "None": 20
-   },
-   "Type": {
-    "KILL": 20
-   },
-   "gvg": 0,
-   "part": {
-    "2": 20
-   },
-   "chaves": [
-    "BattleId",
-    "Category",
-    "EventId",
-    "GroupMembers",
-    "GvGMatch",
-    "KillArea",
-    "Killer",
-    "Location",
-    "Participants",
-    "TimeStamp",
-    "TotalVictimKillFame",
-    "Type",
-    "Version",
-    "Victim",
-    "groupMemberCount",
-    "numberOfParticipants"
-   ]
-  }
+ "hellgate_players": {
+  "n": 70,
+  "part": [
+   1,
+   2,
+   4
+  ],
+  "grp": [
+   1,
+   2,
+   11
+  ],
+  "nPart": [
+   1,
+   2,
+   4
+  ],
+  "nGM": [
+   1,
+   2,
+   11
+  ],
+  "ipK": [
+   1195,
+   1284,
+   1753
+  ],
+  "ipV": [
+   1112,
+   1249,
+   1653
+  ],
+  "eqK": [
+   6,
+   8,
+   10
+  ],
+  "eqV": [
+   6,
+   8,
+   10
+  ],
+  "invV": [
+   0,
+   3,
+   42
+  ],
+  "fame": [
+   18492,
+   146090,
+   2284198
+  ],
+  "dfame": [
+   18492,
+   146090,
+   2284198
+  ],
+  "battle_eq_event": 0.46,
+  "guildK": 1.0,
+  "guildV": 0.9,
+  "allyK": 0.57,
+  "kfame": [
+   11016,
+   72180,
+   2284198
+  ]
  },
- "exemplo": {
-  "numberOfParticipants": 2,
-  "groupMemberCount": 2,
-  "EventId": 451680512,
-  "TimeStamp": "2026-10-22T19:57:41.393867600Z",
-  "Version": 4,
-  "TotalVictimKillFame": 189540,
-  "Location": null,
-  "GvGMatch": null,
-  "BattleId": 451680425,
-  "KillArea": "OPEN_WORLD",
-  "Category": null,
-  "Type": "KILL"
- },
- "exemplo_equip": null
+ "feed_geral": {
+  "n": 408,
+  "part": [
+   0,
+   2,
+   4
+  ],
+  "grp": [
+   1,
+   2,
+   18
+  ],
+  "nPart": [
+   0,
+   2,
+   4
+  ],
+  "nGM": [
+   1,
+   2,
+   18
+  ],
+  "ipK": [
+   0,
+   1284,
+   1949
+  ],
+  "ipV": [
+   0,
+   1192,
+   1720
+  ],
+  "eqK": [
+   0,
+   9,
+   10
+  ],
+  "eqV": [
+   0,
+   8,
+   10
+  ],
+  "invV": [
+   0,
+   6,
+   48
+  ],
+  "fame": [
+   0,
+   38694,
+   1848581
+  ],
+  "dfame": [
+   0,
+   38694,
+   1848581
+  ],
+  "battle_eq_event": 0.64,
+  "guildK": 0.85,
+  "guildV": 0.73,
+  "allyK": 0.41,
+  "kfame": [
+   0,
+   22567,
+   1383598
+  ]
+ }
 }
