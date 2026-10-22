@@ -152,7 +152,7 @@ function albionLoadout(b,set,tier,qf){
   const pick=(arr,i)=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[i]||arr[0]||""; };
   const w=set&&b.w2?b.w2:b.w, x=b.x||{};
   const slots=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o,set)],["h",pick(b.h,set)],["a",pick(b.a,set)],["s",pick(b.s,set)],["c",pick(b.c,set)],["gb",x.gb||""],["m",x.m||""],["p",pick(b.p,set)],["f",pick(b.f,set)]];
-  const equipment=[]; let miss=0; albionLoadout.slots=[]; for(let [k,id] of slots){ if(!id) continue; const cs=b._costSel&&b._costSel[k]; if(cs&&cs.from===id) id=cs.id; else if(tier&&["w","o","h","a","s","c"].includes(k)){ const q=albionEquiv(id,tier); if(!q.ok) miss++; id=q.id; } const gear=["w","o","h","a","s","c"].includes(k), food=k==="p"||k==="f";
+  const equipment=[]; let miss=0; albionLoadout.slots=[]; for(let [k,id] of slots){ if(!id) continue; const cs=b._costSel&&b._costSel[k], ov=bEff(b,k,id,tier); if(ov) id=ov; else if(cs&&cs.from===id) id=cs.id; else if(tier&&["w","o","h","a","s","c"].includes(k)){ const q=albionEquiv(id,tier); if(!q.ok) miss++; id=q.id; } const gear=["w","o","h","a","s","c"].includes(k), food=k==="p"||k==="f";
     const e={item:id,quality:gear&&qf?(qf(k)||1):1}; if(gear) (albionLoadout.slots=albionLoadout.slots||[]).push(k); if(k==="p") e.stack=10; e.pref=gear?[1,1,2]:food?[0,0,1,1]:[0,0,0]; equipment.push(e); }
   albionLoadout.miss=miss; return JSON.stringify({version:1,name:String(b.t||b.nome||"Build").slice(0,40)+(tier?" T"+tier:""),icon:13,color:12,equipment});
 }
@@ -161,15 +161,27 @@ const QOPT=[1,2,3,4,5];
 /* imagem de uma peça da build com a borda da qualidade escolhida; guardada para trocar quando a qualidade muda */
 function qImg(b,slot,id,cls){ if(!"wohasc".includes(slot)) return fullImg(id,cls); const im=fullImg(id,cls,bQf(b)(slot)); if(im){ im._orig=id; (b._qi=b._qi||[]).push([slot,im]); } return im; }
 /* troca qualidade e tier (equivalente) dos ícones da build conforme as escolhas */
-const bQApply=b=>(b._qi||[]).forEach(([k,im])=>{ const T=b._tier||0, cs=b._costSel&&b._costSel[k], e=im._orig?(cs&&cs.from===im._orig?cs.id:albionEquiv(im._orig,T).id):null, m=e&&/^T(\d)_.+?(?:@(\d))?$/.exec(e); if(m&&im._id) im._id(+m[1],+(m[2]||0)); if(im._q) im._q(bQf(b)(k)); });
+const bQApply=b=>(b._qi||[]).forEach(([k,im])=>{ const T=b._tier||0, cs=b._costSel&&b._costSel[k], ov=im._orig?bEff(b,k,im._orig,T):null, e=ov||(im._orig?(cs&&cs.from===im._orig?cs.id:albionEquiv(im._orig,T).id):null), m=e&&/^T(\d)_.+?(?:@(\d))?$/.exec(e); if(m&&im._id) im._id(+m[1],+(m[2]||0)); if(im._q) im._q(bQf(b)(k)); });
 const bQ=b=>b._qs||(b._qs={a:1,p:{...(b.q||{})}});          // qualidade escolhida na build: a = todas as peças, p = peça específica (vale mais)
 const bQf=b=>k=>{ const cs=b._costSel&&b._costSel[k]; return (cs&&cs.q)||bQ(b).p[k]||bQ(b).a; };   // qualidade usada: a escolhida, ou a que o custo achou quando faltou preço
-const QCOL={1:"#b9b2a6",2:"#5fbf6a",3:"#4aa3e8",4:"#b072e8",5:"#f0b43c"}, QIP={1:0,2:20,3:40,4:60,5:100};
+const QCOL={1:"transparent",2:"#8b919b",3:"#c07a3a",4:"#e3e8ef",5:"#f2b632"}, QTXT={1:"",2:"#aab0ba",3:"#d9904e",4:"#e3e8ef",5:"#f2b632"}, QIP={1:0,2:20,3:40,4:60,5:100};
 /* escolha de qualidade em 5 bolinhas coloridas (cor = qualidade no jogo); .value funciona como num select */
 function qPick(val,label,fn){ const g=el("div",{class:"qp",role:"radiogroup","aria-label":label||"Qualidade"}), nm=el("span",{class:"qp-n"}), bs=[];
-  const paint=()=>{ bs.forEach(([q,bt])=>{ const on=q===g._v; bt.classList.toggle("on",on); bt.setAttribute("aria-checked",on?"true":"false"); }); nm.textContent=QNAME[g._v]+(QIP[g._v]?" +"+QIP[g._v]:""); nm.style.color=g._v>1?QCOL[g._v]:""; };
+  const paint=()=>{ bs.forEach(([q,bt])=>{ const on=q===g._v; bt.classList.toggle("on",on); bt.setAttribute("aria-checked",on?"true":"false"); }); nm.textContent=QNAME[g._v]+(QIP[g._v]?" +"+QIP[g._v]:""); nm.style.color=QTXT[g._v]||""; };
   QOPT.forEach(q=>{ const bt=el("button",{type:"button",class:"qp-d",role:"radio",title:QNAME[q]+(QIP[q]?" (+"+QIP[q]+" de IP)":" (sem bônus)"),"aria-label":QNAME[q]}); bt.style.setProperty("--qc",QCOL[q]); bt.addEventListener("click",()=>{ if(g._v===q) return; g._v=q; paint(); if(fn) fn(q); }); bs.push([q,bt]); g.append(bt); });
   g.append(nm); g._v=+val||1; Object.defineProperty(g,"value",{get:()=>String(g._v),set:v=>{ g._v=+v||1; paint(); }}); paint(); return g; }
+
+/* ENCANTAMENTO escolhido na build: a = todas as peças (-1 = automático, pelo tier), p = peça específica. Com tier equivalente N, o encanto E vira T(N-E).E (4.4 para T8 .4); sem tier, mantém o tier original */
+const ECOL={0:"#6b7280",1:"#3fbf5a",2:"#3b8eea",3:"#b072e8",4:"#f2d13d"};
+const bEn=b=>b._en||(b._en={a:-1,p:{}});
+const bEnf=b=>k=>{ const e=bEn(b); return k in e.p?e.p[k]:e.a; };
+function bEff(b,k,id,tier){ if(!"wohasc".includes(k)) return null; const e=bEnf(b)(k); if(e<0) return null; const m=idInfo(id); if(!m||m.t<4) return null;
+  let t=m.t, en=e; if(tier){ t=Math.max(4,tier-e); en=tier-t; } return `T${t}_${m.c}${en?"@"+en:""}`; }
+/* escolha de encantamento em bolinhas coloridas (.0 a .4); clicar de novo na escolhida volta ao automático. .value: "-1" = automático */
+function ePick(val,label,fn){ const g=el("div",{class:"ep",role:"radiogroup","aria-label":label||"Encantamento"}), nm=el("span",{class:"ep-n"}), bs=[];
+  const paint=()=>{ bs.forEach(([q,bt])=>{ const on=q===g._v; bt.classList.toggle("on",on); bt.setAttribute("aria-checked",on?"true":"false"); }); nm.textContent=g._v<0?"Auto":g._v?"."+g._v:".0 sem encanto"; nm.style.color=g._v>0?ECOL[g._v]:""; };
+  [0,1,2,3,4].forEach(q=>{ const bt=el("button",{type:"button",class:"ep-d",role:"radio",title:q?"Encantamento ."+q:"Sem encantamento (.0)","aria-label":q?"."+q:".0"}); bt.style.setProperty("--ec",ECOL[q]); bt.addEventListener("click",()=>{ g._v=g._v===q?-1:q; paint(); if(fn) fn(g._v); }); bs.push([q,bt]); g.append(bt); });
+  g.append(nm); g._v=val==null||val===""?-1:+val; Object.defineProperty(g,"value",{get:()=>String(g._v),set:v=>{ g._v=+v; paint(); }}); paint(); return g; }
 const qSelect=(val,todas,label)=>{ const x=el("select",{class:"kx-q","aria-label":label||"Qualidade"}); if(todas) x.append(el("option",{value:"0",text:"= todas"})); QOPT.forEach(q=>x.append(el("option",{value:String(q),text:QNAME[q]}))); x.value=String(val); return x; };
 /* custo da build direto na aba: compra tudo numa cidade, na qualidade escolhida, e usa o equivalente mais barato (T8 = 8.0, 7.1, 6.2, 5.3, 4.4) */
 /* preços das peças da build: média do histórico de vendas na cidade escolhida, dos últimos 7 dias; se não houver venda, dos últimos 30 dias.
@@ -203,7 +215,7 @@ function costPanel(b,get,ui){
   box._upd=async(force)=>{ if(!seen&&!force) return; seen=true; const my=++run; const {set,tier,badgeUpd}=get(); tierSeg._sync(); if(setSeg) setSeg._sync(); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
     const w=set&&b.w2?b.w2:b.w; const base=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o)],["h",pick(b.h)],["a",pick(b.a)],["s",pick(b.s)],["c",pick(b.c)]].filter(x=>x[1]);
     const cons=[pick(b.p),pick(b.f)].filter(Boolean);
-    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,src:id,code:m.c,q:bQ(b).p[k]||bQ(b).a||1,groups:[m.t<4?[[m.t,m.e]]:bcEquivs(sum)]}; }).filter(Boolean);
+    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); const ov=bEff(b,k,id,tier), om=ov&&idInfo(ov); return {k,src:id,code:m.c,q:bQ(b).p[k]||bQ(b).a||1,groups:[om?[[om.t,om.e]]:m.t<4?[[m.t,m.e]]:bcEquivs(sum)]}; }).filter(Boolean);
     const idOf=(g,t,e)=>`T${t}_${g.code}`+(e?`@${e}`:"");
     out.classList.add("load"); out.textContent="…";
     const ids=[...new Set([...gear.flatMap(g=>g.groups.flat().map(([t,e])=>idOf(g,t,e))),...cons])];
@@ -260,11 +272,14 @@ function kbPanel(b){
   const qtop=el("div",{class:"kx-qtop"}); { const qa=qPick(bQ(b).a,"Qualidade de todas as peças",q=>{ bQ(b).a=q; bQ(b).p={}; qsl.forEach(([k,x])=>{ x.value=String(q); }); if(b._refresh) b._refresh(); });
     qtop.append(el("span",{class:"kx-qt",text:"Qualidade (todas)"}),qa,el("small",{class:"muted",text:"Aplica a todas as peças. Para mudar só uma, use as bolinhas dela na lista."})); }
   L.append(qtop);
+  const esl=[]; const etop=el("div",{class:"kx-qtop"}); { const ea=ePick(bEn(b).a,"Encantamento de todas as peças",e=>{ bEn(b).a=e; bEn(b).p={}; esl.forEach(([k,x])=>{ x.value=String(e); }); if(b._refresh) b._refresh(); });
+    etop.append(el("span",{class:"kx-qt",text:"Encantamento (todas)"}),ea,el("small",{class:"muted",text:"Auto = o do tier escolhido. Com Tier T8, .2 vira T6.2; sem tier, a peça fica no tier original com esse encanto."})); }
+  L.append(etop);
   const hd=el("div",{class:"kx-cols kx-hd"}); hd.append(el("span",{class:"kx-rec",text:"★ Recomendado"}),el("span",{text:"Alternativa"})); L.append(hd);
   const rows=[["w",[b.w,b.w2].filter(Boolean),sk.w?[sk.w,sk.w2||[]]:[]],["o",b.o,[]],["h",b.h,sk.h||[]],["a",b.a,sk.a||[]],["s",b.s,sk.s||[]],["c",b.c,[]],["p",b.p,[]],["f",b.f,[]]];
   rows.forEach(([k,ids,skl])=>{ if(!ids||!ids.length||!ids[0]) return; const r=el("div",{class:"kx-cols"});
     const first=kxItem(ids[0],skl[0],b,k);
-    if("wohasc".includes(k)){ const x=qPick(bQf(b)(k),"Qualidade: "+itemNome((idInfo(ids[0])||{}).c||""),q=>{ bQ(b).p[k]=q; if(b._refresh) b._refresh(); }); qsl.push([k,x]); const tx=first.querySelector(".kx-tx"); (tx||first).append(x); }
+    if("wohasc".includes(k)){ const x=qPick(bQf(b)(k),"Qualidade: "+itemNome((idInfo(ids[0])||{}).c||""),q=>{ bQ(b).p[k]=q; if(b._refresh) b._refresh(); }); qsl.push([k,x]); const ex=ePick(bEnf(b)(k),"Encantamento: "+itemNome((idInfo(ids[0])||{}).c||""),e=>{ bEn(b).p[k]=e; if(b._refresh) b._refresh(); }); esl.push([k,ex]); const tx=first.querySelector(".kx-tx"); const pk=el("div",{class:"kx-pk"}); pk.append(x,ex); (tx||first).append(pk); }
     r.append(first); r.append(ids[1]?kxItem(ids[1],skl[1],b,k):el("div")); L.append(r); });
   box.append(L);
   /* direita: visão geral no formato do killboard (3 colunas) */

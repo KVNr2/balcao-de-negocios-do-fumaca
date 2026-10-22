@@ -111,7 +111,7 @@ function nbRender(){
 const nbId=t=>(t||"build").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40)+"-"+Math.random().toString(36).slice(2,6);
 
 /* ---------- formulário de criação ---------- */
-let NB_CAT=null, NB_REFRESH=null;
+let NB_CAT=null, NB_REFRESH=null, NB_IDS=null;
 const NB_FILTER={ t:r=>r[1]==="gathering"&&/_TOOL_/.test(r[0]), gh:r=>r[1]==="gathering"&&/_HEAD_GATHERER_/.test(r[0]), ga:r=>r[1]==="gathering"&&/_ARMOR_GATHERER_/.test(r[0]), gs:r=>r[1]==="gathering"&&/_SHOES_GATHERER_/.test(r[0]), gk:r=>r[1]==="gathering"&&/_BACKPACK_GATHERER_/.test(r[0]), gb:r=>r[1]==="bags", m:r=>r[1]==="mounts",
   /* itens de coleta entram nas peças a que pertencem: ferramenta = arma, chapéu/traje/botas = elmo/peito/botas, mochila = capa */
   w:r=>r[1]==="weapons"||(r[1]==="gathering"&&/_TOOL_/.test(r[0])), o:r=>r[1]==="offhands", h:r=>r[1]==="head"||(r[1]==="gathering"&&/_HEAD_GATHERER_/.test(r[0])), a:r=>r[1]==="armors"||(r[1]==="gathering"&&/_ARMOR_GATHERER_/.test(r[0])), s:r=>r[1]==="shoes"||(r[1]==="gathering"&&/_SHOES_GATHERER_/.test(r[0])), c:r=>(r[1]==="capes"&&r[2]!=="other")||(r[1]==="gathering"&&/_BACKPACK_GATHERER_/.test(r[0])), p:r=>r[1]==="consumables"&&r[2]==="potions", f:r=>r[1]==="consumables"&&r[2]==="food" };
@@ -168,10 +168,16 @@ async function nbForm(pre){ if(!nbSrc||nbSrc!=="nos") return;
       cell.addEventListener("click",()=>openPick(s,lab)); grid.append(cell); }); drawSets(); drawEx(); drawQ(); };
   /* qualidade de cada peça de equipamento (vale para os dois sets); "todas" aplica a todas de uma vez */
   const drawQ=()=>{ qBox.textContent=""; const ks=["w","o","h","a","s","c"].filter(k=>SETS[0].sel[k]&&!(k==="o"&&is2h())); if(!ks.length) return;
-    qBox.append(el("h4",{text:"Qualidade das peças"}),el("p",{class:"muted small",text:"Normal por padrão. Muda o IP da build e o que vai ao Albion ao copiar."}));
+    qBox.append(el("h4",{text:"Qualidade e encantamento das peças"}),el("p",{class:"muted small",text:"Qualidade (quadradinhos, cor da borda): Normal por padrão; muda o IP e o que vai ao Albion ao copiar. Encantamento (bolinhas .0 a .4): troca o encanto da peça escolhida."}));
+    if(!NB_IDS&&NB_CAT) NB_IDS=new Set(NB_CAT.i.map(r=>r[0]));
+    const enOf=k=>(idInfo(SETS[0].sel[k])||{e:0}).e, hasEn=(k,e)=>{ const m=idInfo(SETS[0].sel[k]); return !!m&&(!NB_IDS||NB_IDS.has(`T${m.t}_${m.c}${e?"@"+e:""}`)); };
+    const setEn=(k,e)=>{ if(!hasEn(k,e)) return false; SETS.forEach((st,i)=>{ if(i&&k==="o") return; const m=idInfo(st.sel[k]); if(m) st.sel[k]=`T${m.t}_${m.c}${e?"@"+e:""}`; }); return true; };
+    const offUnavail=(g,ks)=>{ [...g.querySelectorAll(".ep-d")].forEach((bt,e)=>{ if(!ks.some(k=>hasEn(k,e))){ bt.disabled=true; bt.title="Sem esse encantamento nesta peça"; } }); };
+    const all0=el("div",{class:"nb-qr nb-qa"}); const eAll=ePick(ks.every(k=>enOf(k)===enOf(ks[0]))?enOf(ks[0]):-1,"Encantamento de todas as peças",e=>{ if(e<0) e=0; ks.forEach(k=>setEn(k,e)); draw(); });
+    offUnavail(eAll,ks); all0.append(el("b",{text:"Encantamento de todas"}),eAll); qBox.append(all0);
     const rows=[]; const all=el("div",{class:"nb-qr nb-qa"}); const apick=qPick(ks.every(k=>(QS[k]||1)===(QS[ks[0]]||1))?(QS[ks[0]]||1):1,"Qualidade de todas as peças",q=>{ ks.forEach(k=>{ QS[k]=q; }); rows.forEach(([k,x])=>{ x.value=String(q); }); });
     all.append(el("b",{text:"Todas as peças"}),apick); qBox.append(all);
-    ks.forEach(k=>{ const id=SETS[0].sel[k], i=idInfo(id)||{c:""}; const r=el("div",{class:"nb-qr"}); const im=fullImg(id,"nico nb-qi",QS[k]||1); const x=qPick(QS[k]||1,"Qualidade: "+itemNome(i.c),q=>{ QS[k]=q; if(im&&im._q) im._q(q); }); rows.push([k,x]); if(im) r.append(im); r.append(el("span",{class:"nb-qn",text:itemNome(i.c)}),x); qBox.append(r); }); };
+    ks.forEach(k=>{ const id=SETS[0].sel[k], i=idInfo(id)||{c:""}; const r=el("div",{class:"nb-qr"}); const im=fullImg(id,"nico nb-qi",QS[k]||1); const x=qPick(QS[k]||1,"Qualidade: "+itemNome(i.c),q=>{ QS[k]=q; if(im&&im._q) im._q(q); }); rows.push([k,x]); const ex=ePick(enOf(k),"Encantamento: "+itemNome(i.c),e=>{ if(e<0) e=0; setEn(k,e); draw(); }); offUnavail(ex,[k]); if(im) r.append(im); r.append(el("span",{class:"nb-qn",text:itemNome(i.c)}),x,ex); qBox.append(r); }); };
   /* coleta e extras: ferramenta, set de coleta, bolsa e montaria (iguais nos dois sets; edite no Set 1) */
   const drawEx=()=>{ exBox.textContent=""; exBox.append(el("h4",{text:"Extras"}),el("p",{class:"muted small",text:cs===1?"Iguais ao Set 1.":"Bolsa e montaria. São as mesmas nos dois sets."}));
     const row=el("div",{class:"nb-exg"}); NB_EXTRAS.forEach(([x,lab])=>{ const id=SETS[0].sel[x]; const c=el("button",{type:"button",class:"nb-xc"+(id?" on":"")+(cs===1?" nb-lock2":""),title:lab,disabled:cs===1});
