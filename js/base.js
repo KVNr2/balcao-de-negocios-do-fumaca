@@ -13,7 +13,9 @@ const el = (tag, props={}, ...kids) => { const e=document.createElement(tag); fo
 const RES = {
   metal:{raw:"ORE",ref:"METALBAR",city:"Thetford",rawName:"Minério",refName:"Barra de metal",prevName:"Barra",u:"barra",up:"barras",art:"uma",note:"Thetford tem o bônus de refino de minério. O minério vem barato de Fort Sterling, Martlock e Bridgewatch."},
   cloth:{raw:"FIBER",ref:"CLOTH",city:"Lymhurst",rawName:"Fibra (linho)",refName:"Tecido",prevName:"Tecido",u:"tecido",up:"tecidos",art:"um",note:"Lymhurst tem o bônus de refino de fibra."},
-  leather:{raw:"HIDE",ref:"LEATHER",city:"Martlock",rawName:"Pelego",refName:"Couro",prevName:"Couro",u:"couro",up:"couros",art:"um",note:"Martlock tem o bônus de refino de pelego."}
+  leather:{raw:"HIDE",ref:"LEATHER",city:"Martlock",rawName:"Pelego",refName:"Couro",prevName:"Couro",u:"couro",up:"couros",art:"um",note:"Martlock tem o bônus de refino de pelego."},
+  wood:{raw:"WOOD",ref:"PLANKS",city:"Fort Sterling",rawName:"Madeira",refName:"Tábua",prevName:"Tábua",u:"tábua",up:"tábuas",art:"uma",note:"Fort Sterling tem o bônus de refino de madeira."},
+  stone:{raw:"ROCK",ref:"STONEBLOCK",city:"Bridgewatch",rawName:"Pedra",refName:"Bloco de pedra",prevName:"Bloco de pedra",u:"bloco",up:"blocos",art:"um",note:"Bridgewatch tem o bônus de refino de pedra."}
 };
 const N = {4:2,5:3,6:4,7:5,8:5};
 const FOCUS_REF = [[54,94,164,287,503],[94,164,287,503,880],[164,287,503,880,1539],[287,503,880,1539,2694],[503,880,1539,2694,4715]]; // .4 estimado (×1,75 por nível)

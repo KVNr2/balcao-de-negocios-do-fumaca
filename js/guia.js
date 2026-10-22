@@ -7,7 +7,7 @@ const GUIA = {
   "p-ficha": ["A sua ficha de personagem, salva só no seu navegador.",
     "Digitar o seu Destiny Board: maestria e cada item de combate, craft, coleta, refino, cozinha, alquimia e fazenda. Todos os cálculos do site (custo de foco, recomendações, builds) usam esta ficha.",
     "Escreva o nome do personagem e abra cada grupo para digitar os níveis; o resumo ao lado mostra o que já está preenchido. O que você não souber, deixe em branco. Para usar em outro aparelho, copie o link da ficha e abra lá."],
-  "p-refino": ["Quanto lucra refinar minério, fibra ou pelego (barra, tecido, couro) com os preços de agora.",
+  "p-refino": ["A oficina de refino: custo, venda e lucro de cada recurso refinado (barra, tecido, couro, tábua e bloco de pedra) com os preços de agora.",
     "Descobrir qual tier e encantamento dá mais lucro por unidade refinada e conferir a conta de uma fornada. Foco é o recurso do jogo que reduz o custo de fabricar; aqui o lucro já considera taxas e o foco da sua ficha.",
     "Escolha o material em cima (metal, tecido ou couro). Veja as \"Melhores combinações agora\" e a tabela colorida: verde é lucro, vermelho é prejuízo. Clique numa combinação ou numa célula para abrir a calculadora, o histórico de preço e a rota: onde comprar a matéria-prima, onde refinar e onde vender."],
   "p-craft": ["A oficina: receita, custo e lucro de cada item que dá para fabricar.",
