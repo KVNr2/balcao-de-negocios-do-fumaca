@@ -37,13 +37,28 @@ function avMini(m){
 }
 const avTyCls=y=>y==="ROYAL_RED"?"red":({HO:"ho",ROYAL:"royal",BLACK:"black",TUNNEL:"tunnel"})[AV_TYPE_G(y)];
 const avTypeTxt=y=>{ if(y==="ROYAL_RED") return "Red"; const g=AV_G_PT[AV_TYPE_G(y)], r=/(LOW|MEDIUM|HIGH)$/.exec(y); return r?`${g} · ${{LOW:"risco baixo",MEDIUM:"risco médio",HIGH:"risco alto"}[r[1]]}`:/DEEP/.test(y)?`${g} · profundo`:g; };
+/* dungeons e portais do mapa, como tags coloridas (mesmas cores do minimapa) */
+function avInfo(m){ const o=[]; const add=(cls,txt,n,tip)=>{ if(n>0) o.push({cls,txt,n,tip}); };
+  add("solo","Dungeon solo",m.s,"Dungeons de 1 jogador"); add("grp","Dungeon de grupo",m.g,"Dungeons de grupo"); add("raid","Raid",m.e,"Raids");
+  add("ptl","Portais",m.p+(m.ho||0)+(m.mi||0),"Portais para outros mapas"); add("ho","Hideout",m.ho||0,"Portais de hideout"); add("mist","Brecilien",m.mi||0,"Portal para a Brecilien");
+  return o; }
+const avTag=(x,big)=>el("span",{class:"av-it "+x.cls+(big?" big":""),title:x.tip},el("span",{class:"av-itn",text:x.txt}),el("b",{text:"×"+x.n}));
 function avZoom(m,pic){
   const old=document.getElementById("avZoom"); if(old) old.remove();
   const ov=el("div",{id:"avZoom",class:"av-zoom",role:"dialog","aria-modal":"true","aria-label":`Mapa ${m.n}`});
   const box=el("div",{class:"av-zbox"}), top=el("div",{class:"av-ztop"});
   const x=el("button",{type:"button",class:"av-zx","aria-label":"Fechar",text:"×"});
   top.append(el("b",{text:m.n}),el("span",{class:"tag t"+m.t,text:`T${m.t}`}),el("span",{class:"av-ty "+avTyCls(m.y),text:avTypeTxt(m.y)}),x);
-  box.append(top, pic?el("img",{class:"av-zimg",src:`imagens/avalon/${pic}`,alt:`Mapa ${m.n}`}):avMini(m));
+  const body=el("div",{class:"av-zbody"});
+  const L=el("section",{class:"av-zl"}); L.append(el("h4",{text:"Recursos no mapa"}));
+  for(const k of Object.keys(AV_RES)){ const n=avRes(m,k); if(!n) continue; const mt=Math.max(...Object.keys(m.r[k]).map(Number)); const row=el("div",{class:"av-zr"}); const hd=el("div",{class:"av-zrh"}); const ic=fullImg(`T${mt}_${k}`,"av-ri"); hd.append(ic||el("i",{class:"av-rd r-"+AV_RES[k][1]}),el("span",{class:"av-rn",text:AV_RES[k][0]}),el("b",{class:"av-rq",title:"Quantidade no mapa",text:`×${n}`})); row.append(hd);
+    const tt=el("div",{class:"av-zt"}); Object.keys(m.r[k]).map(Number).sort((a,b)=>a-b).forEach(t=>tt.append(el("span",{class:"av-zc",title:`Tier ${t}`},el("small",{text:`T${t}`}),el("b",{text:`×${m.r[k][t]}`})))); row.append(tt); L.append(row); }
+  if(!L.querySelector(".av-zr")) L.append(el("p",{class:"muted small",text:"Sem recursos"}));
+  const R=el("section",{class:"av-zrt"}); R.append(el("h4",{text:"Dungeons e portais"}));
+  const inf=avInfo(m); const dg=el("div",{class:"av-zg"}); inf.forEach(i=>dg.append(avTag(i,true))); if(!m.s&&!m.g&&!m.e) dg.prepend(el("span",{class:"av-it none big",text:"Sem dungeons"})); R.append(dg);
+  const meta=el("dl",{class:"av-zm"}); const kv=(k,v)=>{ meta.append(el("dt",{text:k}),el("dd",{text:v})); }; kv("Tipo",AV_Y_PT[m.y]||m.y); kv("Tier",`T${m.t}`); if(AV.saved.some(z=>z.i===m.i)) kv("Na rota","Sim ★"); R.append(meta);
+  const mid=el("div",{class:"av-zmid"}); mid.append(pic?el("img",{class:"av-zimg",src:`imagens/avalon/${pic}`,alt:`Mapa ${m.n}`}):avMini(m));
+  body.append(L,mid,R); box.append(top,body);
   ov.append(box);
   const close=()=>{ ov.remove(); document.removeEventListener("keydown",key); }, key=e=>{ if(e.key==="Escape") close(); };
   ov.addEventListener("click",e=>{ if(e.target===ov||e.target===x) close(); }); document.addEventListener("keydown",key);
@@ -62,8 +77,7 @@ function avCard(m){
   for(const k of Object.keys(AV_RES)){ const n=avRes(m,k); if(!n) continue; const t=Object.keys(m.r[k]).sort().map(x=>`T${x}: ${m.r[k][x]}`).join(" · "); const c=el("span",{class:"av-r"+(AV.res.has(k)?" hi":""),title:`${AV_RES[k][0]} (${t})`}); const mt=Math.max(...Object.keys(m.r[k]).map(Number)); const ic=fullImg(`T${mt}_${k}`,"av-ri"); c.append(ic||el("i",{class:"av-rd r-"+AV_RES[k][1]}),el("span",{class:"av-rn",text:AV_RES[k][0]}),el("b",{class:"av-rq",title:"Quantidade no mapa",text:`×${n}`})); rs.append(c); }
   if(!rs.children.length) rs.append(el("span",{class:"muted small",text:"Sem recursos"}));
   card.append(el("div",{class:"av-rt",text:"Recursos no mapa (quantidade)"}),rs);
-  const ft=el("div",{class:"av-ft"}); const dg=[]; if(m.s) dg.push(`${m.s} solo`); if(m.g) dg.push(`${m.g} grupo`); if(m.e) dg.push(`${m.e} raid`);
-  ft.append(el("span",{text:`Dungeons: ${dg.join(", ")||"nenhuma"}`}),el("span",{text:`Portais: ${m.p+(m.ho||0)+(m.mi||0)}`})); card.append(ft);
+  const ft=el("div",{class:"av-ftags"}); const inf=avInfo(m); inf.forEach(x=>ft.append(avTag(x))); if(!m.s&&!m.g&&!m.e) ft.prepend(el("span",{class:"av-it none",text:"Sem dungeons"})); card.append(ft);
   card.classList.add("zoomable"); card.title="Clique para ampliar o mapa";
   card.addEventListener("click",e=>{ if(e.target.closest(".av-star")) return; avZoom(m,pic); });
   return card;
