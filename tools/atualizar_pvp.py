@@ -97,7 +97,7 @@ def main():
         venc, v = pessoas(e)
         for p in venc + [v]: cnt_j[(c, p.get("Id"))] += 1
     # experiência: fama de PvP do jogador (KillFame, total de fama por matar jogadores). A API não traz a Infâmia por conteúdo, só esse total
-    LIM = 50e6
+    LIM = 500e6
     ids = sorted({i for (c, i), n in cnt_j.items() if n >= 2 and i})[:1500]
     print("perfis a ler:", len(ids), flush=True)
     def perfil(i):

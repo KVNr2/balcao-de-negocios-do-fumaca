@@ -1,6 +1,6 @@
 /* ================= aba PVP: o que os jogadores que mais lutam usam em cada conteúdo (servidor US) ================= */
 let PVP = null, pvC = "hg2", pvV = "build", pvT = 0, pvSort = "wilson", pvOpen = null, pvExp = false;
-const PV_XP = 50;   // fama de PvP total (em milhões) para contar como experiente
+const PV_XP = 500;   // fama de PvP total (em milhões) para contar como experiente
 const PV_CONT = [["hg2","Hellgate 2v2"],["hg5","Hellgate 5v5"],["corrompida","Corrompidas"],["solo","Brumas (solo)"],["depths","Depths"]];
 const PV_TAM = t => t===1?"Solo":`Grupo de ${t}`;
 const pvWilson = (v,n) => { if(!n) return 0; const z=1.64, p=v/n, d=1+z*z/n; return (p+z*z/(2*n)-z*Math.sqrt((p*(1-p)+z*z/(4*n))/n))/d; };
