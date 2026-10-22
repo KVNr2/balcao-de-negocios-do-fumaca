@@ -25,6 +25,10 @@ document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",(
 document.querySelectorAll("[data-res]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-res]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); st.res=b.dataset.res; $("resNote").textContent=RES[st.res].note; renderHeat(); calc(true); }));
 document.querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click",()=>{ const g=b.dataset.g; document.querySelectorAll(`[data-g="${g}"]`).forEach(x=>x.setAttribute("aria-pressed",String(x===b))); st[g]= g==="sell"?b.dataset.v:parseFloat(b.dataset.v); recompute(g==="sell"); }));
 $("bSort").addEventListener("change",e=>{ bSort=e.target.value; renderBuilds(); });
+$("bRefresh").addEventListener("click",async()=>{ const bt=$("bRefresh"); if(bt.disabled) return; bt.disabled=true; const old=bt.textContent; bt.textContent="Atualizando…"; FORCE=true;
+  try{ await Promise.all([...BLD_PANELS].filter(p=>p.isConnected).map(p=>p._upd(true))); bt.textContent="Atualizado "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}); }
+  catch(e){ bt.textContent="Não consegui atualizar"; }
+  finally{ FORCE=false; setTimeout(()=>{ bt.disabled=false; if(bt.textContent!=="Atualizando…") bt.textContent=old; },4000); } });
 $("bOnlyMine").addEventListener("change",renderBuilds);
 document.querySelectorAll("[data-ck]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-ck]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); ckKind=b.dataset.ck; ckSel=null; renderCook(); }));
 $("ckBuilds").addEventListener("change",renderCook);
