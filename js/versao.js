@@ -20,7 +20,9 @@ async function renderVersao(){
   const gh=u=>fetch(REPO+u,{headers:{Accept:"application/vnd.github+json"}}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); });
   (async()=>{ try{
     const base=(await gh("/commits?path=versao.json&per_page=1"))[0]; const cmp=await gh(`/compare/${base.sha}...main`);
-    pend.textContent=""; const n=cmp.ahead_by||0;
+    pend.textContent=""; let n=cmp.ahead_by||0;
+    /* commits que só mexeram no programa (.exe) ou em ferramentas não mudam o site: não são "atualização a caminho" */
+    if(n&&Array.isArray(cmp.files)&&cmp.files.length&&cmp.files.every(f=>/^(programa|tools)\//.test(f.filename))) n=0;
     const box2=el("div",{class:"v-st "+(n?"novo":"ok")}); box2.append(el("span",{class:"v-dot"}), el("span",{text:n?`Faltam ${n} ${n===1?"atualização":"atualizações"} entrarem no ar (a publicação leva de 1 a 2 minutos).`:"Tudo o que foi enviado ao repositório já está no ar."}));
     const rb=el("button",{type:"button",class:"bc-more",text:"Verificar de novo"}); rb.addEventListener("click",()=>renderVersao()); box2.append(rb); pend.append(box2);
     if(n){ const ul=el("ul",{class:"v-list"}); cmp.commits.slice(-8).reverse().forEach(c=>{ const dt=new Date(c.commit.committer.date); ul.append(el("li",{text:`${fmtDH(dt)} · ${c.commit.message.split("\n")[0]}`})); }); pend.append(ul); }
