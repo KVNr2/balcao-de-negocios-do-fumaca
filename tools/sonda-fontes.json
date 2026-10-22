@@ -1,75 +1,95 @@
 {
  "servidor_achado": {
-  "eu": 149,
-  "us": 5
+  "eu": 211
  },
  "falhas": {
-  "solo": 27,
-  "hg2": 14,
-  "corrompida": 5,
-  "zvz": 8,
-  "gank": 2,
-  "depths": 9
+  "solo": 5,
+  "corrompida": 1,
+  "depths": 2
  },
  "por_rotulo": {
   "solo": {
-   "n": 58,
+   "n": 80,
    "nPart": [
-    1,
+    0,
     1,
     4
    ],
    "nGM": [
     1,
     1,
-    2
+    1
    ],
    "partN": [
-    1,
+    0,
     1,
     4
    ],
    "ipK": [
-    1010,
+    1236,
     1592,
     1933
    ],
    "ipV": [
     786,
-    1395,
+    1378,
     1903
    ],
-   "mountK": 1.0,
-   "mountV": 0.9,
-   "bagV": 0.78,
+   "mountK": 0.99,
+   "mountV": 0.88,
+   "bagV": 0.79,
    "capeV": 0.97,
-   "foodV": 0.43,
-   "potionV": 0.95,
+   "foodV": 0.45,
+   "potionV": 0.94,
    "invV": [
     0,
-    3,
-    33
+    4,
+    32
    ],
    "fame": [
     3408,
-    131114,
+    117098,
     6550114
    ],
-   "guildV": 0.81,
-   "allyV": 0.38,
+   "guildV": 0.84,
+   "allyV": 0.4,
+   "potT": {
+    "T6_POTION_HEAL": 43,
+    "T7_POTION_REVIVE": 11,
+    "-": 5,
+    "T8_POTION_COOLDOWN": 4,
+    "T5_POTION_REVIVE": 4,
+    "T8_POTION_CLEANSE": 4
+   },
+   "foodT": {
+    "-": 44,
+    "T5_MEAL_SOUP": 7,
+    "T8_MEAL_STEW": 7,
+    "T7_MEAL_OMELETTE": 5,
+    "T7_MEAL_ROAST_FISH": 5,
+    "T8_MEAL_STEW_FISH": 4
+   },
+   "mountT": {
+    "T3_MOUNT_HORSE": 22,
+    "T4_MOUNT_HORSE": 12,
+    "T5_MOUNT_HORSE": 10,
+    "-": 10,
+    "T4_MOUNT_GIANTSTAG": 8,
+    "T2_MOUNT_MULE": 7
+   },
    "ipMaxPart": [
-    1010,
+    1236,
     1592,
     1933
    ],
    "ipMinPart": [
     0,
-    1560,
+    1486,
     1933
    ]
   },
   "hg2": {
-   "n": 49,
+   "n": 63,
    "nPart": [
     1,
     2,
@@ -88,40 +108,58 @@
    "ipK": [
     1089,
     1275,
-    1318
+    1322
    ],
    "ipV": [
     1086,
-    1199,
+    1217,
     1310
    ],
-   "mountK": 0.2,
-   "mountV": 0.27,
-   "bagV": 0.53,
+   "mountK": 0.21,
+   "mountV": 0.24,
+   "bagV": 0.59,
    "capeV": 1.0,
    "foodV": 0.0,
-   "potionV": 0.96,
+   "potionV": 0.97,
    "invV": [
     0,
-    2,
+    3,
     36
    ],
    "fame": [
     19044,
-    66177,
-    510079
+    76815,
+    742966
    ],
-   "guildV": 0.86,
-   "allyV": 0.53,
+   "guildV": 0.89,
+   "allyV": 0.52,
+   "potT": {
+    "T6_POTION_ENERGY": 12,
+    "T6_POTION_TORNADO": 11,
+    "T7_POTION_STONESKIN": 11,
+    "T8_POTION_LAVA": 9,
+    "T8_POTION_COOLDOWN": 5,
+    "T8_POTION_TORNADO": 3
+   },
+   "foodT": {
+    "-": 63
+   },
+   "mountT": {
+    "-": 48,
+    "T3_MOUNT_HORSE": 9,
+    "T2_MOUNT_MULE": 3,
+    "T4_MOUNT_GIANTSTAG": 2,
+    "T4_MOUNT_HORSE": 1
+   },
    "ipMaxPart": [
     1157,
     1275,
-    1318
+    1322
    ],
    "ipMinPart": [
     1089,
     1259,
-    1298
+    1301
    ]
   },
   "hg5": {
@@ -169,6 +207,18 @@
    ],
    "guildV": 1.0,
    "allyV": 0.45,
+   "potT": {
+    "T7_POTION_STONESKIN": 8,
+    "T8_POTION_LAVA": 2,
+    "T6_POTION_LAVA": 1
+   },
+   "foodT": {
+    "-": 11
+   },
+   "mountT": {
+    "-": 10,
+    "T4_MOUNT_GIANTSTAG": 1
+   },
    "ipMaxPart": [
     1188,
     1188,
@@ -180,64 +230,80 @@
     1159
    ]
   },
-  "gank": {
-   "n": 3,
+  "corrompida": {
+   "n": 8,
    "nPart": [
-    2,
-    4,
-    4
+    1,
+    1,
+    1
    ],
    "nGM": [
-    2,
-    4,
-    6
+    1,
+    1,
+    1
    ],
    "partN": [
-    2,
-    4,
-    4
+    1,
+    1,
+    1
    ],
    "ipK": [
-    1344,
-    1429,
-    1523
+    1024,
+    1027,
+    1027
    ],
    "ipV": [
-    1282,
-    1288,
-    1506
+    984,
+    1022,
+    1054
    ],
    "mountK": 1.0,
-   "mountV": 1.0,
-   "bagV": 0.67,
+   "mountV": 0.38,
+   "bagV": 0.75,
    "capeV": 1.0,
-   "foodV": 0.67,
-   "potionV": 1.0,
+   "foodV": 0.25,
+   "potionV": 0.88,
    "invV": [
     0,
-    3,
-    22
+    1,
+    18
    ],
    "fame": [
-    27792,
-    147006,
-    506735
+    23526,
+    26172,
+    72690
    ],
-   "guildV": 1.0,
-   "allyV": 0.67,
+   "guildV": 0.62,
+   "allyV": 0.25,
+   "potT": {
+    "T7_POTION_REVIVE": 3,
+    "T6_POTION_HEAL": 2,
+    "-": 1,
+    "T8_POTION_COOLDOWN": 1,
+    "T5_POTION_REVIVE": 1
+   },
+   "foodT": {
+    "-": 6,
+    "T5_MEAL_SOUP": 1,
+    "T8_MEAL_STEW": 1
+   },
+   "mountT": {
+    "-": 5,
+    "T3_MOUNT_HORSE": 3
+   },
    "ipMaxPart": [
-    1344,
-    1429,
-    1523
+    1024,
+    1027,
+    1027
    ],
    "ipMinPart": [
-    0,
-    1248,
-    1274
+    1024,
+    1027,
+    1027
    ]
   },
   "zvz": {
-   "n": 8,
+   "n": 16,
    "nPart": [
     4,
     4,
@@ -245,8 +311,8 @@
    ],
    "nGM": [
     2,
-    5,
-    17
+    16,
+    19
    ],
    "partN": [
     4,
@@ -255,19 +321,19 @@
    ],
    "ipK": [
     1274,
-    1444,
-    1628
+    1620,
+    1651
    ],
    "ipV": [
     892,
-    1434,
+    1553,
     1699
    ],
    "mountK": 1.0,
    "mountV": 1.0,
-   "bagV": 0.62,
+   "bagV": 0.56,
    "capeV": 1.0,
-   "foodV": 0.38,
+   "foodV": 0.62,
    "potionV": 1.0,
    "invV": [
     0,
@@ -276,132 +342,192 @@
    ],
    "fame": [
     80595,
-    344856,
+    437966,
     1224638
    ],
    "guildV": 1.0,
-   "allyV": 0.75,
+   "allyV": 0.81,
+   "potT": {
+    "T7_POTION_REVIVE": 13,
+    "T7_POTION_SLOWFIELD": 2,
+    "T6_POTION_LAVA": 1
+   },
+   "foodT": {
+    "-": 6,
+    "T7_MEAL_OMELETTE_AVALON": 3,
+    "T8_MEAL_STEW": 3,
+    "T8_MEAL_STEW_FISH": 2,
+    "T8_MEAL_SANDWICH": 1,
+    "T8_MEAL_SANDWICH_AVALON": 1
+   },
+   "mountT": {
+    "T5_MOUNT_COUGAR_KEEPER": 6,
+    "T6_MOUNT_GIANTSTAG_MOOSE": 3,
+    "T5_MOUNT_ARMORED_HORSE": 2,
+    "UNIQUE_MOUNT_DIVINE_OWL_ADC": 2,
+    "T6_MOUNT_DIREWOLF": 1,
+    "T6_MOUNT_ARMORED_HORSE": 1
+   },
    "ipMaxPart": [
     1413,
-    1474,
+    1644,
     1719
    ],
    "ipMinPart": [
-    1217,
-    1308,
-    1553
+    0,
+    1416,
+    1581
    ]
   },
-  "corrompida": {
-   "n": 4,
+  "gank": {
+   "n": 5,
    "nPart": [
-    1,
-    1,
-    1
+    2,
+    4,
+    4
    ],
    "nGM": [
-    1,
-    1,
-    1
+    2,
+    6,
+    11
    ],
    "partN": [
-    1,
-    1,
-    1
+    2,
+    4,
+    4
    ],
    "ipK": [
-    1024,
-    1024,
-    1024
+    1224,
+    1344,
+    1523
    ],
    "ipV": [
-    1001,
-    1024,
-    1041
+    1282,
+    1457,
+    1545
    ],
    "mountK": 1.0,
-   "mountV": 0.0,
-   "bagV": 0.25,
+   "mountV": 1.0,
+   "bagV": 0.8,
    "capeV": 1.0,
-   "foodV": 0.0,
-   "potionV": 0.75,
+   "foodV": 0.8,
+   "potionV": 1.0,
    "invV": [
     0,
-    0,
-    1
+    3,
+    22
    ],
    "fame": [
-    23328,
-    25119,
-    33048
+    27792,
+    191186,
+    506735
    ],
-   "guildV": 0.75,
-   "allyV": 0.5,
+   "guildV": 1.0,
+   "allyV": 0.8,
+   "potT": {
+    "T7_POTION_REVIVE": 4,
+    "T6_POTION_HEAL": 1
+   },
+   "foodT": {
+    "T8_MEAL_STEW": 3,
+    "-": 1,
+    "T7_MEAL_OMELETTE": 1
+   },
+   "mountT": {
+    "T5_MOUNT_COUGAR_KEEPER": 2,
+    "T7_MOUNT_HORSE": 1,
+    "T5_MOUNT_HORSE": 1,
+    "T5_MOUNT_ARMORED_HORSE": 1
+   },
    "ipMaxPart": [
-    1024,
-    1024,
-    1024
+    1344,
+    1445,
+    1663
    ],
    "ipMinPart": [
-    1024,
-    1024,
-    1024
+    0,
+    1241,
+    1274
    ]
   },
   "depths": {
-   "n": 21,
+   "n": 28,
    "nPart": [
-    1,
+    2,
     2,
     4
    ],
    "nGM": [
-    1,
     2,
-    9
+    2,
+    2
    ],
    "partN": [
-    1,
+    2,
     2,
     4
    ],
    "ipK": [
-    1001,
+    1136,
     1333,
-    1448
+    1343
    ],
    "ipV": [
-    982,
-    1212,
+    1100,
+    1216,
     1356
    ],
-   "mountK": 1.0,
-   "mountV": 0.81,
-   "bagV": 0.76,
+   "mountK": 0.93,
+   "mountV": 0.79,
+   "bagV": 0.79,
    "capeV": 1.0,
-   "foodV": 0.81,
-   "potionV": 0.71,
+   "foodV": 0.82,
+   "potionV": 0.75,
    "invV": [
     0,
-    14,
+    13,
     32
    ],
    "fame": [
     0,
-    5760,
-    106083
+    2160,
+    73763
    ],
-   "guildV": 0.62,
-   "allyV": 0.38,
+   "guildV": 0.64,
+   "allyV": 0.43,
+   "potT": {
+    "-": 7,
+    "T7_POTION_STONESKIN": 6,
+    "T6_POTION_LAVA": 4,
+    "T5_POTION_STONESKIN": 2,
+    "T7_POTION_REVIVE": 2,
+    "T3_POTION_MOB_RESET": 2
+   },
+   "foodT": {
+    "T8_MEAL_STEW": 9,
+    "-": 5,
+    "T7_MEAL_OMELETTE": 5,
+    "T6_MEAL_STEW_AVALON": 4,
+    "T5_MEAL_SOUP": 1,
+    "T5_MEAL_ROAST_FISH": 1
+   },
+   "mountT": {
+    "-": 6,
+    "T5_MOUNT_DIREBOAR_FW_LYMHURST": 4,
+    "T8_MOUNT_DIREBOAR_FW_LYMHURST_ELITE": 4,
+    "T3_MOUNT_HORSE": 3,
+    "T5_MOUNT_COUGAR_KEEPER": 2,
+    "T5_MOUNT_HORSE": 2
+   },
    "ipMaxPart": [
-    1001,
+    1235,
     1333,
-    1705
+    1343
    ],
    "ipMinPart": [
     0,
-    1331,
-    1448
+    1322,
+    1331
    ]
   }
  }
