@@ -132,7 +132,7 @@ function cosInfo(id){ if(!COS) return null; const i=idInfo(id); if(!i) return nu
 function cosGeneric(){ if(!COS) return; const by={}; for(const k in COS.c){ if(k.includes("@")) continue; const code=k.replace(/^T\d_/,""), t=+k[1], n=COS.c[k].n; if(!n) continue; if(!by[code]||t<by[code].t) by[code]={t,n}; }
   for(const code in by) KB_CONS_PT[code]=by[code].n.replace(/\s+(Menor|Maior)$/,""); }
 const consNome = key => { const x=cosInfo(String(key).replace(/^(T\d_)/,"$1")); return x&&x.n||null; };
-function cosFill(id,nameB,box){ const x=cosInfo(id); if(!x) return; if(x.n&&nameB) nameB.textContent=x.n; box.textContent="";
+function cosFill(id,nameB,box){ const x=cosInfo(id); if(!x) return; if(x.n&&nameB) nameB.textContent=x.n; box.textContent=""; if(!box._t){ box._t=1; box.tabIndex=0; box.title="Clique para ver o texto inteiro"; box.addEventListener("click",()=>box.classList.toggle("open")); box.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); box.classList.toggle("open"); } }); }
   if(x.p){ for(const p of x.p){ const d=el("div",{class:"kx-fxi"}); d.append(el("b",{text:p.n||"Passiva da capa"})); if(p.d) d.append(el("span",{text:cosFxTxt(p.d)})); box.append(d); } if(!x.p.length) box.append(el("span",{class:"muted",text:"Capa comum, sem habilidade."})); }
   else if(x.d) box.append(el("span",{text:cosFxTxt(x.d)})); }
 function kxItem(id,skills,b,slot){
@@ -189,16 +189,14 @@ async function bldFetch(ids,city){
 const bldPrice=(id,c,q,d)=>{ const r=BLD_P[`${id}|${c}|${q}`]; if(!r) return null; if(d===7) return r.p7?{p:r.p7,d:7}:null; return r.p30?{p:r.p30,d:30}:null; };
 let BLD_CITY=(()=>{ try{ const c=localStorage.getItem("bldCity"); return c&&c!=="auto"?c:"Caerleon"; }catch(e){ return "Caerleon"; } })();
 const BLD_PANELS=new Set();
-function costPanel(b,get,tsel){
+function costPanel(b,get,ui){
   const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade de referência: o valor é a média de vendas dos últimos 7 dias nela (30 dias se não houver)"});
   SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
   const out=el("span",{class:"bld-tot",role:"status","aria-live":"polite"});
-  const ts=el("select",{"aria-label":"Tier das peças",title:"Tier da build: cada peça usa o equivalente mais barato (T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4). O encantamento aparece só quando o equivalente é usado."});
-  ts.append(el("option",{value:"0",text:"Tier original"})); [4,5,6,7,8].forEach(t=>ts.append(el("option",{value:String(t),text:`T${t} equivalente`})));
-  if(tsel) ts.addEventListener("change",()=>{ tsel.value=ts.value; tsel.dispatchEvent(new Event("change")); });
-  box.append(el("span",{class:"bld-k",text:"Tier"}),ts,el("span",{class:"bld-k",text:"Custo em"}),cs,out);
+  const row=(cap,x)=>{ const l=el("label",{class:"bld-row"}); l.append(el("span",{class:"bld-k",text:cap}),x); return l; };
+  const ts=ui.tsel; box.append(row("Tier",ts)); if(ui.sel) box.append(row("Set",ui.sel)); box.append(row("Custo em",cs),out,ui.btn,ui.msg);
   let seen=false, run=0;
-  box._upd=async(force)=>{ if(!seen&&!force) return; seen=true; const my=++run; const {set,tier,qf}=get(); ts.value=String(tier||0); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
+  box._upd=async(force)=>{ if(!seen&&!force) return; seen=true; const my=++run; const {set,tier,qf}=get(); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
     const w=set&&b.w2?b.w2:b.w; const base=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o)],["h",pick(b.h)],["a",pick(b.a)],["s",pick(b.s)],["c",pick(b.c)]].filter(x=>x[1]);
     const cons=[pick(b.p),pick(b.f)].filter(Boolean);
     const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,src:id,code:m.c,q:qf(k)||1,groups:[m.t<4?[[m.t,m.e]]:bcEquivs(sum)]}; }).filter(Boolean);
@@ -231,20 +229,18 @@ function costPanel(b,get,tsel){
   return box;
 }
 function albionBar(b,badge,costValue,opts){
-  const bar=el("div",{class:"kx-alb"}); let set=0, tier=0; const qf=bQf(b);
+  const bar=el("div",{class:"kx-alb"}); let set=0, tier=0, setSel=null; const qf=bQf(b);
   const refresh=()=>{ b._tier=tier; if(badge) badge._upd(set,tier,qf); bQApply(b); if(b._cost) b._cost._upd(); }; b._refresh=refresh;
   const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
-  if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; refresh(); }); bar.append(sel); }
-  const lab=el("label",{class:"alb-tier",title:"O tier escolhido vale para o IP, para o texto copiado ao Albion e para o custo. T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4; T5 = 5.0 ou 4.1; T4 = 4.0. Cada peça fica no tier dela quando dá."});
+  if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; refresh(); }); setSel=sel; }
   const tsel=el("select",{"aria-label":"Tier das peças"});
-  tsel.append(el("option",{value:"0",text:"Tier original"})); [4,5,6,7,8].forEach(t=>tsel.append(el("option",{value:String(t),text:`T${t}`}))); tsel.value=String(tier);
-  tsel.addEventListener("change",()=>{ tier=+tsel.value; refresh(); }); lab.append(tsel); bar.append(lab);
+  tsel.append(el("option",{value:"0",text:"Tier original"})); [4,5,6,7,8].forEach(t=>tsel.append(el("option",{value:String(t),text:`T${t} equivalente`}))); tsel.value=String(tier); tsel.title="O tier vale para o IP, o custo, os ícones e o texto copiado ao Albion. Cada peça usa o equivalente mais barato (T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4).";
+  tsel.addEventListener("change",()=>{ tier=+tsel.value; refresh(); });
   if(opts&&opts.qBar){ const ql=el("label",{class:"alb-tier",title:"Qualidade das peças: muda o IP e o texto copiado ao Albion. Bom +20, Excepcional +40, Excelente +60, Obra-prima +100 de IP por peça."}); const qs=qSelect(bQ(b).a,false,"Qualidade das peças"); qs.addEventListener("change",()=>{ bQ(b).a=+qs.value; refresh(); }); ql.append(qs); bar.append(ql); }
   const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento com o tier escolhido. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
-  const msg=el("span",{class:"muted small",role:"status"});
+  const msg=el("span",{class:"bld-msg muted small",role:"status"});
   btn.addEventListener("click",async()=>{ if(b._cost){ msg.textContent="Calculando as peças…"; try{ await b._cost._upd(true); }catch(e){} msg.textContent=""; } const t=albionLoadout(b,set,tier,qf); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
-  bar.append(btn);
-  bar.append(msg); const cp=costPanel(b,()=>({set,tier,qf}),tsel); b._cost=cp; (opts&&opts.costHost||bar).append(cp);
+  const cp=costPanel(b,()=>({set,tier,qf}),{tsel,sel:setSel,btn,msg}); b._cost=cp; (opts&&opts.costHost||bar).append(cp);
   refresh(); return bar;
 }
 function kbPanel(b){

@@ -1309,3 +1309,7 @@ select.kx-q:not([value="0"]){}
 .av-mp{fill:none;stroke:#6fb7ff;stroke-width:1.2}.av-mp.mist{stroke:#7fe0c0}
 .av-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink-2,#c9b99a);margin:6px 0 0}
 .av-mini{max-height:190px}
+.bld-row{display:flex;flex-direction:column;gap:2px}.bld-cost .bc-more{width:100%;justify-content:center}.bld-msg{text-align:center;min-height:0}.bld-msg:empty{display:none}
+.kx-alb .bld-cost .bc-more{width:auto}.kx-alb .bld-row{flex-direction:row;align-items:center;gap:6px}
+.kx-fx:not(.open){display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}.kx-fx.open{cursor:pointer}.kx-fx .kx-fxi{display:block}
+.av-pic{width:100%;height:auto;max-height:190px;object-fit:cover;border-radius:8px;display:block;background:#17110d}
