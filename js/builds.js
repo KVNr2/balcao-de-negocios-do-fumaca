@@ -204,11 +204,13 @@ function costPanel(b,get,tsel){
     try{ await bldFetch(ids,[BLD_CITY],allQ); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
     if(my!==run) return;
     /* melhor versão equivalente de uma peça: primeiro as do tier pedido (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), depois as dos tiers vizinhos; preço recente antes do antigo */
-    const find=(g,cities,maxA)=>{ for(let gi=0;gi<g.groups.length;gi++){ let best=null; for(const [t,e] of g.groups[gi]) for(const c of cities){ const r=bldPrice(idOf(g,t,e),c,g.q,maxA); if(r&&(!best||r.p<best.p)) best={...r,t,e,c,gi}; } if(best) return best; } return null; };
-    const sel=gear.map(g=>({g,x:find(g,[BLD_CITY],72)||find(g,[BLD_CITY],24*14)}));
-    const lack=sel.filter(r=>!r.x);
-    if(lack.length){ const oth=SHOP_LOCS.filter(c=>c!==BLD_CITY); try{ await bldFetch(lack.flatMap(r=>r.g.groups.flat().map(([t,e])=>idOf(r.g,t,e))),oth,allQ); }catch(err){} if(my!==run) return;
-      for(const r of lack){ r.x=find(r.g,oth,72)||find(r.g,oth,24*14); if(r.x) r.x.other=true; } }
+    const find=(g,cities,maxA,g0,g1)=>{ for(let gi=g0;gi<Math.min(g1,g.groups.length);gi++){ let best=null; for(const [t,e] of g.groups[gi]) for(const c of cities){ const r=bldPrice(idOf(g,t,e),c,g.q,maxA); if(r&&(!best||r.p<best.p)) best={...r,t,e,c,gi}; } if(best) return best; } return null; };
+    const oth=SHOP_LOCS.filter(c=>c!==BLD_CITY), HI=99;
+    /* ordem: equivalente exato na cidade (recente, depois antigo) > exato em outra cidade > tiers vizinhos na cidade > vizinhos em outra cidade */
+    const att=[[[BLD_CITY],72,0,1],[[BLD_CITY],336,0,1],[oth,72,0,1],[oth,336,0,1],[[BLD_CITY],72,1,HI],[[BLD_CITY],336,1,HI],[oth,72,1,HI],[oth,336,1,HI]];
+    const pickX=g=>{ for(const [cs,ma,g0,g1] of att){ const x=find(g,cs,ma,g0,g1); if(x){ if(cs===oth) x.other=true; return x; } } return null; };
+    let sel=gear.map(g=>({g,x:pickX(g)}));
+    if(sel.some(r=>!r.x||r.x.other||r.x.gi>0)){ const lack=sel.filter(r=>!r.x||r.x.other||r.x.gi>0); try{ await bldFetch(lack.flatMap(r=>r.g.groups.flat().map(([t,e])=>idOf(r.g,t,e))),oth,allQ); }catch(err){} if(my!==run) return; sel=gear.map(g=>({g,x:pickX(g)})); }
     const pr=id=>{ const r=bldPrice(id,BLD_CITY,1,24*14); return r?r.p:null; };
     let tot=0, miss=0, other=0, stale=0; const tip=[], names=[];
     for(const {g,x} of sel){ const nm=itemNome(g.code);
