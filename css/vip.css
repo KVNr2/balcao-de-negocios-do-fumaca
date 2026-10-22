@@ -1344,3 +1344,15 @@ select.kx-q:not([value="0"]){}
 }
 .kx-alb .bld-cost{margin-left:auto}
 .bcard .bld-k{text-align:left}.bld-cost select{width:auto}.bcard .bld-cost{margin-top:0}
+
+.av-ty{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:800;letter-spacing:.3px;border:1px solid transparent}
+.av-ty.black{background:#000;color:#fff;border-color:#6b6b6b}
+.av-ty.red{background:#c4161c;color:#fff;border-color:#ff6b6f}
+.av-ty.royal{background:#1d4ea8;color:#fff;border-color:#6f9bf0}
+.av-ty.tunnel{background:#5b3a1c;color:#fff;border-color:#b98a55}
+.av-ty.ho{background:#5a2b86;color:#fff;border-color:#a77bd6}
+.av-card .tag{font-size:12.5px;font-weight:800;padding:3px 10px}
+.av-rt{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-2,#c9b99a);margin-top:2px}
+.av-r{padding:3px 4px 3px 8px;gap:6px}
+.av-rq{background:var(--saffron,#e8b04a);color:#1a1208;border-radius:6px;padding:1px 7px;font-size:13px;font-weight:800}
+.av-rn{opacity:.9}
