@@ -5,7 +5,7 @@ function setPageHead(btn){ if(!btn) return; let g=btn.previousElementSibling; wh
   $("phTitle").textContent=btn.querySelector(".tl").textContent; const gd=(typeof GUIA!=="undefined"&&GUIA[btn.getAttribute("aria-controls")])||[]; $("phDesc").textContent=gd[0]||""; document.title=`${btn.querySelector(".tl").textContent} · Balcão de Negócios do Fumaça`; }
 function showTab(id, quiet){ setPageHead(tabs.find(b=>b.id===id)); tabs.forEach(b=>b.tabIndex=b.id===id?0:-1);
   { const sel=tabs.find(b=>b.id===id); if(sel&&matchMedia("(max-width:900px)").matches) sel.scrollIntoView({block:"nearest",inline:"center",behavior:quiet||RM?"auto":"smooth"}); } let panel=null; tabs.forEach(b=>{const on=b.id===id; b.setAttribute("aria-selected",String(on)); const p=$(b.getAttribute("aria-controls")); p.hidden=!on; if(on) panel=p;}); tip.hidden=true; store.set("tab",id); if(id==="t-craft") renderCraft();
-  if(id==="t-cozinha") renderCook(); if(id==="t-mapas") renderMaps(); if(id==="t-mercado") renderBM(); if(id==="t-trab") renderWK(); if(id==="t-matchup") renderMU(); if(id==="t-craft") renderOf(); if(id==="t-mk") renderMk(); if(id==="t-encantar") renderEN(); if(id==="t-fazenda") renderFZ(); if(id==="t-custo") renderBC(); if(id==="t-zvz") renderZvz(); if(id==="t-versao") renderVersao();
+  if(id==="t-cozinha") renderCook(); if(id==="t-mapas") renderMaps(); if(id==="t-mercado") renderBM(); if(id==="t-trab") renderWK(); if(id==="t-matchup") renderMU(); if(id==="t-craft"||id==="t-refino") renderOf(); if(id==="t-mk") renderMk(); if(id==="t-encantar") renderEN(); if(id==="t-fazenda") renderFZ(); if(id==="t-custo") renderBC(); if(id==="t-zvz") renderZvz(); if(id==="t-versao") renderVersao();
   moveTabLamp(tabs.find(b=>b.id===id), quiet); addFlourishes(panel||document);
   if(!quiet&&panel){ animatePanel(panel); if(FX.ok&&!RM){ revealOnScroll(); tiltCards(); if(window.ScrollTrigger) ScrollTrigger.refresh(); } } }
 function animatePanel(panel){
@@ -40,7 +40,7 @@ function applyMeta(){ if(DATA.ouro){ $("goldV").textContent=fmt(DATA.ouro); $("p
     $("whenBox").classList.toggle("stale",!LIVE); $("whenBox").classList.remove("off");
     $("whenBox").title=LIVE?"Consultados agora no Albion Online Data; cada preço é o anúncio mais recente de até 3 dias":"Preços salvos no site: "+DATA.janela; } }
 async function loadCraftFamilies(){ const keys=Object.keys(PF.craft).filter(k=>PF.craft[k].lv>0); for(const k of keys){ const [s,m]=k.split("_"); await ensureFamily(s,m); } renderRecs(); renderHero(); }
-function recompute(reset){ $("resNote").textContent=RES[st.res].note; renderHeat(); calc(!!reset); renderRecs(); renderHero(); renderBuilds(); if(!$("p-craft").hidden) renderCraft(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-fazenda").hidden&&FARM) renderFZ(); if(!$("p-encantar").hidden&&GEAR) renderEN(); if(LIVE) loadCraftFamilies(); }
+function recompute(reset){ $("resNote").textContent=RES[st.res].note; renderHeat(); calc(!!reset); renderRecs(); renderHero(); renderBuilds(); if(!$("p-craft").hidden) renderCraft(); if(!$("p-refino").hidden||!$("p-craft").hidden) renderOf(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-fazenda").hidden&&FARM) renderFZ(); if(!$("p-encantar").hidden&&GEAR) renderEN(); if(LIVE) loadCraftFamilies(); }
 
 loadProfile(); renderProfile(); renderWho(); renderActs("all");
 stallIntro();

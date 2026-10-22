@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="7b5aebbe">
+<html lang="pt-BR" data-v="0351c14d">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=7b5aebbe">
-<link rel="stylesheet" href="css/vip.css?v=7b5aebbe">
-<link rel="stylesheet" href="css/souk.css?v=7b5aebbe">
+<link rel="stylesheet" href="css/balcao.css?v=0351c14d">
+<link rel="stylesheet" href="css/vip.css?v=0351c14d">
+<link rel="stylesheet" href="css/souk.css?v=0351c14d">
 </head>
 <body>
 <div class="wrap app">
@@ -204,11 +204,15 @@
 
   <!-- REFINO -->
   <section class="panel" id="p-refino" role="tabpanel" aria-labelledby="t-refino" hidden>
+    <div id="ofSlotRef"></div>
+    <h2 class="sub">Mapa de lucro por tier e encantamento</h2>
     <div class="block">
       <div class="seg big" role="group" aria-label="Recurso">
         <button type="button" data-res="metal" aria-pressed="true">Metal<small>em Thetford</small></button>
         <button type="button" data-res="cloth" aria-pressed="false">Tecido (linho)<small>em Lymhurst</small></button>
         <button type="button" data-res="leather" aria-pressed="false">Couro<small>em Martlock</small></button>
+        <button type="button" data-res="wood" aria-pressed="false">Madeira (tábua)<small>em Fort Sterling</small></button>
+        <button type="button" data-res="stone" aria-pressed="false">Pedra (bloco)<small>em Bridgewatch</small></button>
       </div>
       <p class="small muted" id="resNote"></p>
     </div>
@@ -263,9 +267,9 @@
 
   <!-- CRAFT -->
   <section class="panel" id="p-craft" role="tabpanel" aria-labelledby="t-craft" hidden>
-    <div class="of2">
+    <div id="ofSlotCraft"><div class="of2" id="ofRoot">
       <div class="of2-head">
-        <h2>Oficina</h2>
+        <h2 id="ofTitle">Oficina</h2>
         <span class="small muted" id="ofAge"></span>
         <button type="button" class="of-btn" id="ofPrices">Atualizar preços</button>
       </div>
@@ -275,10 +279,10 @@
             <select id="ofCat" aria-label="Categoria"></select>
             <input type="search" id="ofFind" placeholder="Nome do item" autocomplete="off" aria-label="Nome do item">
             <div class="of-cnt">Itens na lista <b id="ofCount">—</b></div></div>
-          <div class="of-card of-rc"><span class="of-ct">Receita</span><input id="ofQty" type="number" min="1" step="1" value="10" aria-label="Quantidade de receitas a fabricar"><small class="muted">receitas a fabricar de cada item</small></div>
+          <div class="of-card of-rc"><span class="of-ct" id="ofRcT">Receita</span><input id="ofQty" type="number" min="1" step="1" value="10" aria-label="Quantidade de receitas a fabricar"><small class="muted" id="ofRcS">receitas a fabricar de cada item</small></div>
           <div class="of-g"><h3>Item</h3>
             <div class="of-2c"><label class="f">Tier<select id="ofTier"></select></label><label class="f">Encantamento<select id="ofEnch"></select></label></div>
-            <label class="f">Qualidade do item vendido<select id="ofQual"></select></label></div>
+            <label class="f" id="ofQualBox">Qualidade do item vendido<select id="ofQual"></select></label></div>
           <div class="of-card" id="ofCityCard">
             <button type="button" class="of-chead" aria-expanded="false" aria-controls="ofCityPop">
               <span class="of-ct">Cidade</span><span class="of-cs" id="ofCityS"></span>
@@ -311,12 +315,13 @@
           <label class="of-sw"><span class="of-swi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg></span><span class="of-swt">Usar Diário</span><input type="checkbox" id="ofDaily"><i class="of-track"></i></label>
         </aside>
         <div class="of2-main">
+          <div class="of-sortw"><span class="of-ct">Ordenar por</span><div class="seg sm of-sort" role="group" aria-label="Ordenar a lista"><button type="button" data-sort="profit" aria-pressed="true">Lucro</button><button type="button" data-sort="pct" aria-pressed="false">Lucro %</button><button type="button" data-sort="focus" aria-pressed="false" title="Quanto o foco rende a mais por ponto gasto">Ganho por foco</button></div></div>
           <p class="small muted" id="ofNote"></p>
           <div class="tbl"><div id="ofTable" class="oflist"></div></div>
-          <p class="tiny muted">Os atalhos de retorno são 15,2% (sem bônus), 24,8% (cidade com bônus) e 47,9% (cidade com bônus e foco). Em Categoria, "Todas as armas/armaduras" compara tudo de uma vez, com um tier escolhido. Vendendo ao Mercado Negro vale a melhor ordem de compra de lá, só com a taxa de venda. Taxas de criação de ordem: 2,5%. O artefato não volta no retorno. Qualidade só muda o preço de venda; a fabricação dá a qualidade ao acaso. Vendas por dia: média dos últimos 7 dias na cidade de venda. Os controles de Premium, bônus diário e taxa valem para o site todo.</p>
+          <p class="tiny muted" id="ofFoot">Os atalhos de retorno são 15,2% (sem bônus), 24,8% (cidade com bônus) e 47,9% (cidade com bônus e foco). Em Categoria, "Todas as armas/armaduras" compara tudo de uma vez, com um tier escolhido. Vendendo ao Mercado Negro vale a melhor ordem de compra de lá, só com a taxa de venda. Taxas de criação de ordem: 2,5%. O artefato não volta no retorno. Qualidade só muda o preço de venda; a fabricação dá a qualidade ao acaso. Vendas por dia: média dos últimos 7 dias na cidade de venda. Os controles de Premium, bônus diário e taxa valem para o site todo.</p>
         </div>
       </div>
-    </div>
+    </div></div>
     <h2 class="sub">Mapa de lucro das armaduras</h2>
     <div class="block">
       <div class="form" style="max-width:720px">
@@ -502,6 +507,7 @@
       <label class="f">Ou o rendimento que o jogo mostra<span class="hapin"><input type="number" id="wkPct" min="1" max="200" placeholder="—" inputmode="numeric"><span>%</span></span></label>
       <label class="f">Quantos trabalhadores você tem<span class="hapin"><input type="number" id="wkN" min="1" max="99" step="1" value="1" inputmode="numeric"></span></label>
       <div class="f"><span>Comprar o diário cheio</span><div class="seg" id="wkBuy" role="group" aria-label="Forma de compra"><button type="button" data-m="direto" aria-pressed="true" title="Compra direto do anúncio mais barato, sem taxa">Direto</button><button type="button" data-m="ordem" aria-pressed="false" title="Monta uma ordem de compra: paga a maior ordem aberta mais 2,5% de taxa">Por ordem</button></div></div>
+      <div class="f"><span>Craft dos diários de ferreiro e afins</span><div class="seg" id="wkCraftSeg" role="group" aria-label="Craft"><button type="button" data-c="0" aria-pressed="true">Desligado</button><button type="button" data-c="1" aria-pressed="false" title="Busca os preços das peças que cada diário de crafter pode virar">Ligado</button></div><span class="tiny muted" id="wkCraftSt"></span></div>
       <p class="small" id="wkYieldTxt"></p>
     </div>
     <div class="tbl"><table id="wkTable"></table></div>
@@ -515,7 +521,8 @@
         <h2>Como ler</h2>
         <ul class="list small">
           <li>Vender o que volta: você compra o diário cheio no mercado, entrega ao trabalhador e vende tudo o que ele devolve, já descontada a taxa de venda.</li>
-          <li>Refinar com foco e sem foco: para minério, fibra e pelego, o que volta vira barra, tecido ou couro. A conta usa o retorno de recursos, o foco e as taxas da aba Refino, e o foco gasto vem das specs e da maestria de refino da sua ficha. Madeira, pedra e os diários de ferreiro, flecheiro e imbuidor ainda não têm essa conta.</li>
+          <li>Refinar com foco e sem foco: para minério, fibra, pelego, madeira e pedra, o que volta vira barra, tecido ou couro. A conta usa o retorno de recursos, o foco e as taxas da aba Refino, e o foco gasto vem das specs e da maestria de refino da sua ficha. Madeira vira tábua e pedra vira bloco, com a mesma conta.</li>
+          <li>Craftar com foco e sem foco (ferreiro, flecheiro, imbuidor e funileiro): esses diários devolvem barras, tábuas, couro e tecido, e o que volta vira a peça que mais rende. Ligue o Craft acima para buscar os preços das peças. A conta é proporcional (um diário rende uma fração de peça), usa o retorno de recursos da cidade com bônus de fabricação e o foco das specs de craft da sua ficha, e vende o que sobra.</li>
           <li>Custo total é o diário cheio mais, no refino, a barra do tier anterior (já com o retorno) e a taxa da estação. Receita total é a venda, já sem a taxa de venda. Lucro % é o lucro dividido pelo custo total. A coluna "Melhor jeito" mostra qual dos três rende mais, e "Detalhes" abre os três lado a lado.</li>
           <li>A lista mostra todos os diários que o trabalhador do tier escolhido aceita, do que mais rende para o que menos rende. Regra do jogo: o trabalhador não aceita diário de tier maior que o dele, então T8 pode usar diário T4 a T8, mas T4 só usa diário T4 (<a href="https://wiki.albiononline.com/wiki/Laborer" target="_blank" rel="noopener">wiki oficial</a>). O rendimento depende da felicidade e do tier do diário: o jogo pede 100 de felicidade por tier do diário, e a sobra rende 0,5% por ponto, até 150%. Por isso um diário de tier menor rende mais por unidade que um do mesmo tier.</li>
           <li>O diário pede a fama do tier dele ou acima. Diário T8 só enche com recurso, peixe ou craft T8.</li>
@@ -650,19 +657,19 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=7b5aebbe"></script>
-<script src="js/base.js?v=7b5aebbe"></script>
-<script src="js/fx.js?v=7b5aebbe"></script>
-<script src="js/biz.js?v=7b5aebbe"></script>
-<script src="js/builds.js?v=7b5aebbe"></script>
-<script src="js/nossas.js?v=7b5aebbe"></script>
-<script src="js/ip.js?v=7b5aebbe"></script>
-<script src="js/zvz.js?v=7b5aebbe"></script>
-<script src="js/novos.js?v=7b5aebbe"></script>
-<script src="js/guia.js?v=7b5aebbe"></script>
-<script src="js/ui.js?v=7b5aebbe"></script>
-<script src="js/oficina.js?v=7b5aebbe"></script>
-<script src="js/versao.js?v=7b5aebbe"></script>
-<script src="js/main.js?v=7b5aebbe"></script>
+<script src="js/icons.js?v=0351c14d"></script>
+<script src="js/base.js?v=0351c14d"></script>
+<script src="js/fx.js?v=0351c14d"></script>
+<script src="js/biz.js?v=0351c14d"></script>
+<script src="js/builds.js?v=0351c14d"></script>
+<script src="js/nossas.js?v=0351c14d"></script>
+<script src="js/ip.js?v=0351c14d"></script>
+<script src="js/zvz.js?v=0351c14d"></script>
+<script src="js/novos.js?v=0351c14d"></script>
+<script src="js/guia.js?v=0351c14d"></script>
+<script src="js/ui.js?v=0351c14d"></script>
+<script src="js/oficina.js?v=0351c14d"></script>
+<script src="js/versao.js?v=0351c14d"></script>
+<script src="js/main.js?v=0351c14d"></script>
 </body>
 </html>
