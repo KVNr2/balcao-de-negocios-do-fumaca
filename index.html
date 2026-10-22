@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="1ea26ebf">
+<html lang="pt-BR" data-v="f1768ba5">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=1ea26ebf">
-<link rel="stylesheet" href="css/vip.css?v=1ea26ebf">
-<link rel="stylesheet" href="css/souk.css?v=1ea26ebf">
+<link rel="stylesheet" href="css/balcao.css?v=f1768ba5">
+<link rel="stylesheet" href="css/vip.css?v=f1768ba5">
+<link rel="stylesheet" href="css/souk.css?v=f1768ba5">
 </head>
 <body>
 <div class="wrap app">
@@ -540,7 +540,8 @@
       <div class="f"><span>Comprar o diário cheio</span><div class="seg" id="wkBuy" role="group" aria-label="Forma de compra"><button type="button" data-m="direto" aria-pressed="true" title="Compra direto do anúncio mais barato, sem taxa">Direto</button><button type="button" data-m="ordem" aria-pressed="false" title="Monta uma ordem de compra: paga a maior ordem aberta mais 2,5% de taxa">Por ordem</button></div></div>
       <div class="f"><span>Craft dos diários de ferreiro e afins</span><div class="seg" id="wkCraftSeg" role="group" aria-label="Craft"><button type="button" data-c="0" aria-pressed="true">Desligado</button><button type="button" data-c="1" aria-pressed="false" title="Busca os preços das peças que cada diário de crafter pode virar">Ligado</button></div><span class="tiny muted" id="wkCraftSt"></span></div>
       <div class="f"><span>O que fazer com o que volta</span><div class="seg" id="wkMode" role="group" aria-label="O que fazer com o que volta"><button type="button" data-m="auto" aria-pressed="true" title="Mostra o jeito que mais rende">Melhor jeito</button><button type="button" data-m="venda" aria-pressed="false" title="Vende tudo o que o trabalhador devolve">Vender direto</button><button type="button" data-m="proc" aria-pressed="false" title="Refina (minério, fibra, pelego, madeira e pedra) ou crafta (diários de ferreiro e afins)">Refinar ou craftar</button></div></div>
-      <label class="of-sw wk-sw"><span class="of-swi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></svg></span><span class="of-swt">Usar Foco</span><input type="checkbox" id="wkFoc" checked><i class="of-track"></i></label>
+      <div class="f"><span>Conta</span><div class="seg" id="wkPrem" role="group" aria-label="Premium"><button type="button" data-g="prem" data-v="1" aria-pressed="true" title="Taxa de venda 4% e foco: 10.000 por dia (guarda até 30.000)">Premium</button><button type="button" data-g="prem" data-v="0" aria-pressed="false" title="Taxa de venda 8% e sem foco">Sem Premium</button></div></div>
+      <div class="f"><span>Foco por dia</span><input type="number" id="wkFocBud" min="0" max="30000" step="500" inputmode="numeric" title="Premium gera 10.000 de foco por dia e guarda até 30.000. Sem Premium não há foco. O foco só aumenta o retorno de recursos ao refinar ou craftar o que volta; não muda o rendimento do diário."></div>
       <p class="small" id="wkYieldTxt"></p>
     </div>
     <div class="tbl"><table id="wkTable"></table></div>
@@ -692,20 +693,20 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=1ea26ebf"></script>
-<script src="js/base.js?v=1ea26ebf"></script>
-<script src="js/fx.js?v=1ea26ebf"></script>
-<script src="js/biz.js?v=1ea26ebf"></script>
-<script src="js/builds.js?v=1ea26ebf"></script>
-<script src="js/nossas.js?v=1ea26ebf"></script>
-<script src="js/ip.js?v=1ea26ebf"></script>
-<script src="js/zvz.js?v=1ea26ebf"></script>
-<script src="js/novos.js?v=1ea26ebf"></script>
-<script src="js/guia.js?v=1ea26ebf"></script>
-<script src="js/ui.js?v=1ea26ebf"></script>
-<script src="js/avalon.js?v=1ea26ebf"></script>
-<script src="js/oficina.js?v=1ea26ebf"></script>
-<script src="js/versao.js?v=1ea26ebf"></script>
-<script src="js/main.js?v=1ea26ebf"></script>
+<script src="js/icons.js?v=f1768ba5"></script>
+<script src="js/base.js?v=f1768ba5"></script>
+<script src="js/fx.js?v=f1768ba5"></script>
+<script src="js/biz.js?v=f1768ba5"></script>
+<script src="js/builds.js?v=f1768ba5"></script>
+<script src="js/nossas.js?v=f1768ba5"></script>
+<script src="js/ip.js?v=f1768ba5"></script>
+<script src="js/zvz.js?v=f1768ba5"></script>
+<script src="js/novos.js?v=f1768ba5"></script>
+<script src="js/guia.js?v=f1768ba5"></script>
+<script src="js/ui.js?v=f1768ba5"></script>
+<script src="js/avalon.js?v=f1768ba5"></script>
+<script src="js/oficina.js?v=f1768ba5"></script>
+<script src="js/versao.js?v=f1768ba5"></script>
+<script src="js/main.js?v=f1768ba5"></script>
 </body>
 </html>
