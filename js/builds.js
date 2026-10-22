@@ -163,7 +163,7 @@ function qImg(b,slot,id,cls){ if(!"wohasc".includes(slot)) return fullImg(id,cls
 /* troca qualidade e tier (equivalente) dos ícones da build conforme as escolhas */
 const bQApply=b=>(b._qi||[]).forEach(([k,im])=>{ const T=b._tier||0, cs=b._costSel&&b._costSel[k], e=im._orig?(cs&&cs.from===im._orig?cs.id:albionEquiv(im._orig,T).id):null, m=e&&/^T(\d)_.+?(?:@(\d))?$/.exec(e); if(m&&im._id) im._id(+m[1],+(m[2]||0)); if(im._q) im._q(bQf(b)(k)); });
 const bQ=b=>b._qs||(b._qs={a:1,p:{...(b.q||{})}});          // qualidade escolhida na build: a = todas as peças, p = peça específica (vale mais)
-const bQf=b=>k=>bQ(b).p[k]||bQ(b).a;
+const bQf=b=>k=>{ const cs=b._costSel&&b._costSel[k]; return (cs&&cs.q)||bQ(b).p[k]||bQ(b).a; };   // qualidade usada: a escolhida, ou a que o custo achou quando faltou preço
 const QCOL={1:"#b9b2a6",2:"#5fbf6a",3:"#4aa3e8",4:"#b072e8",5:"#f0b43c"}, QIP={1:0,2:20,3:40,4:60,5:100};
 /* escolha de qualidade em 5 bolinhas coloridas (cor = qualidade no jogo); .value funciona como num select */
 function qPick(val,label,fn){ const g=el("div",{class:"qp",role:"radiogroup","aria-label":label||"Qualidade"}), nm=el("span",{class:"qp-n"}), bs=[];
@@ -195,30 +195,35 @@ function costPanel(b,get,ui){
   SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
   const out=el("span",{class:"bld-tot",role:"status","aria-live":"polite"});
   const row=(cap,x)=>{ const l=el("label",{class:"bld-row"}); l.append(el("span",{class:"bld-k",text:cap}),x); return l; };
-  const ts=ui.tsel; box.append(row("Tier",ts)); if(ui.sel) box.append(row("Set",ui.sel)); box.append(row("Custo em",cs),out,ui.btn,ui.msg);
+  const ts=ui.tsel; box.append(row("Tier",ts)); if(ui.sel) box.append(row("Set",ui.sel)); const tags=el("div",{class:"bld-tags"}); box.append(row("Custo em",cs),out,tags,ui.btn,ui.msg);
   let seen=false, run=0;
-  box._upd=async(force)=>{ if(!seen&&!force) return; seen=true; const my=++run; const {set,tier,qf}=get(); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
+  box._upd=async(force)=>{ if(!seen&&!force) return; seen=true; const my=++run; const {set,tier,badgeUpd}=get(); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
     const w=set&&b.w2?b.w2:b.w; const base=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o)],["h",pick(b.h)],["a",pick(b.a)],["s",pick(b.s)],["c",pick(b.c)]].filter(x=>x[1]);
     const cons=[pick(b.p),pick(b.f)].filter(Boolean);
-    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,src:id,code:m.c,q:qf(k)||1,groups:[m.t<4?[[m.t,m.e]]:bcEquivs(sum)]}; }).filter(Boolean);
+    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,src:id,code:m.c,q:bQ(b).p[k]||bQ(b).a||1,groups:[m.t<4?[[m.t,m.e]]:bcEquivs(sum)]}; }).filter(Boolean);
     const idOf=(g,t,e)=>`T${t}_${g.code}`+(e?`@${e}`:"");
     out.classList.add("load"); out.textContent="…";
     const ids=[...new Set([...gear.flatMap(g=>g.groups.flat().map(([t,e])=>idOf(g,t,e))),...cons])];
     try{ await bldFetch(ids,BLD_CITY); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
     if(my!==run) return;
     /* só equivalentes do tier pedido (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), na cidade escolhida: média de 7 dias; sem ela, média de 30 dias. Nada de outra cidade nem de tier abaixo */
-    const find=(g,d)=>{ let best=null; for(const [t,e] of g.groups[0]){ const r=bldPrice(idOf(g,t,e),BLD_CITY,g.q,d); if(r&&(!best||r.p<best.p)) best={...r,t,e}; } return best; };
-    const sel=gear.map(g=>({g,x:find(g,7)||find(g,30)}));
-    b._costSel={}; for(const {g,x} of sel) if(x) b._costSel[g.k]={from:g.src,id:idOf(g,x.t,x.e)}; bQApply(b);
+    const find=(g,d,q)=>{ let best=null; for(const [t,e] of g.groups[0]){ const r=bldPrice(idOf(g,t,e),BLD_CITY,q,d); if(r&&(!best||r.p<best.p)) best={...r,t,e,q}; } return best; };
+    /* qualidade pedida primeiro (7 dias, depois 30); se não houver preço nela, tenta a mais próxima: abaixo, e depois acima */
+    const qOrder=q=>[q,...Array.from({length:q-1},(_,i)=>q-1-i),...Array.from({length:5-q},(_,i)=>q+1+i)];
+    const pickX=g=>{ for(const qq of qOrder(g.q)){ const x=find(g,7,qq)||find(g,30,qq); if(x) return x; } return null; };
+    const sel=gear.map(g=>({g,x:pickX(g)}));
+    b._costSel={}; for(const {g,x} of sel) if(x) b._costSel[g.k]={from:g.src,id:idOf(g,x.t,x.e),q:x.q!==g.q?x.q:0}; bQApply(b); if(badgeUpd) badgeUpd();
     const pr=id=>{ const r=bldPrice(id,BLD_CITY,1,7)||bldPrice(id,BLD_CITY,1,30); return r?r.p:null; };
-    let tot=0, miss=0, old=0; const tip=[], names=[];
+    let tot=0, miss=0, old=0; const tip=[], names=[], qch=[];
     for(const {g,x} of sel){ const nm=itemNome(g.code);
-      if(x){ tot+=x.p; if(x.d===30) old++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}: ${fmt(x.p)} (média de ${x.d} dias)`); }
+      if(x){ tot+=x.p; if(x.d===30) old++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} (média de ${x.d} dias)`+(x.q!==g.q?` — sem preço em ${QNAME[g.q]}, usei ${QNAME[x.q]}`:"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q]); }
       else { miss++; names.push(nm); tip.push(`${nm}: sem vendas em ${BLD_CITY} nos últimos 30 dias`); } }
     for(const id of cons){ const p=pr(id), ii=idInfo(id), cx=cosInfo(id); if(p) tot+=p; tip.push(`${(cx&&cx.n)||itemNome(ii.c)}: ${p?fmt(p):"sem preço"}`); }
     out.classList.remove("load"); out.textContent=""; out.title=tip.join("\n");
     if(!tot){ out.textContent="sem preço nesta cidade"; return; }
     out.append(el("b",{text:fmt(tot)}),document.createTextNode(" prata"));
+    tags.textContent=""; const SL={w:"Arma",o:"Secundária",h:"Cabeça",a:"Peito",s:"Botas",c:"Capa"};
+    for(const [k,from,to] of qch) tags.append(el("span",{class:"bld-chip",title:`Sem preço em ${QNAME[from]} nesta cidade; o custo, o IP, os ícones e o texto copiado usam ${QNAME[to]}`,text:`${SL[k]}: ${QNAME[to]} (sem ${QNAME[from]})`}));
     const wn=[]; if(miss) wn.push(`faltam ${miss}`); if(old) wn.push(`${old} com média de 30 dias`);
     if(wn.length) out.append(el("span",{class:"bld-warn",text:wn.join(" · "),title:(miss?`Sem vendas em ${BLD_CITY} nos últimos 30 dias: ${names.join(", ")}. O total não inclui.\n`:"")+"Passe o mouse no valor para ver peça por peça."}));
   };
@@ -241,7 +246,7 @@ function albionBar(b,badge,costValue,opts){
   const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento com o tier escolhido. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
   const msg=el("span",{class:"bld-msg muted small",role:"status"});
   btn.addEventListener("click",async()=>{ if(b._cost){ msg.textContent="Calculando as peças…"; try{ await b._cost._upd(true); }catch(e){} msg.textContent=""; } const t=albionLoadout(b,set,tier,qf); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
-  const cp=costPanel(b,()=>({set,tier,qf}),{tsel,sel:setSel,btn,msg}); b._cost=cp; (opts&&opts.costHost||bar).append(cp);
+  const cp=costPanel(b,()=>({set,tier,qf,badgeUpd:()=>{ if(badge) badge._upd(set,tier,qf); }}),{tsel,sel:setSel,btn,msg}); b._cost=cp; (opts&&opts.costHost||bar).append(cp);
   refresh(); return bar;
 }
 function kbPanel(b){
