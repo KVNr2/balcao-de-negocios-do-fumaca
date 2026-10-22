@@ -29,18 +29,19 @@ def resumo(fs):
         if all(isinstance(v, bool) for v in vals): r[k] = round(sum(vals) / len(vals), 2)
         else: r[k] = [min(vals), round(st.median(vals)), max(vals)]
     return r
-rot = json.load(open("tools/rotulos-killboard1.json"))
+rot = json.load(open("tools/rotulos-killboard1.json")); rot_us = json.load(open("tools/rotulos-killboard1-us.json"))
 def uma(item):
     i, lab = item
-    for srv, b in BASES.items():
+    for srv, b in ([("us", BASES["us"])] if i in rot_us else BASES.items()):
         e = get(b, f"/events/{i}")
         if isinstance(e, dict) and "Killer" in e: return lab, srv, feat(e)
     return lab, None, None
-with ThreadPoolExecutor(8) as ex: res = list(ex.map(uma, rot.items()))
+with ThreadPoolExecutor(10) as ex: res = list(ex.map(uma, list(rot_us.items()) + [(i, l) for i, l in rot.items() if i not in rot_us]))
 por = collections.defaultdict(list); falhas = collections.Counter(); srv = collections.Counter()
 for lab, s, f in res:
     if f: por[lab].append(f); srv[s] += 1
     else: falhas[lab] += 1
+json.dump([{"id": i, "lab": l, "srv": sv, **f} for (i, l), (l2, sv, f) in zip(list(rot_us.items()) + [(i, l) for i, l in rot.items() if i not in rot_us], res) if f], open("tools/sonda-eventos.json", "w"))
 out = {"servidor_achado": dict(srv), "falhas": dict(falhas), "por_rotulo": {l: resumo(v) for l, v in por.items()}}
 json.dump(out, open("tools/sonda-fontes.json", "w"), ensure_ascii=False, indent=1)
 print(json.dumps(out, ensure_ascii=False)[:3000])
