@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="a807cf48">
+<html lang="pt-BR" data-v="aea658c7">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=a807cf48">
-<link rel="stylesheet" href="css/vip.css?v=a807cf48">
-<link rel="stylesheet" href="css/souk.css?v=a807cf48">
+<link rel="stylesheet" href="css/balcao.css?v=aea658c7">
+<link rel="stylesheet" href="css/vip.css?v=aea658c7">
+<link rel="stylesheet" href="css/souk.css?v=aea658c7">
 </head>
 <body>
 <div class="wrap app">
@@ -545,22 +545,18 @@
   <!-- TRABALHADORES -->
   <section class="panel" id="p-trab" role="tabpanel" aria-labelledby="t-trab" hidden>
     <p class="aside">Cada trabalhador da sua ilha ou casa recebe um diário cheio e devolve recursos depois de 22 horas (você tem 7 dias para pegar). Quanto ele devolve depende da felicidade, que vem da mobília e dos troféus da casa. Os diários enchem sozinhos enquanto você coleta, fabrica, pesca ou mata monstros com eles na bolsa, então dá para vender o diário cheio mesmo sem ter trabalhador.</p>
+    <div class="row-ctl wk-add">
+      <label class="f">Trabalhador<select id="wkAddTy"></select></label>
+      <label class="f">Tier<select id="wkAddT"></select></label>
+      <label class="f">Felicidade<span class="hapin"><input type="number" id="wkAddH" min="0" max="2000" step="10" inputmode="numeric"></span></label>
+      <label class="f">ou o rendimento que o jogo mostra<span class="hapin"><input type="number" id="wkAddP" min="1" max="200" placeholder="—" inputmode="numeric"><span>%</span></span></label>
+      <label class="f">Quantidade<span class="hapin"><input type="number" id="wkAddN" min="1" max="99" step="1" value="1" inputmode="numeric"></span></label>
+      <button type="button" class="btn" id="wkAddB">Adicionar</button>
+    </div>
+    <div class="wk-chips" id="wkChips"></div>
     <div class="row-ctl">
-      <div class="f"><span>Tier do trabalhador</span><div class="seg" role="group" aria-label="Tier do trabalhador" id="wkTier"></div></div>
-      <label class="f">Felicidade do trabalhador<span class="hapin"><input type="number" id="wkHap" min="0" max="2000" step="10" inputmode="numeric"><span id="wkHapMax"></span></span></label>
-      <label class="f">Ou o rendimento que o jogo mostra<span class="hapin"><input type="number" id="wkPct" min="1" max="200" placeholder="—" inputmode="numeric"><span>%</span></span></label>
-      <label class="f">Quantos trabalhadores você tem<span class="hapin"><input type="number" id="wkN" min="1" max="99" step="1" value="1" inputmode="numeric"></span></label>
       <div class="f"><span>Comprar o diário cheio</span><div class="seg" id="wkBuy" role="group" aria-label="Forma de compra"><button type="button" data-m="direto" aria-pressed="true" title="Compra direto do anúncio mais barato, sem taxa">Direto</button><button type="button" data-m="ordem" aria-pressed="false" title="Monta uma ordem de compra: paga a maior ordem aberta mais 2,5% de taxa">Por ordem</button></div></div>
-      <div class="f"><span>Craft dos diários de ferreiro e afins</span><div class="seg" id="wkCraftSeg" role="group" aria-label="Craft"><button type="button" data-c="0" aria-pressed="true">Desligado</button><button type="button" data-c="1" aria-pressed="false" title="Busca os preços das peças que cada diário de crafter pode virar">Ligado</button></div><span class="tiny muted" id="wkCraftSt"></span></div>
-      <div class="f"><span>O que fazer com o que volta</span><div class="seg" id="wkMode" role="group" aria-label="O que fazer com o que volta"><button type="button" data-m="auto" aria-pressed="true" title="Mostra o jeito que mais rende">Melhor jeito</button><button type="button" data-m="venda" aria-pressed="false" title="Vende tudo o que o trabalhador devolve">Vender direto</button><button type="button" data-m="proc" aria-pressed="false" title="Refina (minério, fibra, pelego, madeira e pedra) ou crafta (diários de ferreiro e afins)">Refinar ou craftar</button></div></div>
-      <div class="wk-foc">
-        <div class="f"><span>Conta</span><div class="seg" id="wkPrem" role="group" aria-label="Premium"><button type="button" data-g="prem" data-v="1" aria-pressed="true" title="Taxa de venda 4% e foco: 10.000 por dia (guarda até 30.000)">Premium</button><button type="button" data-g="prem" data-v="0" aria-pressed="false" title="Taxa de venda 8% e sem foco">Sem Premium</button></div></div>
-        <div class="f wk-fcol"><span>Foco disponível por dia</span>
-          <div class="wk-fbud"><input type="range" id="wkFocRng" min="0" max="30000" step="500" aria-label="Foco por dia"><input type="number" id="wkFocBud" min="0" max="30000" step="500" inputmode="numeric" aria-label="Foco por dia"><div class="seg" id="wkFocPre" role="group" aria-label="Atalhos de foco"><button type="button" data-f="10000" title="Um dia de foco do Premium">1 dia · 10.000</button><button type="button" data-f="20000" title="Dois dias guardados">2 dias · 20.000</button><button type="button" data-f="30000" title="Reserva cheia (máximo)">Cheio · 30.000</button></div></div>
-        </div>
-        <p class="tiny wk-foct" id="wkFocTxt"></p>
-      </div>
-      <p class="small" id="wkYieldTxt"></p>
+      <div class="f"><span>Conta</span><div class="seg" id="wkPrem" role="group" aria-label="Premium"><button type="button" data-g="prem" data-v="1" aria-pressed="true" title="Taxa de venda 4%">Premium</button><button type="button" data-g="prem" data-v="0" aria-pressed="false" title="Taxa de venda 8%">Sem Premium</button></div></div>
     </div>
     <div class="tbl"><table id="wkTable"></table></div>
     <p class="tiny muted" id="wkStatus">Devolução calculada pela tabela de saque do jogo: quantidade base do diário vezes o valor médio de cada sorteio, com o preço típico das cidades. Encantados saem de vez em quando e já entram na média.</p>
@@ -572,11 +568,9 @@
       <div class="block">
         <h2>Como ler</h2>
         <ul class="list small">
-          <li>Vender o que volta: você compra o diário cheio no mercado, entrega ao trabalhador e vende tudo o que ele devolve, já descontada a taxa de venda.</li>
-          <li>Refinar (com ou sem foco, pelo interruptor Usar Foco): para minério, fibra, pelego, madeira e pedra, o que volta vira barra, tecido ou couro. A conta usa o retorno de recursos, o foco e as taxas da aba Refino, e o foco gasto vem das specs e da maestria de refino da sua ficha. Madeira vira tábua e pedra vira bloco, com a mesma conta.</li>
-          <li>Craftar (com ou sem foco; ferreiro, flecheiro, imbuidor e funileiro): esses diários devolvem barras, tábuas, couro e tecido, e o que volta vira a peça que mais rende. Ligue o Craft acima para buscar os preços das peças. A conta é proporcional (um diário rende uma fração de peça), usa o retorno de recursos da cidade com bônus de fabricação e o foco das specs de craft da sua ficha, e vende o que sobra.</li>
-          <li>Custo total é o diário cheio mais, no refino, a barra do tier anterior (já com o retorno) e a taxa da estação. Receita total é a venda, já sem a taxa de venda. Lucro % é o lucro dividido pelo custo total. Todos os valores da tabela já são multiplicados pela quantidade de trabalhadores que você informou. Em "O que fazer com o que volta" escolha vender direto, refinar ou craftar, ou deixar o melhor jeito; "Detalhes" abre os jeitos lado a lado.</li>
-          <li>A lista mostra todos os diários que o trabalhador do tier escolhido aceita, do que mais rende para o que menos rende. Regra do jogo: o trabalhador não aceita diário de tier maior que o dele, então T8 pode usar diário T4 a T8, mas T4 só usa diário T4 (<a href="https://wiki.albiononline.com/wiki/Laborer" target="_blank" rel="noopener">wiki oficial</a>). O rendimento depende da felicidade e do tier do diário: o jogo pede 100 de felicidade por tier do diário, e a sobra rende 0,5% por ponto, até 150%. Por isso um diário de tier menor rende mais por unidade que um do mesmo tier.</li>
+          <li>Adicione cada trabalhador que você tem (tipo, tier, felicidade da casa dele e quantidade). A lista mostra os diários que ele aceita e compara o preço do diário cheio com o valor do que ele devolve, já sem a taxa de venda.</li>
+          <li>Lucro = valor do que volta menos o preço do diário cheio. Os valores já são multiplicados pela quantidade. "Detalhes" mostra cada item que volta, a quantidade, o preço e o rendimento do trabalhador por tier de diário.</li>
+          <li>Rendimento: a casa precisa de 100 de felicidade por tier do diário. Com menos, rende felicidade ÷ (100 × tier do diário); com mais, 100% mais 0,5% por ponto de sobra, até 150% (<a href="https://wiki.albiononline.com/wiki/Laborer" target="_blank" rel="noopener">wiki oficial</a>). O trabalhador não aceita diário de tier maior que o dele.</li>
           <li>O diário pede a fama do tier dele ou acima. Diário T8 só enche com recurso, peixe ou craft T8.</li>
           <li>A ilha pessoal aceita trabalhadores conforme o nível; cada um precisa de uma cama e de um tier de casa compatível.</li>
         </ul>
@@ -712,21 +706,21 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=a807cf48"></script>
-<script src="js/base.js?v=a807cf48"></script>
-<script src="js/fx.js?v=a807cf48"></script>
-<script src="js/biz.js?v=a807cf48"></script>
-<script src="js/builds.js?v=a807cf48"></script>
-<script src="js/nossas.js?v=a807cf48"></script>
-<script src="js/ip.js?v=a807cf48"></script>
-<script src="js/zvz.js?v=a807cf48"></script>
-<script src="js/pvp.js?v=a807cf48"></script>
-<script src="js/novos.js?v=a807cf48"></script>
-<script src="js/guia.js?v=a807cf48"></script>
-<script src="js/ui.js?v=a807cf48"></script>
-<script src="js/avalon.js?v=a807cf48"></script>
-<script src="js/oficina.js?v=a807cf48"></script>
-<script src="js/versao.js?v=a807cf48"></script>
-<script src="js/main.js?v=a807cf48"></script>
+<script src="js/icons.js?v=aea658c7"></script>
+<script src="js/base.js?v=aea658c7"></script>
+<script src="js/fx.js?v=aea658c7"></script>
+<script src="js/biz.js?v=aea658c7"></script>
+<script src="js/builds.js?v=aea658c7"></script>
+<script src="js/nossas.js?v=aea658c7"></script>
+<script src="js/ip.js?v=aea658c7"></script>
+<script src="js/zvz.js?v=aea658c7"></script>
+<script src="js/pvp.js?v=aea658c7"></script>
+<script src="js/novos.js?v=aea658c7"></script>
+<script src="js/guia.js?v=aea658c7"></script>
+<script src="js/ui.js?v=aea658c7"></script>
+<script src="js/avalon.js?v=aea658c7"></script>
+<script src="js/oficina.js?v=aea658c7"></script>
+<script src="js/versao.js?v=aea658c7"></script>
+<script src="js/main.js?v=aea658c7"></script>
 </body>
 </html>

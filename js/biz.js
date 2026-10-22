@@ -255,147 +255,73 @@ function wkCost(id){
   for(const c of SHOP_LOCS){ const v=r[c]; if(!v) continue; const p=ord?v[1]:v[0]; if(!(p>0)) continue; const cost=ord?p*1.025:p; if(!best||cost<best.p) best={c,p:cost}; }
   return best;
 }
-/* lucro INDIRETO: o que o trabalhador devolve vira barra/tecido/couro no refino, com o retorno de recursos, o foco e as taxas da aba Refino.
-   As specs e a maestria de refino da ficha definem o foco gasto. O recurso que volta custa zero aqui (o diário entra no custo total); a barra do tier anterior é comprada.
-   Calculado com foco e sem foco. Só para minério, fibra e pelego. */
-const WK_REF={ORE:"metal",FIBER:"cloth",HIDE:"leather",WOOD:"wood",STONE:"stone"};
-/* craft: os diários de ferreiro, flecheiro, imbuidor e funileiro devolvem barras, tábuas, couro e tecido. O que volta (sem encanto) vira a peça que mais rende;
-   o que sobra e os encantados são vendidos. A conta é proporcional: um diário rende uma fração de peça, então a peça inteira sai juntando vários diários. */
-const WK_CRAFT=new Set(["WARRIOR","HUNTER","MAGE","TOOLMAKER"]);
-const WK_CR={loaded:new Set(), loading:null};
-const wkOn=()=>store.get("wkCraft")==="1";
-const wkMode=()=>["venda","proc"].includes(store.get("wkMode"))?store.get("wkMode"):"auto";   // o que fazer com o que volta: melhor jeito, vender direto ou refinar/craftar
-/* Foco: só quem tem Premium recebe foco (10.000 por dia, guarda até 30.000). Sem Premium não há foco. O foco não muda o rendimento do diário (isso é a felicidade da casa): ele só aumenta o retorno de recursos ao refinar/craftar o que volta. */
-const WK_FOC_DIA=FOC_DIA, WK_FOC_MAX=FOC_MAX, wkFocBud=focBud;
-const wkLetter=iid=>({METALBAR:"M",PLANKS:"P",LEATHER:"L",CLOTH:"C"})[iid.replace(/^T\d_/,"").replace(/_LEVEL\d$/,"")];
-async function wkEnsureCraft(tiers){
-  if(!BM) BM=await need("bm");
-  for(const t of tiers){ if(WK_CR.loaded.has(t)) continue; const ids=[], art=new Set();
-    for(const k in BM){ ids.push(bmId(k,t,0)); if(BM[k][4]) art.add(`T${t}_${BM[k][4][0]}`); }
-    await fetchIds([...ids,...art],DATA.itens,SHOP_LOCS); WK_CR.loaded.add(t); }
+/* Trabalhadores: o lucro é só o valor do diário cheio contra o valor do que o trabalhador devolve (vendido, já sem a taxa). Nada de refino nem craft aqui. */
+const wkList=()=>{ try{ const a=JSON.parse(store.get("wkList")||"[]"); return Array.isArray(a)?a.filter(x=>x&&WK.some(w=>w[0]===x.ty)&&x.t>=4&&x.t<=8&&x.n>=1):[]; }catch(e){ return []; } };
+const wkSave=a=>store.set("wkList",JSON.stringify(a));
+const wkYieldW=(w,jt)=>{ if(w.pct>0) return w.pct/100; const h=w.h>0?w.h:hapMax(w.t), need=100*jt; return h>=need?1+Math.min(0.5,(h-need)*0.005):h/need; };
+function wkModelW(w,jt){
+  const ty=w.ty, j=JOURNALS[ty]&&JOURNALS[ty][jt]; if(!j) return null;
+  const yld=wkYieldW(w,jt), tax=taxOf(), items=[]; let valor=null, thin=false;
+  const empty=typical(`T${jt}_JOURNAL_${ty}_EMPTY`,0), full=typical(`T${jt}_JOURNAL_${ty}_FULL`,0), bc=wkCost(`T${jt}_JOURNAL_${ty}_FULL`);
+  if(Array.isArray(j[3])){ let wAll=0, sw=0, sv=0; for(const [iid,wt] of j[3]) wAll+=wt;
+    for(const [iid,wt,q] of j[3]){ const p=typical(lootKey(iid),0), qtd=j[1]*yld*wt/wAll*q; items.push({iid,qtd,p:p?p.p:null,v:p?qtd*p.p*(1-tax):null}); if(p){ sw+=wt; sv+=qtd*p.p*(1-tax); } }
+    if(sw>=wAll*0.8){ valor=sv*(wAll/sw); thin=sw<wAll*0.97; items.sort((a,b)=>(b.v||0)-(a.v||0)); } }
+  else valor=j[3]*yld;
+  return {w,ty,t:jt,yld,items,valor,thin,empty,full,bc,fame:j[0],base:j[1],silver:!Array.isArray(j[3]),lucro:valor!=null&&bc?valor-bc.p:null,pct:valor!=null&&bc&&bc.p>0?(valor-bc.p)/bc.p*100:null};
 }
-function wkCraftMode(ty,t,j,wt,foc){
-  if(!BM||!Array.isArray(j[3])) return null;
-  const qtot=j[1]*wkYield(t,wt); let sw=0; for(const [,w,q] of j[3]) sw+=w*q; if(!sw) return null;
-  const avail={}, price={}; let extraV=0; const tax=taxOf();
-  for(const [iid,w,q] of j[3]){ const L=wkLetter(iid); if(!L) return null; const cnt=qtot*w*q/sw, lv=/_LEVEL(\d)$/.exec(iid); const p=typical(iid,0); if(!p) continue;
-    if(lv){ extraV+=cnt*p.p*(1-tax); } else { avail[L]=(avail[L]||0)+cnt; price[L]=p.p; } }
-  const rr=rrr(0.15,!!foc,st.daily); let best=null;
-  for(const k in BM){ const r=BM[k], need={}; let cntAll=0, ok=true;
-    for(const [,c,n] of r[3].matchAll(/([MPLC])(\d+)/g)){ if(!(avail[c]>0)){ ok=false; break; } need[c]=(need[c]||0)+ +n; cntAll+=+n; }
-    if(!ok||!cntAll) continue;
-    const item=typical(bmId(k,t,0), st.sell==="instant"?1:0); if(!item) continue;
-    let art=null; if(r[4]){ art=typical(`T${t}_${r[4][0]}`,0); if(!art) continue; }
-    let n=Infinity; for(const c in need) n=Math.min(n,avail[c]/(need[c]*(1-rr))); if(!(n>0)) continue;
-    let leftV=0; for(const c in avail) leftV+=Math.max(0,avail[c]-(need[c]?n*need[c]*(1-rr):0))*price[c]*(1-tax);
-    const fee=n*cntAll*IV(t,0)*0.1125*feeVal()/100, artC=art?n*r[4][1]*art.p:0;
-    const fc1=Math.max(1,Math.round(r[5]*bmFocT(t,0)/429*Math.pow(0.5,bmFCE(k)/10000)));
-    const rev=n*item.p*(1-tax)+leftV+extraV, cost=fee+artC, lucro=rev-cost;
-    if(!best||lucro>best.lucro) best={k,name:nmKey(k,r[0]),id:bmId(k,t,0),n,rev,costX:cost,lucro,focus:foc?n*fc1:0,rr,thin:item.n<2||(art&&art.n<2)}; }
-  return best&&{rev:best.rev,costIn:best.costX,focus:best.focus,rr,item:best,thin:best.thin};
-}
-
-function wkRefineMode(res,t,j,wt,foc){
-  const rr=foc?rrr(0.40,true,st.daily):rrr(0.40,false,st.daily), qtot=j[1]*wkYield(t,wt); let sw=0; for(const [,w,q] of j[3]) sw+=w*q; if(!sw) return null;
-  let rev=0, costIn=0, bars=0, focus=0, thin=false;
-  for(const [iid,w,q] of j[3]){ const lv=/_LEVEL(\d)$/.exec(iid), e=lv?+lv[1]:0, cnt=qtot*w*q/sw; if(!(cnt>0)) continue;
-    const m=model(res,t,e,{raw:0}); if(!m) return null; const n=cnt/(N[t]*(1-rr));
-    rev+=n*m.net; costIn+=n*(m.prev.p*(1-rr)+m.fee); bars+=n; if(foc) focus+=n*m.fc; if(m.thin) thin=true; }
-  return {rev,costIn,bars,focus,thin,rr,foc}; }
-function wkRefine(ty,t,j,wt){ const res=WK_REF[ty]; if(!res||!Array.isArray(j[3])) return null; const com=wkRefineMode(res,t,j,wt,1), sem=wkRefineMode(res,t,j,wt,0); return com&&sem?{com,sem}:null; }
-function wkCraft(ty,t,j,wt){ if(!WK_CRAFT.has(ty)||!WK_CR.loaded.has(t)) return null; const com=wkCraftMode(ty,t,j,wt,1), sem=wkCraftMode(ty,t,j,wt,0); return com&&sem?{com,sem}:null; }
-function wkModel(ty,t,wt=t){
-  const j=JOURNALS[ty]&&JOURNALS[ty][t]; if(!j) return null;
-  const empty=typical(`T${t}_JOURNAL_${ty}_EMPTY`,0), full=typical(`T${t}_JOURNAL_${ty}_FULL`,0);
-  let yieldV=null, thin=false;
-  if(Array.isArray(j[3])){ let sw=0, sv=0, wAll=0; for(const [iid,w,q] of j[3]){ wAll+=w; const p=typical(lootKey(iid),0); if(!p) continue; sw+=w; sv+=w*q*p.p; }
-    if(sw>=wAll*0.8){ yieldV=j[1]*(sv/sw)*wkYield(t,wt)*(1-taxOf()); thin=sw<wAll*0.97; } }
-  else yieldV=j[3]*wkYield(t,wt);
-  const bc=wkCost(`T${t}_JOURNAL_${ty}_FULL`);
-  const sc={}; const mk=(custo,receita,extra)=>({custo,receita,lucro:receita-custo,pct:custo>0?(receita-custo)/custo*100:null,...extra});
-  if(yieldV!=null&&bc) sc.venda=mk(bc.p,yieldV);
-  const ref=bc?wkRefine(ty,t,j,wt):null;
-  if(ref){ sc.foco=mk(bc.p+ref.com.costIn,ref.com.rev,{focus:ref.com.focus,bars:ref.com.bars,rr:ref.com.rr,thin:ref.com.thin}); sc.sem=mk(bc.p+ref.sem.costIn,ref.sem.rev,{bars:ref.sem.bars,rr:ref.sem.rr,thin:ref.sem.thin}); }
-  const cr=bc?wkCraft(ty,t,j,wt):null;
-  if(cr){ sc.craftf=mk(bc.p+cr.com.costIn,cr.com.rev,{focus:cr.com.focus,rr:cr.com.rr,item:cr.com.item,thin:cr.com.thin}); sc.craft=mk(bc.p+cr.sem.costIn,cr.sem.rev,{rr:cr.sem.rr,item:cr.sem.item,thin:cr.sem.thin}); }
-  /* foco limitado: o que não cabe no foco do dia é feito sem foco; mistura as duas contas na proporção */
-  { const NWk=wkN(), bud=wkFocBud(); const blend=(com,sem)=>{ if(!com||!sem) return null; const need=com.focus*NWk; const f=need>0?Math.min(1,bud/need):(bud>0?1:0); if(f<=0) return null;
-      const L=(a,b)=>a+f*(b-a); return mk(L(sem.custo,com.custo),L(sem.receita,com.receita),{focus:com.focus*f,fr:f,need,rr:com.rr,rrSem:sem.rr,bars:sem.bars!=null?L(sem.bars,com.bars):undefined,item:com.item,thin:com.thin||sem.thin}); };
-    if(sc.foco) sc.foco=blend(sc.foco,sc.sem)||undefined; if(sc.craftf) sc.craftf=blend(sc.craftf,sc.craft)||undefined; if(!sc.foco) delete sc.foco; if(!sc.craftf) delete sc.craftf; }
-  const procK=["foco","sem","craftf","craft"], mode=wkMode(), cand=mode==="venda"?["venda"]:mode==="proc"?procK:["venda",...procK];
-  let bestK=null; for(const k of cand) if(sc[k]&&(!bestK||sc[k].lucro>sc[bestK].lucro)) bestK=k;
-  return {ty,t,fame:j[0],empty,full,yieldV,thin,buyCity:bc,sc,bestK,best:bestK?sc[bestK]:null,buyFull:bestK?sc[bestK].lucro:null,fill:full&&empty?full.p*(1-taxOf())-empty.p:null};
+/* usado por "Pelo que você já faz" */
+function wkModel(ty,t,wt=t){ const m=wkModelW({ty,t:wt,h:wkHap()||0,pct:wkPct()||0},t); if(!m) return null; return {ty,t,fame:m.fame,empty:m.empty,full:m.full,buyFull:m.lucro,fill:m.full&&m.empty?m.full.p*(1-taxOf())-m.empty.p:null}; }
+function wkRefresh(){
+  const L=wkList(), box=$("wkChips"); box.textContent="";
+  if(!L.length) box.append(el("p",{class:"small muted",text:"Nenhum trabalhador adicionado. Escolha o tipo, o tier e a felicidade da casa dele, a quantidade, e clique em Adicionar."}));
+  L.forEach((w,i)=>{ const c=el("span",{class:"wk-chip"}); const nm=WK.find(x=>x[0]===w.ty)[1]; c.append(el("b",{text:`${nm} T${w.t}`}),el("span",{class:"muted",text:w.pct>0?` · rende ${w.pct}%`:` · felicidade ${w.h>0?w.h:hapMax(w.t)}`}),el("b",{class:"wk-x",text:` ×${w.n}`}));
+    const q=el("input",{type:"number",min:"1",max:"99",value:String(w.n),"aria-label":`Quantidade de ${nm} T${w.t}`}); q.addEventListener("change",()=>{ const a=wkList(); a[i].n=Math.max(1,Math.min(99,Math.round(+q.value||1))); wkSave(a); renderWK(); });
+    const x=el("button",{type:"button",class:"wk-del",title:"Remover este trabalhador","aria-label":"Remover",text:"×"}); x.addEventListener("click",()=>{ const a=wkList(); a.splice(i,1); wkSave(a); renderWK(); }); c.append(q,x); box.append(c); });
 }
 function setupWK(){
-  const ts=$("wkTier"); if(ts.children.length) return;
-  const top=Math.max(...Object.values(PF.coleta||{}).map(g=>g.tier||0),6); wkTierSel=Math.min(8,Math.max(4,top));
-  [4,5,6,7,8].forEach(t=>ts.append(el("button",{type:"button","data-t":String(t),"aria-pressed":String(t===wkTierSel),text:`T${t}`})));
-  ts.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ts.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); wkTierSel=+b.dataset.t; renderWK(); });
-  { const ni=$("wkN"); ni.value=String(wkN()); ni.addEventListener("change",()=>{ const v=Math.max(1,Math.min(99,Math.round(+ni.value||1))); ni.value=String(v); store.set("wkN",String(v)); renderWK(); });
-    const bs=$("wkBuy"); bs.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.m===wkBuyMode())); b.addEventListener("click",()=>{ store.set("wkBuy",b.dataset.m); bs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderWK(); }); }); }
-  { const cs=$("wkCraftSeg"); cs.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.c===(wkOn()?"1":"0"))); b.addEventListener("click",()=>{ store.set("wkCraft",b.dataset.c); cs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderWK(); }); }); }
-  { const ms=$("wkMode"); ms.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.m===wkMode())); b.addEventListener("click",()=>{ store.set("wkMode",b.dataset.m); ms.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderWK(); }); });
-    const fb=$("wkFocBud"), fr=$("wkFocRng"); const setB=v=>{ v=Math.max(0,Math.min(WK_FOC_MAX,Math.round(+v||0))); fb.value=String(v); fr.value=String(v); store.set("focBud",String(v)); };
-    fb.addEventListener("change",()=>{ setB(fb.value); renderWK(); }); fr.addEventListener("input",()=>{ fb.value=fr.value; }); fr.addEventListener("change",()=>{ setB(fr.value); renderWK(); });
-    $("wkFocPre").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ setB(b.dataset.f); renderWK(); }));
-    $("wkPrem").querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(+b.dataset.v===+st.prem)); b.addEventListener("click",()=>{ renderWK(); }); }); }
-  const hi=$("wkHap"), pi=$("wkPct"); hi.value=wkHap()??""; pi.value=wkPct()??""; hi.placeholder=String(hapMax(wkTierSel));
-  hi.addEventListener("change",()=>{ const v=Math.max(0,Math.round(+hi.value||0)); hi.value=v?String(v):""; store.set("wkHap",v?String(v):""); renderWK(); });
-  pi.addEventListener("change",()=>{ const v=Math.max(0,Math.round(+pi.value||0)); pi.value=v?String(v):""; store.set("wkPct",v?String(v):""); renderWK(); });
+  const ty=$("wkAddTy"); if(ty.children.length) return;
+  WK.filter(w=>w[0]!=="MERCENARY"&&w[0]!=="TOOLMAKER"||true).forEach(w=>ty.append(el("option",{value:w[0],text:w[1]})));
+  const ts=$("wkAddT"); [4,5,6,7,8].forEach(t=>ts.append(el("option",{value:String(t),text:`T${t}`}))); ts.value="8";
+  const upd=()=>{ $("wkAddH").placeholder=String(hapMax(+ts.value)); }; ts.addEventListener("change",upd); upd();
+  $("wkAddB").addEventListener("click",()=>{ const a=wkList(), w={ty:ty.value,t:+ts.value,h:Math.max(0,Math.round(+$("wkAddH").value||0)),pct:Math.max(0,Math.round(+$("wkAddP").value||0)),n:Math.max(1,Math.min(99,Math.round(+$("wkAddN").value||1)))};
+    const k=a.find(x=>x.ty===w.ty&&x.t===w.t&&x.h===w.h&&x.pct===w.pct); if(k) k.n=Math.min(99,k.n+w.n); else a.push(w); wkSave(a); renderWK(); });
+  const bs=$("wkBuy"); bs.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.m===wkBuyMode())); b.addEventListener("click",()=>{ store.set("wkBuy",b.dataset.m); bs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderWK(); }); });
+  $("wkPrem").querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(+b.dataset.v===+st.prem)); b.addEventListener("click",()=>{ renderWK(); }); });
 }
+const wkPcs=(v,d=1)=>v==null?"—":v.toLocaleString("pt-BR",{maximumFractionDigits:d});
 async function renderWK(){
   if(!JOURNALS){ try{ JOURNALS=await need("journals"); }catch(e){ $("wkStatus").textContent="Não consegui abrir os dados dos diários."; return; } }
-  setupWK(); { const fb=$("wkFocBud"), fr=$("wkFocRng"), v=wkFocBud(); fb.disabled=fr.disabled=false; fb.value=fr.value=String(v); $("wkFocPre").querySelectorAll("button").forEach(b=>{ b.disabled=false; b.setAttribute("aria-pressed",String(+b.dataset.f===v)); });
-    $("wkFocTxt").textContent=st.prem?`Premium: ${fmt(WK_FOC_DIA)} de foco por dia, guardando até ${fmt(WK_FOC_MAX)}. O foco só aumenta o retorno de recursos ao refinar ou craftar o que o diário devolve (refino na cidade com bônus: 36,7% → 53,9%). Ele não muda o rendimento do diário. Se o foco do dia não cobre tudo, a linha usa foco só numa parte e faz o resto sem foco.`:"Sem Premium você não ganha foco novo (e a taxa de venda é 8%), mas pode usar o foco que já tem guardado: informe quanto você tem em \"Foco disponível por dia\". Com 0, refino e craft saem sem foco (retorno menor)."; } const tb=$("wkTable");
+  setupWK(); wkRefresh(); const tb=$("wkTable"); const L=wkList();
+  if(!L.length){ tb.textContent=""; return; }
   if(!WK_LOADED){ tb.textContent=""; $("wkStatus").dataset.base=$("wkStatus").dataset.base||$("wkStatus").textContent; $("wkStatus").textContent="Consultando os preços dos diários…"; const ok=await ensureWK(); $("wkStatus").textContent=$("wkStatus").dataset.base; if(!ok){ $("wkStatus").textContent="Não consegui consultar os diários agora."; return; } }
-  if(wkOn()){ const falta=[]; for(let t=4;t<=wkTierSel;t++) if(!WK_CR.loaded.has(t)) falta.push(t); const cs=$("wkCraftSt");
-    if(falta.length){ if(cs) cs.textContent="Buscando os preços das peças (T"+falta.join(", T")+")…"; try{ await wkEnsureCraft(falta); }catch(e){ if(cs) cs.textContent="Não consegui buscar os preços das peças agora."; } }
-    if(cs&&WK_CR.loaded.has(wkTierSel)) cs.textContent="Craft ligado: as peças são escolhidas entre todas as receitas que usam só o que o diário devolve."; }
-  else { const cs=$("wkCraftSt"); if(cs) cs.textContent=""; }
-  const mx=hapMax(wkTierSel); $("wkHapMax").textContent=`casa T${wkTierSel} cheia: ${mx}`; $("wkHap").max="2000"; $("wkHap").placeholder=String(mx);
-  $("wkYieldTxt").textContent = wkPct() ? `Usando o rendimento de ${wkPct()}% que você digitou, igual para todos os diários.` : `Felicidade ${wkHap()??mx}${wkHap()==null?` (casa T${wkTierSel} mobiliada, a do jogo aparece ao selecionar o trabalhador)`:""}: o jogo pede 100 por tier do diário. Diário do mesmo tier rende ${Math.round(wkYield(wkTierSel,wkTierSel)*100)}%; diário de tier menor rende até 150%; de tier maior rende menos que 100%. O % de cada diário aparece na coluna Devolve.`;
-  tb.textContent=""; const hr=tb.createTHead().insertRow(); const NW=wkN(), xN=NW>1?` ×${NW}`:"";
-  ["Trabalhador",`Diário vazio${xN}`,`Diário cheio${xN}`,"Comprar o cheio em",`Devolve (rendimento)${xN}`,"Jeito",`Custo total${xN}`,`Receita total${xN}`,`Lucro${xN}`,"Lucro %",""].forEach(h=>hr.append(el("th",{text:h,title:NW>1?`Valores de ${NW} trabalhadores (um diário para cada)`:""})));
-  const body=tb.createTBody(), wt=wkTierSel; const all=[];
-  /* todas as combinações de diário até o tier do trabalhador (regra do jogo), da que mais rende para a que menos rende */
-  for(const [ty,nm,how] of WK) for(let t=4;t<=wt;t++){ const m=wkModel(ty,t,wt); if(m) all.push({m,nm,how}); }
-  all.sort((a,b)=>(b.m.buyFull==null?-Infinity:b.m.buyFull)-(a.m.buyFull==null?-Infinity:a.m.buyFull));
-  const SCN={venda:"Vender o que volta",foco:"Refinar com foco",sem:"Refinar sem foco",craftf:"Craftar com foco",craft:"Craftar sem foco"}, scl=(k,x)=>SCN[k]+(x&&x.fr!=null&&x.fr<0.995?` · foco em ${Math.max(1,Math.round(x.fr*100))}% do volume`:""), pc=v=>v==null?"—":(v>=0?"+":"")+dec(v)+"%", cls=v=>v==null?"":v>=0?"gain":"loss";
-  for(const {m,nm,how} of all.slice(0,WK_SHOW)){ const t=m.t, ty=m.ty; const tr=body.insertRow(), B=m.best;
-    tr.insertCell().append(withIcon(`T${t}_JOURNAL_${ty}_FULL`,`${nm}: diário T${t}`));
-    [[m.empty&&m.empty.p,`T${t}_JOURNAL_${ty}_EMPTY`],[m.full&&m.full.p,`T${t}_JOURNAL_${ty}_FULL`]].forEach(([v,ic])=>{ const c=tr.insertCell(); c.className="num"; const tx=v?fmt(Math.round(v*NW)):"—"; c.append(withIcon(ic,tx)); });
-    { const c=tr.insertCell(); c.className="small"; if(m.buyCity){ c.append(el("b",{text:fmt(Math.round(m.buyCity.p*NW))})," ",el("span",{class:"muted",text:m.buyCity.c})); c.title=wkBuyMode()==="ordem"?"Maior ordem de compra aberta nessa cidade, mais 2,5% de taxa para montar a ordem":"Menor preço de venda entre as cidades"; } else c.textContent="—"; }
-    { const c=tr.insertCell(); c.className="num"; if(m.yieldV){ c.append(fmt(Math.round(m.yieldV*NW))," ",el("span",{class:"muted small",text:`${Math.round(wkYield(t,wt)*100)}%`})); c.title=`Valor do que volta, já sem a taxa de venda. Rende ${Math.round(wkYield(t,wt)*100)}% neste diário (T${t}) com o trabalhador T${wt}`; } else c.textContent="—"; }
-    { const c=tr.insertCell(); c.className="small"; c.textContent=m.bestK?SCN[m.bestK]:"—"; { const bx=m.bestK&&m.sc[m.bestK]; if(bx&&bx.fr!=null){ const pc2=Math.max(1,Math.round(bx.fr*100)); const fm=el("span",{class:"wk-fm"+(pc2>=100?" full":""),title:`Foco cobre ${pc2}% do volume deste diário (usa ${fmt(Math.round(bx.focus*NW))} de foco)`}); fm.append(el("span",{class:"wk-fl",text:"Foco"}),el("span",{class:"wk-fbar"},el("i",{style:`width:${pc2}%`})),el("b",{text:pc2+"%"})); c.append(el("br"),fm); } } if(m.bestK&&m.sc[m.bestK].item) c.append(el("small",{class:"muted",text:` · ${m.sc[m.bestK].item.name}`})); if(m.bestK&&m.bestK!=="venda"&&m.sc[m.bestK].thin) c.title="Alguns preços têm poucas ofertas"; }
-    { const c=tr.insertCell(); c.className="num"; c.textContent=B?fmt(Math.round(B.custo*NW)):"—"; c.title="Diário cheio"+(m.bestK&&m.bestK!=="venda"?" mais as barras do tier anterior (já com o retorno) e a taxa da estação de refino":""); }
-    { const c=tr.insertCell(); c.className="num"; c.textContent=B?fmt(Math.round(B.receita*NW)):"—"; c.title="Venda do que sobra, já sem a taxa de venda"; }
-    { const c=tr.insertCell(); c.className="num bm-profit "+(B?cls(B.lucro):""); c.textContent=B?sgn(B.lucro*NW):"—"; c.title=B?`${sgn(B.lucro)} por diário${NW>1?` × ${NW} trabalhadores`:""}`:""; }
-    { const c=tr.insertCell(); c.className="num "+(B?cls(B.pct):""); c.textContent=B?pc(B.pct):"—"; }
+  tb.textContent=""; const hr=tb.createTHead().insertRow();
+  ["Trabalhador e diário","Diário cheio (preço)","Rende","O que volta (por diário)","Valor do que volta","Lucro","Lucro %",""].forEach(h=>hr.append(el("th",{text:h})));
+  const body=tb.createTBody(), rows=[];
+  for(const w of L) for(let jt=4;jt<=w.t;jt++){ const m=wkModelW(w,jt); if(m) rows.push(m); }
+  rows.sort((a,b)=>(b.lucro==null?-Infinity:b.lucro*b.w.n)-(a.lucro==null?-Infinity:a.lucro*a.w.n));
+  const cls=v=>v==null?"":v>=0?"gain":"loss", pc=v=>v==null?"—":(v>=0?"+":"")+dec(v)+"%";
+  for(const m of rows.slice(0,WK_SHOW)){ const w=m.w, N=w.n, nmW=WK.find(x=>x[0]===m.ty)[1], tr=body.insertRow();
+    tr.insertCell().append(withIcon(`T${m.t}_JOURNAL_${m.ty}_FULL`,`${nmW} T${w.t}${N>1?` ×${N}`:""}: diário T${m.t}`));
+    { const c=tr.insertCell(); c.className="small"; if(m.bc){ c.append(el("b",{text:fmt(Math.round(m.bc.p*N))})," ",el("span",{class:"muted",text:m.bc.c})); if(N>1) c.append(el("br"),el("small",{class:"muted",text:`${fmt(Math.round(m.bc.p))} cada`})); } else c.textContent="—"; }
+    { const c=tr.insertCell(); c.className="num"; c.textContent=Math.round(m.yld*100)+"%"; c.title=`Este trabalhador T${w.t} com ${w.pct>0?`rendimento informado de ${w.pct}%`:`felicidade ${w.h>0?w.h:hapMax(w.t)}`} rende ${Math.round(m.yld*100)}% num diário T${m.t}`; }
+    { const c=tr.insertCell(); c.className="wk-ret"; if(m.silver) c.append(el("span",{class:"muted small",text:"prata dos peixes"})); else { m.items.slice(0,6).forEach(it=>{ const sp=el("span",{class:"wk-ri",title:`${wkPcs(it.qtd*N,2)} ${itemNome(it.iid.replace(/^T\d+_/,""))}${it.p?` a ${fmt(it.p)}`:" (sem preço)"}`}); const im=iconImg(lootApi(it.iid),32,1); sp.append(im,el("b",{text:wkPcs(it.qtd*N,1)})); c.append(sp); }); if(m.items.length>6) c.append(el("span",{class:"muted small",text:`+${m.items.length-6}`})); } }
+    { const c=tr.insertCell(); c.className="num"; c.textContent=m.valor!=null?fmt(Math.round(m.valor*N)):"—"; c.title="Venda do que volta, já sem a taxa de venda"+(m.thin?" (alguns itens raros sem preço)":""); }
+    { const c=tr.insertCell(); c.className="num bm-profit "+cls(m.lucro); c.textContent=m.lucro!=null?sgn(m.lucro*N):"—"; c.title=m.lucro!=null?`${sgn(m.lucro)} por diário`:""; }
+    { const c=tr.insertCell(); c.className="num "+cls(m.pct); c.textContent=pc(m.pct); }
     const ac=tr.insertCell(); ac.className="wk-act";
-    /* detalhe: os três jeitos lado a lado, com custo total, receita total, lucro e % */
-    const dr=body.insertRow(); dr.hidden=true; dr.className="of-drow wk-det"; const dc=dr.insertCell(); dc.colSpan=11;
-    { const tb2=el("table",{class:"wk-sub"}), h2=tb2.createTHead().insertRow(); ["Jeito",`Custo total${xN}`,`Receita total${xN}`,`Lucro${xN}`,"Lucro %",`Foco gasto${xN}`].forEach(x=>h2.append(el("th",{text:x}))); const b2=tb2.createTBody();
-      const KS=WK_REF[ty]?["venda","foco","sem"]:WK_CRAFT.has(ty)?["venda","craftf","craft"]:["venda"];
-      for(const k of KS){ const x=m.sc[k]; const r=b2.insertRow(); if(k===m.bestK) r.className="wk-best-row"; const lc=r.insertCell(); lc.textContent=scl(k,x)+(k===m.bestK?"  ★":""); if(x&&x.item) lc.append(el("small",{class:"muted",text:` · ${x.item.name}`}));
-        if(!x){ const c=r.insertCell(); c.colSpan=5; c.className="muted small"; c.textContent=k==="venda"?"Faltam preços do que volta":WK_REF[ty]?"Faltam preços para o refino":WK_CRAFT.has(ty)?(wkOn()?"Buscando os preços das peças…":"Ligue o Craft acima para buscar os preços das peças"):"Esse diário não devolve recurso para refinar"; continue; }
-        [[fmt(Math.round(x.custo*NW)),""],[fmt(Math.round(x.receita*NW)),""],[sgn(x.lucro*NW),cls(x.lucro)],[pc(x.pct),cls(x.pct)],[k==="foco"||k==="craftf"?fmt(Math.round(x.focus*NW)):"—",""]].forEach(([tx,cl])=>{ const c=r.insertCell(); c.className="num "+cl; c.textContent=tx; }); }
-      dc.append(tb2);
-      { const fx=m.sc.foco||m.sc.craftf, bud=wkFocBud(); if(WK_REF[ty]||WK_CRAFT.has(ty)){ const bx=el("div",{class:"wk-fd"});
-          if(!fx) bx.append(el("b",{text:"Sem foco disponível"}),el("span",{text:"Aumente o foco por dia para usar foco neste diário."}));
-          else { const p2=Math.round(fx.fr*100); bx.append(el("b",{text:`Foco: cobre ${p2}% do volume`}),el("span",{class:"wk-fbar big"},el("i",{style:`width:${p2}%`})),el("span",{text:`Precisa de ${fmt(Math.round(fx.need))} para 100% · você tem ${fmt(bud)} por dia${p2<100?" · o resto é feito sem foco":""}. O foco só aumenta o retorno de recursos; o rendimento do diário (${Math.round(wkYield(t,wt)*100)}%) vem da felicidade da casa.`})); }
-          dc.append(bx); } }
-      if(m.sc.foco) dc.append(el("p",{class:"tiny muted",text:`Refino: ${dec(m.sc.foco.bars)} unidades refinadas com foco (retorno ${dec(m.sc.foco.rr*100)}%) ou ${dec(m.sc.sem.bars)} sem foco (retorno ${dec(m.sc.sem.rr*100)}%), na cidade com bônus de refino, com as configurações da aba Refino. O foco gasto vem das specs e da maestria de refino da sua ficha. O recurso que volta custa zero; entram no custo o diário, a barra do tier anterior e a taxa da estação.`}));
-      if(m.sc.craftf){ const a=m.sc.craftf.item, b=m.sc.craft.item; dc.append(el("p",{class:"tiny muted",text:`Craft: com foco, um diário rende ${dec(a.n)} ${a.name} (retorno ${dec(m.sc.craftf.rr*100)}%); sem foco, ${dec(b.n)} ${b.name} (retorno ${dec(m.sc.craft.rr*100)}%). A conta é proporcional, então a peça inteira sai juntando vários diários. Só os materiais sem encanto entram na peça; o que sobra e os encantados são vendidos. A peça é a que mais rende dentre todas as receitas que usam só o que o diário devolve, na cidade com bônus de fabricação (15%), com o foco das specs de craft da ficha. Preço da peça: qualidade normal, mediana das cidades.`})); } }
-    const db=el("button",{type:"button",class:"btn mn-craft",text:"Detalhes ▾","aria-expanded":"false"}); db.addEventListener("click",()=>{ dr.hidden=!dr.hidden; db.textContent=dr.hidden?"Detalhes ▾":"Detalhes ▴"; db.setAttribute("aria-expanded",String(!dr.hidden)); }); ac.append(db);
-    { const rf={ORE:["metal","minério vira barra de metal"],FIBER:["cloth","fibra vira tecido"],HIDE:["leather","couro cru vira couro"],WOOD:["wood","madeira vira tábua"],STONE:["stone","pedra vira bloco"]}[ty];
-      if(rf){ const rb=el("button",{type:"button",class:"btn mn-craft",title:`O que o trabalhador devolve aqui (${rf[1]}) entra no Refino: abre o lucro de refinar no tier T${m.t}`,text:"Refinar ➜"});
-        rb.addEventListener("click",()=>{ const b=document.getElementById("t-refino"); if(!b) return; b.click(); const sb=document.querySelector(`#p-refino [data-res="${rf[0]}"]`); if(sb&&sb.getAttribute("aria-pressed")!=="true") sb.click(); const ts=$("tier"); if(ts){ ts.value=String(m.t); ts.dispatchEvent(new Event("change",{bubbles:true})); } }); ac.append(rb); }
-      if(WK_CRAFT.has(ty)){ const it=(m.sc.craftf||m.sc.craft||{}).item, grp=it&&BM[it.k]?BM[it.k][1]:({WARRIOR:"a_placa",HUNTER:"a_couro",MAGE:"a_pano",TOOLMAKER:"mao"})[ty];
-        const cb=el("button",{type:"button",class:"btn mn-craft",title:it?`Abre a aba Craft no tier T${m.t} com ${it.name}, a peça que mais rende com o que esse diário devolve`:`Abre a aba Craft no tier T${m.t}`,text:"Craftar ➜"});
-        cb.addEventListener("click",()=>{ const b=document.getElementById("t-craft"); if(!b) return; b.click(); setTimeout(()=>{ const cs=$("ofCat"), ts=$("ofTier"), fs=$("ofFind"); if(cs&&grp&&[...cs.options].some(o=>o.value==="g:"+grp)){ cs.value="g:"+grp; cs.dispatchEvent(new Event("change",{bubbles:true})); } if(ts){ ts.value=String(m.t); ts.dispatchEvent(new Event("change",{bubbles:true})); } if(fs){ fs.value=it?it.name:""; fs.dispatchEvent(new Event("input",{bubbles:true})); } },60); });
-        ac.append(cb); } } }
-
-  { let mb=$("wkMore"); if(!mb){ mb=el("button",{type:"button",id:"wkMore",class:"btn mn-craft"}); tb.parentNode.after(mb); mb.addEventListener("click",()=>{ WK_SHOW+=30; renderWK(); }); } mb.hidden=all.length<=WK_SHOW; mb.textContent=`Mostrar mais (${WK_SHOW} de ${all.length})`; }
+    const dr=body.insertRow(); dr.hidden=true; dr.className="of-drow wk-det"; const dc=dr.insertCell(); dc.colSpan=8;
+    { const left=el("div",{class:"wk-dl"}); left.append(el("h4",{text:`O que volta de cada diário (${Math.round(m.yld*100)}% de rendimento${N>1?`, ×${N} trabalhadores`:""})`}));
+      if(m.silver) left.append(el("p",{class:"small",text:`O pescador devolve ${fmt(Math.round(m.valor*N))} em prata de peixe por diário (base ${fmt(m.base)} × ${Math.round(m.yld*100)}%).`}));
+      else { const t2=el("table",{class:"wk-sub"}), h2=t2.createTHead().insertRow(); ["Item","Quantidade","Preço","Valor (sem taxa)"].forEach(x=>h2.append(el("th",{text:x}))); const b2=t2.createTBody();
+        for(const it of m.items){ const r=b2.insertRow(); r.insertCell().append(withIcon(lootApi(it.iid),itemNome(it.iid.replace(/^T\d+_/,"")))); [wkPcs(it.qtd*N,2),it.p?fmt(it.p):"—",it.v!=null?fmt(Math.round(it.v*N)):"—"].forEach(x=>{ const c=r.insertCell(); c.className="num"; c.textContent=x; }); }
+        const tr2=b2.insertRow(); tr2.className="wk-best-row"; tr2.insertCell().textContent="Total"; tr2.insertCell().textContent=wkPcs(m.items.reduce((a,x)=>a+x.qtd*N,0),1); tr2.insertCell(); const ct=tr2.insertCell(); ct.className="num"; ct.textContent=fmt(Math.round(m.valor*N)); left.append(t2); }
+      left.append(el("p",{class:"tiny muted",text:`Diário cheio ${m.bc?fmt(Math.round(m.bc.p*N)):"—"} contra ${m.valor!=null?fmt(Math.round(m.valor*N)):"—"} do que volta. Base do diário: ${fmt(m.base)} sorteios${m.silver?"":" na tabela de saque"}. O diário vazio que também volta (vale ${m.empty?fmt(Math.round(m.empty.p*N)):"—"}) não entra na conta.`}));
+      const right=el("div",{class:"wk-dr"}); right.append(el("h4",{text:`Rendimento do trabalhador T${w.t} por tier de diário`}));
+      const t3=el("table",{class:"wk-sub"}), h3=t3.createTHead().insertRow(); ["Diário","Felicidade pedida","Rende"].forEach(x=>h3.append(el("th",{text:x}))); const b3=t3.createTBody();
+      for(let jt=4;jt<=w.t;jt++){ const r=b3.insertRow(); if(jt===m.t) r.className="wk-best-row"; r.insertCell().textContent=`T${jt}`; r.insertCell().textContent=fmt(100*jt); const c=r.insertCell(); c.className="num"; c.textContent=Math.round(wkYieldW(w,jt)*100)+"%"; }
+      right.append(t3,el("p",{class:"tiny muted",text:`Regra do jogo: a casa precisa de 100 de felicidade por tier do diário. Com menos, rende a felicidade ÷ (100 × tier do diário); com mais, 100% mais 0,5% por ponto de sobra, até 150%. Sua felicidade: ${w.pct>0?"não informada (usando o "+w.pct+"% que o jogo mostra)":(w.h>0?w.h:hapMax(w.t))+(w.h>0?"":" (casa T"+w.t+" mobiliada)")}.`})); dc.append(el("div",{class:"wk-dg"},left,right)); }
+    const db=el("button",{type:"button",class:"btn mn-craft",text:"Detalhes ▾","aria-expanded":"false"}); db.addEventListener("click",()=>{ dr.hidden=!dr.hidden; db.textContent=dr.hidden?"Detalhes ▾":"Detalhes ▴"; db.setAttribute("aria-expanded",String(!dr.hidden)); }); ac.append(db); }
+  { let mb=$("wkMore"); if(!mb){ mb=el("button",{type:"button",id:"wkMore",class:"btn mn-craft"}); tb.parentNode.after(mb); mb.addEventListener("click",()=>{ WK_SHOW+=30; renderWK(); }); } mb.hidden=rows.length<=WK_SHOW; mb.textContent=`Mostrar mais (${WK_SHOW} de ${rows.length})`; }
   renderWKMine();
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.03,clearProps:"opacity,transform"});
 }
