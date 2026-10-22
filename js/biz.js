@@ -250,6 +250,15 @@ function wkCost(id){
   for(const c of SHOP_LOCS){ const v=r[c]; if(!v) continue; const p=ord?v[1]:v[0]; if(!(p>0)) continue; const cost=ord?p*1.025:p; if(!best||cost<best.p) best={c,p:cost}; }
   return best;
 }
+/* lucro INDIRETO: o que o trabalhador devolve vira barra/tecido/couro no refino, com o retorno, o foco e as taxas da aba Refino (as specs da ficha definem o foco gasto).
+   O recurso que volta custa zero aqui (o custo do diário entra depois); a barra do tier anterior é comprada. Só para minério, fibra e pelego. */
+const WK_REF={ORE:"metal",FIBER:"cloth",HIDE:"leather"};
+function wkRefine(ty,t,j,wt){ const res=WK_REF[ty]; if(!res||!Array.isArray(j[3])) return null;
+  const foc=st.focus?1:0, rr=foc?rrr(0.40,true,st.daily):rrr(0.40,false,st.daily), qtot=j[1]*wkYield(wt); let sw=0; for(const [,w,q] of j[3]) sw+=w*q; if(!sw) return null;
+  let net=0, bars=0, focus=0, thin=false;
+  for(const [iid,w,q] of j[3]){ const lv=/_LEVEL(\d)$/.exec(iid), e=lv?+lv[1]:0, cnt=qtot*w*q/sw; if(!(cnt>0)) continue;
+    const m=model(res,t,e,{raw:0}); if(!m) return null; const n=cnt/(N[t]*(1-rr)); const pb=foc?m.p1:m.p0; net+=n*pb; bars+=n; if(foc) focus+=n*m.fc; if(m.thin) thin=true; }
+  return {net,bars,focus,thin,rr,foc}; }
 function wkModel(ty,t,wt=t){
   const j=JOURNALS[ty]&&JOURNALS[ty][t]; if(!j) return null;
   const empty=typical(`T${t}_JOURNAL_${ty}_EMPTY`,0), full=typical(`T${t}_JOURNAL_${ty}_FULL`,0);
@@ -258,7 +267,9 @@ function wkModel(ty,t,wt=t){
     if(sw>=wAll*0.8){ yieldV=j[1]*(sv/sw)*wkYield(wt)*(1-taxOf()); thin=sw<wAll*0.97; } }
   else yieldV=j[3]*wkYield(wt);
   const bc=wkCost(`T${t}_JOURNAL_${ty}_FULL`);
-  return {ty,t,fame:j[0],empty,full,yieldV,thin,buyCity:bc,buyFull:yieldV!=null&&bc?yieldV-bc.p:null,fill:full&&empty?full.p*(1-taxOf())-empty.p:null};
+  const ref=bc?wkRefine(ty,t,j,wt):null, direct=yieldV!=null&&bc?yieldV-bc.p:null, indirect=ref&&bc?ref.net-bc.p:null;
+  const best=direct==null&&indirect==null?null:(indirect!=null&&(direct==null||indirect>direct)?"refino":"venda");
+  return {ty,t,fame:j[0],empty,full,yieldV,thin,buyCity:bc,buyFull:best==="refino"?indirect:direct,direct,indirect,ref,best,fill:full&&empty?full.p*(1-taxOf())-empty.p:null};
 }
 function setupWK(){
   const ts=$("wkTier"); if(ts.children.length) return;
@@ -277,7 +288,7 @@ async function renderWK(){
   if(!WK_LOADED){ tb.textContent=""; $("wkStatus").dataset.base=$("wkStatus").dataset.base||$("wkStatus").textContent; $("wkStatus").textContent="Consultando os preços dos diários…"; const ok=await ensureWK(); $("wkStatus").textContent=$("wkStatus").dataset.base; if(!ok){ $("wkStatus").textContent="Não consegui consultar os diários agora."; return; } }
   const mx=hapMax(wkTierSel); $("wkHapMax").textContent=`de ${mx}`; $("wkHap").max=String(mx); $("wkHap").placeholder=String(mx);
   $("wkYieldTxt").textContent = wkPct() ? `Usando o rendimento de ${wkPct()}% que você digitou.` : wkHap()==null ? `Sem felicidade digitada: a conta usa a barra cheia (${mx} em T${wkTierSel}), que rende 150%.` : `Felicidade ${Math.min(wkHap(),mx)} de ${mx} em T${wkTierSel}: rende ${Math.round(wkYield(wkTierSel)*100)}% (cheia rende 150%).`;
-  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Trabalhador","Diário vazio","Diário cheio","Comprar o cheio em",`Devolve (${Math.round(wkYield(wkTierSel)*100)}%)`,"Comprar cheio e entregar",`Lucro por dia com ${wkN()} ${wkN()===1?"trabalhador":"trabalhadores"}`,"Encher e vender","Enche com",""].forEach(h=>hr.append(el("th",{text:h})));
+  tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Trabalhador","Diário vazio","Diário cheio","Comprar o cheio em",`Devolve (${Math.round(wkYield(wkTierSel)*100)}%)`,"Lucro vendendo o que volta","Lucro refinando o que volta",`Lucro por dia com ${wkN()} ${wkN()===1?"trabalhador":"trabalhadores"}`,"Encher e vender","Enche com",""].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody(), wt=wkTierSel; const all=[];
   /* todas as combinações de diário até o tier do trabalhador (regra do jogo), da que mais rende para a que menos rende */
   for(const [ty,nm,how] of WK) for(let t=4;t<=wt;t++){ const m=wkModel(ty,t,wt); if(m) all.push({m,nm,how}); }
@@ -287,8 +298,9 @@ async function renderWK(){
     [[m.empty&&m.empty.p,`T${t}_JOURNAL_${ty}_EMPTY`],[m.full&&m.full.p,`T${t}_JOURNAL_${ty}_FULL`]].forEach(([v,ic])=>{ const c=tr.insertCell(); c.className="num"; const tx=v?fmt(v):"—"; c.append(withIcon(ic,tx)); });
     { const c=tr.insertCell(); c.className="small"; if(m.buyCity){ c.append(el("b",{text:fmt(Math.round(m.buyCity.p))})," ",el("span",{class:"muted",text:m.buyCity.c})); c.title=wkBuyMode()==="ordem"?"Maior ordem de compra aberta nessa cidade, mais 2,5% de taxa para montar a ordem":"Menor preço de venda entre as cidades"; } else c.textContent="—"; }
     { const c=tr.insertCell(); c.className="num"; c.textContent=m.yieldV?fmt(m.yieldV):"—"; }
-    { const c=tr.insertCell(); c.className="num "+(m.buyFull==null?"":m.buyFull>=0?"gain":"loss"); c.textContent=m.buyFull==null?"—":sgn(m.buyFull); }
-    { const c=tr.insertCell(); const v=m.buyFull==null?null:m.buyFull*wkN(); c.className="num bm-profit "+(v==null?"":v>=0?"gain":"loss"); c.textContent=v==null?"—":sgn(v); c.title=`${sgn(m.buyFull||0)} por diário × ${wkN()}, um diário por trabalhador por dia`; }
+    { const c=tr.insertCell(); c.className="num "+(m.direct==null?"":m.direct>=0?"gain":"loss")+(m.best==="venda"?" wk-best":""); c.textContent=m.direct==null?"—":sgn(m.direct); c.title="Vende tudo o que volta e desconta as taxas de venda, menos o preço do diário cheio"; }
+    { const c=tr.insertCell(); const rf=m.ref; c.className="num "+(m.indirect==null?"":m.indirect>=0?"gain":"loss")+(m.best==="refino"?" wk-best":""); if(m.indirect==null){ c.textContent=WK_REF[ty]?"—":"n/d"; c.title=WK_REF[ty]?"Faltam preços para o refino":"Esse diário devolve itens que não entram no refino"; } else { c.textContent=sgn(m.indirect); c.title=`Refina ${Math.round(rf.bars)} ${rf.bars>=1.5?"unidades":"unidade"} com retorno de ${dec(rf.rr*100)}% ${rf.foc?"e foco (gasta cerca de "+fmt(Math.round(rf.focus))+" de foco)":"sem foco"}, vende e desconta o preço do diário cheio. Mesmas configurações da aba Refino${rf.thin?"; alguns preços têm poucas ofertas":""}`; } }
+    { const c=tr.insertCell(); const v=m.buyFull==null?null:m.buyFull*wkN(); c.className="num bm-profit "+(v==null?"":v>=0?"gain":"loss"); c.textContent=v==null?"—":sgn(v); c.title=`${sgn(m.buyFull||0)} por diário (${m.best==="refino"?"refinando":"vendendo"}, o melhor dos dois) × ${wkN()}, um diário por trabalhador por dia`; }
     { const c=tr.insertCell(); c.className="num "+(m.fill==null?"":m.fill>=0?"gain":"loss"); c.textContent=m.fill==null?"—":sgn(m.fill); }
     const c=tr.insertCell(); c.className="small muted"; c.textContent=`${fmt(m.fame)} de fama ${how}${m.thin?"; parte do saque sem preço":""}`;
     { const rc=tr.insertCell(), rf={ORE:["metal","minério vira barra de metal"],FIBER:["cloth","fibra vira tecido"],HIDE:["leather","couro cru vira couro"]}[ty];
