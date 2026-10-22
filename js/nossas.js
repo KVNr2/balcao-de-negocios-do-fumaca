@@ -43,7 +43,7 @@ function nbCard(b){
   card.append(gbStrip(b));
   const btn=el("button",{type:"button",class:"bc-more bc-tog","aria-expanded":String(open),text:open?"Fechar ▴":"Abrir ▾"});
   btn.addEventListener("click",()=>{ nbOpen=open?null:b.id; nbRender(); });
-  const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"n:"+b.id));
+  const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"n:"+b.id,{costHost:rt}));
   if(b.local){ const dl=el("button",{type:"button",class:"bc-more",text:"Baixar arquivo"}); dl.addEventListener("click",()=>nbExport(b));
     const cp=el("button",{type:"button",class:"bc-more",text:"Copiar código"}); cp.addEventListener("click",()=>{ navigator.clipboard&&navigator.clipboard.writeText(nbJson(b)); cp.textContent="Copiado"; setTimeout(()=>cp.textContent="Copiar código",1500); });
     const rm=el("button",{type:"button",class:"bc-more nb-del",text:"Apagar"}); rm.addEventListener("click",()=>{ if(!confirm("Apagar esta build do seu navegador?")) return; nbSaveMine(nbMine().filter(x=>x.id!==b.id)); nbRefreshAll(); nbRender(); });

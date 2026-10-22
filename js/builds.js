@@ -183,21 +183,21 @@ function costPanel(b,get){
   box._upd=async()=>{ if(!seen) return; const my=++run; const {set,tier,qf}=get(); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
     const w=set&&b.w2?b.w2:b.w; const base=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o)],["h",pick(b.h)],["a",pick(b.a)],["s",pick(b.s)],["c",pick(b.c)]].filter(x=>x[1]);
     const cons=[pick(b.p),pick(b.f)].filter(Boolean);
-    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,code:m.c,q:qf(k)||1,eq:m.t<4?[[m.t,m.e]]:bcEquivs(sum)}; }).filter(Boolean);
+    const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,code:m.c,q:qf(k)||1,groups:m.t<4?[[[m.t,m.e]]]:[sum,sum-1,sum-2,sum+1].filter(n=>n>=4).map(n=>bcEquivs(n)).filter(x=>x.length)}; }).filter(Boolean);
     const idOf=(g,t,e)=>`T${t}_${g.code}`+(e?`@${e}`:"");
     out.classList.add("load"); out.textContent="…";
-    const ids=[...new Set([...gear.flatMap(g=>g.eq.map(([t,e])=>idOf(g,t,e))),...cons])];
+    const ids=[...new Set([...gear.flatMap(g=>g.groups.flat().map(([t,e])=>idOf(g,t,e))),...cons])];
     try{ await bmFetch(ids,[BLD_CITY],gear.some(g=>g.q>1)); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
     if(my!==run) return;
     const pr=(id,q)=>{ const r=bmRec(id,q)[BLD_CITY]; return r&&r[0]>0?r[0]:null; };
     let tot=0, miss=0; const tip=[];
-    for(const g of gear){ let best=null; for(const [t,e] of g.eq){ const p=pr(idOf(g,t,e),g.q); if(p&&(!best||p<best.p)) best={p,t,e}; }
-      if(best){ tot+=best.p; tip.push(`${itemNome(g.code)} T${best.t}${best.e?"."+best.e:""}: ${fmt(best.p)}`); } else { miss++; tip.push(`${itemNome(g.code)}: sem preço`); } }
+    for(const g of gear){ let best=null, gi=0; for(gi=0;gi<g.groups.length&&!best;gi++){ for(const [t,e] of g.groups[gi]){ const p=pr(idOf(g,t,e),g.q); if(p&&(!best||p<best.p)) best={p,t,e}; } }
+      if(best){ tot+=best.p; tip.push(`${itemNome(g.code)} T${best.t}${best.e?"."+best.e:""}: ${fmt(best.p)}`+(gi>1?" (sem o tier pedido; usado o mais próximo)":"")); } else { miss++; tip.push(`${itemNome(g.code)}: sem preço`); } }
     for(const id of cons){ const p=pr(id,1), ii=idInfo(id), cx=cosInfo(id); if(p) tot+=p; tip.push(`${(cx&&cx.n)||itemNome(ii.c)}: ${p?fmt(p):"sem preço"}`); }
     out.classList.remove("load"); out.textContent=""; out.title=tip.join("\n");
     if(!tot){ out.textContent="sem preço nesta cidade"; return; }
     out.append(el("b",{text:fmt(tot)}),document.createTextNode(" prata"));
-    if(miss) out.append(el("span",{class:"bld-warn",text:` · faltam ${miss}`,title:`${miss} peça${miss>1?"s":""} sem preço em ${BLD_CITY}; o total não inclui`}));
+    if(miss) out.append(el("span",{class:"bld-warn",text:`faltam ${miss}`,title:`${miss} peça${miss>1?"s":""} sem preço em ${BLD_CITY}; o total não inclui`}));
   };
   cs.addEventListener("change",()=>{ BLD_CITY=cs.value; try{ localStorage.setItem("bldCity",BLD_CITY); }catch(e){} BLD_PANELS.forEach(p=>p._sync()); });
   box._sync=()=>{ cs.value=BLD_CITY; box._upd(); }; BLD_PANELS.add(box);
@@ -220,7 +220,7 @@ function albionBar(b,badge,costValue,opts){
   const msg=el("span",{class:"muted small",role:"status"});
   btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set,tier,qf); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
   bar.append(btn);
-  bar.append(msg); const cp=costPanel(b,()=>({set,tier,qf})); b._cost=cp; bar.append(cp);
+  bar.append(msg); const cp=costPanel(b,()=>({set,tier,qf})); b._cost=cp; (opts&&opts.costHost||bar).append(cp);
   refresh(); return bar;
 }
 function kbPanel(b){
@@ -271,7 +271,7 @@ function buildCard(b){
   card.append(gbStrip(b));
   const btn=el("button",{type:"button",class:"bc-more bc-tog","aria-expanded":String(open),text:open?"Fechar ▴":"Abrir ▾"});
   btn.addEventListener("click",()=>{ bOpen=open?null:b.id; renderBuilds(); });
-  const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"g:"+b.id)); card.append(act);
+  const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"g:"+b.id,{costHost:rt})); card.append(act);
   if(open){ card.append(kbPanel(b)); qMoveTop(card); }
   return card;
 }
