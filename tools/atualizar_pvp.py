@@ -9,17 +9,17 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pvp_comum as C
 B = "https://gameinfo.albiononline.com/api/gameinfo"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/130.0 Safari/537.36", "Accept": "application/json"}
-DIAS = 90; PAGINAS = int(os.environ.get("PVP_PAGINAS", "5")); SEMENTES_POR = int(os.environ.get("PVP_SEMENTES", "45")); CONF = 0.7
+DIAS = 90; PAGINAS = int(os.environ.get("PVP_PAGINAS", "3")); ORCAMENTO = int(os.environ.get("PVP_MINUTOS", "25")) * 60; SEMENTES_POR = int(os.environ.get("PVP_SEMENTES", "45")); CONF = 0.7
 CONT = ["hg2", "hg5", "corrompida", "solo", "depths"]
 SLOT = {"MainHand": "w", "OffHand": "o", "Head": "h", "Armor": "a", "Shoes": "s", "Cape": "c", "Potion": "p", "Food": "f"}
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
-def get(path, tries=4):
+def get(path, tries=3):
     for i in range(tries):
         try:
-            with urllib.request.urlopen(urllib.request.Request(B + path, headers=UA), timeout=60) as r: return json.load(r)
+            with urllib.request.urlopen(urllib.request.Request(B + path, headers=UA), timeout=25) as r: return json.load(r)
         except Exception as e:
             if i == tries - 1: return None
-            time.sleep(2 * (i + 1))
+            time.sleep(1 + i)
 def base(t):
     m = re.match(r"T(\d)_(.+?)(?:@(\d))?$", t or ""); return m.group(2) if m else None
 def pessoas(e):
@@ -60,21 +60,24 @@ def main():
         for i, n in sem.get(c, []): jog[i] = n
     print("jogadores a ler:", len(jog))
     eventos = {}
-    def ler(pid):
+    inicio = time.time()
+    def uma(args):
+        pid, tipo = args
         out = []
-        for tipo in ("kills", "deaths"):
-            for pg in range(PAGINAS):
-                r = get(f"/players/{pid}/{tipo}?limit=51&offset={pg * 51}")
-                if not isinstance(r, list) or not r: break
-                out += [x for x in r if isinstance(x, dict) and "Killer" in x]
-                try:
-                    if datetime.datetime.strptime(r[-1]["TimeStamp"][:19], "%Y-%m-%dT%H:%M:%S") < corte: break
-                except Exception: pass
+        for pg in range(PAGINAS):
+            if time.time() - inicio > ORCAMENTO: break
+            r = get(f"/players/{pid}/{tipo}?limit=51&offset={pg * 51}")
+            if not isinstance(r, list) or not r: break
+            out += [x for x in r if isinstance(x, dict) and "Killer" in x]
+            try:
+                if datetime.datetime.strptime(r[-1]["TimeStamp"][:19], "%Y-%m-%dT%H:%M:%S") < corte: break
+            except Exception: pass
         return out
-    with ThreadPoolExecutor(8) as ex:
-        for k, evs in enumerate(ex.map(ler, list(jog))):
+    tarefas = [(pid, t) for pid in jog for t in ("kills", "deaths")]
+    with ThreadPoolExecutor(24) as ex:
+        for k, evs in enumerate(ex.map(uma, tarefas)):
             for e in evs: eventos[e["EventId"]] = e
-            if k % 25 == 0: print("lidos", k, "jogadores,", len(eventos), "eventos", flush=True)
+            if k % 50 == 0: print("lidas", k, "de", len(tarefas), "listas;", len(eventos), "eventos;", int(time.time() - inicio), "s", flush=True)
     print("eventos únicos:", len(eventos))
     # classificar e agregar
     S = {}   # (conteudo, tamanho) -> dados
