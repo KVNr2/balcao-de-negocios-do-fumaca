@@ -37,6 +37,18 @@ function avMini(m){
 }
 const avTyCls=y=>y==="ROYAL_RED"?"red":({HO:"ho",ROYAL:"royal",BLACK:"black",TUNNEL:"tunnel"})[AV_TYPE_G(y)];
 const avTypeTxt=y=>{ if(y==="ROYAL_RED") return "Red"; const g=AV_G_PT[AV_TYPE_G(y)], r=/(LOW|MEDIUM|HIGH)$/.exec(y); return r?`${g} · ${{LOW:"risco baixo",MEDIUM:"risco médio",HIGH:"risco alto"}[r[1]]}`:/DEEP/.test(y)?`${g} · profundo`:g; };
+function avZoom(m,pic){
+  const old=document.getElementById("avZoom"); if(old) old.remove();
+  const ov=el("div",{id:"avZoom",class:"av-zoom",role:"dialog","aria-modal":"true","aria-label":`Mapa ${m.n}`});
+  const box=el("div",{class:"av-zbox"}), top=el("div",{class:"av-ztop"});
+  const x=el("button",{type:"button",class:"av-zx","aria-label":"Fechar",text:"×"});
+  top.append(el("b",{text:m.n}),el("span",{class:"tag t"+m.t,text:`T${m.t}`}),el("span",{class:"av-ty "+avTyCls(m.y),text:avTypeTxt(m.y)}),x);
+  box.append(top, pic?el("img",{class:"av-zimg",src:`imagens/avalon/${pic}`,alt:`Mapa ${m.n}`}):avMini(m));
+  ov.append(box);
+  const close=()=>{ ov.remove(); document.removeEventListener("keydown",key); }, key=e=>{ if(e.key==="Escape") close(); };
+  ov.addEventListener("click",e=>{ if(e.target===ov||e.target===x) close(); }); document.addEventListener("keydown",key);
+  document.body.append(ov); x.focus();
+}
 function avCard(m){
   const saved=AV.saved.some(x=>x.i===m.i), card=el("article",{class:"av-card"+(saved?" on":"")});
   const hd=el("div",{class:"av-hd"}); hd.append(el("b",{class:"av-n",text:m.n}));
@@ -52,6 +64,8 @@ function avCard(m){
   card.append(el("div",{class:"av-rt",text:"Recursos no mapa (quantidade)"}),rs);
   const ft=el("div",{class:"av-ft"}); const dg=[]; if(m.s) dg.push(`${m.s} solo`); if(m.g) dg.push(`${m.g} grupo`); if(m.e) dg.push(`${m.e} raid`);
   ft.append(el("span",{text:`Dungeons: ${dg.join(", ")||"nenhuma"}`}),el("span",{text:`Portais: ${m.p+(m.ho||0)+(m.mi||0)}`})); card.append(ft);
+  card.classList.add("zoomable"); card.title="Clique para ampliar o mapa";
+  card.addEventListener("click",e=>{ if(e.target.closest(".av-star")) return; avZoom(m,pic); });
   return card;
 }
 function avToggle(id){
