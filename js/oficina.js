@@ -449,7 +449,7 @@ $("itemDlg").addEventListener("click",ev=>{ if(ev.target===$("itemDlg")) $("dlgC
 /* botão do Mercado Negro: abre o Craft já com o item, o tier, o encantamento e a qualidade daquela ordem, vendendo para o MN */
 async function ofFromBM(g,m){
   if(!BM) BM=await need("bm");
-  setupOf();
+  setupOf(); ofApplyMode("craft");   // sem isso a aba Craft, ao abrir, refazia os filtros (tier, categoria) e a lista ficava vazia
   const sel=$("ofCat"); sel.value="g:"+g; store.set("ofCat",sel.value);
   OF.tier=m.t; OF.ench=m.e; $("ofTier").value=String(m.t); $("ofEnch").value=String(m.e);
   OF2.qual=m.q>1?m.q:0; $("ofQual").value=String(OF2.qual);
