@@ -1313,3 +1313,4 @@ select.kx-q:not([value="0"]){}
 .kx-alb .bld-cost .bc-more{width:auto}.kx-alb .bld-row{flex-direction:row;align-items:center;gap:6px}
 .kx-fx:not(.open){display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}.kx-fx.open{cursor:pointer}.kx-fx .kx-fxi{display:block}
 .av-pic{width:100%;height:auto;max-height:190px;object-fit:cover;border-radius:8px;display:block;background:#17110d}
+.bld-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}.bld-tags:empty{display:none}.bld-chip{font:600 10.5px Inter,sans-serif;padding:2px 8px;border-radius:999px;color:#e6c56a;background:color-mix(in srgb,#e6c56a 16%,transparent);white-space:nowrap}
