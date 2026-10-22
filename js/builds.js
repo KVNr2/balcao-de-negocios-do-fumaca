@@ -197,13 +197,22 @@ async function bldFetch(ids,city){
       BLD_P[k]={p7:n7?v7/n7:0,p30:n30?v30/n30:0}; }
     for(const id of part) BLD_F[`${id}|${city}`]=Date.now(); }
 }
+/* pedidos de venda ativos agora (menor preço de venda) por qualidade na cidade: Albion Data, ou o do AlbionSpecs quando for mais novo */
+const BLD_LV={};
+async function bldLive(ids,city){
+  const loc=encodeURIComponent(city), todo=[...new Set(ids)]; const parts=[]; for(let i=0;i<todo.length;i+=API_CHUNK) parts.push(todo.slice(i,i+API_CHUNK));
+  const res=await Promise.all(parts.map(p=>apiJSON(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=1,2,3,4,5`)));
+  for(const id of todo) for(let q=1;q<=5;q++) delete BLD_LV[`${id}|${city}|${q}`];
+  for(const j of res) for(const x of j){ const q=+x.quality; if(!(q>=1&&q<=5)) continue; if(x.sell_price_min>0&&fresh(x.sell_price_min_date)) BLD_LV[`${x.item_id}|${x.city}|${q}`]={p:x.sell_price_min,app:x._src==="app"}; }
+}
+const bldLiveP=(id,c,q)=>BLD_LV[`${id}|${c}|${q}`]||null;
 /* d = 7 pede só a média de 7 dias; d = 30 aceita a de 30 dias */
 const bldPrice=(id,c,q,d)=>{ const r=BLD_P[`${id}|${c}|${q}`]; if(!r) return null; if(d===7) return r.p7?{p:r.p7,d:7}:null; return r.p30?{p:r.p30,d:30}:null; };
 let BLD_CITY=(()=>{ try{ const c=localStorage.getItem("bldCity"); return c&&c!=="auto"?c:"Caerleon"; }catch(e){ return "Caerleon"; } })();
 const BLD_PANELS=new Set();
 let BLD_TIER=(()=>{ try{ const t=+localStorage.getItem("bldTier"); return t>=4&&t<=8?t:0; }catch(e){ return 0; } })();   // tier escolhido vale para todas as builds e não se perde ao abrir o card
 function costPanel(b,get,ui){
-  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade de referência: o valor é a média de vendas dos últimos 7 dias nela (30 dias se não houver)"});
+  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade de referência. Preço de cada peça: pedido de venda atual na qualidade escolhida; senão, em outra qualidade; senão, estimativa de 7 dias; senão, de 30 dias"});
   SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
   const out=el("span",{class:"bld-tot",role:"status","aria-live":"polite"});
   const seg=(selEl,label,lab)=>{ const g=el("div",{class:"bld-seg",role:"group","aria-label":label}); const bs=[...selEl.options].map(o=>{ const bt=el("button",{type:"button",text:lab(o),title:o.text,"aria-pressed":"false"}); bt.addEventListener("click",()=>{ selEl.value=o.value; selEl.dispatchEvent(new Event("change")); g._sync(); }); g.append(bt); return [o.value,bt]; });
@@ -219,19 +228,21 @@ function costPanel(b,get,ui){
     const idOf=(g,t,e)=>`T${t}_${g.code}`+(e?`@${e}`:"");
     out.classList.add("load"); out.textContent="…";
     const ids=[...new Set([...gear.flatMap(g=>g.groups.flat().map(([t,e])=>idOf(g,t,e))),...cons])];
-    try{ await bldFetch(ids,BLD_CITY); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
+    try{ await Promise.all([bldFetch(ids,BLD_CITY), bldLive(ids,BLD_CITY).catch(()=>{})]); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
     if(my!==run) return;
     /* só equivalentes do tier pedido (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), na cidade escolhida: média de 7 dias; sem ela, média de 30 dias. Nada de outra cidade nem de tier abaixo */
-    const find=(g,d,q)=>{ let best=null; for(const [t,e] of g.groups[0]){ const r=bldPrice(idOf(g,t,e),BLD_CITY,q,d); if(r&&(!best||r.p<best.p)) best={...r,t,e,q}; } return best; };
+    const find=(g,d,q)=>{ let best=null; for(const [t,e] of g.groups[0]){ const r=d===0?bldLiveP(idOf(g,t,e),BLD_CITY,q):bldPrice(idOf(g,t,e),BLD_CITY,q,d); if(r&&(!best||r.p<best.p)) best={...r,d,t,e,q}; } return best; };
     /* qualidade pedida primeiro (7 dias, depois 30); se não houver preço nela, tenta a mais próxima: abaixo, e depois acima */
     const qOrder=q=>[q,...Array.from({length:q-1},(_,i)=>q-1-i),...Array.from({length:5-q},(_,i)=>q+1+i)];
-    const pickX=g=>{ for(const qq of qOrder(g.q)){ const x=find(g,7,qq)||find(g,30,qq); if(x) return x; } return null; };
+    /* ordem: 1) pedido de venda ativo na qualidade pedida; 2) pedido de venda em outra qualidade (a mais próxima); 3) média de 7 dias; 4) média de 30 dias */
+    const pickX=g=>{ const qs=qOrder(g.q); const a=find(g,0,qs[0]); if(a) return a; for(const qq of qs.slice(1)){ const x=find(g,0,qq); if(x) return x; }
+      for(const d of [7,30]) for(const qq of qs){ const x=find(g,d,qq); if(x) return x; } return null; };
     const sel=gear.map(g=>({g,x:pickX(g)}));
     b._costSel={}; for(const {g,x} of sel) if(x) b._costSel[g.k]={from:g.src,id:idOf(g,x.t,x.e),q:x.q!==g.q?x.q:0}; bQApply(b); if(badgeUpd) badgeUpd();
-    const pr=id=>{ const r=bldPrice(id,BLD_CITY,1,7)||bldPrice(id,BLD_CITY,1,30); return r?r.p:null; };
-    let tot=0, miss=0, old=0; const tip=[], names=[], qch=[];
+    const pr=id=>{ const l=bldLiveP(id,BLD_CITY,1); if(l) return l.p; const r=bldPrice(id,BLD_CITY,1,7)||bldPrice(id,BLD_CITY,1,30); return r?r.p:null; };
+    let tot=0, miss=0, old=0, est7=0; const tip=[], names=[], qch=[];
     for(const {g,x} of sel){ const nm=itemNome(g.code);
-      if(x){ tot+=x.p; if(x.d===30) old++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} (média de ${x.d} dias)`+(x.q!==g.q?` — sem preço em ${QNAME[g.q]}, usei ${QNAME[x.q]}`:"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q]); }
+      if(x){ tot+=x.p; if(x.d===30) old++; if(x.d===7) est7++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} (${x.d===0?(x.app?"pedido de venda atual, via AlbionSpecs":"pedido de venda atual"):"estimativa de "+x.d+" dias"})`+(x.q!==g.q?` — sem ${x.d===0?"pedido de venda":"preço"} em ${QNAME[g.q]}, usei ${QNAME[x.q]}`:"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q]); }
       else { miss++; names.push(nm); tip.push(`${nm}: sem vendas em ${BLD_CITY} nos últimos 30 dias`); } }
     for(const id of cons){ const p=pr(id), ii=idInfo(id), cx=cosInfo(id); if(p) tot+=p; tip.push(`${(cx&&cx.n)||itemNome(ii.c)}: ${p?fmt(p):"sem preço"}`); }
     out.classList.remove("load"); out.textContent=""; out.title=`${fmt(tot)} de prata no total\n`+tip.join("\n");
@@ -239,7 +250,7 @@ function costPanel(b,get,ui){
     out.append(el("b",{text:fmtS(tot)}));
     tags.textContent=""; const SL={w:"Arma",o:"Secundária",h:"Cabeça",a:"Peito",s:"Botas",c:"Capa"};
     for(const [k,from,to] of qch) tags.append(el("span",{class:"bld-chip",title:`Sem preço em ${QNAME[from]} nesta cidade; o custo, o IP, os ícones e o texto copiado usam ${QNAME[to]}`,text:`${SL[k]}: ${QNAME[to]} (sem ${QNAME[from]})`}));
-    const wn=[]; if(miss) wn.push(`faltam ${miss}`); if(old) wn.push(`${old} com média de 30 dias`);
+    const wn=[]; if(miss) wn.push(`faltam ${miss}`); if(est7) wn.push(`${est7} com estimativa de 7 dias`); if(old) wn.push(`${old} com estimativa de 30 dias`);
     if(wn.length) out.append(el("span",{class:"bld-warn",text:wn.join(" · "),title:(miss?`Sem vendas em ${BLD_CITY} nos últimos 30 dias: ${names.join(", ")}. O total não inclui.\n`:"")+"Passe o mouse no valor para ver peça por peça."}));
   };
   cs.addEventListener("change",()=>{ BLD_CITY=cs.value; try{ localStorage.setItem("bldCity",BLD_CITY); }catch(e){} BLD_PANELS.forEach(p=>p._sync()); });
