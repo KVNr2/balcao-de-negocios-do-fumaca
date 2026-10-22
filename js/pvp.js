@@ -28,12 +28,12 @@ function pvCard(b,d){
   const top=el("div",{class:"bc-top"}); const wi=qImg(b,"w",b.w,"nico zbig"); top.append(wi||el("span",{class:"btile"}));
   const mid=el("div",{class:"bc-mid"}); const h4=el("h4"); h4.append(el("span",{text:b.t})); mid.append(h4);
   const nv=gbSpec(b), lv=nv>=SPEC_MIN?3:nv>0?2:0; const meta=el("div",{class:"bc-meta"});
-  meta.append(el("span",{class:"tag",text:`${b.n} lutas`}),el("span",{class:"tag mute",text:`${b.jog} ${b.jog===1?"jogador":"jogadores"}`}));
+  meta.append(el("span",{class:"tag",text:`${b.v}V · ${b.d}D`}),el("span",{class:"tag mute",text:`${b.jog} ${b.jog===1?"jogador":"jogadores"}`}));
   if(b.l) meta.append(el("span",{class:"tag"+(lv>=2?" good":""),text:nv?`${b.nome}: spec ${nv}`:`${b.nome}: sem spec`}));
   const gaps=gbGaps(b); if(gaps.length) meta.append(el("span",{class:"tag bad",text:`Sem spec em ${gaps.join(" e ")}`}));
   mid.append(meta); top.append(mid);
   const ib=albionBadge(b); const rt=el("div",{class:"bc-r"});
-  const wr=el("div",{class:"pv-wr",title:`${b.v} vitórias e ${b.d} derrotas. Winrate = vitórias ÷ lutas.`}); wr.append(el("b",{text:b.wr.toLocaleString("pt-BR")+"%"}),el("small",{text:"winrate"}));
+  const wr=el("div",{class:"pv-wr",title:`${b.v} vitórias e ${b.d} derrotas. Winrate = vitórias ÷ lutas.`}); wr.append(el("b",{text:b.wr.toLocaleString("pt-BR")+"%"}),el("small",{text:`winrate em ${b.n} ${b.n===1?"luta":"lutas"}`}));
   h4.append(wr); rt.append(ib); top.append(rt); card.append(top); card.append(gbStrip(b));
   const btn=el("button",{type:"button",class:"bc-more bc-tog","aria-expanded":String(open),text:open?"Fechar ▴":"Abrir ▾"}); btn.addEventListener("click",()=>{ pvOpen=open?null:b.id; renderPvp(); });
   const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"pv:"+b.id,{costHost:card})); card.append(act);
@@ -42,7 +42,7 @@ function pvCard(b,d){
 }
 function pvJog(p){
   const r=el("div",{class:"pv-pl"}); const l=el("div",{class:"pv-pl-n"}); l.append(el("b",{text:p.nome}),el("small",{class:"muted",text:(p.guild||"sem guilda")+(p.xp!=null?` · fama de PvP: ${p.xp} mi`:"")})); r.append(l);
-  const s=el("div",{class:"pv-pl-s"}); s.append(el("b",{text:p.wr.toLocaleString("pt-BR")+"%",title:"winrate"}),el("small",{text:`${p.v}V · ${p.d}D`}),el("small",{text:p.ip?`IP ${p.ip}`:""})); r.append(s);
+  const s=el("div",{class:"pv-pl-s"}); s.append(el("b",{text:p.wr.toLocaleString("pt-BR")+"%",title:"winrate"}),el("small",{text:`${p.n} lutas · ${p.v}V · ${p.d}D`}),el("small",{text:p.ip?`IP ${p.ip}`:""})); r.append(s);
   const bs=el("div",{class:"cc-row sum"}); for(const [k,q] of p.b) bs.append(tile(pvKey(k).w,pvNome(k),`${q}×`)); r.append(bs); return r;
 }
 function renderPvp(){
