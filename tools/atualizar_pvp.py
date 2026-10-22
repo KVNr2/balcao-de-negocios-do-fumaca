@@ -132,8 +132,12 @@ def main():
                 for o in venc:
                     ko = chave(o)
                     if ko and ko != k: b["par"][ko] += 1
-            pl = A["p"].setdefault(p.get("Id"), {"xp": xp(c, p.get("Id")), "nome": p.get("Name"), "v": 0, "d": 0, "ip": [], "b": collections.Counter(), "guild": p.get("GuildName") or ""})
+            pl = A["p"].setdefault(p.get("Id"), {"xp": xp(c, p.get("Id")), "nome": p.get("Name"), "v": 0, "d": 0, "ip": [], "b": collections.Counter(), "guild": p.get("GuildName") or "", "g": {}})
             pl["v" if ganhou else "d"] += 1
+            gk = pl["g"].setdefault(k, collections.defaultdict(collections.Counter))
+            for sl, js in SLOT.items():
+                ty = ((p.get("Equipment") or {}).get(sl) or {}).get("Type")
+                if ty: gk[js][ty] += 1
             if p.get("AverageItemPower"): pl["ip"].append(p["AverageItemPower"])
             pl["b"][k] += 1; ativos[c][p.get("Id")] += 1; nomes_at[p.get("Id")] = p.get("Name")
         for p in venc: reg(p, True)
@@ -201,7 +205,7 @@ def main():
         for pid, pl in A["p"].items():
             n = pl["v"] + pl["d"]
             if n < 5: continue
-            jogs.append({"xp": pl["xp"], "nome": pl["nome"], "guild": pl["guild"], "n": n, "v": pl["v"], "d": pl["d"], "wr": round(100 * pl["v"] / n, 1), "ip": round(sum(pl["ip"]) / len(pl["ip"])) if pl["ip"] else 0, "b": [[k, q] for k, q in pl["b"].most_common(3)]})
+            jogs.append({"xp": pl["xp"], "nome": pl["nome"], "guild": pl["guild"], "n": n, "v": pl["v"], "d": pl["d"], "wr": round(100 * pl["v"] / n, 1), "ip": round(sum(pl["ip"]) / len(pl["ip"])) if pl["ip"] else 0, "b": [[k, q, {js: [cn.most_common(1)[0][0]] for js, cn in pl["g"].get(k, {}).items() if cn}] for k, q in pl["b"].most_common(3)]})
         jogs.sort(key=lambda x: (-x["n"])); jogs = jogs[:80]
         out["conteudos"][f"{c}:{t}"] = {"eventos": A["n"], "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
     json.dump(out, open(os.path.join(ROOT, "data", "pvp.json"), "w"), ensure_ascii=False, separators=(",", ":"))

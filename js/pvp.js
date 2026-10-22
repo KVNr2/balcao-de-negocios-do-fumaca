@@ -7,20 +7,32 @@ const pvWilson = (v,n) => { if(!n) return 0; const z=1.64, p=v/n, d=1+z*z/n; ret
 const pvKey = k => { const [w,o]=k.split("|"); return {w,o}; };
 const pvNome = k => { const {w,o}=pvKey(k); buildIdx(); return codeName(w)+(o?" + "+codeName(o):""); };
 function pvPrep(b){ if(b.nome) return; buildIdx(); b.nome=codeName(b.wc); b.l=(W2LINE&&W2LINE[b.wc])||""; b.t=b.nome; b.pop=0; b.tg=[]; if(b.o&&!Array.isArray(b.o)) b.o=[b.o]; }
-function pvRel(titulo,dica,lista){
-  const bx=el("div",{class:"pv-rel"}); bx.append(el("h4",{text:titulo}),el("p",{class:"tiny muted",text:dica}));
+/* builds fortes/fracas: só o ícone da arma (com o %); ao clicar mostra o nome, as lutas e deixa abrir aquela build */
+function pvRel(titulo,dica,lista,cls,b,d){
+  const bx=el("div",{class:"pv-rel "+cls}); bx.append(el("h4",{text:titulo}),el("p",{class:"tiny muted",text:dica}));
   if(!lista.length){ bx.append(el("p",{class:"small muted",text:"Sem amostra suficiente (mínimo de 3 lutas contra cada build)."})); return bx; }
-  const row=el("div",{class:"cc-row sum"}); for(const [k,p,n] of lista){ const {w}=pvKey(k); row.append(tile(w,pvNome(k),`${p}% em ${n} lutas`)); } bx.append(row); return bx;
+  const row=el("div",{class:"pv-ic"}), det=el("div",{class:"pv-det"}); det.hidden=true; const pre=b.id.split(":")[0]; let ativo=null;
+  for(const [k,p,n] of lista){ const {w}=pvKey(k); const bt=el("button",{type:"button",class:"pv-i","aria-pressed":"false",title:`${pvNome(k)}: ${p}% em ${n} lutas`}); bt.append(itemImg(w,[4,5,6,7,8,3]),el("small",{text:p+"%"}));
+    bt.addEventListener("click",()=>{ if(ativo===bt){ det.hidden=true; bt.setAttribute("aria-pressed","false"); ativo=null; return; } if(ativo) ativo.setAttribute("aria-pressed","false"); ativo=bt; bt.setAttribute("aria-pressed","true"); det.hidden=false; det.textContent="";
+      det.append(el("b",{text:pvNome(k)}),el("span",{text:` · ${p}% das lutas entre as duas, em ${n} lutas`}));
+      const alvo=d.builds.find(x=>x.id===pre+":"+k); if(alvo){ const ab=el("button",{type:"button",class:"btn mn-craft",text:"Abrir essa build"}); ab.addEventListener("click",()=>{ pvOpen=alvo.id; renderPvp(); }); det.append(ab); } });
+    row.append(bt); }
+  bx.append(row,det); return bx;
 }
 function pvStats(b,d){
   const box=el("div",{class:"pv-stats"});
+  const tot=Math.max(1,b.n), pv=100*b.v/tot;
+  const hd=el("div",{class:"pv-head"}); const big=el("div",{class:"pv-big"}); big.append(el("b",{text:b.wr.toLocaleString("pt-BR")+"%"}),el("small",{text:"winrate"}));
+  const bar=el("div",{class:"pv-bar",title:`${b.v} vitórias · ${b.d} derrotas`}); bar.append(el("i",{class:"w",style:`width:${pv}%`}),el("i",{class:"l",style:`width:${100-pv}%`}));
+  const lg=el("div",{class:"pv-lg"}); lg.append(el("span",{class:"w",text:`${b.v} vitórias`}),el("span",{class:"l",text:`${b.d} derrotas`}));
+  const mid=el("div",{class:"pv-hm"}); mid.append(bar,lg); hd.append(big,mid); box.append(hd);
   const resumo=el("div",{class:"pv-sum"});
-  [["Lutas",b.n],["Vitórias",b.v],["Derrotas",b.d],["Jogadores",b.jog],["IP médio em luta",b.ip||"?"]].forEach(([k,v])=>resumo.append(el("div",{class:"v-card"},el("small",{class:"v-k",text:k}),el("b",{text:String(v)}))));
-  box.append(resumo);
-  box.append(pvRel("Fortes contra esta build","Builds que mais vencem esta, entre as que aparecem nos mesmos combates.",b.counter||[]));
-  box.append(pvRel("Fracas contra esta build","Builds que esta vence com mais frequência.",b.fraco||[]));
-  if((b.parc||[]).length){ const bx=el("div",{class:"pv-rel"}); bx.append(el("h4",{text:"Joga junto"}),el("p",{class:"tiny muted",text:"Builds que estavam no mesmo grupo nas vitórias."})); const row=el("div",{class:"cc-row sum"}); for(const [k,g] of b.parc){ row.append(tile(pvKey(k).w,pvNome(k),`${g} vitórias`)); } bx.append(row); box.append(bx); }
-  box.append(el("p",{class:"tiny muted",text:"O jogo não informa as habilidades usadas em cada morte. As habilidades da build acima são as mais indicadas pela comunidade (AlbionOnlineGrind) para essa arma neste conteúdo."}));
+  [["Lutas",b.n],["Jogadores",b.jog],["IP médio em luta",b.ip||"?"]].forEach(([k,v])=>resumo.append(el("div",{class:"pv-st"},el("b",{text:String(v)}),el("small",{text:k}))));
+  hd.append(resumo);
+  const two=el("div",{class:"pv-two"});
+  two.append(pvRel("Fortes contra esta build","Builds que mais vencem esta. Clique no ícone.",b.counter||[],"bad",b,d),pvRel("Fracas contra esta build","Builds que esta vence com mais frequência. Clique no ícone.",b.fraco||[],"good",b,d)); box.append(two);
+  if((b.parc||[]).length){ const bx=el("div",{class:"pv-rel"}); bx.append(el("h4",{text:"Joga junto"}),el("p",{class:"tiny muted",text:"Builds que estavam no mesmo grupo nas vitórias."})); const row=el("div",{class:"pv-ic"}); for(const [k,g] of b.parc){ const bt=el("span",{class:"pv-i",title:`${pvNome(k)}: ${g} vitórias juntos`}); bt.append(itemImg(pvKey(k).w,[4,5,6,7,8,3]),el("small",{text:`${g}×`})); row.append(bt); } bx.append(row); box.append(bx); }
+  box.append(el("p",{class:"tiny muted",text:"O jogo não informa as habilidades usadas em cada morte. As habilidades da build abaixo são as mais indicadas pela comunidade (AlbionOnlineGrind) para essa arma neste conteúdo."}));
   return box;
 }
 function pvCard(b,d){
@@ -40,10 +52,17 @@ function pvCard(b,d){
   if(open){ card.append(kbPanel(b),pvStats(b,d)); qMoveTop(card); }
   return card;
 }
-function pvJog(p){
+function pvJog(p,d){
   const r=el("div",{class:"pv-pl"}); const l=el("div",{class:"pv-pl-n"}); l.append(el("b",{text:p.nome}),el("small",{class:"muted",text:(p.guild||"sem guilda")+(p.xp!=null?` · fama de PvP: ${p.xp} mi`:"")})); r.append(l);
   const s=el("div",{class:"pv-pl-s"}); s.append(el("b",{text:p.wr.toLocaleString("pt-BR")+"%",title:"winrate"}),el("small",{text:`${p.n} lutas · ${p.v}V · ${p.d}D`}),el("small",{text:p.ip?`IP ${p.ip}`:""})); r.append(s);
-  const bs=el("div",{class:"cc-row sum"}); for(const [k,q] of p.b) bs.append(tile(pvKey(k).w,pvNome(k),`${q}×`)); r.append(bs); return r;
+  const bs=el("div",{class:"pv-pb"});
+  for(const [k,q,g] of p.b){ const {w,o}=pvKey(k); let src=g&&Object.keys(g).length?g:null, tip=false;
+    if(!src){ const ref=(d.builds||[]).find(x=>x.id.endsWith(":"+k)); if(ref){ src=ref; tip=true; } }
+    const bb={id:"pj:"+p.nome+k,wc:w,w:(src&&src.w&&(Array.isArray(src.w)?src.w[0]:src.w))||"",o:src&&src.o,h:src&&src.h,a:src&&src.a,s:src&&src.s,c:src&&src.c,p:src&&src.p,f:src&&src.f,ip:p.ip}; if(bb.o&&!Array.isArray(bb.o)) bb.o=[bb.o]; bb.nome=codeName(w); bb._qi=[];
+    const ln=el("div",{class:"pv-bl"}); const hd=el("div",{class:"pv-bn"}); const wi=bb.w?qImg(bb,"w",bb.w,"nico zbig"):null; hd.append(wi||tile(w,"",""));
+    const nm=el("div",{class:"pv-bt"}); nm.append(el("b",{text:pvNome(k)}),el("small",{class:"muted",text:`${q} ${q===1?"luta":"lutas"} com esta build`+(tip?" · peças mais usadas nesta build":"")})); hd.append(nm); ln.append(hd);
+    if(src){ try{ ln.append(gbStrip(bb)); }catch(e){} } bs.append(ln); }
+  r.append(bs); return r;
 }
 function renderPvp(){
   const host=$("pvList"); if(!host) return;
@@ -60,7 +79,7 @@ function renderPvp(){
   if(pvV==="jog"){
     let l=d.jogadores.slice(); if(pvExp) l=l.filter(p=>(p.xp||0)>=PV_XP); l.sort((a,b)=>(pvWilson(b.v,b.n)-pvWilson(a.v,a.n)));
     $("pvCount").textContent=`${l.length} jogadores com 5 lutas ou mais`+(pvExp?" · só experientes":"");
-    const pg=pgSlice("pvJ",l,[pvC,pvT,pvV].join("|"),renderPvp); pg.items.forEach(p=>host.append(pvJog(p))); host.append(pg.bar); return;
+    const pg=pgSlice("pvJ",l,[pvC,pvT,pvV].join("|"),renderPvp); pg.items.forEach(p=>host.append(pvJog(p,d))); host.append(pg.bar); return;
   }
   let l=d.builds.slice(); if(pvExp) l=l.map(b=>{ const n=(b.vx||0)+(b.dx||0); return {...b,v:b.vx||0,d:b.dx||0,n,wr:n?Math.round(1000*(b.vx||0)/n)/10:0}; }).filter(b=>b.n>=4); pvSort=$("pvSort").value||pvSort;
   if(pvSort==="wilson") l.sort((a,b)=>pvWilson(b.v,b.n+0)-pvWilson(a.v,a.n)); else if(pvSort==="wr") l.sort((a,b)=>b.wr-a.wr||b.n-a.n); else if(pvSort==="spec"){ l.forEach(pvPrep); l.sort((a,b)=>(gbSpec(b)-gbSpec(a))||(b.n-a.n)); } else l.sort((a,b)=>b.n-a.n);
