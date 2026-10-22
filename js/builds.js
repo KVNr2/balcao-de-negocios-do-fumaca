@@ -121,11 +121,26 @@ function spellTip(im,id){ const set=()=>{ const d=spellDesc(id); im.title=spellN
 function spellImg(id,cls){ const im=el("img",{class:cls||"kx-sp",alt:"",loading:"lazy",decoding:"async"}); im.referrerPolicy="no-referrer"; spellTip(im,id);
   /* primeiro o arquivo local (icons/spells/ID.png, baixado pelo script), depois o render oficial do jogo */
   const fontes=[`icons/spells/${id}.png`,SPELL(id)]; let i=0; im.onerror=()=>{ if(++i<fontes.length) im.src=fontes[i]; else im.remove(); }; im.src=fontes[0]; return im; }
+/* comidas, poções e capas: nome em português e o que fazem, do jogo (data/cons.json) */
+let COS=null, COS_P=null; const cosLoad=()=>COS_P||(COS_P=need("cons").then(d=>{ COS=d; cosGeneric(); if(typeof CONS_PT!=="undefined") for(const k in CONS_PT) if(d.c[k]) CONS_PT[k]=d.c[k].n; return d; }).catch(()=>null));
+const cosFxTxt = d => (d||"").replace(/^Condição:\s*/,"Quando: ").replace(/\n+Efeito:\s*/,"\nEfeito: ").replace(/\s+m\s+ao seu/,"m ao seu").trim();
+function cosInfo(id){ if(!COS) return null; const i=idInfo(id); if(!i) return null; const base=`T${i.t}_${i.c}`;
+  if(/^CAPEITEM_/.test(i.c)) return {n:COS.kn[base]||null,p:COS.k[i.c]||[]};
+  if(/^(MEAL|POTION)_/.test(i.c)){ const x=COS.c[base+(i.e?`@${i.e}`:"")]||COS.c[base]; return x?{n:x.n,d:x.d}:null; }
+  return null; }
+/* nome genérico por código (sem "Menor" e "Maior"), usado onde só se conhece o código */
+function cosGeneric(){ if(!COS) return; const by={}; for(const k in COS.c){ if(k.includes("@")) continue; const code=k.replace(/^T\d_/,""), t=+k[1], n=COS.c[k].n; if(!n) continue; if(!by[code]||t<by[code].t) by[code]={t,n}; }
+  for(const code in by) KB_CONS_PT[code]=by[code].n.replace(/\s+(Menor|Maior)$/,""); }
+const consNome = key => { const x=cosInfo(String(key).replace(/^(T\d_)/,"$1")); return x&&x.n||null; };
+function cosFill(id,nameB,box){ const x=cosInfo(id); if(!x) return; if(x.n&&nameB) nameB.textContent=x.n; box.textContent="";
+  if(x.p){ for(const p of x.p){ const d=el("div",{class:"kx-fxi"}); d.append(el("b",{text:p.n||"Passiva da capa"})); if(p.d) d.append(el("span",{text:cosFxTxt(p.d)})); box.append(d); } if(!x.p.length) box.append(el("span",{class:"muted",text:"Capa comum, sem habilidade."})); }
+  else if(x.d) box.append(el("span",{text:cosFxTxt(x.d)})); }
 function kxItem(id,skills,b,slot){
   const i=idInfo(id); const row=el("div",{class:"kx-it"}); if(!i) return row;
   const im=b&&slot?qImg(b,slot,id,"nico kx-i"):fullImg(id,"nico kx-i"); if(im) row.append(im);
-  const tx=el("div",{class:"kx-tx"}); tx.append(el("b",{text:itemNome(i.c),title:`T${i.t}${i.e?"."+i.e:""}`}));
+  const tx=el("div",{class:"kx-tx"}); const nb=el("b",{text:itemNome(i.c),title:`T${i.t}${i.e?"."+i.e:""}`}); tx.append(nb);
   if(skills&&skills.length){ const sp=el("div",{class:"kx-sps"}); skills.forEach(x=>sp.append(spellImg(x))); tx.append(sp); }
+  if(/^(MEAL|POTION|CAPEITEM)_/.test(i.c)){ const fx=el("div",{class:"kx-fx"}); tx.append(fx); if(COS) cosFill(id,nb,fx); else cosLoad().then(()=>cosFill(id,nb,fx)); }
   row.append(tx); return row;
 }
 /* carregamento do Albion (Loadouts > Colar texto): JSON no mesmo formato que o jogo gera em "Copiar como texto" */
@@ -171,7 +186,7 @@ function albionBar(b,badge,costValue,opts){
   btn.addEventListener("click",async()=>{ const t=albionLoadout(b,set,tier,qf); try{ await navigator.clipboard.writeText(t); msg.textContent="Copiado. No jogo, abra Loadouts e use Colar texto."; }catch(e){ const ta=el("textarea",{readonly:"",rows:"4"}); ta.value=t; bar.append(ta); ta.select(); msg.textContent="Copie o texto abaixo e cole em Loadouts no jogo."; } });
   bar.append(btn);
   if(costValue){ const bt=el("button",{type:"button",class:"bc-more bc-cost",text:"Ver custo",title:"Abre o Custo da build no tier escolhido"});
-    bt.addEventListener("click",()=>{ let N=tier; if(!N){ const m=idInfo(set&&b.w2?b.w2:b.w); N=m?Math.min(8,Math.max(4,m.t+m.e)):8; } bcIr(costValue,N); }); bar.append(bt); }
+    bt.addEventListener("click",()=>{ let N=tier; if(!N){ const m=idInfo(set&&b.w2?b.w2:b.w); N=m?Math.min(8,Math.max(4,m.t+m.e)):8; } bcIr(costValue,N,{a:bQ(b).a,p:bQ(b).p}); }); bar.append(bt); }
   bar.append(msg); refresh(); return bar;
 }
 function kbPanel(b){
