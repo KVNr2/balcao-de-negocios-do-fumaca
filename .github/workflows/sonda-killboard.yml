@@ -1,0 +1,21 @@
+name: Sonda do killboard (manual)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sonda:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 tools/sonda_killboard.py
+      - name: Publicar o resultado
+        run: |
+          git config user.name "sonda-bot"
+          git config user.email "sonda-bot@users.noreply.github.com"
+          git add tools/sonda-killboard.json
+          git commit -m "Sonda do killboard" || exit 0
+          for i in 1 2 3; do git pull --rebase -X theirs && git push && break; sleep 3; done
