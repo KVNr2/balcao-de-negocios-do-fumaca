@@ -1,0 +1,110 @@
+{
+ "slayerboard": {
+  "https://albionslayerboard.com/eu/leaderboard/": {
+   "status": 200,
+   "len": 126426
+  },
+  "https://albionslayerboard.com/eu/builds/": {
+   "status": 200,
+   "len": 126639
+  },
+  "https://albionslayerboard.com/eu/counters/": {
+   "status": 200,
+   "len": 29667
+  },
+  "https://albionslayerboard.com/eu/insights/": {
+   "status": 200,
+   "len": 17331
+  },
+  "https://albionslayerboard.com/eu/meta/": {
+   "status": 200,
+   "len": 62846
+  },
+  "scripts": [
+   "/assets/index-CIXoGvrt.js",
+   "/manifest.json"
+  ],
+  "endpoints": [
+   "https://api.albionslayerboard.com",
+   "https://api.albionslayerboard.com/item"
+  ]
+ },
+ "gameinfo": {
+  "/events?limit=3": {
+   "status": 200,
+   "inicio": "[{\"numberOfParticipants\":2,\"groupMemberCount\":1,\"EventId\":1468935605,\"TimeStamp\":\"2026-10-22T19:46:28.553369800Z\",\"Version\":4,\"Killer\":{\"AverageItemPower\":1385.00061,\"Equipment\":{\"MainHand\":{\"Type\":\"T4_MAIN_NATURESTAFF_CRYSTAL@3\",\"Count\":1,\"Quality\":4,\"ActiveSpells\":[],\"PassiveSpells\":[],\"LegendaryS"
+  },
+  "/leaderboard": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/ranking": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/leaderboards": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/matches": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/matches/crystal": {
+   "status": 200,
+   "inicio": "[{\"matchType\":\"Crystal\",\"category\":\"crystal\",\"startTime\":\"2020-01-20T02:00:00.042970600Z\",\"winner\":1,\"team1Guild\":{\"Id\":\"YLllBapURz6FTN9BsIb6VQ\",\"Name\":\"PHRASING\",\"Alliance\":null},\"team1Tickets\":148,\"team1Territory\":{\"Id\":\"94793849-ebb8-4fc3-b0ba-5acdcae9ebdd@1243\",\"Owner\":{\"Id\":\"YLllBapURz6FTN9BsIb"
+  },
+  "/matches/hellgate": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/matches/corrupted": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/corrupted": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/hellgate": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/hellgate/leaderboard": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/events/playerfame?range=week&limit=3&offset=0": {
+   "status": 200,
+   "inicio": "[]"
+  },
+  "/events/killfame?range=week&limit=3": {
+   "status": 200,
+   "inicio": "[{\"numberOfParticipants\":4,\"groupMemberCount\":11,\"EventId\":1467349367,\"TimeStamp\":\"2026-10-19T14:20:33.311307500Z\",\"Version\":4,\"Killer\":{\"AverageItemPower\":1319.928,\"Equipment\":{\"MainHand\":{\"Type\":\"T5_2H_LONGBOW\",\"Count\":1,\"Quality\":2,\"ActiveSpells\":[],\"PassiveSpells\":[],\"LegendarySoul\":null},\"OffHa"
+  },
+  "/players/statistics": {
+   "status": 200,
+   "inicio": "[{\"Player\":{\"AverageItemPower\":0.0,\"Equipment\":{\"MainHand\":null,\"OffHand\":null,\"Head\":null,\"Armor\":null,\"Shoes\":null,\"Bag\":null,\"Cape\":null,\"Mount\":null,\"Potion\":null,\"Food\":null},\"Inventory\":[],\"Name\":\"stone9\",\"Id\":\"K-GMzH2jTamAHUgW6_2-GA\",\"GuildName\":\"\",\"GuildId\":\"\",\"AllianceName\":\"\",\"AllianceId\":"
+  },
+  "/mists": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/solo": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/duels": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/events/battle": {
+   "status": 404,
+   "inicio": ""
+  },
+  "/battles?limit=3&sort=recent": {
+   "status": 200,
+   "inicio": "[{\"id\":1468934708,\"startTime\":\"2026-10-22T19:44:07.064871600Z\",\"endTime\":\"2026-10-22T19:44:25.021853700Z\",\"timeout\":\"2026-10-22T19:47:25.021853700Z\",\"totalFame\":240,\"totalKills\":3,\"clusterName\":null,\"players\":{\"jIWSO5o0TF23Jcp2XiVPPg\":{\"name\":\"Zafchan\",\"kills\":1,\"deaths\":0,\"killFame\":80,\"guildName\":"
+  }
+ }
+}
