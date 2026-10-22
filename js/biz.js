@@ -119,10 +119,12 @@ function setupBM(){
   qs.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; qs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmQualSel=+b.dataset.q; renderBM(); });
   sel.addEventListener("change",()=>{ store.set("bmGroup",sel.value); bmSel=null; renderBM(); });
   document.querySelectorAll("[data-bm]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-bm]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmMode=b.dataset.bm; renderBM(); }));
+  { const fbx=$("bmFocBox"); if(fbx&&!fbx.firstChild){ fbx.append(focBudUI(renderBM,"O foco só aumenta o retorno de recursos ao fabricar. Cada linha mostra quantas receitas o foco do dia cobre.")); } const fx=()=>{ if(fbx) fbx.hidden=!$("bmFocus").checked||bmMode==="flip"; }; $("bmFocus").addEventListener("change",fx); fx(); }
   $("bmFocus").addEventListener("change",renderBM); $("bmAtivo").addEventListener("change",()=>{ store.set("bmAtivo",$("bmAtivo").checked?"1":"0"); renderBM(); });
 }
 async function renderBM(partial){
   const tok=partial?BM_TOK:++BM_TOK;
+  { const fbx=$("bmFocBox"); if(fbx){ fbx.hidden=!$("bmFocus").checked||bmMode==="flip"; FOC_UIS.forEach(u=>u._sync()); } }
   if(!BM){ $("bmNote").textContent="Abrindo o livro do Mercado Negro…"; try{ BM=await need("bm"); }catch(e){ $("bmNote").textContent="Não consegui abrir os dados do Mercado Negro."; return; } }
   setupBM(); if(!$("bmAtivo").dataset.init){ $("bmAtivo").dataset.init="1"; try{ $("bmAtivo").checked=store.get("bmAtivo")==="1"; }catch(e){} } const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
   if(g==="*"&&!bmTierSel&&!partial){   // todas as mercadorias e todos os tiers: busca um tier por vez (do T8 ao T2) e mostra o que já chegou
@@ -155,7 +157,8 @@ async function renderBM(partial){
     else { const c2=tr.insertCell(); c2.className="num"; c2.textContent=fmt(m.cost); }
     const v=val(m), pc=pct(m), cp=tr.insertCell(); cp.className="num bm-pct "+(v>=0?"gain":"loss"); cp.textContent=pc===-Infinity?"—":`${v>=0?"+":""}${dec(pc)}%`;
     const c3=tr.insertCell(); c3.className="num bm-profit "+(v>=0?"gain":"loss"); c3.textContent=sgn(v); { const key=m.id+"|"+m.q+"|"+bmMode, old=BM_BASE[key]; BM_CUR[key]=v; if(old!=null&&Math.abs(v-old)>=1){ const up=v>old; c3.prepend(el("span",{class:"bm-chg "+(up?"up":"dn"),title:`${up?"Subiu":"Caiu"} desde a última atualização: o lucro era ${sgn(old)}`,text:up?"▲":"▼"})," "); } }
-    if(bmMode!=="flip"){ const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=`${m.city}${m.thin?", pouca oferta":""}`; }
+    if(bmMode!=="flip"){ const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=`${m.city}${m.thin?", pouca oferta":""}`;
+      if(m.focus&&m.fc>0){ const nR=Math.floor(focBud()/m.fc), fm=el("span",{class:"wk-fm"+(nR>0?" full":" none"),title:`Cada receita gasta ${fmt(m.fc)} de foco; com ${fmt(focBud())} por dia o foco cobre ${nR} receita${nR===1?"":"s"}`}); fm.append(el("span",{class:"wk-fl",text:"Foco"}),el("b",{text:nR>0?`cobre ${fmt(nR)} receita${nR===1?"":"s"}`:(st.prem?"não cobre 1 receita":"sem Premium")})); c4.append(el("br"),fm); } }
     const cv=tr.insertCell(); cv.className="num vol"; cv.textContent=volTxt(bmVolOf(m.id,m.q)); tr.dataset.id=m.id; tr.dataset.q=String(m.q);
     const cg=tr.insertCell(); const gb=el("button",{type:"button",class:"btn mn-craft",title:"Abrir no Craft: fabricar este item e vender para o Mercado Negro",text:"Craft ➜"}); if(m.t<4){ gb.disabled=true; gb.title="O Craft calcula a partir do T4"; } gb.addEventListener("click",ev=>{ ev.stopPropagation(); ofFromBM(BM[m.key][1],m); }); gb.addEventListener("keydown",ev=>ev.stopPropagation()); cg.append(gb);
     const dr=document.createElement("tr"); body.append(dr); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dr.append(dc); dc.colSpan=11;
@@ -216,7 +219,7 @@ function bmPanel(m){
   else if(flipping) right.append(card("cost","Custos detalhados (−)",[[`Compra em ${m.buy.c}`,fmt(m.buyC)]],["Custo da compra",fmt(m.buyC)]));
   const lucro=bmMode==="flip"?m.flip:m.craft;
   const lines=[["O MN paga",fmt(bruto)],[`Taxa de venda (${tax}%${st.prem?" Premium":""})`,"−"+fmt(taxV)],["Líquido da venda",fmt(m.net)]];
-  if(crafting&&bmMode!=="flip") lines.push(["Cidade com bônus",m.city],["Foco gasto",m.focus?fmt(m.fc):"desligado"]);
+  if(crafting&&bmMode!=="flip") lines.push(["Cidade com bônus",m.city],["Foco gasto",m.focus?fmt(m.fc):"desligado"]); if(m.focus&&m.fc>0) lines.push([`Receitas que o foco cobre (${fmt(focBud())}/dia)`,fmt(Math.floor(focBud()/m.fc))]);
   if(vv!=null&&vv>=0) lines.push(["O MN compra por dia (7 dias)",volTxt(vv)]);
   { const rc=card(lucro!=null&&lucro<0?"res neg":"res",lucro!=null&&lucro<0?"Resultado (−)":"Resultado (+)",lines,[bmMode==="flip"?"Lucro revendendo":"Lucro fabricando",lucro==null?"—":sgn(lucro)]); right.append(rc); }
   d.append(left,right); drawHistory(svg,hn,m.id,"Black Market",m.q,true); return d;
@@ -263,8 +266,7 @@ const WK_CR={loaded:new Set(), loading:null};
 const wkOn=()=>store.get("wkCraft")==="1";
 const wkMode=()=>["venda","proc"].includes(store.get("wkMode"))?store.get("wkMode"):"auto";   // o que fazer com o que volta: melhor jeito, vender direto ou refinar/craftar
 /* Foco: só quem tem Premium recebe foco (10.000 por dia, guarda até 30.000). Sem Premium não há foco. O foco não muda o rendimento do diário (isso é a felicidade da casa): ele só aumenta o retorno de recursos ao refinar/craftar o que volta. */
-const WK_FOC_DIA=10000, WK_FOC_MAX=30000;
-const wkFocBud=()=>{ if(!st.prem) return 0; const v=store.get("wkFocBud"); return v===""||v==null?WK_FOC_DIA:Math.max(0,Math.min(WK_FOC_MAX,Math.round(+v)||0)); };
+const WK_FOC_DIA=FOC_DIA, WK_FOC_MAX=FOC_MAX, wkFocBud=focBud;
 const wkLetter=iid=>({METALBAR:"M",PLANKS:"P",LEATHER:"L",CLOTH:"C"})[iid.replace(/^T\d_/,"").replace(/_LEVEL\d$/,"")];
 async function wkEnsureCraft(tiers){
   if(!BM) BM=await need("bm");
@@ -333,7 +335,7 @@ function setupWK(){
     const bs=$("wkBuy"); bs.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.m===wkBuyMode())); b.addEventListener("click",()=>{ store.set("wkBuy",b.dataset.m); bs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderWK(); }); }); }
   { const cs=$("wkCraftSeg"); cs.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.c===(wkOn()?"1":"0"))); b.addEventListener("click",()=>{ store.set("wkCraft",b.dataset.c); cs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderWK(); }); }); }
   { const ms=$("wkMode"); ms.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.m===wkMode())); b.addEventListener("click",()=>{ store.set("wkMode",b.dataset.m); ms.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderWK(); }); });
-    const fb=$("wkFocBud"), fr=$("wkFocRng"); const setB=v=>{ v=Math.max(0,Math.min(WK_FOC_MAX,Math.round(+v||0))); fb.value=String(v); fr.value=String(v); store.set("wkFocBud",String(v)); };
+    const fb=$("wkFocBud"), fr=$("wkFocRng"); const setB=v=>{ v=Math.max(0,Math.min(WK_FOC_MAX,Math.round(+v||0))); fb.value=String(v); fr.value=String(v); store.set("focBud",String(v)); };
     fb.addEventListener("change",()=>{ setB(fb.value); renderWK(); }); fr.addEventListener("input",()=>{ fb.value=fr.value; }); fr.addEventListener("change",()=>{ setB(fr.value); renderWK(); });
     $("wkFocPre").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ setB(b.dataset.f); renderWK(); }));
     $("wkPrem").querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(+b.dataset.v===+st.prem)); b.addEventListener("click",()=>{ renderWK(); }); }); }

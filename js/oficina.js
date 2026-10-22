@@ -130,7 +130,7 @@ const ofPct = v => dec(v*100)+"%";
 function ofSyncRR(){ const r=$("ofRRs"); if(!r) return; const it=OF2.sample||{bonus:0.15}; const v=OF2.rrMan!=null?OF2.rrMan:ofRRbase(it); r.value=Math.round(v*1000)/10; $("ofRRv").textContent=dec(v*100)+"%";
   const fb=it.bonus===0.40?0.40:0.15, base={none:rrr(0,false,st.daily),auto:rrr(fb,false,st.daily),focus:rrr(fb,true,st.daily)};
   document.querySelectorAll("#ofRRp button").forEach(b=>{ const k=b.dataset.rr; b.textContent=dec(base[k]*100); b.setAttribute("aria-pressed",String(OF2.rrMan==null&&OF.rr===k)); });
-  $("ofFocus").checked=OF2.rrMan==null&&OF.rr==="focus"; }
+  $("ofFocus").checked=OF2.rrMan==null&&OF.rr==="focus"; { const bx=$("ofFocBox"); if(bx){ bx.hidden=!$("ofFocus").checked; FOC_UIS.forEach(u=>u._sync()); } } }
 function ofFillCats(){
   const sel=$("ofCat"); sel.textContent="";
   const groups={}; for(const c of ofCats()){ (groups[c.grp]||(groups[c.grp]=el("optgroup",{label:c.grp}))).append(el("option",{value:c.k,text:c.label})); }
@@ -163,6 +163,7 @@ function setupOf(){
   bind("ofTier","tier",1); bind("ofEnch","ench",1); bind("ofQual","qual",1,OF2); ofCards();
   $("ofRRp").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; OF2.rrMan=null; OF.rr=b.dataset.rr; renderOf(); });
   $("ofRRs").addEventListener("input",()=>{ OF2.rrMan=+$("ofRRs").value/100; $("ofRRv").textContent=dec(OF2.rrMan*100)+"%"; renderOf(); });
+  { const bx=$("ofFocBox"); if(bx&&!bx.firstChild) bx.append(focBudUI(renderOf,"O foco só aumenta o retorno de recursos. Em cada item aberto aparece quantas unidades o foco do dia cobre.")); }
   $("ofFocus").addEventListener("change",()=>{ OF2.rrMan=null; OF.rr=$("ofFocus").checked?"focus":"auto"; renderOf(); });
   $("ofTax").addEventListener("change",()=>{ OF2.tax=$("ofTax").checked; renderOf(); });
   $("ofPrem").addEventListener("change",()=>{ document.querySelector(`[data-g="prem"][data-v="${$("ofPrem").checked?1:0}"]`).click(); renderOf(); });
@@ -211,8 +212,8 @@ function ofDetail(m){
     if(m.pN&&m.pF){ const pr=x=>`${sgn(x.profit)} (${x.pct>=0?"+":""}${dec(x.pct*100)}%)`;
       ln(`Sem foco, retorno ${ofPct(m.pN.rr)}`,pr(m.pN),m.pN.profit>=0?"gain":"loss"); ln(`Com foco, retorno ${ofPct(m.pF.rr)}`,pr(m.pF),m.pF.profit>=0?"gain":"loss");
       ln("Foco gasto por unidade",fmt(m.pF.fc1)); ln("Foco gasto no total",fmt(m.pF.fc)); ln("Ganho extra por ponto de foco",dec(m.spf));
-      const day=Math.floor(10000/m.pF.fc1); if(day>0){ const perU=m.pF.profit/m.pF.units; ln(`Com 10.000 de foco (1 dia de Premium)`,`${fmt(day*m.it.q)} un. · ${sgn(day*m.it.q*perU)}`,perU>=0?"gain":"loss"); }
-      else ln("Com 10.000 de foco (1 dia de Premium)","não dá para 1 unidade"); }
+      const bud=focBud(), day=Math.floor(bud/m.pF.fc1); if(day>0){ const perU=m.pF.profit/m.pF.units; ln(`Com ${fmt(bud)} de foco por dia`,`${fmt(day*m.it.q)} un. · ${sgn(day*m.it.q*perU)}`,perU>=0?"gain":"loss"); }
+      else ln(`Com ${fmt(bud)} de foco por dia`,st.prem?"não dá para 1 unidade":"sem Premium não há foco"); }
     else c.append(el("p",{class:"tiny muted",text:"Faltam preços para comparar."}));
     c.append(el("p",{class:"tiny muted",text:"O foco entra só no retorno de recursos; o custo de foco usa as specs da sua ficha."}));
     right.append(c); }
@@ -249,7 +250,8 @@ async function renderOf(){
   for(const m of shown){ const key=m.it.id; const item=el("div",{class:"of-item"}); body.append(item); const tr=el("div",{class:"of-row"}); item.append(tr); tr.dataset.id=m.it.id; tr.dataset.city=m.sale.c; tr.className="clickrow of-row "+(m.profit>=0?"is-gain":"is-loss"); tr.tabIndex=0; tr.setAttribute("aria-expanded","false");
     stamp(m.sale.t); m.parts.forEach(g=>stamp(g.b&&g.b.t));
     const c0=el("div",{class:"itemcell"}); tr.append(c0); const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▾"});
-    const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:OF.mode==="refine"?`${fmt(m.N)} ${m.N>1?"unidades":"unidade"}`:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}${OF.mode==="refine"?"refina":"faz"} em ${m.it.city}`})); head.append(iconImg(m.it.id,52,qIc),nmb,chev); c0.append(head); c0.querySelector("img").classList.add("of-itic");
+    const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:OF.mode==="refine"?`${fmt(m.N)} ${m.N>1?"unidades":"unidade"}`:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}${OF.mode==="refine"?"refina":"faz"} em ${m.it.city}`})); if(OF.rr==="focus"&&OF2.rrMan==null){ try{ ofSpf(m); }catch(e){} if(m.pF&&m.pF.fc1>0){ const cov=Math.min(m.N,Math.floor(focBud()/m.pF.fc1)), full=cov>=m.N, pc=m.N?Math.round(cov/m.N*100):0, un=OF.mode==="refine"?"unidades":"receitas"; const fm=el("span",{class:"wk-fm"+(full?" full":cov?"":" none"),title:`Cada ${OF.mode==="refine"?"unidade":"receita"} gasta ${fmt(m.pF.fc1)} de foco; com ${fmt(focBud())} por dia o foco cobre ${fmt(cov)} de ${fmt(m.N)}`}); fm.append(el("span",{class:"wk-fl",text:"Foco"}),el("span",{class:"wk-fbar"},el("i",{style:`width:${pc}%`})),el("b",{text:`cobre ${fmt(cov)} de ${fmt(m.N)} ${un}`})); nmb.append(fm); } }
+    head.append(iconImg(m.it.id,52,qIc),nmb,chev); c0.append(head); c0.querySelector("img").classList.add("of-itic");
     const stat=(cls,v,lab)=>{ const c=el("div",{class:"of-stat "+cls}); tr.append(c); c.append(el("b",{text:v}),el("small",{text:lab})); return c; };
     stat("loss",fmtS(m.costReal),"CUSTO"); stat("sale",fmtS(m.gross),"VENDA");
     const c3=el("div",{class:"of-stat "+(m.profit>=0?"gain":"loss")}); tr.append(c3); c3.append(el("b",{text:(m.profit>=0?"+":"−")+fmtS(Math.abs(m.profit))}),el("span",{class:"of-pct",text:`${m.pct>=0?"+":""}${dec(m.pct*100)}%`}));

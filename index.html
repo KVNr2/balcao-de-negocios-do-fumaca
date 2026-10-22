@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="b4c37e06">
+<html lang="pt-BR" data-v="64a39a1b">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=b4c37e06">
-<link rel="stylesheet" href="css/vip.css?v=b4c37e06">
-<link rel="stylesheet" href="css/souk.css?v=b4c37e06">
+<link rel="stylesheet" href="css/balcao.css?v=64a39a1b">
+<link rel="stylesheet" href="css/vip.css?v=64a39a1b">
+<link rel="stylesheet" href="css/souk.css?v=64a39a1b">
 </head>
 <body>
 <div class="wrap app">
@@ -313,6 +313,7 @@
           <label class="of-sw"><span class="of-swi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg></span><span class="of-swt">Conta Premium</span><input type="checkbox" id="ofPrem"><i class="of-track"></i></label>
           <label class="of-sw"><span class="of-swi on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5L5 19"/><circle cx="7" cy="7" r="2"/><circle cx="17" cy="17" r="2"/></svg></span><span class="of-swt">Taxa de Venda</span><input type="checkbox" id="ofTax" checked><i class="of-track"></i></label>
           <label class="of-sw"><span class="of-swi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></svg></span><span class="of-swt">Usar Foco</span><input type="checkbox" id="ofFocus"><i class="of-track"></i></label>
+          <div id="ofFocBox" hidden></div>
           <label class="of-sw"><span class="of-swi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg></span><span class="of-swt">Usar Diário</span><input type="checkbox" id="ofDaily"><i class="of-track"></i></label>
         </aside>
         <div class="of2-main">
@@ -585,6 +586,7 @@
       </div>
       <div class="seg" role="group" aria-label="Conta: Premium muda a taxa de venda"><button type="button" data-g="prem" data-v="1" aria-pressed="true" title="Taxa de venda de 4%">Premium · taxa 4%</button><button type="button" data-g="prem" data-v="0" aria-pressed="false" title="Taxa de venda de 8%">Sem Premium · taxa 8%</button></div>
       <label class="chk"><input type="checkbox" id="bmFocus"> Fabricar com foco</label>
+      <div id="bmFocBox" hidden></div>
       <label class="chk" title="Mostra só as peças em que algum jogador viu o pedido de compra do Mercado Negro nas últimas 6 horas"><input type="checkbox" id="bmAtivo"> Só pedidos de compra recentes (até 6 h)</label>
     </div>
     <p class="small muted" id="bmNote"></p>
@@ -698,20 +700,20 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=b4c37e06"></script>
-<script src="js/base.js?v=b4c37e06"></script>
-<script src="js/fx.js?v=b4c37e06"></script>
-<script src="js/biz.js?v=b4c37e06"></script>
-<script src="js/builds.js?v=b4c37e06"></script>
-<script src="js/nossas.js?v=b4c37e06"></script>
-<script src="js/ip.js?v=b4c37e06"></script>
-<script src="js/zvz.js?v=b4c37e06"></script>
-<script src="js/novos.js?v=b4c37e06"></script>
-<script src="js/guia.js?v=b4c37e06"></script>
-<script src="js/ui.js?v=b4c37e06"></script>
-<script src="js/avalon.js?v=b4c37e06"></script>
-<script src="js/oficina.js?v=b4c37e06"></script>
-<script src="js/versao.js?v=b4c37e06"></script>
-<script src="js/main.js?v=b4c37e06"></script>
+<script src="js/icons.js?v=64a39a1b"></script>
+<script src="js/base.js?v=64a39a1b"></script>
+<script src="js/fx.js?v=64a39a1b"></script>
+<script src="js/biz.js?v=64a39a1b"></script>
+<script src="js/builds.js?v=64a39a1b"></script>
+<script src="js/nossas.js?v=64a39a1b"></script>
+<script src="js/ip.js?v=64a39a1b"></script>
+<script src="js/zvz.js?v=64a39a1b"></script>
+<script src="js/novos.js?v=64a39a1b"></script>
+<script src="js/guia.js?v=64a39a1b"></script>
+<script src="js/ui.js?v=64a39a1b"></script>
+<script src="js/avalon.js?v=64a39a1b"></script>
+<script src="js/oficina.js?v=64a39a1b"></script>
+<script src="js/versao.js?v=64a39a1b"></script>
+<script src="js/main.js?v=64a39a1b"></script>
 </body>
 </html>
