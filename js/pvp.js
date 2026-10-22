@@ -1,5 +1,6 @@
 /* ================= aba PVP: o que os jogadores que mais lutam usam em cada conteúdo (servidor US) ================= */
-let PVP = null, pvC = "hg2", pvV = "build", pvT = 0, pvSort = "wilson", pvOpen = null;
+let PVP = null, pvC = "hg2", pvV = "build", pvT = 0, pvSort = "wilson", pvOpen = null, pvExp = false;
+const PV_XP = 50;   // fama de PvP total (em milhões) para contar como experiente
 const PV_CONT = [["hg2","Hellgate 2v2"],["hg5","Hellgate 5v5"],["corrompida","Corrompidas"],["solo","Brumas (solo)"],["depths","Depths"]];
 const PV_TAM = t => t===1?"Solo":`Grupo de ${t}`;
 const pvWilson = (v,n) => { if(!n) return 0; const z=1.64, p=v/n, d=1+z*z/n; return (p+z*z/(2*n)-z*Math.sqrt((p*(1-p)+z*z/(4*n))/n))/d; };
@@ -40,7 +41,7 @@ function pvCard(b,d){
   return card;
 }
 function pvJog(p){
-  const r=el("div",{class:"pv-pl"}); const l=el("div",{class:"pv-pl-n"}); l.append(el("b",{text:p.nome}),el("small",{class:"muted",text:p.guild||"sem guilda"})); r.append(l);
+  const r=el("div",{class:"pv-pl"}); const l=el("div",{class:"pv-pl-n"}); l.append(el("b",{text:p.nome}),el("small",{class:"muted",text:(p.guild||"sem guilda")+(p.xp!=null?` · fama de PvP: ${p.xp} mi`:"")})); r.append(l);
   const s=el("div",{class:"pv-pl-s"}); s.append(el("b",{text:p.wr.toLocaleString("pt-BR")+"%",title:"winrate"}),el("small",{text:`${p.v}V · ${p.d}D`}),el("small",{text:p.ip?`IP ${p.ip}`:""})); r.append(s);
   const bs=el("div",{class:"cc-row sum"}); for(const [k,q] of p.b) bs.append(tile(pvKey(k).w,pvNome(k),`${q}×`)); r.append(bs); return r;
 }
@@ -53,20 +54,21 @@ function renderPvp(){
   if(!tams.includes(pvT)) pvT=tams[tams.length-1]||0;
   const ts=$("pvTam"); ts.textContent=""; for(const t of tams){ const b=el("button",{type:"button","aria-pressed":String(pvT===t),text:PV_TAM(t)}); b.addEventListener("click",()=>{ pvT=t; pvOpen=null; renderPvp(); }); ts.append(b); }
   const vs=$("pvView"); vs.textContent=""; for(const [k,n] of [["build","Por build"],["jog","Por jogador"]]){ const b=el("button",{type:"button","aria-pressed":String(pvV===k),text:n}); b.addEventListener("click",()=>{ pvV=k; pvOpen=null; renderPvp(); }); vs.append(b); }
-  $("pvSortW").hidden=pvV!=="build"; $("pvRefresh").hidden=pvV!=="build";
+  $("pvSortW").hidden=pvV!=="build"; $("pvRefresh").hidden=pvV!=="build"; $("pvExp").checked=pvExp;
   host.textContent=""; const d=PVP.conteudos[`${pvC}:${pvT}`];
   if(!d){ host.append(el("p",{class:"empty",text:"Sem amostra suficiente neste conteúdo e tamanho de grupo."})); return; }
   if(pvV==="jog"){
-    const l=d.jogadores.slice().sort((a,b)=>(pvWilson(b.v,b.n)-pvWilson(a.v,a.n)));
-    $("pvCount").textContent=`${l.length} jogadores com 5 lutas ou mais`;
+    let l=d.jogadores.slice(); if(pvExp) l=l.filter(p=>(p.xp||0)>=PV_XP); l.sort((a,b)=>(pvWilson(b.v,b.n)-pvWilson(a.v,a.n)));
+    $("pvCount").textContent=`${l.length} jogadores com 5 lutas ou mais`+(pvExp?" · só experientes":"");
     const pg=pgSlice("pvJ",l,[pvC,pvT,pvV].join("|"),renderPvp); pg.items.forEach(p=>host.append(pvJog(p))); host.append(pg.bar); return;
   }
-  let l=d.builds.slice(); pvSort=$("pvSort").value||pvSort;
+  let l=d.builds.slice(); if(pvExp) l=l.map(b=>{ const n=(b.vx||0)+(b.dx||0); return {...b,v:b.vx||0,d:b.dx||0,n,wr:n?Math.round(1000*(b.vx||0)/n)/10:0}; }).filter(b=>b.n>=4); pvSort=$("pvSort").value||pvSort;
   if(pvSort==="wilson") l.sort((a,b)=>pvWilson(b.v,b.n+0)-pvWilson(a.v,a.n)); else if(pvSort==="wr") l.sort((a,b)=>b.wr-a.wr||b.n-a.n); else if(pvSort==="spec"){ l.forEach(pvPrep); l.sort((a,b)=>(gbSpec(b)-gbSpec(a))||(b.n-a.n)); } else l.sort((a,b)=>b.n-a.n);
-  $("pvCount").textContent=`${l.length} builds com 4 lutas ou mais · ${d.eventos.toLocaleString("pt-BR")} mortes`;
+  $("pvCount").textContent=`${l.length} builds com 4 lutas ou mais`+(pvExp?" de jogadores experientes":` · ${d.eventos.toLocaleString("pt-BR")} mortes`);
   const pg=pgSlice("pvB",l,[pvC,pvT,pvV,pvSort].join("|"),renderPvp); pg.items.forEach(b=>host.append(pvCard(b,d))); host.append(pg.bar);
 }
 { const s=$("pvSort"); if(s) s.addEventListener("change",()=>{ pvSort=s.value; renderPvp(); });
+  const x=$("pvExp"); if(x) x.addEventListener("change",()=>{ pvExp=x.checked; pvOpen=null; renderPvp(); });
   const r=$("pvRefresh"); if(r) r.addEventListener("click",async()=>{ if(r.disabled) return; r.disabled=true; const old=r.textContent; r.textContent="Atualizando…"; FORCE=true;
     try{ await Promise.all([...BLD_PANELS].filter(p=>p.isConnected).map(p=>p._upd(true))); r.textContent="Atualizado "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}); }
     catch(e){ r.textContent="Não consegui atualizar"; }
