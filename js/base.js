@@ -734,6 +734,11 @@ $("pfAlbion").addEventListener("click",ev=>{
   if(afOk()){ setTimeout(irParaSincronia,1200); return; }
   ev.preventDefault(); afMostrarPrimeira(); afBaixar();
   $("pfStatus").textContent="Baixando o AlbionSpecs.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Sincronizar de novo."; });
+/* "Coletar preços": abre o programa só no modo de coleta (bandeja), sem ler a ficha e sem abrir aba */
+$("mkBtn").addEventListener("click",()=>{
+  if(!afOk()){ afMostrarPrimeira(); afBaixar(); $("pfStatus").textContent="Baixando o AlbionSpecs.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Coletar preços."; return; }
+  const a=el("a",{href:"albion-ficha://mercado",style:"display:none"}); document.body.append(a); a.click(); setTimeout(()=>a.remove(),2000);
+  toast("Abrindo o AlbionSpecs na bandeja do Windows… se o Windows pedir, aceite o aviso de Administrador."); });
 $("pfJaTenho").addEventListener("click",()=>{ afSet(); $("pfPrimeira").hidden=true; location.href=$("pfAlbion").href; setTimeout(irParaSincronia,1200); });
 $("pfFechaPrim").addEventListener("click",()=>{ $("pfPrimeira").hidden=true; });
 aplicarFichaDoAlbion(); window.addEventListener("hashchange",aplicarFichaDoAlbion);
