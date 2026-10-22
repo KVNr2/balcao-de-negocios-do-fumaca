@@ -85,6 +85,7 @@ def main():
     n_class = collections.Counter(); datas = []
     def ag(c, t):
         return S.setdefault((c, t), {"b": {}, "p": {}, "x": collections.defaultdict(lambda: [0, 0]), "n": 0})
+    cl = []; cnt_j = collections.Counter()
     for e in eventos.values():
         try:
             if datetime.datetime.strptime(e["TimeStamp"][:19], "%Y-%m-%dT%H:%M:%S") < corte: continue
@@ -92,13 +93,32 @@ def main():
         except Exception: continue
         c = max(pr, key=pr.get)
         if c not in CONT or pr[c] < CONF: continue
+        cl.append((c, e))
+        venc, v = pessoas(e)
+        for p in venc + [v]: cnt_j[(c, p.get("Id"))] += 1
+    # experiência: fama de PvP do jogador (KillFame, total de fama por matar jogadores). A API não traz a Infâmia por conteúdo, só esse total
+    LIM = 50e6
+    ids = sorted({i for (c, i), n in cnt_j.items() if n >= 2 and i})[:1500]
+    print("perfis a ler:", len(ids), flush=True)
+    def perfil(i):
+        r = get(f"/players/{i}"); return i, (r.get("KillFame") if isinstance(r, dict) else None)
+    FAMA = {}
+    with ThreadPoolExecutor(24) as ex:
+        for i, f in ex.map(perfil, ids): FAMA[i] = f
+    print("perfis lidos:", sum(1 for v in FAMA.values() if v is not None), flush=True)
+    def exp(c, pid):
+        f = FAMA.get(pid); return None if f is None else f >= LIM
+    def xp(c, pid):
+        f = FAMA.get(pid); return None if f is None else round(f / 1e6)
+    for c, e in cl:
         n_class[c] += 1; datas.append(e["TimeStamp"]); t = tamanho(c, e); A = ag(c, t); A["n"] += 1
         venc, v = pessoas(e); kv = chave(v); kvs = {chave(p) for p in venc} - {None}
         def reg(p, ganhou):
             k = chave(p)
             if not k: return
-            b = A["b"].setdefault(k, {"v": 0, "d": 0, "ip": [], "jog": set(), "gear": collections.defaultdict(collections.Counter), "par": collections.Counter()})
+            b = A["b"].setdefault(k, {"v": 0, "d": 0, "vx": 0, "dx": 0, "ip": [], "jog": set(), "gear": collections.defaultdict(collections.Counter), "par": collections.Counter()})
             b["v" if ganhou else "d"] += 1; b["jog"].add(p.get("Id"))
+            if exp(c, p.get("Id")): b["vx" if ganhou else "dx"] += 1
             if p.get("AverageItemPower"): b["ip"].append(p["AverageItemPower"])
             for sl, js in SLOT.items():
                 ty = ((p.get("Equipment") or {}).get(sl) or {}).get("Type")
@@ -107,7 +127,7 @@ def main():
                 for o in venc:
                     ko = chave(o)
                     if ko and ko != k: b["par"][ko] += 1
-            pl = A["p"].setdefault(p.get("Id"), {"nome": p.get("Name"), "v": 0, "d": 0, "ip": [], "b": collections.Counter(), "guild": p.get("GuildName") or ""})
+            pl = A["p"].setdefault(p.get("Id"), {"xp": xp(c, p.get("Id")), "nome": p.get("Name"), "v": 0, "d": 0, "ip": [], "b": collections.Counter(), "guild": p.get("GuildName") or ""})
             pl["v" if ganhou else "d"] += 1
             if p.get("AverageItemPower"): pl["ip"].append(p["AverageItemPower"])
             pl["b"][k] += 1; ativos[c][p.get("Id")] += 1; nomes_at[p.get("Id")] = p.get("Name")
@@ -139,7 +159,7 @@ def main():
             n = b["v"] + b["d"]
             if n < MINB: continue
             w, o = k.split("|")
-            row = {"id": f"{c}{t}:{k}", "k": c, "wc": w, "n": n, "v": b["v"], "d": b["d"], "wr": round(100 * b["v"] / n, 1), "jog": len(b["jog"]), "ip": round(sum(b["ip"]) / len(b["ip"])) if b["ip"] else 0}
+            row = {"id": f"{c}{t}:{k}", "k": c, "wc": w, "n": n, "v": b["v"], "d": b["d"], "wr": round(100 * b["v"] / n, 1), "vx": b["vx"], "dx": b["dx"], "jog": len(b["jog"]), "ip": round(sum(b["ip"]) / len(b["ip"])) if b["ip"] else 0}
             for js, cn in b["gear"].items():
                 top = [x for x, _ in cn.most_common(2)]
                 row[js] = top
@@ -172,7 +192,7 @@ def main():
         for pid, pl in A["p"].items():
             n = pl["v"] + pl["d"]
             if n < 5: continue
-            jogs.append({"nome": pl["nome"], "guild": pl["guild"], "n": n, "v": pl["v"], "d": pl["d"], "wr": round(100 * pl["v"] / n, 1), "ip": round(sum(pl["ip"]) / len(pl["ip"])) if pl["ip"] else 0, "b": [[k, q] for k, q in pl["b"].most_common(3)]})
+            jogs.append({"xp": pl["xp"], "nome": pl["nome"], "guild": pl["guild"], "n": n, "v": pl["v"], "d": pl["d"], "wr": round(100 * pl["v"] / n, 1), "ip": round(sum(pl["ip"]) / len(pl["ip"])) if pl["ip"] else 0, "b": [[k, q] for k, q in pl["b"].most_common(3)]})
         jogs.sort(key=lambda x: (-x["n"])); jogs = jogs[:80]
         out["conteudos"][f"{c}:{t}"] = {"eventos": A["n"], "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
     json.dump(out, open(os.path.join(ROOT, "data", "pvp.json"), "w"), ensure_ascii=False, separators=(",", ":"))
