@@ -1,8 +1,8 @@
 /* ================= Avalon: mapas das Estradas de Avalon ================= */
 const AV_RES={ORE:["Minério","ore"],FIBER:["Fibra","fiber"],WOOD:["Madeira","wood"],ROCK:["Pedra","stone"],HIDE:["Couro","hide"]};
 const AV_TYPE_G=g=>/^HIDEOUT/.test(g)?"HO":/^ROYAL/.test(g)?"ROYAL":/^BLACK/.test(g)?"BLACK":"TUNNEL";
-const AV_G_PT={HO:"Hideout",ROYAL:"Real",BLACK:"Negra",TUNNEL:"Túnel"};
-const AV_Y_PT={ROYAL:"Real",ROYAL_RED:"Real vermelha",BLACK_LOW:"Negra, risco baixo",BLACK_MEDIUM:"Negra, risco médio",BLACK_HIGH:"Negra, risco alto",LOW:"Túnel, risco baixo",MEDIUM:"Túnel, risco médio",HIGH:"Túnel, risco alto",DEEP:"Túnel profundo",DEEP_RAID:"Túnel profundo com raid",HIDEOUT:"Hideout",HIDEOUT_DEEP:"Hideout profundo"};
+const AV_G_PT={HO:"Hideout",ROYAL:"Royal",BLACK:"Black",TUNNEL:"Tunnel"};
+const AV_Y_PT={ROYAL:"Royal",ROYAL_RED:"Red",BLACK_LOW:"Black, risco baixo",BLACK_MEDIUM:"Black, risco médio",BLACK_HIGH:"Black, risco alto",LOW:"Tunnel, risco baixo",MEDIUM:"Tunnel, risco médio",HIGH:"Tunnel, risco alto",DEEP:"Tunnel profundo",DEEP_RAID:"Tunnel profundo com raid",HIDEOUT:"Hideout",HIDEOUT_DEEP:"Hideout profundo"};
 const AV_EXTRA={solo:["Dungeon solo",m=>m.s>0],group:["Dungeon de grupo",m=>m.g>0],raid:["Raid",m=>m.e>0],mist:["Portal da Brecilien",m=>m.mi>0]};
 const AV_TZ=[["local","Do meu navegador"],["UTC","UTC"],["America/Sao_Paulo","São Paulo"],["America/New_York","Nova York"],["Europe/London","Londres"],["Europe/Berlin","Berlim"],["Asia/Tokyo","Tóquio"]];
 const AV={data:null,q:"",tier:0,type:"",sort:"nome",res:new Set(),extra:new Set(),shown:60,saved:[],hist:[],inited:false};
@@ -35,21 +35,21 @@ function avMini(m){
     else add("circle",{cx:X,cy:Y,r:3.2,class:"av-mp"+(k==="B"?" mist":"")},tt); }
   return sv;
 }
-const avTypeTxt=y=>{ const g=AV_G_PT[AV_TYPE_G(y)], r=/(LOW|MEDIUM|HIGH)$/.exec(y); return r?`${g} · ${{LOW:"baixo",MEDIUM:"médio",HIGH:"alto"}[r[1]]}`:/DEEP/.test(y)?`${g} · profundo`:g; };
+const avTyCls=y=>y==="ROYAL_RED"?"red":({HO:"ho",ROYAL:"royal",BLACK:"black",TUNNEL:"tunnel"})[AV_TYPE_G(y)];
+const avTypeTxt=y=>{ if(y==="ROYAL_RED") return "Red"; const g=AV_G_PT[AV_TYPE_G(y)], r=/(LOW|MEDIUM|HIGH)$/.exec(y); return r?`${g} · ${{LOW:"risco baixo",MEDIUM:"risco médio",HIGH:"risco alto"}[r[1]]}`:/DEEP/.test(y)?`${g} · profundo`:g; };
 function avCard(m){
   const saved=AV.saved.some(x=>x.i===m.i), card=el("article",{class:"av-card"+(saved?" on":"")});
   const hd=el("div",{class:"av-hd"}); hd.append(el("b",{class:"av-n",text:m.n}));
   const star=el("button",{type:"button",class:"av-star","aria-pressed":String(saved),title:saved?"Tirar da rota":"Salvar na rota (até 6)","aria-label":saved?"Tirar da rota":"Salvar na rota",text:saved?"★":"☆"});
   star.addEventListener("click",()=>avToggle(m.i)); hd.append(star); card.append(hd);
-  const tg=el("div",{class:"av-tags"}); tg.append(el("span",{class:"tag t"+m.t,text:`T${m.t}`}),el("span",{class:"tag mute",title:AV_Y_PT[m.y]||m.y,text:avTypeTxt(m.y)}));
-  if(m.y==="ROYAL_RED") tg.append(el("span",{class:"tag bad",text:"Vermelha"}));
+  const tg=el("div",{class:"av-tags"}); tg.append(el("span",{class:"tag t"+m.t,text:`T${m.t}`}),el("span",{class:"av-ty "+avTyCls(m.y),title:AV_Y_PT[m.y]||m.y,text:avTypeTxt(m.y)}));
   if(m.mi) tg.append(el("span",{class:"tag good",title:"Tem portal para a Brecilien",text:"Brecilien"}));
   const pic=AV.img&&AV.img[avNorm(m.n).replace(/ /g,"-")];
   if(pic){ const im=el("img",{class:"av-pic",src:`imagens/avalon/${pic}`,alt:`Mapa ${m.n}`,loading:"lazy",decoding:"async"}); const mini=avMini(m); im.addEventListener("error",()=>im.replaceWith(mini)); card.append(tg,im); } else card.append(tg,avMini(m));
   const rs=el("div",{class:"av-res"});
-  for(const k of Object.keys(AV_RES)){ const n=avRes(m,k); if(!n) continue; const t=Object.keys(m.r[k]).sort().map(x=>`T${x}: ${m.r[k][x]}`).join(" · "); const c=el("span",{class:"av-r"+(AV.res.has(k)?" hi":""),title:`${AV_RES[k][0]} (${t})`}); const mt=Math.max(...Object.keys(m.r[k]).map(Number)); const ic=fullImg(`T${mt}_${k}`,"av-ri"); c.append(ic||el("i",{class:"av-rd r-"+AV_RES[k][1]}),document.createTextNode(`${AV_RES[k][0]} ${n}`)); rs.append(c); }
+  for(const k of Object.keys(AV_RES)){ const n=avRes(m,k); if(!n) continue; const t=Object.keys(m.r[k]).sort().map(x=>`T${x}: ${m.r[k][x]}`).join(" · "); const c=el("span",{class:"av-r"+(AV.res.has(k)?" hi":""),title:`${AV_RES[k][0]} (${t})`}); const mt=Math.max(...Object.keys(m.r[k]).map(Number)); const ic=fullImg(`T${mt}_${k}`,"av-ri"); c.append(ic||el("i",{class:"av-rd r-"+AV_RES[k][1]}),el("span",{class:"av-rn",text:AV_RES[k][0]}),el("b",{class:"av-rq",title:"Quantidade no mapa",text:`×${n}`})); rs.append(c); }
   if(!rs.children.length) rs.append(el("span",{class:"muted small",text:"Sem recursos"}));
-  card.append(rs);
+  card.append(el("div",{class:"av-rt",text:"Recursos no mapa (quantidade)"}),rs);
   const ft=el("div",{class:"av-ft"}); const dg=[]; if(m.s) dg.push(`${m.s} solo`); if(m.g) dg.push(`${m.g} grupo`); if(m.e) dg.push(`${m.e} raid`);
   ft.append(el("span",{text:`Dungeons: ${dg.join(", ")||"nenhuma"}`}),el("span",{text:`Portais: ${m.p+(m.ho||0)+(m.mi||0)}`})); card.append(ft);
   return card;
@@ -86,7 +86,7 @@ function avHistUI(){ const h=$("avHist"); h.textContent=""; if(!AV.hist.length) 
 function avInit(){
   AV.inited=true; AV.saved=avRead("avSaved",[]).filter(x=>x&&x.i); AV.hist=avRead("avHist",[]);
   const tier=$("avTier"); [[0,"Todos"],[4,"T4"],[6,"T6"],[8,"T8"]].forEach(([v,t])=>{ const b=el("button",{type:"button","aria-pressed":String(v===0),text:t}); b.addEventListener("click",()=>{ AV.tier=v; AV.shown=60; [...tier.children].forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderAv(); }); tier.append(b); });
-  const ty=$("avType"); ty.append(el("option",{value:"",text:"Todos os tipos"})); for(const [k,v] of Object.entries(AV_G_PT)) ty.append(el("option",{value:k,text:v})); ty.append(el("option",{value:"ROYAL_RED",text:"Real vermelha"})); ty.addEventListener("change",()=>{ AV.type=ty.value; AV.shown=60; renderAv(); });
+  const ty=$("avType"); ty.append(el("option",{value:"",text:"Todos os tipos"})); for(const [k,v] of Object.entries(AV_G_PT)) ty.append(el("option",{value:k,text:v})); ty.append(el("option",{value:"ROYAL_RED",text:"Red"})); ty.addEventListener("change",()=>{ AV.type=ty.value; AV.shown=60; renderAv(); });
   const mk=(host,obj,set)=>{ for(const k in obj){ const b=el("button",{type:"button","aria-pressed":"false",text:Array.isArray(obj[k])?obj[k][0]:obj[k]}); b.addEventListener("click",()=>{ if(set.has(k)) set.delete(k); else set.add(k); b.setAttribute("aria-pressed",String(set.has(k))); AV.shown=60; renderAv(); }); host.append(b); } };
   mk($("avRes"),AV_RES,AV.res); mk($("avExtra"),AV_EXTRA,AV.extra);
   $("avSort").addEventListener("change",()=>{ AV.sort=$("avSort").value; renderAv(); });
