@@ -1436,3 +1436,6 @@ td.wk-act .mn-craft+.mn-craft{margin-left:6px}
 .av-zmid{display:grid;place-items:center}
 .av-zimg{max-height:calc(100vh - 150px)}
 @media (max-width:900px){.av-zbody{grid-template-columns:1fr}.av-zmid{order:-1}.av-zbox{overflow:auto}}
+
+.wk-fm.none b{color:#ff7a7a}
+#bmFocBox,#ofFocBox{margin:6px 0}
