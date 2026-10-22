@@ -224,7 +224,7 @@ function costPanel(b,get,ui){
     for(const id of cons){ const p=pr(id), ii=idInfo(id), cx=cosInfo(id); if(p) tot+=p; tip.push(`${(cx&&cx.n)||itemNome(ii.c)}: ${p?fmt(p):"sem preço"}`); }
     out.classList.remove("load"); out.textContent=""; out.title=`${fmt(tot)} de prata no total\n`+tip.join("\n");
     if(!tot){ out.textContent="sem preço nesta cidade"; return; }
-    out.append(el("b",{text:fmtS(tot)}),el("small",{text:"prata"}));
+    out.append(el("b",{text:fmtS(tot)}));
     tags.textContent=""; const SL={w:"Arma",o:"Secundária",h:"Cabeça",a:"Peito",s:"Botas",c:"Capa"};
     for(const [k,from,to] of qch) tags.append(el("span",{class:"bld-chip",title:`Sem preço em ${QNAME[from]} nesta cidade; o custo, o IP, os ícones e o texto copiado usam ${QNAME[to]}`,text:`${SL[k]}: ${QNAME[to]} (sem ${QNAME[from]})`}));
     const wn=[]; if(miss) wn.push(`faltam ${miss}`); if(old) wn.push(`${old} com média de 30 dias`);
@@ -238,13 +238,13 @@ function costPanel(b,get,ui){
   return box;
 }
 function albionBar(b,badge,costValue,opts){
-  const bar=el("div",{class:"kx-alb"}); let set=b._set||0, tier=BLD_TIER, setSel=null; const qf=bQf(b);
+  const bar=el("div",{class:"kx-alb"}); let set=b._set||0, tier=b._tier||0, setSel=null; const qf=bQf(b);
   const refresh=()=>{ b._tier=tier; if(badge) badge._upd(set,tier,qf); bQApply(b); if(b._cost) b._cost._upd(); }; b._refresh=refresh;
   const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
   if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; b._set=set; refresh(); }); sel.value=String(set); setSel=sel; }
   const tsel=el("select",{"aria-label":"Tier das peças"});
   tsel.append(el("option",{value:"0",text:"Tier original"})); [4,5,6,7,8].forEach(t=>tsel.append(el("option",{value:String(t),text:`T${t} equivalente`}))); tsel.value=String(tier); tsel.title="O tier vale para o IP, o custo, os ícones e o texto copiado ao Albion. Cada peça usa o equivalente mais barato (T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4).";
-  tsel.addEventListener("change",()=>{ tier=+tsel.value; BLD_TIER=tier; try{ localStorage.setItem("bldTier",String(tier)); }catch(e){} refresh(); });
+  tsel.addEventListener("change",()=>{ tier=+tsel.value; b._tier=tier; refresh(); });
   if(opts&&opts.qBar){ const ql=el("label",{class:"alb-tier",title:"Qualidade das peças: muda o IP e o texto copiado ao Albion. Bom +20, Excepcional +40, Excelente +60, Obra-prima +100 de IP por peça."}); const qs=qSelect(bQ(b).a,false,"Qualidade das peças"); qs.addEventListener("change",()=>{ bQ(b).a=+qs.value; refresh(); }); ql.append(qs); bar.append(ql); }
   const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento com o tier escolhido. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
   const msg=el("span",{class:"bld-msg muted small",role:"status"});
