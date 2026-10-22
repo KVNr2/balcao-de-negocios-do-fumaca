@@ -11,27 +11,21 @@ def get(url, n=60000, tries=2):
         except urllib.error.HTTPError as e: return e.code, ""
         except Exception as e: err = str(e)[:100]; time.sleep(2)
     return 0, err
-out = {"slayerboard": {}, "gameinfo": {}}
-pages = ["https://albionslayerboard.com/eu/leaderboard/", "https://albionslayerboard.com/eu/builds/", "https://albionslayerboard.com/eu/counters/", "https://albionslayerboard.com/eu/insights/", "https://albionslayerboard.com/eu/meta/"]
-found = set(); scripts = set()
-for p in pages:
-    st, html = get(p)
-    out["slayerboard"][p] = {"status": st, "len": len(html)}
+out = {"kb1": {}}
+base = "https://killboard-1.com"
+found = set(); scripts = set(); links = set()
+for path in ["/", "/leaderboard", "/hellgate", "/corrupted", "/mists", "/depths", "/builds", "/stats"]:
+    st, html = get(base + path)
+    out["kb1"][path] = {"status": st, "len": len(html), "titulo": (re.findall(r"<title>(.*?)</title>", html, re.S) or [""])[0][:120]}
     for m in re.findall(r'(?:src|href)="([^"]+\.js[^"]*)"', html): scripts.add(m)
-    for m in re.findall(r'https?://[^\s"\'<>]*(?:api|gameinfo|json|snapshot)[^\s"\'<>]*', html): found.add(m)
-    for m in re.findall(r'["\'](/(?:api|snapshot|data)[^"\']*)["\']', html): found.add(m)
-out["slayerboard"]["scripts"] = sorted(scripts)[:30]
-for s in list(scripts)[:12]:
-    url = s if s.startswith("http") else "https://albionslayerboard.com" + (s if s.startswith("/") else "/" + s)
+    for m in re.findall(r'href="(/[^"#?]*)"', html): links.add(m)
+    for m in re.findall(r'https?://[^\s"\'<>]*(?:api|json|snapshot)[^\s"\'<>]*', html): found.add(m)
+out["kb1"]["links"] = sorted(links)[:80]; out["kb1"]["scripts"] = sorted(scripts)[:30]
+for s_ in list(scripts)[:15]:
+    url = s_ if s_.startswith("http") else base + (s_ if s_.startswith("/") else "/" + s_)
     st, js = get(url)
-    for m in re.findall(r'https?://[^\s"\'`<>\\]*(?:api|gameinfo|snapshot|json)[^\s"\'`<>\\]*', js): found.add(m)
-    for m in re.findall(r'["\'`](/(?:api|snapshot|data|v\d)[^"\'`\s]*)["\'`]', js): found.add(m)
-out["slayerboard"]["endpoints"] = sorted(found)[:120]
-G = "https://gameinfo.albiononline.com/api/gameinfo"
-cands = ["/events?limit=3", "/leaderboard", "/ranking", "/leaderboards", "/matches", "/matches/crystal", "/matches/hellgate", "/matches/corrupted", "/corrupted", "/hellgate", "/hellgate/leaderboard",
-         "/events/playerfame?range=week&limit=3&offset=0", "/events/killfame?range=week&limit=3", "/players/statistics", "/mists", "/solo", "/duels", "/events/battle", "/battles?limit=3&sort=recent"]
-for c in cands:
-    st, body = get(G + c, 3000)
-    out["gameinfo"][c] = {"status": st, "inicio": body[:300]}
+    for m in re.findall(r'https?://[^\s"\'`<>\\]*(?:api|snapshot|json|gameinfo)[^\s"\'`<>\\]*', js): found.add(m)
+    for m in re.findall(r'["\'`](/(?:api|v\d|data|snapshot)[^"\'`\s]*)["\'`]', js): found.add(m)
+out["kb1"]["endpoints"] = sorted(found)[:150]
 json.dump(out, open("tools/sonda-fontes.json", "w"), ensure_ascii=False, indent=1)
-print(json.dumps({"endpoints": out["slayerboard"]["endpoints"][:40], "gameinfo": {k: v["status"] for k, v in out["gameinfo"].items()}}, ensure_ascii=False))
+print(json.dumps(out["kb1"], ensure_ascii=False)[:3000])
