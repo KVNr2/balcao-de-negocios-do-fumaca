@@ -194,10 +194,13 @@ function costPanel(b,get,ui){
   const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade de referência: o valor é a média de vendas dos últimos 7 dias nela (30 dias se não houver)"});
   SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
   const out=el("span",{class:"bld-tot",role:"status","aria-live":"polite"});
-  const row=(cap,x)=>{ const l=el("label",{class:"bld-row"}); l.append(el("span",{class:"bld-k",text:cap}),x); return l; };
-  const ts=ui.tsel; box.append(row("Tier",ts)); if(ui.sel) box.append(row("Set",ui.sel)); const tags=el("div",{class:"bld-tags"}); box.append(row("Custo em",cs),out,tags,ui.btn,ui.msg);
+  const seg=(selEl,label,lab)=>{ const g=el("div",{class:"bld-seg",role:"group","aria-label":label}); const bs=[...selEl.options].map(o=>{ const bt=el("button",{type:"button",text:lab(o),title:o.text,"aria-pressed":"false"}); bt.addEventListener("click",()=>{ selEl.value=o.value; selEl.dispatchEvent(new Event("change")); g._sync(); }); g.append(bt); return [o.value,bt]; });
+    g._sync=()=>bs.forEach(([v,bt])=>bt.setAttribute("aria-pressed",String(selEl.value===v))); g._sync(); return g; };
+  const tierSeg=seg(ui.tsel,"Tier das peças",o=>o.value==="0"?"Original":`T${o.value}`), setSeg=ui.sel?seg(ui.sel,"Set",o=>`Set ${+o.value+1}`):null;
+  const grp=(cap,x)=>{ const d=el("div",{class:"bld-g"}); d.append(el("span",{class:"bld-k",text:cap}),x); return d; };
+  const tags=el("div",{class:"bld-tags"}); box.append(grp("Tier",tierSeg)); if(setSeg) box.append(grp("Set",setSeg)); box.append(grp("Cidade",cs),tags,out,ui.btn,ui.msg);
   let seen=false, run=0;
-  box._upd=async(force)=>{ if(!seen&&!force) return; seen=true; const my=++run; const {set,tier,badgeUpd}=get(); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
+  box._upd=async(force)=>{ if(!seen&&!force) return; seen=true; const my=++run; const {set,tier,badgeUpd}=get(); tierSeg._sync(); if(setSeg) setSeg._sync(); const pick=arr=>{ arr=[].concat(arr||[]).filter(Boolean); return arr[set]||arr[0]||""; };
     const w=set&&b.w2?b.w2:b.w; const base=[["w",w],["o",/^T\d+_2H_/.test(w)?"":pick(b.o)],["h",pick(b.h)],["a",pick(b.a)],["s",pick(b.s)],["c",pick(b.c)]].filter(x=>x[1]);
     const cons=[pick(b.p),pick(b.f)].filter(Boolean);
     const gear=base.map(([k,id])=>{ const m=idInfo(id); if(!m) return null; const sum=tier||Math.min(12,m.t+m.e); return {k,src:id,code:m.c,q:bQ(b).p[k]||bQ(b).a||1,groups:[m.t<4?[[m.t,m.e]]:bcEquivs(sum)]}; }).filter(Boolean);
@@ -219,9 +222,9 @@ function costPanel(b,get,ui){
       if(x){ tot+=x.p; if(x.d===30) old++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} (média de ${x.d} dias)`+(x.q!==g.q?` — sem preço em ${QNAME[g.q]}, usei ${QNAME[x.q]}`:"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q]); }
       else { miss++; names.push(nm); tip.push(`${nm}: sem vendas em ${BLD_CITY} nos últimos 30 dias`); } }
     for(const id of cons){ const p=pr(id), ii=idInfo(id), cx=cosInfo(id); if(p) tot+=p; tip.push(`${(cx&&cx.n)||itemNome(ii.c)}: ${p?fmt(p):"sem preço"}`); }
-    out.classList.remove("load"); out.textContent=""; out.title=tip.join("\n");
+    out.classList.remove("load"); out.textContent=""; out.title=`${fmt(tot)} de prata no total\n`+tip.join("\n");
     if(!tot){ out.textContent="sem preço nesta cidade"; return; }
-    out.append(el("b",{text:fmt(tot)}),document.createTextNode(" prata"));
+    out.append(el("b",{text:fmtS(tot)}),el("small",{text:"prata"}));
     tags.textContent=""; const SL={w:"Arma",o:"Secundária",h:"Cabeça",a:"Peito",s:"Botas",c:"Capa"};
     for(const [k,from,to] of qch) tags.append(el("span",{class:"bld-chip",title:`Sem preço em ${QNAME[from]} nesta cidade; o custo, o IP, os ícones e o texto copiado usam ${QNAME[to]}`,text:`${SL[k]}: ${QNAME[to]} (sem ${QNAME[from]})`}));
     const wn=[]; if(miss) wn.push(`faltam ${miss}`); if(old) wn.push(`${old} com média de 30 dias`);
@@ -297,7 +300,7 @@ function buildCard(b){
   card.append(gbStrip(b));
   const btn=el("button",{type:"button",class:"bc-more bc-tog","aria-expanded":String(open),text:open?"Fechar ▴":"Abrir ▾"});
   btn.addEventListener("click",()=>{ bOpen=open?null:b.id; renderBuilds(); });
-  const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"g:"+b.id,{costHost:rt})); card.append(act);
+  const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"g:"+b.id,{costHost:card})); card.append(act);
   if(open){ card.append(kbPanel(b)); qMoveTop(card); }
   return card;
 }
