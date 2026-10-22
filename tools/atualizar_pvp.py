@@ -94,8 +94,9 @@ def main():
         def reg(p, ganhou):
             k = chave(p)
             if not k: return
-            b = A["b"].setdefault(k, {"v": 0, "d": 0, "jog": set(), "gear": collections.defaultdict(collections.Counter), "par": collections.Counter()})
+            b = A["b"].setdefault(k, {"v": 0, "d": 0, "ip": [], "jog": set(), "gear": collections.defaultdict(collections.Counter), "par": collections.Counter()})
             b["v" if ganhou else "d"] += 1; b["jog"].add(p.get("Id"))
+            if p.get("AverageItemPower"): b["ip"].append(p["AverageItemPower"])
             for sl, js in SLOT.items():
                 ty = ((p.get("Equipment") or {}).get(sl) or {}).get("Type")
                 if ty: b["gear"][js][ty] += 1
@@ -135,7 +136,7 @@ def main():
             n = b["v"] + b["d"]
             if n < MINB: continue
             w, o = k.split("|")
-            row = {"id": f"{c}{t}:{k}", "k": c, "wc": w, "n": n, "v": b["v"], "d": b["d"], "wr": round(100 * b["v"] / n, 1), "jog": len(b["jog"])}
+            row = {"id": f"{c}{t}:{k}", "k": c, "wc": w, "n": n, "v": b["v"], "d": b["d"], "wr": round(100 * b["v"] / n, 1), "jog": len(b["jog"]), "ip": round(sum(b["ip"]) / len(b["ip"])) if b["ip"] else 0}
             for js, cn in b["gear"].items():
                 top = [x for x, _ in cn.most_common(2)]
                 row[js] = top
