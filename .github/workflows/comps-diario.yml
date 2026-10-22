@@ -17,11 +17,10 @@ jobs:
       - run: python3 tools/atualizar_comps.py
       - name: Atualizar a versão dos arquivos e publicar se mudou
         run: |
-          ./carimbo.sh
-          if [ -n "$(git status --porcelain)" ]; then
+          if [ -n "$(git status --porcelain data)" ]; then
             git config user.name "comps-bot"
             git config user.email "comps-bot@users.noreply.github.com"
-            git add -A data index.html versao.txt versao.json
+            git add -A data
             git commit -m "Composições atualizadas automaticamente"
             for i in 1 2 3; do
               git pull --rebase -X theirs -q || git rebase --abort
