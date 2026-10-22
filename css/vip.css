@@ -1364,3 +1364,7 @@ select.kx-q:not([value="0"]){}
 .av-zx{margin-left:auto;background:none;border:1px solid var(--line-soft,#4a3a2a);color:inherit;border-radius:8px;width:34px;height:34px;font-size:22px;cursor:pointer}
 .av-zimg{max-width:100%;max-height:calc(100vh - 120px);object-fit:contain;border-radius:10px;display:block;margin:0 auto}
 .av-zbox .av-mini{max-height:calc(100vh - 120px)}
+
+td.wk-act{white-space:nowrap}
+td.wk-act .mn-craft{display:inline-block;box-sizing:border-box;width:92px;height:32px;padding:0 8px;line-height:30px;text-align:center;vertical-align:middle}
+td.wk-act .mn-craft+.mn-craft{margin-left:6px}
