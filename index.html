@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="16da968e">
+<html lang="pt-BR" data-v="a807cf48">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=16da968e">
-<link rel="stylesheet" href="css/vip.css?v=16da968e">
-<link rel="stylesheet" href="css/souk.css?v=16da968e">
+<link rel="stylesheet" href="css/balcao.css?v=a807cf48">
+<link rel="stylesheet" href="css/vip.css?v=a807cf48">
+<link rel="stylesheet" href="css/souk.css?v=a807cf48">
 </head>
 <body>
 <div class="wrap app">
@@ -282,7 +282,7 @@
             <select id="ofCat" aria-label="Categoria"></select>
             <input type="search" id="ofFind" placeholder="Nome do item" autocomplete="off" aria-label="Nome do item">
             <div class="of-cnt">Itens na lista <b id="ofCount">—</b></div></div>
-          <div class="of-card of-rc"><span class="of-ct" id="ofRcT">Receita</span><input id="ofQty" type="number" min="1" step="1" value="10" aria-label="Quantidade de receitas a fabricar"><small class="muted" id="ofRcS">receitas a fabricar de cada item</small></div>
+          <div class="of-card of-rc"><span class="of-ct" id="ofRcT">Receita</span><input id="ofQty" type="number" min="1" step="1" value="10" aria-label="Quantidade de receitas a fabricar"><small class="muted" id="ofRcS">receitas pagas de cada item</small><div class="seg" id="ofQMode" role="group" aria-label="O que a quantidade significa"><button type="button" data-q="pay" aria-pressed="true" title="Você compra o material de N receitas; o que volta do retorno vira peças extras">Material de N</button><button type="button" data-q="final" aria-pressed="false" title="Você quer fabricar exatamente N peças (o retorno só barateia)">N peças finais</button></div></div>
           <div class="of-g"><h3>Item</h3>
             <div class="of-2c"><label class="f">Tier<select id="ofTier"></select></label><label class="f">Encantamento<select id="ofEnch"></select></label></div>
             <label class="f" id="ofQualBox">Qualidade do item vendido<select id="ofQual"></select></label></div>
@@ -712,21 +712,21 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=16da968e"></script>
-<script src="js/base.js?v=16da968e"></script>
-<script src="js/fx.js?v=16da968e"></script>
-<script src="js/biz.js?v=16da968e"></script>
-<script src="js/builds.js?v=16da968e"></script>
-<script src="js/nossas.js?v=16da968e"></script>
-<script src="js/ip.js?v=16da968e"></script>
-<script src="js/zvz.js?v=16da968e"></script>
-<script src="js/pvp.js?v=16da968e"></script>
-<script src="js/novos.js?v=16da968e"></script>
-<script src="js/guia.js?v=16da968e"></script>
-<script src="js/ui.js?v=16da968e"></script>
-<script src="js/avalon.js?v=16da968e"></script>
-<script src="js/oficina.js?v=16da968e"></script>
-<script src="js/versao.js?v=16da968e"></script>
-<script src="js/main.js?v=16da968e"></script>
+<script src="js/icons.js?v=a807cf48"></script>
+<script src="js/base.js?v=a807cf48"></script>
+<script src="js/fx.js?v=a807cf48"></script>
+<script src="js/biz.js?v=a807cf48"></script>
+<script src="js/builds.js?v=a807cf48"></script>
+<script src="js/nossas.js?v=a807cf48"></script>
+<script src="js/ip.js?v=a807cf48"></script>
+<script src="js/zvz.js?v=a807cf48"></script>
+<script src="js/pvp.js?v=a807cf48"></script>
+<script src="js/novos.js?v=a807cf48"></script>
+<script src="js/guia.js?v=a807cf48"></script>
+<script src="js/ui.js?v=a807cf48"></script>
+<script src="js/avalon.js?v=a807cf48"></script>
+<script src="js/oficina.js?v=a807cf48"></script>
+<script src="js/versao.js?v=a807cf48"></script>
+<script src="js/main.js?v=a807cf48"></script>
 </body>
 </html>

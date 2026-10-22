@@ -101,23 +101,30 @@ function pickSell(id,ov){
     else { p=v?v[0]:0; t=v?v[2]:0; }
     if(p>0&&(!best||p>best.p)) best={p,c,t:t||snapTime(),mode}; }
   return best; }
-function ofRRbase(it){ const fb=it.bonus===0.40?0.40:0.15;
+function ofRRbase(it){ const fb=it.bonus===0.40?0.40:0.15; if(OF.mode==="refine") return rrr(fb,true,st.daily);
   if(OF.rr==="none") return rrr(0,false,st.daily); if(OF.rr==="focus") return rrr(fb,true,st.daily); return rrr(fb,false,st.daily); }
-function ofRR(it){ return OF2.rrMan!=null?OF2.rrMan:ofRRbase(it); }
+function ofRR(it){ return OF.mode!=="refine"&&OF2.rrMan!=null?OF2.rrMan:ofRRbase(it); }
 /* quantidade que o jogo devolve: o arredondamento é por jogada, aqui usamos a média */
 function ofN(){ return OF2.qty>0?OF2.qty:10; }
 /* custo e lucro de N receitas: o retorno é aplicado ao total de cada material e arredondado para cima, como se compra no jogo */
 function ofModel(it,rrOv){
   const ovS=OF2.ov["s|"+it.id]; const sale=(ovS&&pickSell(it.id,ovS))||pickSell(it.id); if(!sale) return null;
-  const N=ofN(); let mat=0, buyFee=0, miss=0; const rr=rrOv!=null?rrOv:ofRR(it), parts=[];
+  const rr=rrOv!=null?rrOv:ofRR(it), ref=OF.mode==="refine", fc1=Math.max(1,Math.round(it.focus*Math.pow(0.5,(it.fce||0)/10000)));
+  /* Refino: a conta parte do foco (quantas unidades o foco cobre). Craft: "receitas pagas" compra material para N receitas e o retorno devolve material para fabricar mais peças (N ÷ (1 − retorno)); "peças finais" fabrica exatamente N. */
+  const pay=!ref&&OF2.qMode!=="final"; let N, Np;
+  if(ref){ N=Math.floor(focBud()/fc1); if(N<1) return null; Np=N; }
+  else if(pay){ Np=ofN(); N=Math.max(Np,Math.floor(Np/(1-rr)+1e-9)); }
+  else { N=Np=ofN(); }
+  let mat=0, buyFee=0, miss=0; const parts=[];
   for(const g of it.ing){ const ovB=OF2.ov["b|"+it.id+"|"+g.id]; const b=(ovB&&pickBuy(g.id,ovB))||pickBuy(g.id); if(!b){ miss++; parts.push({...g,b:null}); continue; }
-    const unit=b.p, total=g.n*N, need=g.art?total:Math.ceil(total*(1-rr)-1e-9), ret=total-need, base=need*unit, bf=b.mode==="ordem"?base*0.025:0;
+    const unit=b.p, total=g.n*N; let need;
+    if(g.art) need=total; else if(pay) need=g.n*Np; else need=Math.ceil(total*(1-rr)-1e-9);
+    const ret=total-need, base=need*unit, bf=b.mode==="ordem"?base*0.025:0;
     mat+=base; buyFee+=bf; parts.push({...g,b,unit,total,need,ret,pay:need,sub:base+bf,retVal:ret*unit}); }
   if(miss) return {it,sale,parts,miss};
   const fee=it.fee*feeVal()/100*N, cost=mat+buyFee+fee;
   const tax=OF2.tax?((st.prem?0.04:0.08)+(sale.mode==="ordem"?0.025:0)):0, gross=N*it.q*sale.p, taxV=gross*tax, net=gross-taxV, costReal=cost+taxV, profit=gross-costReal;
-  const fc1=Math.max(1,Math.round(it.focus*Math.pow(0.5,(it.fce||0)/10000)));
-  return {it,N,sale,parts,cost,costReal,mat,buyFee,net,gross,taxV,profit,pct:costReal>0?profit/costReal:0,rr,fee,fc:fc1*N,fc1,units:N*it.q};
+  return {it,N,Np,sale,parts,cost,costReal,mat,buyFee,net,gross,taxV,profit,pct:costReal>0?profit/costReal:0,rr,fee,fc:fc1*N,fc1,units:N*it.q};
 }
 /* preços na qualidade escolhida para o item fabricado */
 async function ensureOfQ(items){
@@ -130,7 +137,7 @@ const ofPct = v => dec(v*100)+"%";
 function ofSyncRR(){ const r=$("ofRRs"); if(!r) return; const it=OF2.sample||{bonus:0.15}; const v=OF2.rrMan!=null?OF2.rrMan:ofRRbase(it); r.value=Math.round(v*1000)/10; $("ofRRv").textContent=dec(v*100)+"%";
   const fb=it.bonus===0.40?0.40:0.15, base={none:rrr(0,false,st.daily),auto:rrr(fb,false,st.daily),focus:rrr(fb,true,st.daily)};
   document.querySelectorAll("#ofRRp button").forEach(b=>{ const k=b.dataset.rr; b.textContent=dec(base[k]*100); b.setAttribute("aria-pressed",String(OF2.rrMan==null&&OF.rr===k)); });
-  $("ofFocus").checked=OF2.rrMan==null&&OF.rr==="focus"; { const bx=$("ofFocBox"); if(bx){ bx.hidden=!$("ofFocus").checked; FOC_UIS.forEach(u=>u._sync()); } } }
+  $("ofFocus").checked=OF2.rrMan==null&&OF.rr==="focus"; { const bx=$("ofFocBox"); if(bx){ bx.hidden=OF.mode==="refine"||!$("ofFocus").checked; FOC_UIS.forEach(u=>u._sync()); } } }
 function ofFillCats(){
   const sel=$("ofCat"); sel.textContent="";
   const groups={}; for(const c of ofCats()){ (groups[c.grp]||(groups[c.grp]=el("optgroup",{label:c.grp}))).append(el("option",{value:c.k,text:c.label})); }
@@ -149,7 +156,9 @@ function ofApplyMode(mode){
   $("ofTier").value=String(OF.tier); $("ofEnch").value=String(OF.ench); $("ofQty").value=String(OF2.qty);
   $("ofQualBox").hidden=ref; if(ref) OF2.qual=0; else { OF2.qual=OF2.qualSaved||0; $("ofQual").value=String(OF2.qual); }
   $("ofTitle").textContent=ref?"Oficina de refino":"Oficina"; $("ofRcT").textContent=ref?"Refino":"Receita";
-  $("ofRcS").textContent=ref?"unidades a refinar de cada item":"receitas a fabricar de cada item"; $("ofQty").setAttribute("aria-label",ref?"Quantidade de unidades a refinar":"Quantidade de receitas a fabricar");
+  $("ofRcT").textContent=ref?"Foco a gastar":"Receita"; $("ofRcS").textContent=ref?"cada item mostra quantas unidades esse foco refina, o lucro, onde comprar e onde vender":"receitas pagas de cada item (o retorno rende peças extras)"; $("ofQty").setAttribute("aria-label",ref?"Foco a gastar no refino":"Quantidade de receitas");
+  if(ref){ $("ofQty").value=String(focBud()); $("ofQty").step="500"; } else $("ofQty").step="1";
+  { const qm=$("ofQMode"); if(qm) qm.hidden=ref; const rrc=$("ofRRs").closest(".of-card"); if(rrc) rrc.hidden=ref; const fw=$("ofFocus").closest("label"); if(fw) fw.hidden=ref; if(ref){ const bx=$("ofFocBox"); if(bx) bx.hidden=true; } }
   $("ofFind").placeholder=ref?"Nome do recurso":"Nome do item";
   if(OF2.footC==null) OF2.footC=$("ofFoot").textContent;
   $("ofFoot").textContent=ref?"Atalhos de retorno: 15,3% (estação sem bônus), 36,7% (cidade com o bônus de refino daquele recurso) e 53,9% (cidade com bônus e foco). Cada unidade refinada usa a quantidade do tier de matéria-prima (T4 usa 2, T5 usa 3, T6 usa 4, T7 e T8 usam 5) mais 1 unidade refinada do tier anterior, com o mesmo encantamento (T4 usa a de T3). O retorno vale para os dois, e é arredondado para cima na compra. Bônus de refino: Thetford minério, Lymhurst fibra, Martlock pelego, Fort Sterling madeira, Bridgewatch pedra. Taxa da estação = valor do item × 0,1125 × taxa ÷ 100. O custo de foco cai pela metade a cada 10.000 de eficiência, que sai das specs de refino da sua ficha. Premium gera 10.000 de foco por dia. O produto refinado não tem qualidade, então só o preço importa. Os controles de Premium, bônus diário e taxa valem para o site todo.":OF2.footC;
@@ -168,7 +177,8 @@ function setupOf(){
   $("ofTax").addEventListener("change",()=>{ OF2.tax=$("ofTax").checked; renderOf(); });
   $("ofPrem").addEventListener("change",()=>{ document.querySelector(`[data-g="prem"][data-v="${$("ofPrem").checked?1:0}"]`).click(); renderOf(); });
   $("ofDaily").addEventListener("change",()=>{ document.querySelector(`[data-g="daily"][data-v="${$("ofDaily").checked?0.1:0}"]`).click(); renderOf(); });
-  $("ofQty").addEventListener("input",()=>{ OF2.qty=Math.max(0,Math.floor(+$("ofQty").value)||0); renderOf(); });
+  $("ofQty").addEventListener("input",()=>{ const v=Math.max(0,Math.floor(+$("ofQty").value)||0); if(OF.mode==="refine"){ focSet(v); FOC_UIS.forEach(u=>u._sync()); } else OF2.qty=v; renderOf(); });
+  { OF2.qMode=store.get("ofQMode")==="final"?"final":"pay"; const qm=$("ofQMode"); if(qm){ const sync=()=>qm.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.q===OF2.qMode))); sync(); qm.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; OF2.qMode=b.dataset.q; store.set("ofQMode",OF2.qMode); sync(); renderOf(); }); } }
   $("ofFee").value=$("ofFeeS").value=$("fee").value; const feeSet=v=>{ $("fee").value=v; $("fee").dispatchEvent(new Event("input")); $("ofFee").value=$("ofFeeS").value=v; renderOf(); }; $("ofFee").addEventListener("input",()=>feeSet($("ofFee").value)); $("ofFeeS").addEventListener("input",()=>feeSet($("ofFeeS").value));
   $("ofFeeP").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; feeSet(b.dataset.f); });
   $("ofPrem").checked=!!st.prem; $("ofDaily").checked=st.daily>0;
@@ -206,7 +216,7 @@ function ofDetail(m){
   const right=el("div",{class:"of-xs"});
   const card=(cls,title,lines,tot)=>{ const c=el("div",{class:"of-xcard "+cls}); c.append(el("h4",{class:"of-xh",text:title})); for(const [k,v,cc] of lines){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{class:cc||"",text:v})); c.append(l); } if(tot){ const l=el("div",{class:"of-xline of-xtot"}); l.append(el("span",{text:tot[0]}),el("b",{text:tot[1]})); c.append(l); } return c; };
   right.append(card("cost","Custos detalhados (−)",[["Matérias primas",fmt(m.mat)],["Taxa de nutrição",fmt(m.fee)],["Taxa de compra (pedidos)",fmt(m.buyFee)],["Taxa de venda"+(OF2.tax?(st.prem?" (Premium)":""):" (desligada)"),fmt(m.taxV)]],["Custo total real",fmt(m.costReal)]));
-  right.append(card("res","Resultado (+)",[[OF.mode==="refine"?"Unidades a refinar":`Receitas a fabricar`,fmt(m.N)+(m.it.q>1?` (${fmt(m.units)} un.)`:"")],["Retorno de recursos",ofPct(m.rr)],["Valor do que volta",fmt(m.parts.reduce((a,g)=>a+(g.retVal||0),0)),"gain"],["Venda bruta",fmt(m.gross)],[OF.mode==="refine"?"Lucro por unidade":"Lucro por receita",sgn(m.profit/m.N)],["Foco gasto",fmt(m.fc)],["Lucro total ÷ foco gasto",fmt(m.profit/m.fc)]],["Lucro total",sgn(m.profit)]));
+  right.append(card("res","Resultado (+)",[...(m.Np!==m.N?[["Receitas pagas (material comprado)",fmt(m.Np)]]:[]),[OF.mode==="refine"?"Unidades refinadas com o foco":m.Np!==m.N?"Receitas fabricadas (com o retorno)":`Receitas a fabricar`,fmt(m.N)+(m.it.q>1?` (${fmt(m.units)} un.)`:"")],["Retorno de recursos",ofPct(m.rr)],["Valor do que volta",fmt(m.parts.reduce((a,g)=>a+(g.retVal||0),0)),"gain"],["Venda bruta",fmt(m.gross)],[OF.mode==="refine"?"Lucro por unidade":"Lucro por receita fabricada",sgn(m.profit/m.N)],["Foco gasto",fmt(m.fc)],["Lucro total ÷ foco gasto",fmt(m.profit/m.fc)]],["Lucro total",sgn(m.profit)]));
   { ofSpf(m); const fb=ofFB(m.it); const c=el("div",{class:"of-xcard foc"}); c.append(el("h4",{class:"of-xh",text:"Com foco ou sem foco"}));
     const ln=(k,v,cc)=>{ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{class:cc||"",text:v})); c.append(l); };
     if(m.pN&&m.pF){ const pr=x=>`${sgn(x.profit)} (${x.pct>=0?"+":""}${dec(x.pct*100)}%)`;
@@ -253,7 +263,7 @@ async function renderOf(){
   for(const m of shown){ const key=m.it.id; const item=el("div",{class:"of-item"}); body.append(item); const tr=el("div",{class:"of-row"}); item.append(tr); tr.dataset.id=m.it.id; tr.dataset.city=m.sale.c; tr.className="clickrow of-row "+(m.profit>=0?"is-gain":"is-loss"); tr.tabIndex=0; tr.setAttribute("aria-expanded","false");
     stamp(m.sale.t); m.parts.forEach(g=>stamp(g.b&&g.b.t));
     const c0=el("div",{class:"itemcell"}); tr.append(c0); const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▾"});
-    const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:OF.mode==="refine"?`${fmt(m.N)} ${m.N>1?"unidades":"unidade"}`:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}${OF.mode==="refine"?"refina":"faz"} em ${m.it.city}`})); if(OF.rr==="focus"&&OF2.rrMan==null){ try{ ofSpf(m); }catch(e){} if(m.pF&&m.pF.fc1>0){ const cov=Math.min(m.N,Math.floor(focBud()/m.pF.fc1)), full=cov>=m.N, pc=m.N?Math.round(cov/m.N*100):0, un=OF.mode==="refine"?"unidades":"receitas"; const fm=el("span",{class:"wk-fm"+(full?" full":cov?"":" none"),title:`Cada ${OF.mode==="refine"?"unidade":"receita"} gasta ${fmt(m.pF.fc1)} de foco; com ${fmt(focBud())} por dia o foco cobre ${fmt(cov)} de ${fmt(m.N)}`}); fm.append(el("span",{class:"wk-fl",text:"Foco"}),el("span",{class:"wk-fbar"},el("i",{style:`width:${pc}%`})),el("b",{text:`cobre ${fmt(cov)} de ${fmt(m.N)} ${un}`})); nmb.append(fm); } }
+    const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:OF.mode==="refine"?`${fmt(m.N)} ${m.N>1?"unidades":"unidade"} com ${fmt(m.fc)} de foco`:m.Np!==m.N?`${fmt(m.Np)} pagas → ${fmt(m.N)} ${m.N>1?"receitas":"receita"} com o retorno`:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}${OF.mode==="refine"?"refina":"faz"} em ${m.it.city}`})); if(OF.mode!=="refine"&&OF.rr==="focus"&&OF2.rrMan==null){ try{ ofSpf(m); }catch(e){} if(m.pF&&m.pF.fc1>0){ const cov=Math.min(m.N,Math.floor(focBud()/m.pF.fc1)), full=cov>=m.N, pc=m.N?Math.round(cov/m.N*100):0, un=OF.mode==="refine"?"unidades":"receitas"; const fm=el("span",{class:"wk-fm"+(full?" full":cov?"":" none"),title:`Cada ${OF.mode==="refine"?"unidade":"receita"} gasta ${fmt(m.pF.fc1)} de foco; com ${fmt(focBud())} por dia o foco cobre ${fmt(cov)} de ${fmt(m.N)}`}); fm.append(el("span",{class:"wk-fl",text:"Foco"}),el("span",{class:"wk-fbar"},el("i",{style:`width:${pc}%`})),el("b",{text:`cobre ${fmt(cov)} de ${fmt(m.N)} ${un}`})); nmb.append(fm); } }
     head.append(iconImg(m.it.id,52,qIc),nmb,chev); c0.append(head); c0.querySelector("img").classList.add("of-itic");
     const stat=(cls,v,lab)=>{ const c=el("div",{class:"of-stat "+cls}); tr.append(c); c.append(el("b",{text:v}),el("small",{text:lab})); return c; };
     stat("loss",fmtS(m.costReal),"CUSTO"); stat("sale",fmtS(m.gross),"VENDA");
@@ -269,7 +279,7 @@ async function renderOf(){
   }
   const pos=ok.filter(m=>m.profit>0).length, faltam=rows.length-ok.length, rrs=ok[0]?ok[0].rr:0;
   $("ofAge").textContent=isFinite(oldest)?`Preços coletados há ${fmtAge(newest)}${oldest!==newest?` (mais antigo: ${fmtAge(oldest)})`:""}`:"";
-  note.textContent=ok.length?`${ok.length} itens com preço; ${pos} dão lucro. Retorno de recursos: ${dec(rrs*100)}%${OF2.rrMan==null&&OF.rr==="auto"?" (cidade com bônus, sem foco)":""}.${ok.length>LIM?` Mostrando os ${LIM} primeiros de ${fmt(ok.length)} registros, ordenados por ${({profit:"lucro",pct:"lucro %",focus:"lucro por ponto de foco"})[OF.sort]}: não são todos.`:` Mostrando todos os ${fmt(ok.length)} registros, ordenados por ${({profit:"lucro",pct:"lucro %",focus:"lucro por ponto de foco"})[OF.sort]}.`}${sellBM()?" Mercado Negro: vale a melhor ordem de compra de lá, só com a taxa de venda.":""}${faltam?` ${faltam} sem preço de algum material.`:""} Clique numa linha para ver os materiais e o retorno.`:"Nenhum item com preço suficiente nesse filtro.";
+  note.textContent=ok.length?`${OF.mode==="refine"?`Gastando ${fmt(focBud())} de foco em cada item (retorno ${dec(rrs*100)}% com foco). `:""}${ok.length} itens com preço; ${pos} dão lucro. ${OF.mode==="refine"?"":`Retorno de recursos: ${dec(rrs*100)}%${OF2.rrMan==null&&OF.rr==="auto"?" (cidade com bônus, sem foco)":""}.`}${ok.length>LIM?` Mostrando os ${LIM} primeiros de ${fmt(ok.length)} registros, ordenados por ${({profit:"lucro",pct:"lucro %",focus:"lucro por ponto de foco"})[OF.sort]}: não são todos.`:` Mostrando todos os ${fmt(ok.length)} registros, ordenados por ${({profit:"lucro",pct:"lucro %",focus:"lucro por ponto de foco"})[OF.sort]}.`}${sellBM()?" Mercado Negro: vale a melhor ordem de compra de lá, só com a taxa de venda.":""}${faltam?` ${faltam} sem preço de algum material.`:""} Clique numa linha para ver os materiais e o retorno.`:"Nenhum item com preço suficiente nesse filtro.";
   if(window.gsap&&!RM) gsap.from(body.querySelectorAll(".of-row"),{opacity:0,x:-8,duration:.22,stagger:.01,clearProps:"opacity,transform"});
   hbar(tb.parentNode); fillVolumes(shown);
 }
