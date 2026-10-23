@@ -1,7 +1,10 @@
-name: Coletar mortes do Albion (a cada 15 min)
+name: Coletar mortes do Albion (ciclos de 15 min)
+# O agendamento do GitHub atrasa ou pula execuções (na prática saía a cada 30-45 min).
+# Por isso cada execução dura ~1 hora e faz 4 coletas, uma a cada 15 minutos exatos;
+# o cron horário deixa sempre a próxima execução na fila (concurrency), então não há buraco.
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "5 * * * *"
   workflow_dispatch:
 permissions:
   contents: write
@@ -11,26 +14,22 @@ concurrency:
 jobs:
   coletar:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
-      - name: Branch de dados
-        run: |
-          H=$(date -u +%F); O=$(date -u -d yesterday +%F)
-          if git fetch origin pvp-dados 2>/dev/null; then
-            git worktree add --no-checkout dados origin/pvp-dados
-            git -C dados sparse-checkout set --no-cone /perfis.json "/eventos/$H.jsonl.gz" "/eventos/$O.jsonl.gz"
-            git -C dados checkout
-          else
-            git worktree add --detach dados; cd dados; git checkout --orphan pvp-dados; git rm -rf . -q
-          fi
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python3 tools/coletar_pvp.py dados
-      - name: Guardar (um commit só, sem histórico)
-        working-directory: dados
+      - name: Quatro coletas, uma a cada 15 minutos
         run: |
-          git config user.name "pvp-bot"; git config user.email "pvp-bot@users.noreply.github.com"
-          git add -A; git commit -q --amend -m "mortes coletadas" 2>/dev/null || git commit -q -m "mortes coletadas"
-          git push --force-with-lease origin HEAD:pvp-dados
+          INI=$(date +%s)
+          for i in 0 1 2 3; do
+            ALVO=$((INI + i*900)); AGORA=$(date +%s)
+            [ "$ALVO" -gt "$AGORA" ] && sleep $((ALVO-AGORA))
+            echo "::group::coleta $((i+1)) de 4 ($(date -u +%H:%M))"
+            bash tools/coleta_ciclo.sh || true
+            echo "::endgroup::"
+          done
+          FIM=$((INI + 3600)); AGORA=$(date +%s)
+          [ "$FIM" -gt "$AGORA" ] && sleep $((FIM-AGORA))
+          exit 0
