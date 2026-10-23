@@ -1,18 +1,20 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T18:20:00Z",
+   "titulo": "PvP: muito mais mortes coletadas",
+   "itens": [
+    "O coletor agora lê o feed do Albion a cada 6 minutos exatos, sem deixar buraco entre uma leitura e outra (antes saía a cada 30 a 45 minutos).",
+    "Uma vez por hora ele também puxa o histórico dos jogadores que já aparecem no acervo (mortes que eles deram e sofreram), para completar os 30 dias mais rápido, sempre em ritmo suave com a API do Albion.",
+    "O acervo cresce a cada hora; a tabela do PvP reflete isso depois da próxima atualização diária."
+   ]
+  },
+  {
    "t": "2026-10-23T18:10:00Z",
    "titulo": "PvP: janela de 30 dias",
    "itens": [
     "A janela do PvP passou de 14 para 30 dias; os arquivos de mortes só são apagados depois de 30 dias.",
     "O acervo vai crescendo dia a dia até completar os 30 dias; hoje o arquivo diário pesa menos de 1 MB."
-   ]
-  },
-  {
-   "t": "2026-10-23T18:00:00Z",
-   "titulo": "Coletor de mortes com ritmo fixo de 15 minutos",
-   "itens": [
-    "O agendamento do GitHub atrasava a coleta (saía a cada 30 a 45 minutos). Agora cada execução dura 1 hora e faz 4 coletas, uma a cada 15 minutos exatos, e a próxima já fica na fila."
    ]
   },
   {
