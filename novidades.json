@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T19:30:00Z",
+   "titulo": "PvP: histórico mais rápido",
+   "itens": [
+    "O histórico dos jogadores agora roda 3 vezes por hora (antes 1).",
+    "A fila prioriza quem aparece em Hellgate e Depths, deixa para o fim quem não rendeu nada na leitura anterior e inclui os colegas de grupo das lutas novas, para o acervo de grupo crescer mais depressa."
+   ]
+  },
+  {
    "t": "2026-10-23T19:10:00Z",
    "titulo": "PvP: composições em 2v2, 3v3 e 5v5",
    "itens": [
