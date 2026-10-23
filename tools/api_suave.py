@@ -25,7 +25,7 @@ def get(path, tries=4):
         if not _vez(): FALHAS["prazo"] += 1; return None
         TOTAL[0] += 1
         try:
-            with urllib.request.urlopen(urllib.request.Request(B + path, headers=UA), timeout=30) as r:
+            with urllib.request.urlopen(urllib.request.Request(B + path, headers=UA), timeout=12) as r:
                 d = json.load(r)
             with _lock:
                 _ok[0] += 1
