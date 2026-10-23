@@ -1483,3 +1483,14 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 #wkTable .of-drow .of-xp{position:sticky;left:0;overflow:visible;margin-top:0;width:var(--tblw,900px);max-width:none;box-sizing:border-box}
 #wkTable .of-xl>*{flex:none}#wkTable .of-xs{align-content:start}
 #wkTable .of-drow td{padding:0!important;border:0}
+
+/* botão Limpar filtros */
+.clr{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--saffron);font:600 14px var(--f-body);cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s,opacity .15s}
+.clr:hover{background:rgba(232,171,69,.1);border-color:var(--brass)}
+.clr:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+.clr.idle{color:var(--smoke);border-color:var(--line-soft);opacity:.55;cursor:default}
+.clr.idle:hover{background:transparent;border-color:var(--line-soft)}
+.clr-n{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--saffron);color:var(--saffron-ink);font:700 12px var(--f-body)}
+.of-g>.clr{margin-top:8px;width:100%;justify-content:center}
+.av-search .clr{flex:none}
+@media (max-width:640px){.row-ctl>.clr{width:100%;justify-content:center}}

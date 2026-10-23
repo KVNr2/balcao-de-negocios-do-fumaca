@@ -139,3 +139,47 @@ document.querySelectorAll(".tbl table[id]").forEach(skinTable);
 document.querySelectorAll(".tbl table[id]").forEach(tb=>{ if(tb.classList.contains("heat")) return; const w=tb.closest(".tbl")||tb; pgBind(tb,tb.id,()=>pgTableGroups(tb),w); });
 { const of=$("ofTable"); if(of) pgBind(of,"ofTable",()=>[...of.children].filter(c=>c.classList.contains("of-item")).map(c=>[c]),of.closest(".tbl")||of); }
 { const zl=$("zList"); if(zl) pgBind(zl,"zList",()=>[...zl.children].filter(c=>c.classList.contains("zcard")).map(c=>[c]),zl); }
+
+/* ================= botão "Limpar filtros" (igual em todas as abas com busca) =================
+   defs: [id, padrão] na ordem em que devem ser desfeitos (o padrão pode ser função). Só conta/zera o que difere do padrão.
+   count(): filtros extras que não são campos (estado em variáveis). reset(): desfaz esses extras. btn: botão que já existe com o próprio clique. */
+function limparFiltros({scope,into,after,btn,defs=[],count,reset,focus}){
+  const root=typeof scope==="string"?document.getElementById(scope):scope; if(!root) return;
+  const val=id=>{ const x=document.getElementById(id); return x?(x.type==="checkbox"?x.checked:(x.type==="search"||x.type==="text"?x.value.trim():x.value)):null; };
+  const dflt=d=>typeof d==="function"?d():d;
+  const nAtivos=()=>defs.filter(([id,d])=>{ const v=val(id); return v!==null&&v!==dflt(d); }).length+(count?count():0);
+  if(!btn){
+    btn=document.createElement("button"); btn.type="button"; btn.className="clr";
+    btn.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span>Limpar filtros</span><b class="clr-n" hidden></b>';
+    const alvo=typeof after==="string"?document.getElementById(after):after;
+    if(alvo) alvo.insertAdjacentElement("afterend",btn); else (typeof into==="string"?document.getElementById(into):into||root).append(btn);
+  } else { btn.classList.add("clr"); if(!btn.querySelector(".clr-n")){ btn.insertAdjacentHTML("beforeend",'<b class="clr-n" hidden></b>'); } }
+  const sync=()=>{ const n=nAtivos(), b=btn.querySelector(".clr-n"); btn.classList.toggle("idle",!n); btn.setAttribute("aria-disabled",String(!n)); b.hidden=!n; b.textContent=n;
+    btn.setAttribute("aria-label",n?`Limpar ${n} ${n>1?"filtros":"filtro"}`:"Limpar filtros (nenhum filtro ativo)"); };
+  const agenda=()=>setTimeout(sync,80);
+  ["input","change","click"].forEach(t=>root.addEventListener(t,agenda,true));
+  setInterval(()=>{ if(root.offsetParent!==null) sync(); },700);   // pega mudanças feitas pelo código (ex.: "Craft" que preenche a busca)
+  btn.addEventListener("click",()=>{
+    if(btn.classList.contains("idle")) return;
+    for(const [id,d] of defs){ const x=document.getElementById(id), v=val(id); if(!x||v===null||v===dflt(d)) continue;
+      if(x.type==="checkbox") x.checked=dflt(d); else x.value=dflt(d);
+      x.dispatchEvent(new Event(x.type==="search"||x.type==="text"?"input":"change",{bubbles:true})); }
+    if(reset) reset();
+    sync(); const f=focus&&document.getElementById(focus); if(f) f.focus({preventScroll:true});
+  });
+  sync(); return sync;
+}
+function iniciarLimpar(){
+  limparFiltros({scope:"p-mk",into:document.querySelector("#p-mk .row-ctl"),focus:"mkFind",
+    defs:[["mkFind",""],["mkCat",""],["mkSub",""],["mkTier","0"],["mkEnch","-1"],["mkQual","1"],["mkCity",""],["mkOnly",true]]});
+  limparFiltros({scope:"p-mercado",into:document.querySelector("#p-mercado .row-ctl"),focus:"bmFind",
+    defs:[["bmFind",""],["bmCat",""],["bmSub",""],["bmTierS","0"],["bmEnch","-1"],["bmQualS","0"],["bmAtivo",false]]});
+  limparFiltros({scope:"p-matchup",into:document.querySelector("#p-matchup .row-ctl"),focus:"muFind",defs:[["muFind",""],["muMine",false]]});
+  limparFiltros({scope:"ofRoot",after:"ofFind",focus:"ofFind",
+    defs:[["ofFind",""],["ofCat",()=>{ const s=document.getElementById("ofCat"); return s&&s.options[0]?s.options[0].value:""; }],["ofTier","0"],["ofEnch","-1"],["ofQual","0"]]});
+  limparFiltros({scope:"p-builds",into:document.querySelector("#p-builds .row-ctl"),defs:[["bOnlyMine",false]],
+    count:()=>(typeof bCont!=="undefined"&&bCont?1:0)+(typeof bLine!=="undefined"&&bLine?1:0),
+    reset:()=>{ bCont=""; bLine=""; bOpen=null; renderBuilds(); }});
+  limparFiltros({scope:"p-avalon",btn:document.getElementById("avClear"),
+    count:()=>typeof AV==="undefined"||!AV.inited?0:(AV.q.trim()?1:0)+(AV.tier?1:0)+(AV.type?1:0)+AV.res.size+AV.extra.size,reset:()=>{}, });
+}

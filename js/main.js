@@ -108,3 +108,4 @@ $("muDlg").addEventListener("click",ev=>{ if(ev.target===$("muDlg")) $("muClose"
   document.querySelectorAll("nav.tabs [role=tab]").forEach(b=>b.addEventListener("click",()=>setTimeout(run,300)));
   new MutationObserver(()=>{ clearTimeout(run._t); run._t=setTimeout(run,200); }).observe(document.querySelector("main")||document.body,{childList:true,subtree:true});
 })();
+iniciarLimpar();
