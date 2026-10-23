@@ -5,7 +5,7 @@ const PV_TAM = t => t===1?"Solo":`Grupo de ${t}`;
 const pvWilson = (v,n) => { if(!n) return 0; const z=1.64, p=v/n, d=1+z*z/n; return (p+z*z/(2*n)-z*Math.sqrt((p*(1-p)+z*z/(4*n))/n))/d; };
 const pvKey = k => { const [w,o]=k.split("|"); return {w,o}; };
 /* nível da arma pelo winrate puxado para 50% quanto menos lutas (6 lutas de peso): S 58%+, A 52%+, B 46%+, C abaixo; com menos de 5 usos fica sem nível */
-let pvArmO="usos";
+let pvArmO="usos",pvArmOpen=false;
 const pvTier=(v,n)=>{ if(n<5) return "?"; const w=(v+3)/(n+6); return w>=0.58?"S":w>=0.52?"A":w>=0.46?"B":"C"; };
 const pvNome = k => { const {w,o}=pvKey(k); buildIdx(); return codeName(w)+(o?" + "+codeName(o):""); };
 function pvPrep(b){ if(b.nome) return; buildIdx(); b.nome=codeName(b.wc); b.l=(W2LINE&&W2LINE[b.wc])||""; b.t=b.nome; b.pop=0; b.tg=[]; if(b.o&&!Array.isArray(b.o)) b.o=[b.o]; }
@@ -84,11 +84,12 @@ function renderPvp(){
     $("pvCount").textContent=`${l.length} jogadores com 5 lutas ou mais${PVP.janela.fama_min?`, todos com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
     const pg=pgSlice("pvJ",l,[pvC,pvT,pvV,js].join("|"),renderPvp); pg.items.forEach(p=>host.append(pvJog(p,d))); host.append(pg.bar); return;
   }
-  if(d.armas&&d.armas.length){ const bx=el("div",{class:"pv-arm"});
+  if(d.armas&&d.armas.length){ const bx=el("details",{class:"pv-arm"}); if(pvArmOpen) bx.open=true; bx.addEventListener("toggle",()=>{ pvArmOpen=bx.open; });
     const sh=a=>(a[2]+3)/(a[1]+6); const el5=d.armas.filter(a=>a[1]>=5).sort((a,b)=>sh(b)-sh(a)); const tr=new Map(); el5.forEach((a,i)=>{ const p=(i+.5)/el5.length; tr.set(a[0],p<=.2?"S":p<=.5?"A":p<=.8?"B":"C"); });
-    const hd=el("div",{class:"pv-arm-h"}); hd.append(el("h4",{text:"Armas populares"}));
+    const sm=el("summary",{class:"pv-arm-t"}); sm.append(el("h4",{text:"Tier list de armas"}),el("small",{class:"muted",text:"Níveis S a C por winrate e usos"})); bx.append(sm);
+    const hd=el("div",{class:"pv-arm-h"});
     const sg=el("div",{class:"pv-arm-s",role:"group","aria-label":"Ordenar armas"}); const ord={usos:"Mais usadas",wr:"Maior winrate",nivel:"Melhor nível"};
-    Object.keys(ord).forEach(k=>{ const bt=el("button",{type:"button",class:"pv-chip"+(pvArmO===k?" on":""),text:ord[k]}); bt.onclick=()=>{ pvArmO=k; renderPvp(); }; sg.append(bt); }); hd.append(sg);
+    Object.keys(ord).forEach(k=>{ const bt=el("button",{type:"button",class:"pv-chip"+(pvArmO===k?" on":""),text:ord[k]}); bt.onclick=()=>{ pvArmO=k; pvArmOpen=true; renderPvp(); }; sg.append(bt); }); hd.append(sg);
     bx.append(hd,el("small",{class:"muted",text:"Soma de todas as builds da arma. Nível compara as armas desta lista pelo winrate (ajustado quando há poucas lutas): S = 20% melhores, A = próximos 30%, B = 30% seguintes, C = restante. Armas com menos de 5 usos ficam sem nível."}));
     const L=d.armas.slice(); const ro={S:0,A:1,B:2,C:3}; if(pvArmO==="wr") L.sort((a,b)=>b[4]-a[4]||b[1]-a[1]); else if(pvArmO==="nivel") L.sort((a,b)=>(ro[tr.get(a[0])]??9)-(ro[tr.get(b[0])]??9)||sh(b)-sh(a)); else L.sort((a,b)=>b[1]-a[1]);
     const mx=Math.max(...L.map(a=>a[1])); const tb=el("table",{class:"pv-armt"}); const th=tb.createTHead().insertRow(); ["#","Arma","Nível","Winrate","Usos"].forEach(t=>th.append(el("th",{text:t})));
