@@ -362,6 +362,14 @@ function baseIds(){ const ids=[]; for(const r of Object.values(RES)){ ids.push(`
   return ids.concat(FISH_IDS); }
 function familyIds(slot,mat){ const ids=[]; for(let s=1;s<=3;s++) for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) ids.push(gearId(t,slot,mat,s,e)); return ids; }
 /* q: qualidade dos preços (1 a 5). Para q de 2 a 5, passe PQ[q] como target. */
+/* preços suspeitos (anúncio de troll, placeholder tipo 799.999): fora de 1/6 a 6 vezes a mediana das cidades do mesmo item, o valor é descartado; com só duas cidades, descarta o maior se passar de 10 vezes o outro */
+function dropOutliers(target,keys){
+  const med=a=>{ a=a.slice().sort((x,y)=>x-y); const m=a.length>>1; return a.length%2?a[m]:(a[m-1]+a[m])/2; };
+  for(const k of keys){ const r=target[k]; if(!r) continue;
+    for(const f of [0,1]){ const cs=Object.keys(r).filter(c=>r[c][f]>0); if(cs.length<2) continue; const vs=cs.map(c=>r[c][f]);
+      if(cs.length>=3){ const m=med(vs); for(const c of cs){ const v=r[c][f]; if(v>m*6||v<m/6){ r[c][f]=0; r[c][f+2]=0; } } }
+      else { const [lo,hi]=vs[0]<vs[1]?[0,1]:[1,0]; if(vs[hi]>vs[lo]*10){ r[cs[hi]][f]=0; r[cs[hi]][f+2]=0; } } } }
+}
 async function fetchIds(ids, target, locs=CITIES, q=1){
   const loc=locs.join(",").replace(/ /g,"%20");
   const parts=[]; for(let i=0;i<ids.length;i+=API_CHUNK) parts.push(ids.slice(i,i+API_CHUNK));
@@ -372,6 +380,7 @@ async function fetchIds(ids, target, locs=CITIES, q=1){
       if(!s&&!b) continue; const k=x.item_id.includes("_LEVEL")?x.item_id.split("@")[0]:x.item_id; (target[k]||(target[k]={}))[x.city]=[s,b,s?Date.parse(x.sell_price_min_date+"Z"):0,b?Date.parse(x.buy_price_max_date+"Z"):0];
     }
   }
+  dropOutliers(target,new Set(res.flat().map(x=>x.item_id.includes("_LEVEL")?x.item_id.split("@")[0]:x.item_id)));
 }
 const loadedFam=new Set();
 async function ensureFamily(slot,mat){ const key=slot+"_"+mat; if(loadedFam.has(key)) return true; try{ await fetchIds(familyIds(slot,mat),DATA.itens); loadedFam.add(key); return true; }catch(e){ return false; } }
