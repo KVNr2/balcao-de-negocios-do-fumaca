@@ -236,7 +236,12 @@ def main():
             if n < 5: continue
             jogs.append({"xp": pl["xp"], "nome": pl["nome"], "guild": pl["guild"], "n": n, "v": pl["v"], "d": pl["d"], "wr": round(100 * pl["v"] / n, 1), "ip": round(sum(pl["ip"]) / len(pl["ip"])) if pl["ip"] else 0, "b": [[k, q, {js: [cn.most_common(1)[0][0]] for js, cn in pl["g"].get(k, {}).items() if cn}] for k, q in pl["b"].most_common(3)]})
         jogs.sort(key=lambda x: (-x["n"])); jogs = jogs[:80]
-        out["conteudos"][f"{c}:{t}"] = {"eventos": A["n"], "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
+        # armas populares: soma por arma, sem o corte mínimo das builds (mostra o que mais aparece mesmo com poucas lutas)
+        arm = {}
+        for k, b in A["b"].items():
+            w = k.split("|")[0]; a = arm.setdefault(w, [0, 0]); a[0] += b["v"]; a[1] += b["d"]
+        armas = sorted(([w, v + d, v, d, round(100 * v / (v + d), 1)] for w, (v, d) in arm.items() if v + d >= 2), key=lambda x: (-x[1], -x[4]))[:15]
+        out["conteudos"][f"{c}:{t}"] = {"eventos": A["n"], "armas": armas, "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
     json.dump(out, open(os.path.join(ROOT, "data", "pvp.json"), "w"), ensure_ascii=False, separators=(",", ":"))
     if not MODO_ARM: json.dump(novas, open(sem_f, "w"), ensure_ascii=False, separators=(",", ":"))
     print("ok:", {k: (v["eventos"], len(v["builds"]), len(v["jogadores"])) for k, v in out["conteudos"].items()})

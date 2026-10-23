@@ -4,6 +4,8 @@ const PV_CONT = [["hg2","Hellgate 2v2"],["hg5","Hellgate 5v5"],["corrompida","Co
 const PV_TAM = t => t===1?"Solo":`Grupo de ${t}`;
 const pvWilson = (v,n) => { if(!n) return 0; const z=1.64, p=v/n, d=1+z*z/n; return (p+z*z/(2*n)-z*Math.sqrt((p*(1-p)+z*z/(4*n))/n))/d; };
 const pvKey = k => { const [w,o]=k.split("|"); return {w,o}; };
+/* nível da arma pelo winrate puxado para 50% quanto menos lutas (6 lutas de peso): S 58%+, A 52%+, B 46%+, C abaixo; com menos de 5 usos fica sem nível */
+const pvTier=(v,n)=>{ if(n<5) return "?"; const w=(v+3)/(n+6); return w>=0.58?"S":w>=0.52?"A":w>=0.46?"B":"C"; };
 const pvNome = k => { const {w,o}=pvKey(k); buildIdx(); return codeName(w)+(o?" + "+codeName(o):""); };
 function pvPrep(b){ if(b.nome) return; buildIdx(); b.nome=codeName(b.wc); b.l=(W2LINE&&W2LINE[b.wc])||""; b.t=b.nome; b.pop=0; b.tg=[]; if(b.o&&!Array.isArray(b.o)) b.o=[b.o]; }
 /* builds fortes/fracas: só o ícone da arma (com o %); ao clicar mostra o nome, as lutas e deixa abrir aquela build */
@@ -81,6 +83,12 @@ function renderPvp(){
     $("pvCount").textContent=`${l.length} jogadores com 5 lutas ou mais${PVP.janela.fama_min?`, todos com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
     const pg=pgSlice("pvJ",l,[pvC,pvT,pvV,js].join("|"),renderPvp); pg.items.forEach(p=>host.append(pvJog(p,d))); host.append(pg.bar); return;
   }
+  if(d.armas&&d.armas.length){ const bx=el("div",{class:"pv-arm"}); bx.append(el("h4",{text:"Armas populares"}),el("small",{class:"muted",text:"Soma de todas as builds da arma, inclusive com poucas lutas. Usos = vezes que alguém usou a arma."}));
+    const tb=el("table",{class:"pv-armt"}); const th=tb.createTHead().insertRow(); ["#","Arma","Nível","Winrate","Usos"].forEach(t=>th.append(el("th",{text:t})));
+    const mx=d.armas[0][1]; const bd=tb.createTBody(); d.armas.forEach(([w,n,v,dd,wr],i)=>{ const r=bd.insertRow(); r.insertCell().textContent=i+1; const c1=r.insertCell(); const im=itemImg(w,[8,7,6,5,4]); if(im){ im.classList.add("pv-ai"); c1.append(im); } c1.append(el("b",{text:" "+codeName(w)}));
+      const nv=pvTier(v,n); r.insertCell().append(el("span",{class:"pv-tier t"+nv,title:nv==="?"?"Poucas lutas para dar um nível":"Nível pelo winrate, puxado para 50% quando há poucas lutas",text:nv}));
+      r.insertCell().textContent=wr.toLocaleString("pt-BR")+"%"; const c3=r.insertCell(); c3.append(el("span",{class:"pv-bar",style:`width:${Math.max(6,Math.round(n/mx*100))}%`}),el("span",{text:String(n)})); r.cells[3].className="num"; });
+    bx.append(tb); host.append(bx); }
   let l=d.builds.slice(); pvSort=$("pvSort").value||pvSort;
   if(pvSort==="wilson") l.sort((a,b)=>pvWilson(b.v,b.n+0)-pvWilson(a.v,a.n)); else if(pvSort==="wr") l.sort((a,b)=>b.wr-a.wr||b.n-a.n); else if(pvSort==="spec"){ l.forEach(pvPrep); l.sort((a,b)=>(gbSpec(b)-gbSpec(a))||(b.n-a.n)); } else l.sort((a,b)=>b.n-a.n);
   $("pvCount").textContent=`${l.length} builds com 4 lutas ou mais · ${d.eventos.toLocaleString("pt-BR")} mortes${PVP.janela.fama_min?` de jogadores com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
