@@ -288,12 +288,14 @@ function setupWK(){
   const bs=$("wkBuy"); bs.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.m===wkBuyMode())); b.addEventListener("click",()=>{ store.set("wkBuy",b.dataset.m); bs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderWK(); }); });
   $("wkPrem").querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",String(+b.dataset.v===+st.prem)); b.addEventListener("click",()=>{ renderWK(); }); });
 }
+const wkItemNome=iid=>{ const m=/^T(\d)_(.+?)(?:_LEVEL(\d))?$/.exec(iid); if(!m) return iid; const R={FIBER:"Fibra",ORE:"Minério",HIDE:"Pelego",WOOD:"Madeira",ROCK:"Pedra"}[m[2]]; const t=`T${m[1]}${m[3]?"."+m[3]:""}`; return R?`${R} ${t}`:`${itemNome(m[2])} ${t}`; };
 const wkPcs=(v,d=1)=>v==null?"—":v.toLocaleString("pt-BR",{maximumFractionDigits:d});
 async function renderWK(){
   if(!JOURNALS){ try{ JOURNALS=await need("journals"); }catch(e){ $("wkStatus").textContent="Não consegui abrir os dados dos diários."; return; } }
   setupWK(); wkRefresh(); const tb=$("wkTable"); const L=wkList();
   if(!L.length){ tb.textContent=""; return; }
   if(!WK_LOADED){ tb.textContent=""; $("wkStatus").dataset.base=$("wkStatus").dataset.base||$("wkStatus").textContent; $("wkStatus").textContent="Consultando os preços dos diários…"; const ok=await ensureWK(); $("wkStatus").textContent=$("wkStatus").dataset.base; if(!ok){ $("wkStatus").textContent="Não consegui consultar os diários agora."; return; } }
+  { const wp=tb.parentNode; if(wp) wp.style.setProperty("--tblw",Math.max(560,wp.clientWidth-8)+"px"); }
   tb.textContent=""; const hr=tb.createTHead().insertRow();
   ["Trabalhador e diário","Diário cheio (preço)","Rende","O que volta (por diário)","Valor do que volta","Lucro","Lucro %",""].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody(), rows=[];
@@ -310,16 +312,25 @@ async function renderWK(){
     { const c=tr.insertCell(); c.className="num "+cls(m.pct); c.textContent=pc(m.pct); }
     const ac=tr.insertCell(); ac.className="wk-act";
     const dr=body.insertRow(); dr.hidden=true; dr.className="of-drow wk-det"; const dc=dr.insertCell(); dc.colSpan=8;
-    { const left=el("div",{class:"wk-dl"}); left.append(el("h4",{text:`O que volta de cada diário (${Math.round(m.yld*100)}% de rendimento${N>1?`, ×${N} trabalhadores`:""})`}));
-      if(m.silver) left.append(el("p",{class:"small",text:`O pescador devolve ${fmt(Math.round(m.valor*N))} em prata de peixe por diário (base ${fmt(m.base)} × ${Math.round(m.yld*100)}%).`}));
-      else { const t2=el("table",{class:"wk-sub"}), h2=t2.createTHead().insertRow(); ["Item","Quantidade","Preço","Valor (sem taxa)"].forEach(x=>h2.append(el("th",{text:x}))); const b2=t2.createTBody();
-        for(const it of m.items){ const r=b2.insertRow(); r.insertCell().append(withIcon(lootApi(it.iid),itemNome(it.iid.replace(/^T\d+_/,"")))); [wkPcs(it.qtd*N,2),it.p?fmt(it.p):"—",it.v!=null?fmt(Math.round(it.v*N)):"—"].forEach(x=>{ const c=r.insertCell(); c.className="num"; c.textContent=x; }); }
-        const tr2=b2.insertRow(); tr2.className="wk-best-row"; tr2.insertCell().textContent="Total"; tr2.insertCell().textContent=wkPcs(m.items.reduce((a,x)=>a+x.qtd*N,0),1); tr2.insertCell(); const ct=tr2.insertCell(); ct.className="num"; ct.textContent=fmt(Math.round(m.valor*N)); left.append(t2); }
-      left.append(el("p",{class:"tiny muted",text:`Diário cheio ${m.bc?fmt(Math.round(m.bc.p*N)):"—"} contra ${m.valor!=null?fmt(Math.round(m.valor*N)):"—"} do que volta. Base do diário: ${fmt(m.base)} sorteios${m.silver?"":" na tabela de saque"}. O diário vazio que também volta (vale ${m.empty?fmt(Math.round(m.empty.p*N)):"—"}) não entra na conta.`}));
-      const right=el("div",{class:"wk-dr"}); right.append(el("h4",{text:`Rendimento do trabalhador T${w.t} por tier de diário`}));
-      const t3=el("table",{class:"wk-sub"}), h3=t3.createTHead().insertRow(); ["Diário","Felicidade pedida","Rende"].forEach(x=>h3.append(el("th",{text:x}))); const b3=t3.createTBody();
-      for(let jt=4;jt<=w.t;jt++){ const r=b3.insertRow(); if(jt===m.t) r.className="wk-best-row"; r.insertCell().textContent=`T${jt}`; r.insertCell().textContent=fmt(100*jt); const c=r.insertCell(); c.className="num"; c.textContent=Math.round(wkYieldW(w,jt)*100)+"%"; }
-      right.append(t3,el("p",{class:"tiny muted",text:`Regra do jogo: a casa precisa de 100 de felicidade por tier do diário. Com menos, rende a felicidade ÷ (100 × tier do diário); com mais, 100% mais 0,5% por ponto de sobra, até 150%. Sua felicidade: ${w.pct>0?"não informada (usando o "+w.pct+"% que o jogo mostra)":(w.h>0?w.h:hapMax(w.t))+(w.h>0?"":" (casa T"+w.t+" mobiliada)")}.`})); dc.append(el("div",{class:"wk-dg"},left,right)); }
+    { const d=el("div",{class:"of-xp"}), left=el("div",{class:"of-xl"}), tax=taxOf();
+      left.append(el("h4",{class:"of-xh",text:"Preços & quantidades"}));
+      const hd2=el("div",{class:"of-xr of-xhd"}); ["Stats","Item","Valor","Tempo","Cidade","Qtd"].forEach(x=>hd2.append(el("span",{text:x}))); left.append(hd2);
+      const row=(kind,lab,id,nmText,sub,val,tm,city,qty)=>{ const r=el("div",{class:"of-xr "+kind}); r.append(el("span",{class:"of-pill "+kind,text:lab}));
+        const it_=el("span",{class:"of-xi"}); it_.append(el("i",{class:"of-dot"+(kind==="buy"?" red":"")}),iconImg(id,34,1)); const nm=el("span",{class:"of-xn"}); nm.append(el("b",{text:nmText})); if(sub) nm.append(el("small",{text:sub})); it_.append(nm); r.append(it_);
+        r.append(el("b",{class:"of-xv",text:val!=null?fmt(Math.round(val)):"—"}),el("span",{class:"of-xt"},tm&&typeof ageSpan==="function"?(ageSpan(tm)||"—"):"—"),el("span",{class:"of-xc",text:city||"—"}),el("span",{class:"of-xq",text:fmt(Math.round(qty*100)/100)+"x"})); return r; };
+      const ord=wkBuyMode()==="ordem";
+      if(m.bc) left.append(row("buy",ord?"ORDEM COMPRA":"COMPRA INST",`T${m.t}_JOURNAL_${m.ty}_FULL`,`Diário cheio T${m.t}`,`${nmW}${ord?" · mais 2,5% de taxa da ordem":""}`,m.bc.p,0,m.bc.c,N));
+      if(m.silver) left.append(row("sale","VALOR DO JOGO",`T${m.t}_JOURNAL_${m.ty}_FULL`,"Peixes e prata do saque","valor fixo do jogo",m.valor/N*0+m.valor,0,"—",N));
+      else for(const it of m.items) left.append(row("sale","PREÇO TÍPICO",lootApi(it.iid),wkItemNome(it.iid),"preço típico nas cidades",it.p,0,"cidades",it.qtd*N));
+      const right=el("div",{class:"of-xs"});
+      const card=(cls,title,lines,tot)=>{ const c=el("div",{class:"of-xcard "+cls}); c.append(el("h4",{class:"of-xh",text:title})); for(const [k,v,cc] of lines){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{class:cc||"",text:v})); c.append(l); } if(tot){ const l=el("div",{class:"of-xline of-xtot"}); l.append(el("span",{text:tot[0]}),el("b",{text:tot[1]})); c.append(l); } return c; };
+      const bruto=m.valor!=null?(m.silver?m.valor:m.valor/(1-tax)):null, cp=m.bc?m.bc.p:null;
+      right.append(card("cost","Custos detalhados (−)",[["Diário cheio"+(N>1?` ×${N}`:""),cp!=null?fmt(Math.round(cp*N)):"—"]],["Custo total",cp!=null?fmt(Math.round(cp*N)):"—"]));
+      right.append(card("res","Resultado (+)",[["Rendimento do trabalhador",Math.round(m.yld*100)+"%"],["Valor bruto do que volta",bruto!=null?fmt(Math.round(bruto*N)):"—","gain"],["Taxa de venda"+(st.prem?" (Premium)":""),m.silver?"—":bruto!=null?"−"+fmt(Math.round(bruto*tax*N)):"—"],["Líquido da venda",m.valor!=null?fmt(Math.round(m.valor*N)):"—"],["Lucro por diário",m.lucro!=null?sgn(m.lucro):"—",m.lucro>=0?"gain":"loss"],["Diário vazio que volta (não entra na conta)",m.empty?fmt(Math.round(m.empty.p*N)):"—"]],["Lucro total",m.lucro!=null?sgn(m.lucro*N):"—"]));
+      { const c=el("div",{class:"of-xcard foc"}); c.append(el("h4",{class:"of-xh",text:`Rendimento do trabalhador T${w.t}`}));
+        for(let jt=4;jt<=w.t;jt++){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:`Diário T${jt} (pede ${fmt(100*jt)} de felicidade)`}),el("b",{class:jt===m.t?"gain":"",text:Math.round(wkYieldW(w,jt)*100)+"%"})); c.append(l); }
+        c.append(el("p",{class:"tiny muted",text:`A casa precisa de 100 de felicidade por tier do diário. Com menos, rende felicidade ÷ (100 × tier); com mais, 100% mais 0,5% por ponto de sobra, até 150%. Sua felicidade: ${w.pct>0?"não informada (usando os "+w.pct+"% do jogo)":(w.h>0?w.h:hapMax(w.t))+(w.h>0?"":" (casa T"+w.t+" mobiliada)")}.`})); right.append(c); }
+      d.append(left,right); dc.append(d); }
     const db=el("button",{type:"button",class:"btn mn-craft",text:"Detalhes ▾","aria-expanded":"false"}); db.addEventListener("click",()=>{ dr.hidden=!dr.hidden; db.textContent=dr.hidden?"Detalhes ▾":"Detalhes ▴"; db.setAttribute("aria-expanded",String(!dr.hidden)); }); ac.append(db); }
   { let mb=$("wkMore"); if(!mb){ mb=el("button",{type:"button",id:"wkMore",class:"btn mn-craft"}); tb.parentNode.after(mb); mb.addEventListener("click",()=>{ WK_SHOW+=30; renderWK(); }); } mb.hidden=rows.length<=WK_SHOW; mb.textContent=`Mostrar mais (${WK_SHOW} de ${rows.length})`; }
   renderWKMine();

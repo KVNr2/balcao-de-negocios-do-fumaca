@@ -713,10 +713,11 @@ async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.has
   { const mesclar=(a,b)=>{ if(b&&typeof b==="object"&&!Array.isArray(b)){ const r=Object.assign({},a&&typeof a==="object"?a:{}); for(const k in b) r[k]=mesclar(r[k],b[k]); return r; } return ((b===0||b==="")&&a)?a:b; };
     const nomeAntes=(!IS_EXAMPLE&&PF.nome)||"";
     /* a ficha de exemplo (Oleran) nunca entra na mistura: só se mantém o que a própria pessoa preencheu */
-    const novo=migrate(o), base=IS_EXAMPLE?EMPTY():PF;
+    const nomeNovo=String(o.nome||"").trim(), outra=!!(nomeAntes&&nomeNovo&&nomeAntes.toLowerCase()!==nomeNovo.toLowerCase());   /* ficha de OUTRO personagem: não mistura com a atual */
+    const novo=migrate(o), base=(IS_EXAMPLE||outra)?EMPTY():PF;
     PF=Object.assign(EMPTY(),mesclar(base,novo));
     /* cozinha e alquimia vindas do jogo trazem cada tipo; o "all" (nível igual para todos, de fichas antigas e do exemplo) deixa de valer */
-    for(const k of ["cozinha","alquimia"]) if(novo[k]&&novo[k].s&&Object.keys(novo[k].s).length&&PF[k]) delete PF[k].all; if(nomeAntes&&!(o.nome&&String(o.nome).trim())) PF.nome=nomeAntes; else if(o.nome) PF.nome=String(o.nome).trim().slice(0,40); saveProfile(); renderProfile(); renderWho(); $("pfStatus").textContent="Ficha do Albion aplicada (o que você já tinha preenchido foi mantido)."; } }
+    for(const k of ["cozinha","alquimia"]) if(novo[k]&&novo[k].s&&Object.keys(novo[k].s).length&&PF[k]) delete PF[k].all; if(nomeAntes&&!(o.nome&&String(o.nome).trim())) PF.nome=nomeAntes; else if(o.nome) PF.nome=String(o.nome).trim().slice(0,40); saveProfile(); renderProfile(); renderWho(); $("pfStatus").textContent=outra?`Ficha de ${nomeNovo} aplicada. Ela substituiu a ficha de ${nomeAntes}, porque são personagens diferentes.`:"Ficha do Albion aplicada (o que você já tinha preenchido foi mantido)."; } }
 /* Navegação interna: ao clicar em Sincronizar, esta mesma aba vai para a página de andamento do programa (127.0.0.1, só no seu PC)
    e volta sozinha para cá já com a ficha. Nada de aba nova. */
 let irSync=false;
