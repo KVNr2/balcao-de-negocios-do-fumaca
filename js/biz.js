@@ -113,16 +113,34 @@ function bmModel(key,t,e,focus=$("bmFocus").checked,q=1){
   return {key,t,e,q,id,name:r[0],city:r[2],bm,net,buyC,buy,flip:net!=null&&buyC?net-buyC:null,cost,craft:net!=null&&cost!=null?net-cost:null,parts,res,art,fee,rr,fc,thin,miss,focus};
 }
 function bmGroupDefault(){ const mine=LINES.filter(([k])=>wl(k)>=2).sort((a,b)=>wl(b[0])-wl(a[0])); return mine.length?mine[0][0]:"martelo"; }
+/* seleção da aba, como no Mercado: busca livre (acha em qualquer tipo) ou categoria + tipo */
+const BMF={q:"",cat:"",sub:"",ench:-1,lim:0};
+const BM_CATS=[["weapons","Armas"],["armors","Peito"],["head","Cabeça"],["shoes","Pés"],["offhands","Mão secundária"]];
+const bmCatOf=k=>k.startsWith("ARMOR_")?"armors":k.startsWith("HEAD_")?"head":k.startsWith("SHOES_")?"shoes":BM[k][1]==="mao"?"offhands":"weapons";
+function bmFillSub(){ const x=$("bmSub"); x.textContent=""; x.append(el("option",{value:"",text:"Todas"}));
+  const opts=BMF.cat==="weapons"?LINES.map(([k,n])=>[k,n]):["armors","head","shoes"].includes(BMF.cat)?[["a_placa","Placa"],["a_couro","Couro"],["a_pano","Pano"]]:[];
+  opts.forEach(([v,t])=>x.append(el("option",{value:v,text:t}))); x.disabled=!opts.length; x.value=BMF.sub; if(x.value!==BMF.sub){ BMF.sub=""; x.value=""; } }
+function bmSelKeys(){ const q=BMF.q.trim().toLowerCase(), search=q.length>=2;
+  return Object.keys(BM).filter(k=>{ if(search){ const r=BM[k], gn=(BM_GROUPS.find(x=>x[0]===r[1])||[0,""])[1].toLowerCase(); return nmKey(k,r[0]).toLowerCase().includes(q)||r[0].toLowerCase().includes(q)||k.toLowerCase().includes(q)||gn.includes(q); }
+    return (!BMF.cat||bmCatOf(k)===BMF.cat)&&(!BMF.sub||BM[k][1]===BMF.sub); }); }
+function bmSelGroups(keys){ const mine=new Set(LINES.filter(([k])=>wl(k)>=2).map(([k])=>k)); return [...new Set(keys.map(k=>BM[k][1]))].sort((a,b)=>(mine.has(b)?1:0)-(mine.has(a)?1:0)); }
 function setupBM(){
   const sel=$("bmGroup"); if(sel.options.length) return;
   const mine=new Set(LINES.filter(([k])=>wl(k)>=2).map(([k])=>k));
   const og1=el("optgroup",{label:"Suas armas"}), og2=el("optgroup",{label:"Outras armas"}), og3=el("optgroup",{label:"Armaduras e mão secundária"});
   for(const [k,n] of BM_GROUPS){ const o=el("option",{value:k,text:n}); (k.startsWith("a_")||k==="mao"?og3:mine.has(k)?og1:og2).append(o); }
   [og1,og2,og3].forEach(g=>{ if(g.children.length) sel.append(g); }); { const sg=store.get("bmGroup"); sel.value=(sg&&sg!=="*"&&BM_GROUPS.some(x=>x[0]===sg)||LINES.some(x=>x[0]===sg))?sg:bmGroupDefault(); if(!sel.value) sel.value=bmGroupDefault(); }
-  const ts=$("bmTier"); ["Todos",2,3,4,5,6,7,8].forEach((t,i)=>ts.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String(i===0),text:i?`T${t}`:t})));
-  ts.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ts.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmTierSel=+b.dataset.t; renderBM(); });
-  const qs=$("bmQual"); ["Todas",1,2,3,4,5].forEach((q,i)=>qs.append(el("button",{type:"button","data-q":String(i?q:0),"aria-pressed":String(i===0),text:i?QNAME[q]:q})));
-  qs.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; qs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmQualSel=+b.dataset.q; renderBM(); });
+  /* filtros iguais aos da aba Mercado: busca, categoria, tipo, tier, encantamento e qualidade */
+  try{ const sv=JSON.parse(store.get("bmF")||"null"); if(sv){ BMF.cat=sv.cat||""; BMF.sub=sv.sub||""; BMF.ench=sv.ench==null?-1:+sv.ench; bmTierSel=+sv.tier||0; bmQualSel=+sv.qual||0; } else { BMF.cat="weapons"; BMF.sub=sel.value; } }catch(e){ BMF.cat="weapons"; BMF.sub=sel.value; }
+  const bmSave=()=>{ try{ store.set("bmF",JSON.stringify({cat:BMF.cat,sub:BMF.sub,ench:BMF.ench,tier:bmTierSel,qual:bmQualSel})); }catch(e){} };
+  const fill=(id,opts,val,fn)=>{ const x=$(id); opts.forEach(([v,t])=>x.append(el("option",{value:String(v),text:t}))); x.value=String(val); x.addEventListener("change",()=>{ fn(x.value); bmSave(); BMF.lim=0; bmSel=null; renderBM(); }); };
+  fill("bmCat",[["","Todas"],...BM_CATS],BMF.cat,v=>{ BMF.cat=v; BMF.sub=""; bmFillSub(); });
+  bmFillSub();
+  $("bmSub").addEventListener("change",()=>{ BMF.sub=$("bmSub").value; if(BMF.sub&&[...sel.options].some(o=>o.value===BMF.sub)){ sel.value=BMF.sub; store.set("bmGroup",BMF.sub); } bmSave(); BMF.lim=0; bmSel=null; renderBM(); });
+  fill("bmTierS",[[0,"Todos"],...[2,3,4,5,6,7,8].map(t=>[t,`T${t}`])],bmTierSel,v=>{ bmTierSel=+v; });
+  fill("bmEnch",[[-1,"Todos"],...[0,1,2,3,4].map(e=>[e,`.${e}`])],BMF.ench,v=>{ BMF.ench=+v; });
+  fill("bmQualS",[[0,"Todas"],...[1,2,3,4,5].map(q=>[q,QNAME[q]])],bmQualSel,v=>{ bmQualSel=+v; });
+  { let tmr=null; $("bmFind").addEventListener("input",()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ BMF.q=$("bmFind").value.trim(); BMF.lim=0; renderBM(); },250); }); }
   sel.addEventListener("change",()=>{ store.set("bmGroup",sel.value); bmSel=null; renderBM(); });
   document.querySelectorAll("[data-bm]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-bm]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmMode=b.dataset.bm; renderBM(); }));
   { const fbx=$("bmFocBox"); if(fbx&&!fbx.firstChild){ fbx.append(focBudUI(renderBM,"O foco só aumenta o retorno de recursos ao fabricar. Cada linha mostra quantas receitas o foco do dia cobre.")); } const fx=()=>{ if(fbx) fbx.hidden=!$("bmFocus").checked||bmMode==="flip"; }; $("bmFocus").addEventListener("change",fx); fx(); }
@@ -132,21 +150,25 @@ async function renderBM(partial){
   const tok=partial?BM_TOK:++BM_TOK;
   { const fbx=$("bmFocBox"); if(fbx){ fbx.hidden=!$("bmFocus").checked||bmMode==="flip"; FOC_UIS.forEach(u=>u._sync()); } }
   if(!BM){ $("bmNote").textContent="Abrindo o livro do Mercado Negro…"; try{ BM=await need("bm"); }catch(e){ $("bmNote").textContent="Não consegui abrir os dados do Mercado Negro."; return; } }
-  setupBM(); if(!partial) bmStaleCheck($("bmGroup").value,bmTierSel); if(!$("bmAtivo").dataset.init){ $("bmAtivo").dataset.init="1"; try{ $("bmAtivo").checked=store.get("bmAtivo")==="1"; }catch(e){} } const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
-  if(g==="*"&&!bmTierSel&&!partial){   // todas as mercadorias e todos os tiers: busca um tier por vez (do T8 ao T2) e mostra o que já chegou
-    const falta=[8,7,6,5,4,3,2].filter(t=>!BM_LOADED.has(bmLk("*",t)));
-    for(let i=0;i<falta.length;i++){ const t=falta[i];
-      note.textContent=i?`Consultando T${t} (${i+1} de ${falta.length}); mostrando o que já chegou. ${note.textContent}`:`Consultando as ordens do Mercado Negro, T${t} (1 de ${falta.length})…`;
-      if(i+1<falta.length) ensureBM(g,falta[i+1]).catch(()=>{});   // adianta só o próximo tier (a API limita pedidos por minuto)
-      const ok=await ensureBM(g,t); if(tok!==BM_TOK) return;
+  setupBM(); if(!$("bmAtivo").dataset.init){ $("bmAtivo").dataset.init="1"; try{ $("bmAtivo").checked=store.get("bmAtivo")==="1"; }catch(e){} }
+  const tb=$("bmTable"), note=$("bmNote"), T=bmTierSel, keys=bmSelKeys(), groups=bmSelGroups(keys);
+  const lim=Math.max(BMF.lim||0, T?8:4), useG=groups.slice(0,lim), useSet=new Set(useG), more=groups.length>useG.length;
+  if(!partial) for(const g of useG) bmStaleCheck(g,T);
+  const falta=useG.filter(g=>!BM_LOADED.has(bmLk(g,T)));
+  if(!partial&&falta.length){   // busca um tipo por vez e mostra o que já chegou (a API limita pedidos por minuto)
+    if(falta.length===useG.length) tb.textContent="";
+    for(let i=0;i<falta.length;i++){ const g=falta[i], gn=(BM_GROUPS.find(x=>x[0]===g)||[0,g])[1];
+      note.textContent=falta.length>1?`Consultando as ordens do Mercado Negro: ${gn.toLowerCase()} (${i+1} de ${falta.length})${i?"; mostrando o que já chegou":""}…`:"Consultando as ordens do Mercado Negro…";
+      if(i+1<falta.length) ensureBM(falta[i+1],T).catch(()=>{});   // adianta só o próximo (a API limita pedidos por minuto)
+      const ok=await ensureBM(g,T); if(tok!==BM_TOK) return;
       if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; }
       if(i<falta.length-1){ await renderBM(true); if(tok!==BM_TOK) return; } }
-  } else if(!(partial&&g==="*"&&!bmTierSel)&&!BM_LOADED.has(bmLk(g,bmTierSel))){ tb.textContent=""; note.textContent="Consultando as ordens do Mercado Negro…"; const ok=await ensureBM(g,g==="*"?bmTierSel:0); if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; } if($("bmGroup").value!==g||tok!==BM_TOK) return; }
-  const rows=[]; for(const k of bmKeys(g)) for(let t=2;t<=8;t++){ if(bmTierSel&&t!==bmTierSel) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) for(let q=1;q<=5;q++){ if(bmQualSel&&q!==bmQualSel) continue; if(!bmHas(bmId(k,t,e),q)) continue; if($("bmAtivo").checked&&(bmRec(bmId(k,t,e),q)["Black Market"][2]||0)>BM_ATIVO_H) continue; if(g==="*"){ const tp=BM_TOP[bmLk(g,t)]; if(!tp||!tp.has(bmId(k,t,e))) continue; } const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } }
+  }
+  const rows=[]; for(const k of keys){ if(!useSet.has(BM[k][1])) continue; for(let t=2;t<=8;t++){ if(T&&t!==T) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++){ if(BMF.ench>=0&&e!==BMF.ench) continue; for(let q=1;q<=5;q++){ if(bmQualSel&&q!==bmQualSel) continue; if(!bmHas(bmId(k,t,e),q)) continue; if($("bmAtivo").checked&&(bmRec(bmId(k,t,e),q)["Black Market"][2]||0)>BM_ATIVO_H) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } } } }
   const val=m=>bmMode==="flip"?m.flip:m.craft, base=m=>bmMode==="flip"?(m.buy&&m.buy.p):m.cost, pct=m=>{ const b=base(m), v=val(m); return b>0&&v!=null?v/b*100:-Infinity; };
   /* ordem: primeiro pela porcentagem de lucro, depois pelo valor em prata (o cabeçalho de cada coluna inverte a prioridade) */
   const cmp=bmSort==="val"?(a,b)=>val(b)-val(a)||pct(b)-pct(a):(a,b)=>pct(b)-pct(a)||val(b)-val(a);
-  let ok=rows.filter(m=>val(m)!=null).sort(cmp); if(g==="*"&&!bmTierSel){ const c={}; ok=ok.filter(m=>(c[m.t]=(c[m.t]||0)+1)<=5); }   // todos os tiers: os 5 mais lucrativos de cada um
+  let ok=rows.filter(m=>val(m)!=null).sort(cmp);
   const shown=ok.slice(0,100);
   if(BM_GEN!==DATA.geradoEm){ BM_BASE=BM_CUR; BM_CUR={}; BM_GEN=DATA.geradoEm; }
   tb.textContent=""; const hr=tb.createTHead().insertRow();
@@ -171,10 +193,12 @@ async function renderBM(partial){
     const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open)); if(open){ dc.textContent=""; try{ dc.append(bmPanel(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes: "+(e&&e.message||e)})); } setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8) dr.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"}); }catch(e){} },60); } };
     tr.setAttribute("aria-expanded","false"); tr.addEventListener("click",ev=>{ if(ev.target.closest("a,button")) return; toggle(); }); tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } }); }
   { const w=$("bmWrap"); if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }
-  const gname=g==="*"?"todas as mercadorias":BM_GROUPS.find(x=>x[0]===g)[1], pos=ok.filter(m=>val(m)>0).length;
-  const qtxt=bmQualSel?` na qualidade ${QNAME[bmQualSel].toLowerCase()}`:"";
-  note.textContent = !rows.length ? `Nenhuma ordem do Mercado Negro para ${gname.toLowerCase()}${qtxt} nos últimos 3 dias.`
-    : `${rows.length} ordens de ${gname.toLowerCase()}${qtxt}; ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${g==="*"&&!bmTierSel?" Mostrando os 5 mais lucrativos de cada tier (a lista completa de tudo pesa demais para a API; escolha uma mercadoria para ver todos).":ok.length>100?` Mostrando as 100 de maior lucro de ${fmt(ok.length)} registros: não são todos.`:(bmSort==="val"?" Ordenado pelo valor do lucro e, se empatar, pela porcentagem.":" Ordenado pela porcentagem de lucro e, se empatar, pelo valor.")} Clique numa linha para ver a conta e o histórico.`;
+  const q0=BMF.q.trim(), gname=q0.length>=2?`"${q0}"`:BMF.sub?((BM_GROUPS.find(x=>x[0]===BMF.sub)||[0,BMF.sub])[1]):BMF.cat?(BM_CATS.find(x=>x[0]===BMF.cat)||[0,""])[1]:"todas as mercadorias", pos=ok.filter(m=>val(m)>0).length;
+  const qtxt=(bmQualSel?` na qualidade ${QNAME[bmQualSel].toLowerCase()}`:"")+(BMF.ench>=0?`, encantamento .${BMF.ench}`:"");
+  note.textContent = !keys.length ? "Nenhuma peça com esse filtro."
+    : !rows.length ? `Nenhuma ordem do Mercado Negro para ${gname.toLowerCase()}${qtxt} nos últimos 3 dias.${more?` Foram consultados ${useG.length} de ${groups.length} tipos: use "Consultar mais".`:""}`
+    : `${rows.length} ordens de ${gname.toLowerCase()}${qtxt}; ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${more?` Foram consultados ${useG.length} de ${groups.length} tipos (as suas armas primeiro): use "Consultar mais" para os outros.`:""}${ok.length>100?` Mostrando as 100 de maior lucro de ${fmt(ok.length)} registros: não são todos.`:(bmSort==="val"?" Ordenado pelo valor do lucro e, se empatar, pela porcentagem.":" Ordenado pela porcentagem de lucro e, se empatar, pelo valor.")} Clique numa linha para ver a conta e o histórico.`;
+  { let mb=$("bmMore"); if(!mb){ mb=el("button",{type:"button",id:"bmMore",class:"btn mn-craft"}); $("bmWrap").after(mb); mb.addEventListener("click",()=>{ BMF.lim=(BMF.lim||(bmTierSel?8:4))+(bmTierSel?8:4); renderBM(); }); } mb.hidden=!more; mb.textContent=`Consultar mais tipos (${useG.length} de ${groups.length})`; }
   if(window.gsap&&!RM) gsap.from(tb.querySelectorAll(".bm-row"),{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
   hbar($("bmWrap")); bmVolumes(shown);
 }
