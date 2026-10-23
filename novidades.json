@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T16:30:00Z",
+   "titulo": "PvP: classificador melhor e contagem em builds",
+   "itens": [
+    "O classificador que descobre de qual conteúdo é cada morte agora é uma floresta de árvores: acerta cerca de 94% nos testes, contra 92% antes.",
+    "Os botões de conteúdo e o resumo da aba contam builds, não lutas.",
+    "O coletor passa a guardar as características de cada morte, para reclassificar com o modelo novo e continuar treinando."
+   ]
+  },
+  {
    "t": "2026-10-23T14:50:00Z",
    "titulo": "PvP: jogadores com mais kills",
    "itens": [

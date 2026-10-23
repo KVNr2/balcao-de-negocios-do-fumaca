@@ -97,7 +97,8 @@ def main():
     for e in eventos.values():
         try:
             if datetime.datetime.strptime(e["TimeStamp"][:19], "%Y-%m-%dT%H:%M:%S") < corte: continue
-            if "_c" in e: pr = {e["_c"]: 1.0}
+            if e.get("_x"): pr = C.prever_vetor(arv, e["_x"])   # reclassifica com o modelo atual
+            elif "_c" in e: pr = {e["_c"]: 1.0}
             else: pr = C.prever(arv, C.feat(e))
         except Exception: continue
         c = max(pr, key=pr.get)
@@ -190,7 +191,7 @@ def main():
         ach = [g for g in grind if g["k"] in CAT[c] and base(g.get("w")) == w and g.get("sk")]
         if not ach: ach = [g for g in grind if base(g.get("w")) == w and g.get("sk")]
         return max(ach, key=lambda g: g.get("pop", 0))["sk"] if ach else None
-    out = {"fonte": f"API oficial do Albion (Americas), só jogadores com {FAMA_MIN:g} milhões ou mais de fama de PvP; conteúdo deduzido do tipo de luta (precisão ~90%)", "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
+    out = {"fonte": f"API oficial do Albion (Americas), só jogadores com {FAMA_MIN:g} milhões ou mais de fama de PvP; conteúdo deduzido do tipo de luta (precisão ~94% nos testes)", "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
            "janela": {"dias": DIAS, "eventos": sum(n_keep.values()), "classificados": sum(n_class.values()), "experientes": sum(n_keep.values()), "fama_min": round(FAMA_MIN), "de": min(datas), "ate": max(datas), "por_conteudo": dict(n_keep)}, "conteudos": {}}
     MINB = 4
     for (c, t), A in sorted(S.items()):

@@ -45,9 +45,9 @@ def main(d):
             try: pr = C.prever(arv, C.feat(e))
             except Exception: continue
             c = max(pr, key=pr.get)
-            if c in CONT and pr[c] >= CONF and C.cabe(c, e): cand.append((c, e))
+            if c in CONT and pr[c] >= CONF and C.cabe(c, e): cand.append((c, e, pr[c]))
     ids = set()
-    for c, e in cand:
+    for c, e, _q in cand:
         for p in [e["Killer"], e["Victim"]] + (e.get("Participants") or []):
             if p.get("Id"): ids.add(p["Id"])
     falta = [i for i in ids if not fama_ok(cache.get(i), agora)][:BUDGET_PERFIS]
@@ -56,10 +56,10 @@ def main(d):
     with ThreadPoolExecutor(3) as ex:
         for i, fm in ex.map(perfil, falta):
             if fm is not None: cache[i] = [fm, agora]
-    for c, e in cand:
+    for c, e, q in cand:
         venc = {e["Killer"].get("Id")} | {p.get("Id") for p in (e.get("Participants") or []) if (p.get("DamageDone") or 0) > 0 or (p.get("SupportHealingDone") or 0) > 0}
         gs = [(cache.get(i) or [None])[0] for i in venc | {e["Victim"].get("Id")} if i]
-        if any(g is not None and g >= LIM for g in gs): r = C.empacotar(e, c); tem[e["EventId"]] = r; novas_l.append(r); nv.add(r["id"]); novos += 1
+        if any(g is not None and g >= LIM for g in gs): r = C.empacotar(e, c, q); tem[e["EventId"]] = r; novas_l.append(r); nv.add(r["id"]); novos += 1
         elif any(g is None for g in gs): sem_fama += 1
     json.dump({i: v for i, v in cache.items() if v[0] >= LIM or agora - v[1] < 60 * 86400}, open(pf, "w"), separators=(",", ":"))
     for r in novas_l:
