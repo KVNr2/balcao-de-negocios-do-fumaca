@@ -1,6 +1,62 @@
-{"itens":[
- {"t":"2026-10-23T14:50:00Z","titulo":"PvP: jogadores com mais kills","itens":["Em \"Por jogador\" dá para ordenar por mais kills (padrão), winrate confiável ou mais lutas, em Brumas solo, Hellgate 2v2 e nos outros conteúdos.","Cada jogador mostra kills, mortes e lutas."]},
- {"t":"2026-10-23T14:40:00Z","titulo":"PvP: base maior e mais recente","itens":["Um coletor guarda as mortes do feed oficial do Albion a cada 15 minutos, e a janela do PvP agora é de 30 dias.","Só entram jogadores com 300 mi de fama de PvP ou mais.","Lutas com mais gente do lado vencedor que o limite do conteúdo ficam de fora (Hellgate 2v2: 2, 5v5: 5, Corrompida: 1, Brumas solo: 2, Depths: 3)."]},
- {"t":"2026-10-23T05:00:00Z","titulo":"Botão Limpar filtros","itens":["Mercado, Mercado Negro, Matchups, Craft e Refino, Builds e Avalon ganharam o botão, com a contagem de filtros ativos."]},
- {"t":"2026-10-22T20:00:00Z","titulo":"Mercado Negro e Craft","itens":["A aba do Mercado Negro ganhou os mesmos filtros do Mercado (busca, categoria, tipo, tier, encantamento e qualidade).","O botão Craft agora funciona para peças T2 e T3 do Mercado Negro.","O AlbionSpecs 1.4.5 junta todas as páginas do Mercado Negro antes de enviar, sem cortar preços."]}
-]}
+{
+ "itens": [
+  {
+   "t": "2026-10-23T14:50:00Z",
+   "titulo": "PvP: jogadores com mais kills",
+   "itens": [
+    "Em \"Por jogador\" dá para ordenar por mais kills (padrão), winrate confiável ou mais lutas, em Brumas solo, Hellgate 2v2 e nos outros conteúdos.",
+    "Cada jogador mostra kills, mortes e lutas."
+   ]
+  },
+  {
+   "t": "2026-10-23T14:40:00Z",
+   "titulo": "PvP: base maior e mais recente",
+   "itens": [
+    "Um coletor guarda as mortes do feed oficial do Albion a cada 15 minutos, e a janela do PvP agora é de 30 dias.",
+    "Só entram jogadores com 300 mi de fama de PvP ou mais.",
+    "Lutas com mais gente do lado vencedor que o limite do conteúdo ficam de fora (Hellgate 2v2: 2, 5v5: 5, Corrompida: 1, Brumas solo: 2, Depths: 3)."
+   ]
+  },
+  {
+   "t": "2026-10-23T05:00:00Z",
+   "titulo": "Botão Limpar filtros",
+   "itens": [
+    "Mercado, Mercado Negro, Matchups, Craft e Refino, Builds e Avalon ganharam o botão, com a contagem de filtros ativos."
+   ]
+  },
+  {
+   "t": "2026-10-22T20:00:00Z",
+   "titulo": "Mercado Negro e Craft",
+   "itens": [
+    "A aba do Mercado Negro ganhou os mesmos filtros do Mercado (busca, categoria, tipo, tier, encantamento e qualidade).",
+    "O botão Craft agora funciona para peças T2 e T3 do Mercado Negro."
+   ]
+  },
+  {
+   "t": "2026-10-23T02:46:58Z",
+   "programa": "1.4.5",
+   "titulo": "AlbionSpecs 1.4.5",
+   "itens": [
+    "Junta todas as páginas da busca e envia só no fim, ficando com o menor preço de venda de cada item.",
+    "No Mercado Negro, nenhuma página é cortada: os preços de compra vêm completos, sem filtro de preço suspeito."
+   ]
+  },
+  {
+   "t": "2026-10-22T15:55:11Z",
+   "programa": "1.4.4",
+   "titulo": "AlbionSpecs 1.4.4",
+   "itens": [
+    "Acompanha a mudança de mapa e conta os portais como a cidade.",
+    "Pergunta se quer iniciar com o Windows, pelo botão."
+   ]
+  },
+  {
+   "t": "2026-10-22T15:42:14Z",
+   "programa": "1.4.3",
+   "titulo": "AlbionSpecs 1.4.3",
+   "itens": [
+    "O modo de coleta liga a leitura do tráfego."
+   ]
+  }
+ ]
+}
