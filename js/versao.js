@@ -23,7 +23,7 @@ async function renderLista(box,tok){
   const w=el("div",{class:"v-nov"}); box.append(w);
   if(cat==="rotinas"){
     w.before(el("p",{class:"muted small",text:"Rotinas são as atualizações automáticas de dados, sem mudança no site. A hora é da última vez que cada uma gravou."}));
-    for(const [nome,url,freq,desc] of V_ROTINAS){ const c=el("div",{class:"v-nov-i"}), h=el("div",{class:"v-nov-h"}); h.append(el("b",{text:nome}),el("span",{class:"v-tag rot",text:freq})); c.append(h,el("p",{class:"small",text:desc})); const q=el("small",{class:"muted",text:url?"Última atualização: …":"Roda sozinha no GitHub, de 15 em 15 minutos."}); c.append(q); w.append(c);
+    for(const [nome,url,freq,desc] of V_ROTINAS){ const c=el("div",{class:"v-nov-i"}), h=el("div",{class:"v-nov-h"}); h.append(el("b",{text:nome}),el("span",{class:"v-tag rot",text:freq})); c.append(h,el("p",{class:"small",text:desc})); const q=el("small",{class:"muted",text:url?"Última atualização: …":"Roda sozinha no GitHub, a cada 15 minutos (uma execução de 1 hora com 4 coletas)."}); c.append(q); w.append(c);
       if(url) fetch(url+"?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{ const raw=j.atualizado||""; const dd=new Date(/T/.test(raw)?raw:raw+"T00:00:00Z"); q.textContent=isNaN(dd)?"Sem data registrada.":`Última atualização: ${/T/.test(raw)?fmtDH(dd)+" ("+haQuanto(dd)+")":dd.toLocaleDateString("pt-BR",{timeZone:"UTC"})}`; }).catch(()=>{ q.textContent="Não consegui ler a data agora."; }); }
     return; }
   let todas=[]; try{ todas=((await fetch("novidades.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json())).itens||[]).slice().sort((a,b)=>b.t.localeCompare(a.t)); }catch(e){ w.append(el("p",{class:"muted",text:"Não consegui ler a lista agora."})); return; }

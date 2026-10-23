@@ -1,6 +1,13 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T18:00:00Z",
+   "titulo": "Coletor de mortes com ritmo fixo de 15 minutos",
+   "itens": [
+    "O agendamento do GitHub atrasava a coleta (saía a cada 30 a 45 minutos). Agora cada execução dura 1 hora e faz 4 coletas, uma a cada 15 minutos exatos, e a próxima já fica na fila."
+   ]
+  },
+  {
    "t": "2026-10-23T17:50:00Z",
    "titulo": "PvP: assistências e grupo contam",
    "itens": [
