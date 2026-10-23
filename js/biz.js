@@ -6,7 +6,7 @@ const BM_GROUPS = [...LINES.map(([k,n])=>[k,n]),["a_placa","Armaduras de placa"]
 const BMP = {};                     // id: {cidade: [venda, compra, idade em horas da compra, idade da venda]}
 const BMQ = {};                     // qualidades 2 a 5, mesmo formato do BMP: id: {qualidade: {cidade: [venda, compra, idade da compra, idade da venda]}} (a qualidade 1 fica no BMP)
 const BM_VOL = {};                  // id: {qualidade: peças que o Mercado Negro comprou por dia (média dos últimos 7 dias)}, ou -1 se a consulta falhou
-const BM_LOADED = new Set(); let BM_TOK=0, bmMode="craft", bmTierSel=0, bmQualSel=0, bmSel=null, PLANKS_LOADED=false;
+const BM_LOADED = new Set(), BM_TS = {}, BM_REF = {}; let BM_TOK=0, bmMode="craft", bmTierSel=0, bmQualSel=0, bmSel=null, PLANKS_LOADED=false;
 const ageH = d => d&&!d.startsWith("0001") ? (Date.now()-Date.parse(d+"Z"))/3600e3 : Infinity;
 /* allQ: traz as qualidades 1 a 5 (a 1 vai para o BMP, as outras para o BMQ); sem allQ só a qualidade 1, como as outras páginas usam */
 async function bmFetch(ids, locs, allQ=false, step=API_CHUNK){
@@ -47,7 +47,7 @@ async function ensureBMTop(t,lk){
       return [...sc.entries()].sort((a,b)=>b[1]-a[1]).slice(0,BM_TOPN).map(x=>x[0]); };
     const top=[...new Set([...topBy(m=>m.craft),...topBy(m=>m.net)])];
     if(top.length) await bmFetch(top,["Black Market",...SHOP_LOCS],true);
-    BM_TOP[lk]=new Set(top); BM_LOADED.add(lk); return true;
+    BM_TOP[lk]=new Set(top); BM_LOADED.add(lk); BM_TS[lk]=Date.now(); return true;
   }catch(e){ return false; }
 }
 /* Aquecimento do cache: assim que os preços do site chegam, já busca o Mercado Negro da visão que a pessoa costuma abrir,
@@ -71,7 +71,7 @@ async function warmBM(force){
 }
 // atualização automática: a cada 10 min, se a aba estiver visível, refaz os preços (o cache vencido faz buscar de verdade)
 setInterval(()=>{ if(!document.hidden&&typeof loadLive==="function"&&!$("reload").disabled) loadLive(false); },10.5*60e3);
-const bmLk=(g,only)=>g==="*"?`*#${only}`:g;
+const bmLk=(g,only)=>g==="*"?`*#${only}`:`${g}#${only||0}`;
 function ensureBM(g,only=0){ const lk=bmLk(g,only); if(BM_LOADED.has(lk)) return Promise.resolve(true); return BM_PEND[lk]||(BM_PEND[lk]=ensureBM1(g,only).finally(()=>{ delete BM_PEND[lk]; })); }
 async function ensureBM1(g,only=0){
   const lk=bmLk(g,only);
@@ -83,8 +83,14 @@ async function ensureBM1(g,only=0){
     await bmFetch(gear,["Black Market",...SHOP_LOCS],true);
     if(!PLANKS_LOADED){ BM_PL.p=BM_PL.p||(async()=>{ const pl=[]; for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) pl.push(`T${t}_PLANKS`+(e?`_LEVEL${e}@${e}`:"")); await fetchIds(pl,DATA.itens); PLANKS_LOADED=true; })().finally(()=>{ BM_PL.p=null; }); await BM_PL.p; }
     if(extra.size) await fetchIds([...extra],DATA.itens,[...CITIES,"Caerleon"]);
-    BM_LOADED.add(lk); return true;
+    BM_LOADED.add(lk); BM_TS[lk]=Date.now(); return true;
   }catch(e){ return false; }
+}
+/* o que já foi carregado envelhece: ao abrir ou refazer a lista, relê as ordens do Mercado Negro (o valor mais recente vale) sem apagar a tela */
+function bmStaleCheck(g,only){
+  const lks=(g==="*"&&!only)?[8,7,6,5,4,3,2].map(t=>[t,bmLk(g,t)]):[[only,bmLk(g,only)]];
+  for(const [t,lk] of lks){ if(!BM_LOADED.has(lk)||BM_REF[lk]||Date.now()-(BM_TS[lk]||0)<45e3) continue;
+    BM_REF[lk]=(g==="*"&&t?ensureBMTop(t,lk):ensureBM1(g,t||0)).catch(()=>false).finally(()=>{ delete BM_REF[lk]; }).then(ok=>{ if(ok&&!Object.keys(BM_REF).length) renderBM(true); }); }
 }
 /* T2 e T3 não estão na tabela de foco: estimativa pela razão entre tiers (cerca de 1,75 por tier) */
 const bmFocT=(t,e)=>t>=4?FOCUS_CRAFT[t-4][e]:Math.round(429/Math.pow(1.75,4-t));
@@ -126,7 +132,7 @@ async function renderBM(partial){
   const tok=partial?BM_TOK:++BM_TOK;
   { const fbx=$("bmFocBox"); if(fbx){ fbx.hidden=!$("bmFocus").checked||bmMode==="flip"; FOC_UIS.forEach(u=>u._sync()); } }
   if(!BM){ $("bmNote").textContent="Abrindo o livro do Mercado Negro…"; try{ BM=await need("bm"); }catch(e){ $("bmNote").textContent="Não consegui abrir os dados do Mercado Negro."; return; } }
-  setupBM(); if(!$("bmAtivo").dataset.init){ $("bmAtivo").dataset.init="1"; try{ $("bmAtivo").checked=store.get("bmAtivo")==="1"; }catch(e){} } const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
+  setupBM(); if(!partial) bmStaleCheck($("bmGroup").value,bmTierSel); if(!$("bmAtivo").dataset.init){ $("bmAtivo").dataset.init="1"; try{ $("bmAtivo").checked=store.get("bmAtivo")==="1"; }catch(e){} } const g=$("bmGroup").value, tb=$("bmTable"), note=$("bmNote");
   if(g==="*"&&!bmTierSel&&!partial){   // todas as mercadorias e todos os tiers: busca um tier por vez (do T8 ao T2) e mostra o que já chegou
     const falta=[8,7,6,5,4,3,2].filter(t=>!BM_LOADED.has(bmLk("*",t)));
     for(let i=0;i<falta.length;i++){ const t=falta[i];
