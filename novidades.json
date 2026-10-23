@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T18:10:00Z",
+   "titulo": "PvP: janela de 30 dias",
+   "itens": [
+    "A janela do PvP passou de 14 para 30 dias; os arquivos de mortes só são apagados depois de 30 dias.",
+    "O acervo vai crescendo dia a dia até completar os 30 dias; hoje o arquivo diário pesa menos de 1 MB."
+   ]
+  },
+  {
    "t": "2026-10-23T18:00:00Z",
    "titulo": "Coletor de mortes com ritmo fixo de 15 minutos",
    "itens": [
