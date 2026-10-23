@@ -28,12 +28,13 @@ function ofGroups(cat){ const g=cat.slice(2);
 function ofItems(cat){
   const out=[];
   if(cat.startsWith("g:")){ const g=cat.slice(2);
-    for(const gg of ofGroups(cat)) for(const k of bmKeys(gg)){ const r=BM[k]; for(let t=4;t<=8;t++) for(let e=0;e<=4;e++){
+    for(const gg of ofGroups(cat)) for(const k of bmKeys(gg)){ const r=BM[k]; for(let t=(OF.tier>=2&&OF.tier<4?OF.tier:4);t<=8;t++) for(let e=0;e<=4;e++){
       if((OF.tier&&t!==OF.tier)||(OF.ench>=0&&e!==OF.ench)) continue;
+      if(t<4&&(e>0||r[4])) continue;   // T2 e T3 não têm encantamento nem artefato
       const ing=[]; for(const [,c,n] of r[3].matchAll(/([MPLC])(\d+)/g)) ing.push({id:idLv(t,BM_RES[c],e),n:+n,nm:`${MAT_PT[BM_RES[c]]} T${t}.${e}`});
       if(r[4]) ing.push({id:`T${t}_${r[4][0]}`,n:r[4][1],nm:r[4][0].startsWith("ALCHEMY")?"Ingrediente raro":"Artefato",art:true});
       const cnt=ing.filter(x=>!x.art).reduce((a,x)=>a+x.n,0);
-      out.push({id:bmId(k,t,e),key:k,name:nmKey(k,r[0]),t,e,q:1,ing,city:r[2],bonus:0.15,fee:cnt*IV(t,e)*0.1125,focus:r[5]*FOCUS_CRAFT[t-4][e]/429,fce:bmFCE(k)}); } }
+      out.push({id:bmId(k,t,e),key:k,name:nmKey(k,r[0]),t,e,q:1,ing,city:r[2],bonus:0.15,fee:cnt*IV(t,e)*0.1125,focus:r[5]*bmFocT(t,e)/429,fce:bmFCE(k)}); } }
   } else if(cat==="meal"||cat==="potion"){ const kind=cat==="meal"?"f":"p";
     for(const id in COOK.r){ const r=COOK.r[id]; if(r[1]!==kind||!r[3]) continue; const [name,,q,fo,nut,ing]=r;
       out.push({id,key:id,name,t:+id[1],e:0,q,ing:ing.map(([iid,n])=>({id:iid,n,nm:COOK.n[iid]||iid})),city:COOK_CITY[kind],bonus:0.15,fee:q*nut*0.1125,focus:fo,fce:cookFCE(kind,id)}); }
@@ -52,6 +53,7 @@ async function ensureOfG(cat,note){
     for(const gg of groups){
       const ids=[], idsBM=[], extra=new Set(), mats=new Set();
       for(const k of bmKeys(gg)) for(const t of tiers){ let usado=false; for(const e of enchs){
+        if(t<4&&(e>0||BM[k][4])) continue;
         const kk=`${k}|${t}|${e}`; const idg=bmId(k,t,e);
         if(!OF.loaded.has("p|"+kk)){ ids.push(idg); usado=true; for(const [,c] of BM[k][3].matchAll(/([MPLC])(\d+)/g)) mats.add(apiLv(t,BM_RES[c],e)); }
         if(bm&&!OF.loaded.has("b|"+kk)) idsBM.push(idg); }
