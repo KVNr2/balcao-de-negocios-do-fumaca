@@ -1,7 +1,7 @@
-name: Coletar mortes do Albion (a cada 30 min)
+name: Coletar mortes do Albion (a cada 15 min)
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 permissions:
   contents: write
