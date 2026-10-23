@@ -115,10 +115,18 @@ function renderPvp(){
     const pg=pgSlice("pvJ",l,[pvC,pvT,pvV,js].join("|"),renderPvp); pg.items.forEach(p=>host.append(pvJog(p,d))); host.append(pg.bar); return;
   }
   if(pvV==="comp"){
+    pvTierBox(host,d);
     if(!(d.comps&&d.comps.length)){ $("pvCount").textContent="Nenhuma composição com grupo completo ainda"; host.append(el("p",{class:"empty",text:"Ainda não há lutas suficientes com o grupo inteiro identificado (todos os jogadores e armas). Conforme o acervo cresce, as composições aparecem aqui."})); return; }
     $("pvCount").textContent=`${d.comps.length} composições, só grupos completos${pvC==="hg5"?" (no 5v5 aparecem também as com 1 ou 2 lutas, marcadas como amostra pequena)":" com 3 lutas ou mais"}`;
     const L=d.comps.slice().sort((a,b)=>b.n-a.n||b.wr-a.wr); const trc=pvTiersComp(L); const pg=pgSlice("pvC",L,[pvC,pvT,pvV].join("|"),renderPvp); pg.items.forEach(x=>host.append(pvComp(x,trc.get(x.id)||""))); host.append(pg.bar); return;
   }
+  pvTierBox(host,d);
+  let l=d.builds.slice(); pvSort=$("pvSort").value||pvSort;
+  if(pvSort==="wilson") l.sort((a,b)=>pvWilson(b.v,b.n+0)-pvWilson(a.v,a.n)); else if(pvSort==="wr") l.sort((a,b)=>b.wr-a.wr||b.n-a.n); else if(pvSort==="spec"){ l.forEach(pvPrep); l.sort((a,b)=>(gbSpec(b)-gbSpec(a))||(b.n-a.n)); } else l.sort((a,b)=>b.n-a.n);
+  $("pvCount").textContent=`${l.length} builds com 4 lutas ou mais · ${d.eventos.toLocaleString("pt-BR")} mortes${PVP.janela.fama_min?` de jogadores com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
+  const pg=pgSlice("pvB",l,[pvC,pvT,pvV,pvSort].join("|"),renderPvp); pg.items.forEach(b=>host.append(pvCard(b,d))); host.append(pg.bar);
+}
+function pvTierBox(host,d){
   if((d.armas&&d.armas.length)||(d.comps&&d.comps.length)){ const bx=el("details",{class:"pv-arm"}); if(pvArmOpen) bx.open=true; bx.addEventListener("toggle",()=>{ pvArmOpen=bx.open; });
     const temC=!!(d.comps&&d.comps.length); if(pvArmM==="comp"&&!temC) pvArmM="arma"; if(pvArmM==="arma"&&!(d.armas&&d.armas.length)) pvArmM="comp";
     const sm=el("summary",{class:"pv-arm-t"}); sm.append(el("h4",{text:pvArmM==="comp"?"Tier list de composições":"Tier list de armas"}),el("small",{class:"muted",text:"Níveis S a C por winrate e lutas"})); bx.append(sm);
@@ -150,10 +158,6 @@ function renderPvp(){
       const c3=r.insertCell(); c3.className="pv-us"; c3.append(el("span",{class:"pv-bar",style:`width:${Math.max(4,Math.round(it.n/mx*100))}%`}),el("span",{class:"pv-un",text:String(it.n)})); });
     const wp=el("div",{class:"pv-armw"}); wp.append(tb); bx.append(wp); if(L.length>15){ const mb=el("button",{type:"button",class:"pv-chip pv-mais",text:pvArmAll?"Mostrar só as 15 primeiras":`Mostrar todas (${L.length})`}); mb.onclick=()=>{ pvArmAll=!pvArmAll; pvArmOpen=true; renderPvp(); }; bx.append(mb); }
     host.append(bx); } }
-  let l=d.builds.slice(); pvSort=$("pvSort").value||pvSort;
-  if(pvSort==="wilson") l.sort((a,b)=>pvWilson(b.v,b.n+0)-pvWilson(a.v,a.n)); else if(pvSort==="wr") l.sort((a,b)=>b.wr-a.wr||b.n-a.n); else if(pvSort==="spec"){ l.forEach(pvPrep); l.sort((a,b)=>(gbSpec(b)-gbSpec(a))||(b.n-a.n)); } else l.sort((a,b)=>b.n-a.n);
-  $("pvCount").textContent=`${l.length} builds com 4 lutas ou mais · ${d.eventos.toLocaleString("pt-BR")} mortes${PVP.janela.fama_min?` de jogadores com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
-  const pg=pgSlice("pvB",l,[pvC,pvT,pvV,pvSort].join("|"),renderPvp); pg.items.forEach(b=>host.append(pvCard(b,d))); host.append(pg.bar);
 }
 { const s=$("pvSort"); if(s) s.addEventListener("change",()=>{ pvSort=s.value; renderPvp(); }); const sj=$("pvJSort"); if(sj) sj.addEventListener("change",renderPvp);
   const r=$("pvRefresh"); if(r) r.addEventListener("click",async()=>{ if(r.disabled) return; r.disabled=true; const old=r.textContent; r.textContent="Atualizando…"; FORCE=true;
