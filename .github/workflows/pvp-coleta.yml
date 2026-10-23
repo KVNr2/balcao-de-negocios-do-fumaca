@@ -1,6 +1,6 @@
-name: Coletar mortes do Albion (ciclos de 15 min)
+name: Coletar mortes do Albion (ciclos de 6 min)
 # O agendamento do GitHub atrasa ou pula execuções (na prática saía a cada 30-45 min).
-# Por isso cada execução dura ~1 hora e faz 4 coletas, uma a cada 15 minutos exatos;
+# Por isso cada execução dura ~1 hora e faz 10 coletas, uma a cada 6 minutos exatos;
 # o cron horário deixa sempre a próxima execução na fila (concurrency), então não há buraco.
 on:
   schedule:
@@ -20,14 +20,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Quatro coletas, uma a cada 15 minutos
+      - name: Dez coletas, uma a cada 6 minutos (a primeira também carrega histórico)
         run: |
           INI=$(date +%s)
-          for i in 0 1 2 3; do
-            ALVO=$((INI + i*900)); AGORA=$(date +%s)
+          for i in 0 1 2 3 4 5 6 7 8 9; do
+            ALVO=$((INI + i*360)); AGORA=$(date +%s)
             [ "$ALVO" -gt "$AGORA" ] && sleep $((ALVO-AGORA))
-            echo "::group::coleta $((i+1)) de 4 ($(date -u +%H:%M))"
-            bash tools/coleta_ciclo.sh || true
+            echo "::group::coleta $((i+1)) de 10 ($(date -u +%H:%M))"
+            if [ "$i" = 0 ]; then bash tools/coleta_ciclo.sh hist || true; else bash tools/coleta_ciclo.sh || true; fi
             echo "::endgroup::"
           done
           FIM=$((INI + 3600)); AGORA=$(date +%s)

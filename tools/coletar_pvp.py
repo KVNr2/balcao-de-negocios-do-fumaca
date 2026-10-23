@@ -53,4 +53,4 @@ def main(d):
     print(f"falhas da API: {dict(api_suave.FALHAS)}")
     print(f"feed lido: {lidos} mortes; candidatas {len(cand)}; novas guardadas: {novos}; arquivos de hoje/ontem {antes} -> {antes + novos}")
     if lidos == 0: sys.exit(1)
-main(sys.argv[1] if len(sys.argv) > 1 else "dados")
+if __name__ == "__main__": main(sys.argv[1] if len(sys.argv) > 1 else "dados")
