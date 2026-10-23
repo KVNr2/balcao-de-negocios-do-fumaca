@@ -221,6 +221,13 @@
    "itens": [
     "O registro do coletor agora mostra tempo de resposta (mediana, p90, máximo), tamanho médio, causa dos erros de rede (timeout, reset, recusada…), tempo gasto em fila, pausa, erros e espera, e a taxa real de pedidos por segundo, separados por tipo de consulta."
    ]
+  },
+  {
+   "t": "2026-10-23T23:10:00Z",
+   "titulo": "PvP: tier list também em \"Por composição\"",
+   "itens": [
+    "A tier list (por arma e por composição) agora aparece nas visões Por build e Por composição. Em Por jogador continua escondida."
+   ]
   }
  ]
 }
