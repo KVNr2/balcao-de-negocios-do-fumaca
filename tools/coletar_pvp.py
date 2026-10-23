@@ -2,7 +2,7 @@
 """Coleta o feed global de mortes da API oficial (a mesma do killboard do Albion): /events?limit=51&offset=N.
 Guarda as mortes de PvP pequeno (hg2, hg5, corrompida, solo, depths) de qualquer jogador em DADOS/eventos/AAAA-MM-DD.jsonl.gz, sem repetir.
 Quem passa do limite de participantes do conteúdo fica de fora. Os arquivos com mais de 14 dias são apagados pela atualização diária (tools/expurgar.py).
-Rodado a cada ~30 min pelo workflow pvp-coleta.yml. Uso: coletar_pvp.py DIR_DADOS"""
+Rodado a cada ~15 min pelo workflow pvp-coleta.yml. Uso: coletar_pvp.py DIR_DADOS"""
 import gzip, json, os, sys, time, datetime, urllib.request, urllib.error
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pvp_comum as C
