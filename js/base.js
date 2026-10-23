@@ -321,9 +321,10 @@ async function crowdMerge(url,j){
     if(hit&&Date.now()-hit.t<60e3) rows=hit.r;
     else{
       const cfg=await need("nuvem"); if(!(cfg.url&&cfg.key)){ CROWD_OFF=true; return j; }
-      const qs=`select=item_id,quality,city,sell_min,sell_min_at,sell_amt,buy_max,buy_max_at,buy_amt&item_id=in.(${ids.map(encodeURIComponent).join(",")})`+(locs.length?`&city=in.(${locs.map(c=>encodeURIComponent(c)).join(",")})`:"")+`&quality=in.(${quals.join(",")})&limit=5000`;
+      const qs=`select=item_id,quality,city,sell_min,sell_min_at,sell_amt,buy_max,buy_max_at,buy_amt&item_id=in.(${ids.map(encodeURIComponent).join(",")})`+(locs.length?`&city=in.(${locs.map(c=>encodeURIComponent(c)).join(",")})`:"")+`&quality=in.(${quals.join(",")})&limit=1000`;
       const ctl=new AbortController(); const tm=setTimeout(()=>ctl.abort(),5000);
-      try{ const r=await fetch(cfg.url.replace(/\/$/,"")+"/rest/v1/market_latest?"+qs,{signal:ctl.signal,headers:{apikey:cfg.key,Authorization:"Bearer "+cfg.key}}); if(!r.ok) return j; rows=await r.json(); }
+      try{ /* o Supabase devolve no máximo 1000 linhas por pedido: pagina, senão as linhas do Mercado Negro podiam ficar de fora */
+        rows=[]; for(let off=0;off<8000;off+=1000){ const r=await fetch(cfg.url.replace(/\/$/,"")+"/rest/v1/market_latest?"+qs+"&order=item_id,city,quality&offset="+off,{signal:ctl.signal,headers:{apikey:cfg.key,Authorization:"Bearer "+cfg.key}}); if(!r.ok){ if(!rows.length) return j; break; } const part=await r.json(); if(!Array.isArray(part)) break; rows.push(...part); if(part.length<1000) break; } }
       finally{ clearTimeout(tm); }
       CROWD_MEM.set(key,{t:Date.now(),r:rows});
     }
