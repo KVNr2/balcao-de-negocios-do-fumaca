@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T16:00:00Z",
+   "titulo": "PvP: armas populares com nível",
+   "itens": [
+    "Cada conteúdo ganhou uma lista de armas populares (usos, winrate e nível S, A, B ou C), somando todas as builds da arma, mesmo as de poucas lutas.",
+    "O nível usa o winrate puxado para 50% quando há poucas lutas (S 58% ou mais, A 52%, B 46%, C abaixo), e armas com menos de 5 usos ficam sem nível. Aparece depois da próxima atualização do PvP."
+   ]
+  },
+  {
    "t": "2026-10-23T16:30:00Z",
    "titulo": "PvP: classificador melhor e contagem em builds",
    "itens": [
