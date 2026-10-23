@@ -1494,3 +1494,9 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 .of-g>.clr{margin-top:8px;width:100%;justify-content:center}
 .av-search .clr{flex:none}
 @media (max-width:640px){.row-ctl>.clr{width:100%;justify-content:center}}
+
+.v-nov{display:grid;gap:12px;margin:14px 0}.v-nov-i{border:1px solid var(--line-soft);border-radius:12px;padding:12px 14px;background:rgba(0,0,0,.18);display:grid;gap:4px}
+.v-nov-i b{color:var(--parch)}.v-nov-i .v-list{margin:4px 0 0;padding-left:18px}
+
+.v-nov{display:grid;gap:12px;margin:14px 0}.v-nov-i{border:1px solid var(--line-soft);border-radius:12px;padding:12px 14px;background:rgba(0,0,0,.18);display:grid;gap:4px}
+.v-nov-i b{color:var(--parch)}.v-nov-i .v-list{margin:4px 0 0;padding-left:18px}

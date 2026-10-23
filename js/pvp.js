@@ -53,7 +53,7 @@ function pvCard(b,d){
 }
 function pvJog(p,d){
   const r=el("div",{class:"pv-pl"}); const l=el("div",{class:"pv-pl-n"}); l.append(el("b",{text:p.nome}),el("small",{class:"muted",text:(p.guild||"sem guilda")+(p.xp!=null?` · fama de PvP: ${p.xp} mi`:"")})); r.append(l);
-  const s=el("div",{class:"pv-pl-s"}); s.append(el("b",{text:p.wr.toLocaleString("pt-BR")+"%",title:"winrate"}),el("small",{text:`${p.n} lutas · ${p.v}V · ${p.d}D`}),el("small",{text:p.ip?`IP ${p.ip}`:""})); r.append(s);
+  const s=el("div",{class:"pv-pl-s"}); s.append(el("b",{text:p.wr.toLocaleString("pt-BR")+"%",title:"winrate"}),el("small",{text:`${p.v} ${p.v===1?"kill":"kills"} · ${p.d} ${p.d===1?"morte":"mortes"} · ${p.n} lutas`}),el("small",{text:p.ip?`IP ${p.ip}`:""})); r.append(s);
   const bs=el("div",{class:"pv-pb"});
   for(const [k,q,g] of p.b){ const {w,o}=pvKey(k); let src=g&&Object.keys(g).length?g:null, tip=false;
     if(!src){ const ref=(d.builds||[]).find(x=>x.id.endsWith(":"+k)); if(ref){ src=ref; tip=true; } }
@@ -72,20 +72,21 @@ function renderPvp(){
   if(!tams.includes(pvT)) pvT=tams[tams.length-1]||0;
   const ts=$("pvTam"); ts.textContent=""; for(const t of tams){ const b=el("button",{type:"button","aria-pressed":String(pvT===t),text:PV_TAM(t)}); b.addEventListener("click",()=>{ pvT=t; pvOpen=null; renderPvp(); }); ts.append(b); }
   const vs=$("pvView"); vs.textContent=""; for(const [k,n] of [["build","Por build"],["jog","Por jogador"]]){ const b=el("button",{type:"button","aria-pressed":String(pvV===k),text:n}); b.addEventListener("click",()=>{ pvV=k; pvOpen=null; renderPvp(); }); vs.append(b); }
-  $("pvSortW").hidden=pvV!=="build"; $("pvRefresh").hidden=pvV!=="build";
+  $("pvSortW").hidden=pvV!=="build"; $("pvJSortW").hidden=pvV!=="jog"; $("pvRefresh").hidden=pvV!=="build";
   host.textContent=""; const d=PVP.conteudos[`${pvC}:${pvT}`];
   if(!d){ host.append(el("p",{class:"empty",text:"Sem amostra suficiente neste conteúdo e tamanho de grupo."})); return; }
   if(pvV==="jog"){
-    let l=d.jogadores.slice(); l.sort((a,b)=>(pvWilson(b.v,b.n)-pvWilson(a.v,a.n)));
+    let l=d.jogadores.slice(), js=$("pvJSort").value||"kills";
+    l.sort(js==="wilson"?(a,b)=>pvWilson(b.v,b.n)-pvWilson(a.v,a.n):js==="n"?(a,b)=>b.n-a.n||b.v-a.v:(a,b)=>b.v-a.v||b.wr-a.wr);
     $("pvCount").textContent=`${l.length} jogadores com 5 lutas ou mais${PVP.janela.fama_min?`, todos com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
-    const pg=pgSlice("pvJ",l,[pvC,pvT,pvV].join("|"),renderPvp); pg.items.forEach(p=>host.append(pvJog(p,d))); host.append(pg.bar); return;
+    const pg=pgSlice("pvJ",l,[pvC,pvT,pvV,js].join("|"),renderPvp); pg.items.forEach(p=>host.append(pvJog(p,d))); host.append(pg.bar); return;
   }
   let l=d.builds.slice(); pvSort=$("pvSort").value||pvSort;
   if(pvSort==="wilson") l.sort((a,b)=>pvWilson(b.v,b.n+0)-pvWilson(a.v,a.n)); else if(pvSort==="wr") l.sort((a,b)=>b.wr-a.wr||b.n-a.n); else if(pvSort==="spec"){ l.forEach(pvPrep); l.sort((a,b)=>(gbSpec(b)-gbSpec(a))||(b.n-a.n)); } else l.sort((a,b)=>b.n-a.n);
   $("pvCount").textContent=`${l.length} builds com 4 lutas ou mais · ${d.eventos.toLocaleString("pt-BR")} mortes${PVP.janela.fama_min?` de jogadores com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
   const pg=pgSlice("pvB",l,[pvC,pvT,pvV,pvSort].join("|"),renderPvp); pg.items.forEach(b=>host.append(pvCard(b,d))); host.append(pg.bar);
 }
-{ const s=$("pvSort"); if(s) s.addEventListener("change",()=>{ pvSort=s.value; renderPvp(); });
+{ const s=$("pvSort"); if(s) s.addEventListener("change",()=>{ pvSort=s.value; renderPvp(); }); const sj=$("pvJSort"); if(sj) sj.addEventListener("change",renderPvp);
   const r=$("pvRefresh"); if(r) r.addEventListener("click",async()=>{ if(r.disabled) return; r.disabled=true; const old=r.textContent; r.textContent="Atualizando…"; FORCE=true;
     try{ await Promise.all([...BLD_PANELS].filter(p=>p.isConnected).map(p=>p._upd(true))); r.textContent="Atualizado "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}); }
     catch(e){ r.textContent="Não consegui atualizar"; }
