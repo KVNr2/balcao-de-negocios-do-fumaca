@@ -1,0 +1,8 @@
+-- Limpeza do market_latest pela API oficial (Albion Data): se o preço da API for mais novo que o nosso, o nosso valor é apagado
+-- (venda e compra separados; a linha só some quando os dois ficam vazios). Já aplicado no projeto Supabase; guardado aqui como documentação.
+-- Fluxo: pg_cron chama market_conferir_pedir() a cada 2 min (1 lote de 100 itens por vez, ciclo de ~26 min, no máx. a cada 30 min; a API dá 429 em rajada)
+-- e market_conferir_aplicar(true) a cada 5 min, que lê as respostas do pg_net e limpa. market_conferir_aplicar(false) só conta (simulação).
+-- select cron.schedule('market-conferir-pedir',  '*/2 * * * *',   $$select public.market_conferir_pedir()$$);
+-- select cron.schedule('market-conferir-aplicar','1-59/5 * * * *', $$select public.market_conferir_aplicar(true)$$);
+-- Tabelas de controle: market_conf (pedidos em andamento) e market_conf_ciclo (qual lote é o próximo). Funções sem acesso para anon/authenticated.
+-- Para desligar: select cron.unschedule('market-conferir-pedir'); select cron.unschedule('market-conferir-aplicar');
