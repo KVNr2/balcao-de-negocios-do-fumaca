@@ -68,7 +68,7 @@ function pvComp(x,nv){
   const mid=el("div",{class:"pv-cc-m"}); const tt=el("div",{class:"pv-cc-tt"});
   if(nv) tt.append(el("span",{class:"pv-tier t"+nv,title:"Nível entre as composições desta lista, pelo winrate ajustado"+(nv?"":""),text:nv}));
   tt.append(el("h4",{text:x.ws.map(codeName).join(" + ")})); mid.append(tt);
-  const mt=el("div",{class:"bc-meta"}); mt.append(el("span",{class:"tag",text:`${x.v}V · ${x.d}D`}),el("span",{class:"tag mute",text:`${x.n} ${x.n===1?"luta":"lutas"}`}),el("span",{class:"tag mute",text:`IP médio ${x.ip}`})); mid.append(mt); top.append(mid);
+  const mt=el("div",{class:"bc-meta"}); mt.append(el("span",{class:"tag",text:`${x.v}V · ${x.d}D`}),el("span",{class:"tag mute",text:`${x.n} ${x.n===1?"luta":"lutas"}`}),el("span",{class:"tag mute",text:`IP médio ${x.ip}`})); if(x.n<3) mt.append(el("span",{class:"tag bad",title:"Poucas lutas: o winrate ainda não é confiável",text:"amostra pequena"})); mid.append(mt); top.append(mid);
   const gp=el("div",{class:"pv-cc-g",title:"Peças mais usadas de cada jogador (abra para ver tudo)"}); x.m.forEach(m=>{ const g=el("div",{class:"pv-cc-gi"}); for(const s of ["o","h","a","s","c"]){ const id=Array.isArray(m[s])?m[s][0]:m[s]; const im=id?fullImg(id,"nico bi-s"):null; if(im) g.append(im); } if(g.children.length) gp.append(g); }); if(gp.children.length) top.append(gp);
   const wc=el("div",{class:"pv-cc-r",title:`${x.v} vitórias e ${x.d} derrotas, contando a luta inteira.`}); const big=el("div",{class:"pv-cc-wr"}); big.append(el("b",{text:x.wr.toLocaleString("pt-BR")+"%"}),el("small",{text:"winrate"}));
   const barra=el("div",{class:"pv-cc-bar"}); barra.append(el("span",{class:x.wr>=50?"up":"dn",style:`width:${Math.max(3,Math.min(100,x.wr))}%`})); wc.append(big,barra); top.append(wc);
@@ -102,7 +102,7 @@ function renderPvp(){
   const tams=Object.keys(PVP.conteudos).filter(x=>x.startsWith(pvC+":")).map(x=>+x.split(":")[1]).sort((a,b)=>a-b);
   if(!tams.includes(pvT)) pvT=tams[tams.length-1]||0;
   const ts=$("pvTam"); ts.textContent=""; for(const t of tams){ const b=el("button",{type:"button","aria-pressed":String(pvT===t),text:PV_TAM(t)}); b.addEventListener("click",()=>{ pvT=t; pvOpen=null; renderPvp(); }); ts.append(b); }
-  const vs=$("pvView"); vs.textContent=""; const dc0=PVP.conteudos[`${pvC}:${pvT}`], temComp=!!(dc0&&dc0.comps&&dc0.comps.length); if(pvV==="comp"&&!temComp) pvV="build";
+  const vs=$("pvView"); vs.textContent=""; const dc0=PVP.conteudos[`${pvC}:${pvT}`], temComp=["hg2","hg5","depths"].includes(pvC)&&!!dc0&&pvT>1; if(pvV==="comp"&&!temComp) pvV="build";
   for(const [k,n] of (temComp?[["build","Por build"],["comp","Por composição"],["jog","Por jogador"]]:[["build","Por build"],["jog","Por jogador"]])){ const b=el("button",{type:"button","aria-pressed":String(pvV===k),text:n}); b.addEventListener("click",()=>{ pvV=k; pvOpen=null; renderPvp(); }); vs.append(b); }
   $("pvSortW").hidden=pvV!=="build"; $("pvJSortW").hidden=pvV!=="jog"; $("pvRefresh").hidden=pvV!=="build";
   host.textContent=""; const d=PVP.conteudos[`${pvC}:${pvT}`];
@@ -114,7 +114,8 @@ function renderPvp(){
     const pg=pgSlice("pvJ",l,[pvC,pvT,pvV,js].join("|"),renderPvp); pg.items.forEach(p=>host.append(pvJog(p,d))); host.append(pg.bar); return;
   }
   if(pvV==="comp"){
-    $("pvCount").textContent=`${d.comps.length} composições com ${pvC==="hg5"?2:3} lutas ou mais, só grupos completos`;
+    if(!(d.comps&&d.comps.length)){ $("pvCount").textContent="Nenhuma composição com grupo completo ainda"; host.append(el("p",{class:"empty",text:"Ainda não há lutas suficientes com o grupo inteiro identificado (todos os jogadores e armas). Conforme o acervo cresce, as composições aparecem aqui."})); return; }
+    $("pvCount").textContent=`${d.comps.length} composições, só grupos completos${pvC==="hg5"?" (no 5v5 aparecem também as com 1 ou 2 lutas, marcadas como amostra pequena)":" com 3 lutas ou mais"}`;
     const L=d.comps.slice().sort((a,b)=>b.n-a.n||b.wr-a.wr); const trc=pvTiersComp(L); const pg=pgSlice("pvC",L,[pvC,pvT,pvV].join("|"),renderPvp); pg.items.forEach(x=>host.append(pvComp(x,trc.get(x.id)||""))); host.append(pg.bar); return;
   }
   if((d.armas&&d.armas.length)||(d.comps&&d.comps.length)){ const bx=el("details",{class:"pv-arm"}); if(pvArmOpen) bx.open=true; bx.addEventListener("toggle",()=>{ pvArmOpen=bx.open; });
