@@ -20,14 +20,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Dez coletas, uma a cada 6 minutos (a primeira também carrega histórico)
+      - name: Dez coletas, uma a cada 6 minutos (as coletas 1, 4 e 7 também carregam histórico)
         run: |
           INI=$(date +%s)
           for i in 0 1 2 3 4 5 6 7 8 9; do
             ALVO=$((INI + i*360)); AGORA=$(date +%s)
             [ "$ALVO" -gt "$AGORA" ] && sleep $((ALVO-AGORA))
             echo "::group::coleta $((i+1)) de 10 ($(date -u +%H:%M))"
-            if [ "$i" = 0 ]; then bash tools/coleta_ciclo.sh hist || true; else bash tools/coleta_ciclo.sh || true; fi
+            if [ "$i" = 0 ] || [ "$i" = 3 ] || [ "$i" = 6 ]; then bash tools/coleta_ciclo.sh hist || true; else bash tools/coleta_ciclo.sh || true; fi
             echo "::endgroup::"
           done
           FIM=$((INI + 3600)); AGORA=$(date +%s)
