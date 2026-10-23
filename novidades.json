@@ -198,6 +198,15 @@
    "itens": [
     "O modo de coleta liga a leitura do tráfego."
    ]
+  },
+  {
+   "t": "2026-10-23T19:30:00Z",
+   "titulo": "PvP: Hellgate em uma aba só e histórico dobrado",
+   "itens": [
+    "Hellgate 2v2 e 5v5 agora ficam juntos na aba \"Hellgate\", com o seletor Grupo de 2 / Grupo de 5, igual às Depths.",
+    "O coletor carrega histórico de jogadores em 8 das 10 coletas por hora (antes 4), mantendo o mesmo espaçamento entre pedidos à API oficial.",
+    "O coletor passou a registrar quantos pedidos fez e quais erros a API devolveu em cada rodada, para ajustar o ritmo com segurança."
+   ]
   }
  ]
 }

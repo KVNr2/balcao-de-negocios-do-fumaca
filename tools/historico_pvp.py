@@ -72,4 +72,5 @@ def main(d, minutos=4.5):
     feitos = {p: x for p, x in feitos.items() if (x if isinstance(x, str) else x[0]) >= str(hoje - datetime.timedelta(days=REFAZ + 7))}
     json.dump(feitos, open(ef, "w"), separators=(",", ":"))
     print(f"histórico: {jog} jogadores lidos (fila {fila_n}, {bola} novos pela bola de neve); {lidos} mortes vistas; {novos} novas guardadas; falhas da API: {dict(api_suave.FALHAS)}")
+    api_suave.registrar(d, "hist", {"jogadores": jog, "mortes_vistas": lidos, "novas": novos})
 if __name__ == "__main__": main(sys.argv[1] if len(sys.argv) > 1 else "dados", float(sys.argv[2]) if len(sys.argv) > 2 else 4.5)

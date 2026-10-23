@@ -6,7 +6,7 @@ UA = {"User-Agent": "BalcaoDoFumaca/1.0 (+https://github.com/KVNr2/balcao-de-neg
 INTERVALO = 0.6          # s entre pedidos, somando todas as conexões (~1,7 pedido/s)
 PAUSA = 60               # s de pausa geral depois de um 429/503 (dobra se repetir, até 5 min)
 PRAZO = [None]   # instante (time.time()) depois do qual get() desiste na hora, sem esperar
-FALHAS = collections.Counter(); _lock = threading.Lock(); _prox = [0.0]; _pausa = [0.0]; _nivel = [0]; _ok = [0]
+FALHAS = collections.Counter(); _lock = threading.Lock(); _prox = [0.0]; _pausa = [0.0]; _nivel = [0]; _ok = [0]; TOTAL = [0]; T0 = time.time()
 def _vez():
     with _lock:
         t = max(time.time(), _prox[0], _pausa[0])
@@ -23,6 +23,7 @@ def _recuo():
 def get(path, tries=4):
     for i in range(tries):
         if not _vez(): FALHAS["prazo"] += 1; return None
+        TOTAL[0] += 1
         try:
             with urllib.request.urlopen(urllib.request.Request(B + path, headers=UA), timeout=30) as r:
                 d = json.load(r)
@@ -38,3 +39,16 @@ def get(path, tries=4):
         except Exception:
             FALHAS["rede"] += 1; time.sleep(2 + 2 * i)
     return None
+
+def registrar(d, modo, extra=None, manter=600):
+    """Acrescenta uma linha em d/coleta-log.jsonl (pedidos, falhas por tipo, pausas, duração) e guarda só as últimas `manter`.
+    É o único jeito de ver, sem acesso aos logs do GitHub, se a API está aceitando o ritmo."""
+    import os
+    lin = {"t": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "modo": modo, "pedidos": TOTAL[0],
+           "falhas": {str(k): v for k, v in FALHAS.items()}, "nivel": _nivel[0], "seg": round(time.time() - T0)}
+    if extra: lin.update(extra)
+    f = os.path.join(d, "coleta-log.jsonl")
+    try:
+        ant = open(f).read().splitlines()[-(manter - 1):] if os.path.exists(f) else []
+        open(f, "w").write("\n".join(ant + [json.dumps(lin, ensure_ascii=False)]) + "\n")
+    except Exception as e: print("log não gravado:", e)

@@ -51,6 +51,7 @@ def main(d):
         with gzip.open(os.path.join(ed, dia + ".jsonl.gz"), "wt", encoding="utf-8") as o:
             for r in sorted(rs.values(), key=lambda r: r["t"]): o.write(json.dumps(r, ensure_ascii=False, separators=(",", ":")) + "\n")
     print(f"falhas da API: {dict(api_suave.FALHAS)}")
+    api_suave.registrar(d, "coleta")
     print(f"feed lido: {lidos} mortes; candidatas {len(cand)}; novas guardadas: {novos}; arquivos de hoje/ontem {antes} -> {antes + novos}")
     if lidos == 0: sys.exit(1)
 if __name__ == "__main__": main(sys.argv[1] if len(sys.argv) > 1 else "dados")
