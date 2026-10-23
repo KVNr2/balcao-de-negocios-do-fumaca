@@ -66,13 +66,16 @@ def main():
     print("jogadores a ler:", len(jog))
     eventos = {}
     inicio = time.time()
-    DADOS = os.environ.get("PVP_DADOS", ""); ARQ = os.path.join(DADOS, "eventos.jsonl.gz") if DADOS else ""
-    if ARQ and os.path.exists(ARQ):
-        import gzip
-        for l in gzip.open(ARQ, "rt", encoding="utf-8"):
-            try: r = json.loads(l); eventos[r["id"]] = C.desempacotar(r)
-            except Exception: pass
-        print("eventos lidos do armazém (coletor):", len(eventos), flush=True)
+    DADOS = os.environ.get("PVP_DADOS", "")
+    if DADOS:
+        import gzip, glob
+        corte_d = (datetime.datetime.utcnow() - datetime.timedelta(days=DIAS)).strftime("%Y-%m-%d")
+        for arq in sorted(glob.glob(os.path.join(DADOS, "eventos", "*.jsonl.gz"))):
+            if os.path.basename(arq)[:10] < corte_d: continue
+            for l in gzip.open(arq, "rt", encoding="utf-8"):
+                try: r = json.loads(l); eventos[r["id"]] = C.desempacotar(r)
+                except Exception: pass
+        print("eventos lidos do acervo (coletor):", len(eventos), flush=True)
     MODO_ARM = len(eventos) >= int(os.environ.get("PVP_MIN_ARM", "3000"))
     if MODO_ARM: jog = {}
     def uma(args):
