@@ -2,14 +2,14 @@
 """Atualiza data/pvp.json (só jogadores com 500 milhões ou mais de fama de PvP): builds e jogadores do PvP por conteúdo (Hellgate 2v2/5v5, Corrompidas, Brumas solo, Depths), servidor US (Americas).
 Fonte: API oficial (gameinfo.albiononline.com). O conteúdo de cada morte é deduzido por uma árvore treinada com os rótulos do killboard-1 (tools/treinar_pvp.py).
 Jogadores: sementes em data/pvp-sementes.json (criadas dos rótulos na primeira vez e renovadas a cada rodada pelos mais ativos de cada conteúdo).
-Janela: últimos 7 dias. Se algo falhar ou vierem poucos eventos, NÃO sobrescreve o arquivo atual."""
+Janela: últimos 30 dias. Se algo falhar ou vierem poucos eventos, NÃO sobrescreve o arquivo atual."""
 import json, os, re, sys, time, datetime, collections, urllib.request, urllib.error
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pvp_comum as C
 B = "https://gameinfo.albiononline.com/api/gameinfo"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/130.0 Safari/537.36", "Accept": "application/json"}
-DIAS = 7; PAGINAS = int(os.environ.get("PVP_PAGINAS", "3")); ORCAMENTO = int(os.environ.get("PVP_MINUTOS", "25")) * 60; SEMENTES_POR = int(os.environ.get("PVP_SEMENTES", "45")); CONF = 0.7
+DIAS = 30; PAGINAS = int(os.environ.get("PVP_PAGINAS", "3")); ORCAMENTO = int(os.environ.get("PVP_MINUTOS", "25")) * 60; SEMENTES_POR = int(os.environ.get("PVP_SEMENTES", "45")); CONF = 0.7
 CONT = ["hg2", "hg5", "corrompida", "solo", "depths"]
 SLOT = {"MainHand": "w", "OffHand": "o", "Head": "h", "Armor": "a", "Shoes": "s", "Cape": "c", "Potion": "p", "Food": "f"}
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
