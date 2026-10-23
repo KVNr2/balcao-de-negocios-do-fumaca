@@ -2,6 +2,7 @@
 const fmtDH = d => d.toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
 function haQuanto(d){ const s=Math.max(0,(Date.now()-d.getTime())/1000); if(s<90) return "agora mesmo"; const m=Math.round(s/60); if(m<60) return `há ${m} min`; const h=Math.round(m/60); if(h<36) return `há ${h} h`; return `há ${Math.round(h/24)} dias`; }
 let VTOK=0;
+window.addEventListener("popstate",e=>{ const p=$("p-versao"); if(!p||p.hidden) return; const a=$("vTodas"); if(location.hash.startsWith("#versao/atualizacoes")){ if(a) a.scrollIntoView({behavior:"smooth",block:"start"}); } else window.scrollTo({top:(e.state&&e.state.y)||(history.state&&history.state.y)||0,behavior:"smooth"}); });
 async function renderVersao(){
   const tok=++VTOK, box=$("vBox"); const meu=document.documentElement.dataset.v||"";
   let pub=null; try{ pub=await fetch("versao.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()); }catch(e){}
@@ -15,15 +16,31 @@ async function renderVersao(){
   st.append(el("span",{class:"v-dot"}), el("span",{text:atual?"Você está usando a versão mais recente.":`Há uma versão nova (a sua é ${meu}).`}));
   if(!atual){ const b=el("button",{type:"button",class:"bc-more",text:"Recarregar agora"}); b.addEventListener("click",()=>location.reload()); st.append(b); }
   hero.append(st); box.append(hero);
-  /* novidades: com versão nova, mostra o que veio depois da versão do visitante; senão, as últimas */
+  /* novidades: com versão nova, mostra o que veio depois da versão do visitante; senão, as 3 últimas. O botão leva à lista completa, separada em AlbionSpecs e site */
   (async()=>{ try{
     const nv=await fetch("novidades.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()), todas=(nv.itens||[]).slice().sort((a,b)=>b.t.localeCompare(a.t)); if(tok!==VTOK) return;
     const mine=(pub.hist||[]).find(h=>h.v===meu); let lista, titulo;
-    if(!atual&&mine){ lista=todas.filter(x=>x.t>mine.t); titulo="O que há de novo nesta versão"; } else if(!atual){ lista=todas.slice(0,5); titulo="Novidades recentes"; } else { lista=todas.slice(0,6); titulo="O que mudou nas últimas atualizações"; }
-    if(!lista.length) return;
+    if(!atual&&mine){ lista=todas.filter(x=>x.t>mine.t); titulo="O que há de novo nesta versão"; } else if(!atual){ lista=todas.slice(0,5); titulo="Novidades recentes"; } else { lista=todas.slice(0,3); titulo="O que mudou nas últimas atualizações"; }
+    const card=x=>{ const c=el("div",{class:"v-nov-i"}); const h=el("div",{class:"v-nov-h"}); h.append(el("b",{text:x.titulo}),el("span",{class:"v-tag "+(x.programa?"prog":"site"),text:x.programa?"AlbionSpecs":"Site"}),el("small",{class:"muted",text:`${fmtDH(new Date(x.t))} · ${haQuanto(new Date(x.t))}`})); c.append(h);
+      const ul=el("ul",{class:"v-list"}); (x.itens||[]).forEach(t=>ul.append(el("li",{text:t}))); c.append(ul); return c; };
     const sec=el("div",{class:"v-nov"}); sec.append(el("h4",{text:titulo}));
-    for(const x of lista){ const c=el("div",{class:"v-nov-i"}); c.append(el("b",{text:x.titulo}),el("small",{class:"muted",text:fmtDH(new Date(x.t))})); const ul=el("ul",{class:"v-list"}); (x.itens||[]).forEach(t=>ul.append(el("li",{text:t}))); c.append(ul); sec.append(c); }
+    lista.forEach(x=>sec.append(card(x)));
+    const ir=el("button",{type:"button",class:"bc-more",text:`Ver todas as atualizações (${todas.length}) ↓`}); sec.append(ir);
     hero.insertAdjacentElement("afterend",sec);
+    /* lista completa, no fim da aba */
+    const all=el("div",{class:"v-all",id:"vTodas",tabindex:"-1"}); all.append(el("h4",{text:"Todas as atualizações"}));
+    const cols=el("div",{class:"v-all-cols"});
+    for(const [nome,fn] of [["AlbionSpecs (o programa)",x=>!!x.programa],["Site em geral",x=>!x.programa]]){
+      const col=el("div",{class:"v-all-col"}); col.append(el("h5",{text:nome})); const ls=todas.filter(fn);
+      if(!ls.length) col.append(el("p",{class:"muted small",text:"Nada registrado ainda."})); ls.forEach(x=>col.append(card(x))); cols.append(col); }
+    all.append(cols);
+    const topo=el("button",{type:"button",class:"bc-more",text:"↑ Voltar ao topo da aba"}); topo.addEventListener("click",()=>hero.scrollIntoView({behavior:"smooth",block:"start"})); all.append(topo);
+    box.append(all);
+    /* navegação com histórico: o botão do navegador (ou "Voltar") devolve a página para onde você estava */
+    const vai=()=>{ all.scrollIntoView({behavior:"smooth",block:"start"}); all.focus({preventScroll:true}); };
+    ir.addEventListener("click",()=>{ history.replaceState({...(history.state||{}),y:window.scrollY},""); history.pushState({vsub:1},"","#versao/atualizacoes"); vai(); });
+    const volta=el("button",{type:"button",class:"bc-more",text:"← Voltar de onde eu estava"}); volta.addEventListener("click",()=>{ if(history.state&&history.state.vsub) history.back(); else hero.scrollIntoView({behavior:"smooth",block:"start"}); }); all.insertBefore(volta,all.firstChild);
+    if(/^#versao\/atualizacoes/.test(location.hash)) setTimeout(vai,60);
   }catch(e){} })();
   /* programa AlbionSpecs (.exe): a versão é publicada à parte do site; atualizar o programa não exige recarregar a página */
   const prog=el("div",{class:"v-hero v-prog"}); box.append(prog);
