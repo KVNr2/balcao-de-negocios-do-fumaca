@@ -367,7 +367,7 @@ function familyIds(slot,mat){ const ids=[]; for(let s=1;s<=3;s++) for(let t=4;t<
 function dropOutliers(target,keys){
   const med=a=>{ a=a.slice().sort((x,y)=>x-y); const m=a.length>>1; return a.length%2?a[m]:(a[m-1]+a[m])/2; };
   for(const k of keys){ const r=target[k]; if(!r) continue;
-    for(const f of [0,1]){ const cs=Object.keys(r).filter(c=>r[c][f]>0); if(cs.length<2) continue; const vs=cs.map(c=>r[c][f]);
+    for(const f of [0,1]){ const cs=Object.keys(r).filter(c=>c!=="Black Market"&&r[c][f]>0); /* Mercado Negro: ordens do jogo, não de jogadores — sem filtro */ if(cs.length<2) continue; const vs=cs.map(c=>r[c][f]);
       if(cs.length>=3){ const m=med(vs); for(const c of cs){ const v=r[c][f]; if(v>m*6||v<m/6){ r[c][f]=0; r[c][f+2]=0; } } }
       else { const [lo,hi]=vs[0]<vs[1]?[0,1]:[1,0]; if(vs[hi]>vs[lo]*10){ r[cs[hi]][f]=0; r[cs[hi]][f+2]=0; } } } }
 }
