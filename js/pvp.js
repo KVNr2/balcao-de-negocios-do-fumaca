@@ -66,8 +66,8 @@ function pvJog(p,d){
 function renderPvp(){
   const host=$("pvList"); if(!host) return;
   if(!PVP){ if(!renderPvp._l){ renderPvp._l=1; need("pvp").then(d=>{ PVP=d; renderPvp(); }).catch(()=>{ $("pvNote").textContent="Os dados do PVP ainda não foram gerados. Eles aparecem depois da primeira atualização automática."; }); } return; }
-  const j=PVP.janela; $("pvNote").textContent=`${PVP.fonte}. ${j.eventos.toLocaleString("pt-BR")} mortes dos últimos ${j.dias} dias · atualizado em ${new Date(PVP.atualizado).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}.`;
-  const cs=$("pvCont"); cs.textContent=""; for(const [k,n] of PV_CONT){ const tot=Object.keys(PVP.conteudos).filter(x=>x.startsWith(k+":")).reduce((a,x)=>a+PVP.conteudos[x].eventos,0); const b=el("button",{type:"button","aria-pressed":String(pvC===k),text:`${n} (${tot})`}); b.addEventListener("click",()=>{ pvC=k; pvT=0; pvOpen=null; renderPvp(); }); cs.append(b); }
+  const j=PVP.janela; $("pvNote").textContent=`${PVP.fonte}. ${Object.values(PVP.conteudos).reduce((a,c)=>a+c.builds.length,0).toLocaleString("pt-BR")} builds, vindas de ${j.eventos.toLocaleString("pt-BR")} mortes dos últimos ${j.dias} dias · atualizado em ${new Date(PVP.atualizado).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}.`;
+  const cs=$("pvCont"); cs.textContent=""; for(const [k,n] of PV_CONT){ const tot=Object.keys(PVP.conteudos).filter(x=>x.startsWith(k+":")).reduce((a,x)=>a+PVP.conteudos[x].builds.length,0); const b=el("button",{type:"button","aria-pressed":String(pvC===k),text:`${n} (${tot} ${tot===1?"build":"builds"})`}); b.addEventListener("click",()=>{ pvC=k; pvT=0; pvOpen=null; renderPvp(); }); cs.append(b); }
   const tams=Object.keys(PVP.conteudos).filter(x=>x.startsWith(pvC+":")).map(x=>+x.split(":")[1]).sort((a,b)=>a-b);
   if(!tams.includes(pvT)) pvT=tams[tams.length-1]||0;
   const ts=$("pvTam"); ts.textContent=""; for(const t of tams){ const b=el("button",{type:"button","aria-pressed":String(pvT===t),text:PV_TAM(t)}); b.addEventListener("click",()=>{ pvT=t; pvOpen=null; renderPvp(); }); ts.append(b); }
