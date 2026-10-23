@@ -309,8 +309,9 @@ img.kx-sm{flex:0 1 52px;width:52px;min-width:0;aspect-ratio:1;height:auto;border
 @media (max-width:640px){.kx-cols{gap:10px}img.kx-i{width:64px;height:64px}.kx-tx b{font-size:1rem}img.kx-sp{width:36px;height:36px}img.kx-sm{flex-basis:38px;width:38px}.kx-g{padding-left:46px}.kx-ov.kx-left img.kx-sm{width:38px}}
 
 /* aba Versão */
-.vbox{display:grid;gap:18px;max-width:900px}
-.v-hero{display:grid;gap:10px;padding:26px;border-radius:18px;border:1px solid var(--line);background:linear-gradient(135deg,#2a2018 0%,#1b1613 60%,#241a12 100%);box-shadow:0 10px 40px #0006}
+.vbox{display:grid;gap:18px;max-width:1280px;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+.vbox>*:not(.v-hero){grid-column:1/-1}
+.v-hero{display:grid;align-content:start;gap:10px;padding:26px;border-radius:18px;border:1px solid var(--line);background:linear-gradient(135deg,#2a2018 0%,#1b1613 60%,#241a12 100%);box-shadow:0 10px 40px #0006}
 .v-k{text-transform:uppercase;letter-spacing:.09em;font-size:.72rem;color:var(--muted,#9aa0ad)}
 .v-code{font:700 clamp(2rem,6vw,3.4rem)/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--saffron);letter-spacing:.06em}
 .v-time{display:grid;gap:2px}.v-time b{font-size:1.5rem}.v-time span{color:var(--muted,#9aa0ad);font-size:.9rem}
@@ -1449,7 +1450,7 @@ td.wk-act .mn-craft+.mn-craft{margin-left:6px}
 .facts #mkBtn{text-decoration:none;color:var(--parch,#f1e6d0);font-weight:600;display:inline-flex;align-items:center;gap:6px;padding:0 14px;cursor:pointer}
 .facts #mkBtn svg{width:15px;height:15px;fill:none;stroke:var(--saffron);stroke-width:2;stroke-linecap:round}
 .facts #mkBtn:hover{border-color:var(--saffron);color:var(--saffron)}
-.v-prog{margin-top:14px}.v-prog .v-code{font-size:clamp(1.4rem,4vw,2rem)}
+.v-prog{margin-top:0}.v-prog .v-code{font-size:clamp(1.4rem,4vw,2rem)}
 
 /* aba PVP */
 .pv-wr{display:inline-flex;align-items:baseline;gap:5px;line-height:1;white-space:nowrap}.pv-wr b{font:700 1.35rem var(--f-mono);color:var(--saffron)}.pv-wr small{font-size:.7rem;color:var(--parch-2);text-transform:uppercase;letter-spacing:.05em}
@@ -1516,4 +1517,3 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 .v-nov>.bc-more{justify-self:start}
 .v-tag.rot{background:rgba(157,143,127,.2);color:var(--parch-2)}
 .v-todas{justify-self:start;margin-top:12px}.v-res{margin:10px 0 2px}.v-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:12px}.v-top h3{margin:0}
-.v-hero+.v-hero{margin-top:14px}
