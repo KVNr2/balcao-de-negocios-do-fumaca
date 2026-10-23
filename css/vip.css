@@ -1502,14 +1502,23 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 .v-nov{display:grid;gap:12px;margin:14px 0}.v-nov-i{border:1px solid var(--line-soft);border-radius:12px;padding:12px 14px;background:rgba(0,0,0,.18);display:grid;gap:4px}
 .v-nov-i b{color:var(--parch)}.v-nov-i .v-list{margin:4px 0 0;padding-left:18px}
 
-.pv-arm{border:1px solid var(--line-soft);border-radius:12px;padding:12px 14px;background:rgba(0,0,0,.18);display:grid;gap:8px;margin-bottom:14px}
-.pv-armt{width:100%;border-collapse:collapse;font-size:15px}.pv-armt th{text-align:left;color:var(--smoke);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:4px 6px}
-.pv-armt td{padding:5px 6px;border-top:1px solid var(--line-soft)}.pv-armt td:first-child{width:28px;color:var(--smoke)}.pv-ai{width:34px;height:34px;vertical-align:middle}
-.pv-armt td:last-child{position:relative;min-width:110px}.pv-bar{position:absolute;left:6px;top:50%;height:60%;transform:translateY(-50%);background:rgba(232,171,69,.22);border-radius:4px;z-index:0}.pv-armt td:last-child span:last-child{position:relative;z-index:1}
-
-.pv-tier{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:6px;font:700 14px var(--f-body);color:#fff}
-.pv-tier.tS{background:#b3262c}.pv-tier.tA{background:#d9741f}.pv-tier.tB{background:#c9a21a;color:#201705}.pv-tier.tC{background:#2f9a55}.pv-tier.t\?{background:var(--line);color:var(--smoke)}
-.pv-armt td:nth-child(5){min-width:110px}
+.pv-arm{border:1px solid var(--line-soft);border-radius:12px;padding:14px 16px;background:rgba(0,0,0,.18);display:grid;gap:10px;margin-bottom:14px;max-width:860px}
+.pv-arm-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px}.pv-arm-h h4{margin:0}
+.pv-arm-s{display:flex;flex-wrap:wrap;gap:6px}.pv-chip{font:600 13px var(--f-body);color:var(--smoke);background:transparent;border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;min-height:32px}
+.pv-chip:hover{color:var(--parch);border-color:var(--gold,#e8ab45)}.pv-chip.on{background:rgba(232,171,69,.18);color:var(--parch);border-color:#e8ab45}
+.pv-armw{overflow-x:auto}.pv-armt{width:100%;border-collapse:collapse;font-size:15px;table-layout:fixed;min-width:460px}
+.pv-armt th{text-align:left;color:var(--smoke);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px}
+.pv-armt td{padding:6px 8px;border-top:1px solid var(--line-soft);vertical-align:middle}
+.pv-armt th:nth-child(1),.pv-armt td:nth-child(1){width:34px;color:var(--smoke)}.pv-armt th:nth-child(3),.pv-armt td:nth-child(3){width:58px}
+.pv-armt th:nth-child(4),.pv-armt td:nth-child(4){width:25%}.pv-armt th:nth-child(5),.pv-armt td:nth-child(5){width:25%}
+.pv-an{display:flex;align-items:center;gap:10px;min-width:0}.pv-an b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv-armt tr:hover td{background:rgba(232,171,69,.05)}.pv-ai{width:34px;height:34px;flex:none}
+.pv-wc,.pv-us{position:relative}.pv-wrb,.pv-bar{position:absolute;left:8px;top:50%;height:60%;transform:translateY(-50%);border-radius:4px;z-index:0;max-width:calc(100% - 16px)}
+.pv-wrb.up{background:rgba(90,170,100,.28)}.pv-wrb.dn{background:rgba(190,80,70,.28)}.pv-bar{background:rgba(232,171,69,.24)}
+.pv-wrn,.pv-un{position:relative;z-index:1;padding-left:6px;font-variant-numeric:tabular-nums}
+.pv-tier{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:6px;font:700 14px var(--f-body);color:#201705}
+.pv-tier.tS{background:#f0b94a}.pv-tier.tA{background:#6bbf7a}.pv-tier.tB{background:#6fa8d6}.pv-tier.tC{background:#8b8579}.pv-tier.t\?{background:var(--line);color:var(--smoke)}
+@media(max-width:560px){.pv-arm{padding:12px}.pv-ai{width:28px;height:28px}.pv-armt{font-size:14px;min-width:0}.pv-armt th,.pv-armt td{padding:6px 4px}.pv-armt th:nth-child(1),.pv-armt td:nth-child(1){width:22px}.pv-armt th:nth-child(3),.pv-armt td:nth-child(3){width:40px}.pv-armt th:nth-child(4),.pv-armt td:nth-child(4){width:24%}.pv-armt th:nth-child(5),.pv-armt td:nth-child(5){width:20%}.pv-an{gap:6px}.pv-an b{white-space:normal;line-height:1.15;font-size:13px}.pv-tier{width:24px;height:24px}.pv-ai{width:26px;height:26px}}
 
 .v-nov-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}.v-nov-h small{margin-left:auto}
 .v-tag{font:700 11px var(--f-body);letter-spacing:.05em;text-transform:uppercase;border-radius:6px;padding:2px 7px}

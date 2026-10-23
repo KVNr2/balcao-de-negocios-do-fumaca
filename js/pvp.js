@@ -5,6 +5,7 @@ const PV_TAM = t => t===1?"Solo":`Grupo de ${t}`;
 const pvWilson = (v,n) => { if(!n) return 0; const z=1.64, p=v/n, d=1+z*z/n; return (p+z*z/(2*n)-z*Math.sqrt((p*(1-p)+z*z/(4*n))/n))/d; };
 const pvKey = k => { const [w,o]=k.split("|"); return {w,o}; };
 /* nível da arma pelo winrate puxado para 50% quanto menos lutas (6 lutas de peso): S 58%+, A 52%+, B 46%+, C abaixo; com menos de 5 usos fica sem nível */
+let pvArmO="usos";
 const pvTier=(v,n)=>{ if(n<5) return "?"; const w=(v+3)/(n+6); return w>=0.58?"S":w>=0.52?"A":w>=0.46?"B":"C"; };
 const pvNome = k => { const {w,o}=pvKey(k); buildIdx(); return codeName(w)+(o?" + "+codeName(o):""); };
 function pvPrep(b){ if(b.nome) return; buildIdx(); b.nome=codeName(b.wc); b.l=(W2LINE&&W2LINE[b.wc])||""; b.t=b.nome; b.pop=0; b.tg=[]; if(b.o&&!Array.isArray(b.o)) b.o=[b.o]; }
@@ -46,7 +47,7 @@ function pvCard(b,d){
   const gaps=gbGaps(b); if(gaps.length) meta.append(el("span",{class:"tag bad",text:`Sem spec em ${gaps.join(" e ")}`}));
   mid.append(meta); top.append(mid);
   const ib=albionBadge(b); const rt=el("div",{class:"bc-r"});
-  const wr=el("div",{class:"pv-wr",title:`${b.v} vitórias e ${b.d} derrotas. Winrate = vitórias ÷ lutas.`}); wr.append(el("b",{text:b.wr.toLocaleString("pt-BR")+"%"}),el("small",{text:`winrate em ${b.n} ${b.n===1?"luta":"lutas"}`}));
+  const wr=el("div",{class:"pv-wc",title:`${b.v} vitórias e ${b.d} derrotas. Winrate = vitórias ÷ lutas.`}); wr.append(el("b",{text:b.wr.toLocaleString("pt-BR")+"%"}),el("small",{text:`winrate em ${b.n} ${b.n===1?"luta":"lutas"}`}));
   h4.append(wr); rt.append(ib); top.append(rt); card.append(top); card.append(gbStrip(b));
   const btn=el("button",{type:"button",class:"bc-more bc-tog","aria-expanded":String(open),text:open?"Fechar ▴":"Abrir ▾"}); btn.addEventListener("click",()=>{ pvOpen=open?null:b.id; renderPvp(); });
   const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"pv:"+b.id,{costHost:card})); card.append(act);
@@ -83,12 +84,19 @@ function renderPvp(){
     $("pvCount").textContent=`${l.length} jogadores com 5 lutas ou mais${PVP.janela.fama_min?`, todos com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
     const pg=pgSlice("pvJ",l,[pvC,pvT,pvV,js].join("|"),renderPvp); pg.items.forEach(p=>host.append(pvJog(p,d))); host.append(pg.bar); return;
   }
-  if(d.armas&&d.armas.length){ const bx=el("div",{class:"pv-arm"}); bx.append(el("h4",{text:"Armas populares"}),el("small",{class:"muted",text:"Soma de todas as builds da arma, inclusive com poucas lutas. Usos = vezes que alguém usou a arma."}));
-    const tb=el("table",{class:"pv-armt"}); const th=tb.createTHead().insertRow(); ["#","Arma","Nível","Winrate","Usos"].forEach(t=>th.append(el("th",{text:t})));
-    const mx=d.armas[0][1]; const bd=tb.createTBody(); d.armas.forEach(([w,n,v,dd,wr],i)=>{ const r=bd.insertRow(); r.insertCell().textContent=i+1; const c1=r.insertCell(); const im=itemImg(w,[8,7,6,5,4]); if(im){ im.classList.add("pv-ai"); c1.append(im); } c1.append(el("b",{text:" "+codeName(w)}));
-      const nv=pvTier(v,n); r.insertCell().append(el("span",{class:"pv-tier t"+nv,title:nv==="?"?"Poucas lutas para dar um nível":"Nível pelo winrate, puxado para 50% quando há poucas lutas",text:nv}));
-      r.insertCell().textContent=wr.toLocaleString("pt-BR")+"%"; const c3=r.insertCell(); c3.append(el("span",{class:"pv-bar",style:`width:${Math.max(6,Math.round(n/mx*100))}%`}),el("span",{text:String(n)})); r.cells[3].className="num"; });
-    bx.append(tb); host.append(bx); }
+  if(d.armas&&d.armas.length){ const bx=el("div",{class:"pv-arm"});
+    const sh=a=>(a[2]+3)/(a[1]+6); const el5=d.armas.filter(a=>a[1]>=5).sort((a,b)=>sh(b)-sh(a)); const tr=new Map(); el5.forEach((a,i)=>{ const p=(i+.5)/el5.length; tr.set(a[0],p<=.2?"S":p<=.5?"A":p<=.8?"B":"C"); });
+    const hd=el("div",{class:"pv-arm-h"}); hd.append(el("h4",{text:"Armas populares"}));
+    const sg=el("div",{class:"pv-arm-s",role:"group","aria-label":"Ordenar armas"}); const ord={usos:"Mais usadas",wr:"Maior winrate",nivel:"Melhor nível"};
+    Object.keys(ord).forEach(k=>{ const bt=el("button",{type:"button",class:"pv-chip"+(pvArmO===k?" on":""),text:ord[k]}); bt.onclick=()=>{ pvArmO=k; renderPvp(); }; sg.append(bt); }); hd.append(sg);
+    bx.append(hd,el("small",{class:"muted",text:"Soma de todas as builds da arma. Nível compara as armas desta lista pelo winrate (ajustado quando há poucas lutas): S = 20% melhores, A = próximos 30%, B = 30% seguintes, C = restante. Armas com menos de 5 usos ficam sem nível."}));
+    const L=d.armas.slice(); const ro={S:0,A:1,B:2,C:3}; if(pvArmO==="wr") L.sort((a,b)=>b[4]-a[4]||b[1]-a[1]); else if(pvArmO==="nivel") L.sort((a,b)=>(ro[tr.get(a[0])]??9)-(ro[tr.get(b[0])]??9)||sh(b)-sh(a)); else L.sort((a,b)=>b[1]-a[1]);
+    const mx=Math.max(...L.map(a=>a[1])); const tb=el("table",{class:"pv-armt"}); const th=tb.createTHead().insertRow(); ["#","Arma","Nível","Winrate","Usos"].forEach(t=>th.append(el("th",{text:t})));
+    const bd=tb.createTBody(); L.forEach(([w,n,v,dd,wr],i)=>{ const r=bd.insertRow(); r.insertCell().textContent=i+1; const c1=r.insertCell(); const aw=el("div",{class:"pv-an"}); c1.append(aw); const im=itemImg(w,[8,7,6,5,4]); if(im){ im.classList.add("pv-ai"); aw.append(im); } aw.append(el("b",{text:codeName(w)}));
+      const nv=tr.get(w)||"?"; r.insertCell().append(el("span",{class:"pv-tier t"+nv,title:nv==="?"?"Poucos usos para dar um nível":"Posição entre as armas da lista, pelo winrate ajustado",text:nv}));
+      const cw=r.insertCell(); cw.className="pv-wc"; cw.append(el("span",{class:"pv-wrb"+(wr>=50?" up":" dn"),style:`width:${Math.min(100,Math.max(4,wr))}%`}),el("span",{class:"pv-wrn",text:wr.toLocaleString("pt-BR")+"%"}));
+      const c3=r.insertCell(); c3.className="pv-us"; c3.append(el("span",{class:"pv-bar",style:`width:${Math.max(4,Math.round(n/mx*100))}%`}),el("span",{class:"pv-un",text:String(n)})); });
+    const wp=el("div",{class:"pv-armw"}); wp.append(tb); bx.append(wp); host.append(bx); }
   let l=d.builds.slice(); pvSort=$("pvSort").value||pvSort;
   if(pvSort==="wilson") l.sort((a,b)=>pvWilson(b.v,b.n+0)-pvWilson(a.v,a.n)); else if(pvSort==="wr") l.sort((a,b)=>b.wr-a.wr||b.n-a.n); else if(pvSort==="spec"){ l.forEach(pvPrep); l.sort((a,b)=>(gbSpec(b)-gbSpec(a))||(b.n-a.n)); } else l.sort((a,b)=>b.n-a.n);
   $("pvCount").textContent=`${l.length} builds com 4 lutas ou mais · ${d.eventos.toLocaleString("pt-BR")} mortes${PVP.janela.fama_min?` de jogadores com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
