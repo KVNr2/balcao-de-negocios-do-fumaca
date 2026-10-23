@@ -6,7 +6,7 @@ window.addEventListener("popstate",()=>{ const p=$("p-versao"); if(p&&!p.hidden)
 /* categorias da lista completa: Site, AlbionSpecs (o programa) e Rotinas (atualizações automáticas dos dados) */
 const V_CATS=[["site","Site"],["programa","AlbionSpecs"],["rotinas","Rotinas"]];
 const V_ROTINAS=[["PvP","data/pvp.json","uma vez por dia","Builds, armas e jogadores do PvP, a partir das mortes guardadas pelo coletor."],
-  ["Coletor de mortes","","a cada 15 minutos","Lê o feed oficial de mortes do Albion e guarda as lutas pequenas dos últimos 14 dias."],
+  ["Coletor de mortes","","a cada 30 minutos","Lê o feed oficial de mortes do Albion e guarda as lutas pequenas dos últimos 14 dias."],
   ["ZvZ","data/zvz.json","a cada 6 horas","Funções e armas das maiores lutas recentes (200 jogadores ou mais)."],
   ["Builds (AlbionOnlineGrind)","data/builds-grind.json","todo dia","As builds mais votadas de cada conteúdo."],
   ["Composições (Top Comps)","data/comps.json","todo dia","As composições de grupo mais usadas."]];
@@ -23,7 +23,7 @@ async function renderLista(box,tok){
   const w=el("div",{class:"v-nov"}); box.append(w);
   if(cat==="rotinas"){
     w.before(el("p",{class:"muted small",text:"Rotinas são as atualizações automáticas de dados, sem mudança no site. A hora é da última vez que cada uma gravou."}));
-    for(const [nome,url,freq,desc] of V_ROTINAS){ const c=el("div",{class:"v-nov-i"}), h=el("div",{class:"v-nov-h"}); h.append(el("b",{text:nome}),el("span",{class:"v-tag rot",text:freq})); c.append(h,el("p",{class:"small",text:desc})); const q=el("small",{class:"muted",text:url?"Última atualização: …":"Roda sozinha no GitHub, de 15 em 15 minutos."}); c.append(q); w.append(c);
+    for(const [nome,url,freq,desc] of V_ROTINAS){ const c=el("div",{class:"v-nov-i"}), h=el("div",{class:"v-nov-h"}); h.append(el("b",{text:nome}),el("span",{class:"v-tag rot",text:freq})); c.append(h,el("p",{class:"small",text:desc})); const q=el("small",{class:"muted",text:url?"Última atualização: …":"Roda sozinha no GitHub, de 30 em 30 minutos."}); c.append(q); w.append(c);
       if(url) fetch(url+"?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{ const raw=j.atualizado||""; const dd=new Date(/T/.test(raw)?raw:raw+"T00:00:00Z"); q.textContent=isNaN(dd)?"Sem data registrada.":`Última atualização: ${/T/.test(raw)?fmtDH(dd)+" ("+haQuanto(dd)+")":dd.toLocaleDateString("pt-BR",{timeZone:"UTC"})}`; }).catch(()=>{ q.textContent="Não consegui ler a data agora."; }); }
     return; }
   let todas=[]; try{ todas=((await fetch("novidades.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json())).itens||[]).slice().sort((a,b)=>b.t.localeCompare(a.t)); }catch(e){ w.append(el("p",{class:"muted",text:"Não consegui ler a lista agora."})); return; }
