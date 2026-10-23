@@ -118,9 +118,25 @@ def main():
     n_keep = collections.Counter()
     GRUPO = ("hg2", "hg5", "depths")    # lutas em grupo: o resultado é da luta (qual grupo ganhou), não de cada morte
     GAP = 150                            # s entre mortes seguidas com jogadores em comum para valerem como a mesma luta
+    def comp_reg(A, t, time, ganhou):
+        """composição = as armas do grupo (só vale com o grupo completo: t jogadores, todos com arma)"""
+        if len(time) != t: return
+        ps = sorted(((base((((p.get("Equipment") or {}).get("MainHand")) or {}).get("Type")) or "", chave(p) or "", p) for p in time), key=lambda x: (x[0], x[1]))
+        if any(not w for w, _, _ in ps): return
+        key = "+".join(w for w, _, _ in ps)
+        C_ = A.setdefault("comp", {}).setdefault(key, {"v": 0, "d": 0, "m": [{"gear": collections.defaultdict(collections.Counter), "ip": [], "jog": set(), "k": collections.Counter()} for _ in ps]})
+        C_["v" if ganhou else "d"] += 1
+        for mm, (w, k, p) in zip(C_["m"], ps):
+            mm["jog"].add(p.get("Id")); mm["k"][k] += 1
+            if p.get("AverageItemPower"): mm["ip"].append(p["AverageItemPower"])
+            for sl, js in SLOT.items():
+                ty = ((p.get("Equipment") or {}).get(sl) or {}).get("Type")
+                if ty: mm["gear"][js][ty] += 1
     def registrar(c, t, ganhadores, perdedores, nev):
         """uma luta (ou uma morte, nos conteúdos solo): cada jogador conta uma vez, como vencedor ou perdedor"""
         A = ag(c, t); A["n"] += 1; A["ev"] = A.get("ev", 0) + nev
+        if c in GRUPO:
+            for time, ganhou in ((ganhadores, True), (perdedores, False)): comp_reg(A, t, time, ganhou)
         kperd = {chave(p) for p in perdedores} - {None}; kvs = {chave(p) for p in ganhadores} - {None}
         def reg(p, ganhou):
             k = chave(p)
@@ -276,7 +292,21 @@ def main():
         for k, b in A["b"].items():
             w = k.split("|")[0]; a = arm.setdefault(w, [0, 0]); a[0] += b["v"]; a[1] += b["d"]
         armas = sorted(([w, v + d, v, d, round(100 * v / (v + d), 1)] for w, (v, d) in arm.items() if v + d >= 2), key=lambda x: (-x[1], -x[4]))[:40]
-        out["conteudos"][f"{c}:{t}"] = {"eventos": A.get("ev", 0), "lutas": A["n"], "armas": armas, "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
+        comps = []
+        for key, C_ in A.get("comp", {}).items():
+            n = C_["v"] + C_["d"]
+            if n < (2 if c == "hg5" else 3): continue
+            ms = []
+            for mm in C_["m"]:
+                row = {"k": mm["k"].most_common(1)[0][0], "ip": round(sum(mm["ip"]) / len(mm["ip"])) if mm["ip"] else 0}
+                for js, cn in mm["gear"].items(): row[js] = topo(cn, 2)
+                if row.get("w"):
+                    if len(row["w"]) > 1: row["w2"] = row["w"][1]
+                    row["w"] = row["w"][0]
+                ms.append(row)
+            comps.append({"id": f"{c}{t}:C:{key}", "ws": key.split("+"), "n": n, "v": C_["v"], "d": C_["d"], "wr": round(100 * C_["v"] / n, 1), "ip": round(sum(m["ip"] for m in ms) / len(ms)), "m": ms})
+        comps.sort(key=lambda x: (-x["n"], -x["wr"])); comps = comps[:40]
+        out["conteudos"][f"{c}:{t}"] = {"eventos": A.get("ev", 0), "lutas": A["n"], "armas": armas, "comps": comps, "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
     json.dump(out, open(os.path.join(ROOT, "data", "pvp.json"), "w"), ensure_ascii=False, separators=(",", ":"))
     if not MODO_ARM: json.dump(novas, open(sem_f, "w"), ensure_ascii=False, separators=(",", ":"))
     print("ok:", {k: (v["eventos"], len(v["builds"]), len(v["jogadores"])) for k, v in out["conteudos"].items()})

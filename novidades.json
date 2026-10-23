@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T19:10:00Z",
+   "titulo": "PvP: composições em 2v2, 3v3 e 5v5",
+   "itens": [
+    "Em Hellgate 2v2/5v5 e Depths há agora a visão \"Por composição\": cada card mostra as armas do grupo, o winrate e as lutas; ao abrir, aparece a build de cada jogador com o botão Copiar para o Albion.",
+    "A tier list de armas ganhou a opção \"Por composição\" (só grupos completos; a vitória é da luta inteira).",
+    "Aparece depois da próxima atualização do PvP."
+   ]
+  },
+  {
    "t": "2026-10-23T18:40:00Z",
    "titulo": "Rotina: banco de preços se limpa sozinho",
    "itens": [
