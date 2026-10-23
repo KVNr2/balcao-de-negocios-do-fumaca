@@ -1480,3 +1480,6 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 .wk-ret{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.wk-ri{display:inline-flex;align-items:center;gap:3px}.wk-ri img{width:30px;height:30px}.wk-ri b{font:700 .78rem var(--f-mono)}
 .wk-dg{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:18px}@media (max-width:900px){.wk-dg{grid-template-columns:1fr}}
 .wk-add{align-items:flex-end}
+#wkTable .of-drow .of-xp{position:sticky;left:0;overflow:visible;margin-top:0;width:var(--tblw,900px);max-width:none;box-sizing:border-box}
+#wkTable .of-xl>*{flex:none}#wkTable .of-xs{align-content:start}
+#wkTable .of-drow td{padding:0!important;border:0}
