@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T16:15:00Z",
+   "titulo": "Aba Versão: todas as atualizações",
+   "itens": [
+    "Cada atualização aparece num cartão com etiqueta (Site ou AlbionSpecs) e uma descrição curta.",
+    "O botão \"Ver todas as atualizações\" leva à lista completa, separada entre o programa AlbionSpecs e o site em geral, e o botão Voltar do navegador devolve você de onde estava."
+   ]
+  },
+  {
    "t": "2026-10-23T16:20:00Z",
    "titulo": "PvP: todos os jogadores, 14 dias",
    "itens": [
