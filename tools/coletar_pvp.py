@@ -35,7 +35,7 @@ def main(d):
             try: pr = C.prever(arv, C.feat(e))
             except Exception: continue
             c = max(pr, key=pr.get)
-            if c in CONT and pr[c] >= CONF: tem[e["EventId"]] = C.empacotar(e, c); novos += 1
+            if c in CONT and pr[c] >= CONF and C.cabe(c, e): tem[e["EventId"]] = C.empacotar(e, c); novos += 1
         time.sleep(0.7)
     corte = (datetime.datetime.utcnow() - datetime.timedelta(days=DIAS)).strftime("%Y-%m-%dT%H:%M:%S")
     rs = sorted((r for r in tem.values() if r["t"] >= corte), key=lambda r: r["t"])[-MAXEV:]

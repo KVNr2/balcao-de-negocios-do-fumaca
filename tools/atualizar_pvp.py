@@ -107,7 +107,7 @@ def main():
             else: pr = C.prever(arv, C.feat(e))
         except Exception: continue
         c = max(pr, key=pr.get)
-        if c not in CONT or pr[c] < CONF: continue
+        if c not in CONT or pr[c] < CONF or not C.cabe(c, e): continue
         cl.append((c, e))
         venc, v = pessoas(e)
         for p in venc + [v]: cnt_j[(c, p.get("Id"))] += 1

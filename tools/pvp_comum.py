@@ -45,3 +45,12 @@ def _up(x):
 def desempacotar(r):
     return {"EventId": r["id"], "TimeStamp": r["t"] + ".000000000Z", "_c": r["c"], "GroupMembers": [{}] * r["gm"],
             "Killer": _up(r["k"]), "Victim": _up(r["v"]), "Participants": [_up(p) for p in r["p"]]}
+
+# máximo de jogadores do lado vencedor (quem matou + quem ajudou) por conteúdo; acima disso a luta é grande demais e não entra
+MAX_VENC = {"hg2": 2, "hg5": 5, "corrompida": 1, "solo": 2, "depths": 3}
+def n_venc(e):
+    ids = {(e.get("Killer") or {}).get("Id")}
+    for p in e.get("Participants") or []:
+        if p.get("Id") and ((p.get("DamageDone") or 0) > 0 or (p.get("SupportHealingDone") or 0) > 0): ids.add(p["Id"])
+    return len(ids - {None})
+def cabe(c, e): return n_venc(e) <= MAX_VENC.get(c, 99)
