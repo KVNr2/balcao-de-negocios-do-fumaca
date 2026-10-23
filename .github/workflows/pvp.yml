@@ -11,15 +11,27 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - name: Branch de dados (mortes coletadas)
+        run: git fetch origin pvp-dados 2>/dev/null && git worktree add dados origin/pvp-dados || mkdir -p dados
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Buscar e classificar as mortes
-        run: python3 tools/atualizar_pvp.py 2>&1 | tee /tmp/pvp.log; test ${PIPESTATUS[0]} -eq 0
+        run: PVP_DADOS=$PWD/dados python3 tools/atualizar_pvp.py 2>&1 | tee /tmp/pvp.log; test ${PIPESTATUS[0]} -eq 0
         shell: bash
       - name: Mostrar o fim do log se falhou
         if: failure()
         run: echo "::error::$(grep -v '^::' /tmp/pvp.log | tail -c 700 | tr '\n' ' ')"
+      - name: Guardar cache de perfis (sem apagar o que o coletor guardou)
+        if: always()
+        run: |
+          test -f dados/perfis.json || exit 0
+          cp dados/perfis.json /tmp/perfis.json
+          git fetch origin pvp-dados 2>/dev/null || exit 0
+          git worktree add /tmp/novo origin/pvp-dados && cd /tmp/novo
+          cp /tmp/perfis.json perfis.json
+          git config user.name pvp-bot; git config user.email pvp-bot@users.noreply.github.com
+          git add -A; git commit -q --amend -m "mortes coletadas"; git push --force-with-lease origin HEAD:pvp-dados || true
       - name: Atualizar a versão dos arquivos e publicar se mudou
         run: |
           if [ -n "$(git status --porcelain data)" ]; then
