@@ -6,7 +6,7 @@ window.addEventListener("popstate",()=>{ const p=$("p-versao"); if(p&&!p.hidden)
 /* categorias da lista completa: Site, AlbionSpecs (o programa) e Rotinas (atualizações automáticas dos dados) */
 const V_CATS=[["site","Site"],["programa","AlbionSpecs"],["rotinas","Rotinas"]];
 const V_ROTINAS=[["PvP","data/pvp.json","uma vez por dia","Builds, armas e jogadores do PvP, a partir das mortes guardadas pelo coletor."],
-  ["Coletor de mortes","","a cada 15 minutos","Lê o feed oficial de mortes do Albion e guarda as lutas pequenas dos últimos 14 dias."],
+  ["Coletor de mortes","","a cada 15 minutos","Lê o feed oficial de mortes do Albion e guarda as lutas pequenas dos últimos 30 dias."],
   ["ZvZ","data/zvz.json","a cada 6 horas","Funções e armas das maiores lutas recentes (200 jogadores ou mais)."],
   ["Builds (AlbionOnlineGrind)","data/builds-grind.json","todo dia","As builds mais votadas de cada conteúdo."],
   ["Composições (Top Comps)","data/comps.json","todo dia","As composições de grupo mais usadas."]];
