@@ -29,7 +29,7 @@ jobs:
           cp dados/perfis.json /tmp/perfis.json
           git fetch origin pvp-dados 2>/dev/null || exit 0
           git worktree add /tmp/novo origin/pvp-dados && cd /tmp/novo
-          cp /tmp/perfis.json perfis.json
+          python3 $GITHUB_WORKSPACE/tools/mesclar_perfis.py /tmp/perfis.json perfis.json
           git config user.name pvp-bot; git config user.email pvp-bot@users.noreply.github.com
           git add -A; git commit -q --amend -m "mortes coletadas"; git push --force-with-lease origin HEAD:pvp-dados || true
       - name: Atualizar a versão dos arquivos e publicar se mudou
