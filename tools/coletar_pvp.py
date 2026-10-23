@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Coleta o feed global de mortes da API oficial (a mesma do killboard do Albion): /events?limit=51&offset=N.
-Guarda só as mortes de PvP pequeno (hg2, hg5, corrompida, solo, depths) em DADOS/eventos.jsonl.gz, últimos 14 dias (máx. 300 mil), sem repetir.
+Guarda só as mortes de PvP pequeno (hg2, hg5, corrompida, solo, depths) em DADOS/eventos.jsonl.gz, últimos 7 dias (máx. 300 mil), sem repetir.
 Rodado a cada ~15 min pelo workflow pvp-coleta.yml. Uso: coletar_pvp.py DIR_DADOS"""
 from concurrent.futures import ThreadPoolExecutor
 import gzip, json, os, sys, time, datetime, urllib.request, urllib.error
@@ -9,7 +9,7 @@ import pvp_comum as C
 B = "https://gameinfo.albiononline.com/api/gameinfo"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/130.0 Safari/537.36", "Accept": "application/json"}
 LIM = 500e6; BUDGET_PERFIS = 400   # só entra morte em que alguém (quem venceu ou a vítima) tem 500 mi de fama de PvP ou mais
-CONT = ("hg2", "hg5", "corrompida", "solo", "depths"); CONF = 0.7; DIAS = 14; MAXEV = 300000; PAGS = 20
+CONT = ("hg2", "hg5", "corrompida", "solo", "depths"); CONF = 0.7; DIAS = 7; MAXEV = 300000; PAGS = 20
 def get(path, tries=4):
     for i in range(tries):
         try:
