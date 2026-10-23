@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T18:30:00Z",
+   "titulo": "PvP: Set 2 só com item diferente",
+   "itens": [
+    "No Set 2 das builds do PvP só aparece uma peça alternativa quando o item muda de verdade; trocar só o tier ou o encantamento do mesmo item não conta mais.",
+    "A correção vale já para os dados atuais, e a atualização diária passa a gerar as alternativas desse jeito."
+   ]
+  },
+  {
    "t": "2026-10-23T18:20:00Z",
    "titulo": "PvP: muito mais mortes coletadas",
    "itens": [

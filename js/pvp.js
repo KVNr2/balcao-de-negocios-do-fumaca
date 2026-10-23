@@ -8,7 +8,13 @@ const pvKey = k => { const [w,o]=k.split("|"); return {w,o}; };
 let pvArmO="usos",pvArmOpen=false,pvArmAll=false;
 const pvTier=(v,n)=>{ if(n<5) return "?"; const w=(v+3)/(n+6); return w>=0.58?"S":w>=0.52?"A":w>=0.46?"B":"C"; };
 const pvNome = k => { const {w,o}=pvKey(k); buildIdx(); return codeName(w)+(o?" + "+codeName(o):""); };
-function pvPrep(b){ if(b.nome) return; buildIdx(); b.nome=codeName(b.wc); b.l=(W2LINE&&W2LINE[b.wc])||""; b.t=b.nome; b.pop=0; b.tg=[]; if(b.o&&!Array.isArray(b.o)) b.o=[b.o]; }
+/* o Set 2 só aparece quando muda o item em si, não o tier nem o encantamento */
+const pvBase=t=>(t||"").replace(/^T\d_/,"").replace(/@\d$/,"");
+function pvSemTier(b){
+  for(const s of ["o","h","a","s","c","p","f"]){ const a=b[s]; if(!Array.isArray(a)||a.length<2) continue; const p=pvBase(a[0]); const r=[a[0],...a.slice(1).filter(x=>x&&pvBase(x)!==p)]; b[s]=r.slice(0,2); }
+  if(b.w2&&pvBase(b.w2)===pvBase(Array.isArray(b.w)?b.w[0]:b.w)) delete b.w2;
+}
+function pvPrep(b){ if(b.nome) return; buildIdx(); b.nome=codeName(b.wc); b.l=(W2LINE&&W2LINE[b.wc])||""; b.t=b.nome; b.pop=0; b.tg=[]; if(b.o&&!Array.isArray(b.o)) b.o=[b.o]; pvSemTier(b); }
 /* builds fortes/fracas: só o ícone da arma (com o %); ao clicar mostra o nome, as lutas e deixa abrir aquela build */
 function pvRel(titulo,dica,lista,cls,b,d){
   const bx=el("div",{class:"pv-rel "+cls}); bx.append(el("h4",{text:titulo}),el("p",{class:"tiny muted",text:dica}));
