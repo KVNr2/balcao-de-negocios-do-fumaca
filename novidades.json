@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T17:10:00Z",
+   "titulo": "PvP: tabela de armas mais clara",
+   "itens": [
+    "Armas populares ganhou ordenação (mais usadas, maior winrate, melhor nível) e barras de winrate e de usos.",
+    "O nível agora compara as armas da lista (S = 20% melhores, A = 30% seguintes, B = 30% seguintes, C = restante), em vez de ficar quase tudo em S.",
+    "A tabela se ajusta ao celular."
+   ]
+  },
+  {
    "t": "2026-10-23T17:00:00Z",
    "titulo": "Aba Versão em duas colunas",
    "itens": [
