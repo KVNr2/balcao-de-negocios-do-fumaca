@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T18:50:00Z",
+   "titulo": "PvP: vitória por luta em 2v2, 3v3 e 5v5",
+   "itens": [
+    "Em Hellgate 2v2/5v5 e Depths, as mortes seguidas entre os mesmos jogadores (até 150 s uma da outra) viram uma luta só, e o grupo com menos mortes ganha: cada jogador conta uma vitória ou derrota por luta, não por morte.",
+    "Empates e lutas incompletas demais ficam de fora. Corrompida e Brumas solo continuam contando por morte.",
+    "Isso baixa o winrate inflado de armas como o Cajado Sagrado; os números novos aparecem na próxima atualização diária."
+   ]
+  },
+  {
    "t": "2026-10-23T18:30:00Z",
    "titulo": "PvP: Set 2 só com item diferente",
    "itens": [

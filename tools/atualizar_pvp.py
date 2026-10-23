@@ -116,12 +116,12 @@ def main():
     def exp(c, pid): return True      # todos os jogadores entram (a fama de PvP não é usada: ela pode vir de ZvZ)
     def xp(c, pid): return None
     n_keep = collections.Counter()
-    for c, e in cl:
-        n_class[c] += 1; datas.append(e["TimeStamp"])
-        venc, v = pessoas(e)
-        if not venc and v is None: continue
-        n_keep[c] += 1; t = tamanho(c, e); A = ag(c, t); A["n"] += 1
-        kv = chave(v) if v else None; kvs = {chave(p) for p in venc} - {None}
+    GRUPO = ("hg2", "hg5", "depths")    # lutas em grupo: o resultado é da luta (qual grupo ganhou), não de cada morte
+    GAP = 150                            # s entre mortes seguidas com jogadores em comum para valerem como a mesma luta
+    def registrar(c, t, ganhadores, perdedores, nev):
+        """uma luta (ou uma morte, nos conteúdos solo): cada jogador conta uma vez, como vencedor ou perdedor"""
+        A = ag(c, t); A["n"] += 1; A["ev"] = A.get("ev", 0) + nev
+        kperd = {chave(p) for p in perdedores} - {None}; kvs = {chave(p) for p in ganhadores} - {None}
         def reg(p, ganhou):
             k = chave(p)
             if not k: return
@@ -132,7 +132,7 @@ def main():
                 ty = ((p.get("Equipment") or {}).get(sl) or {}).get("Type")
                 if ty: b["gear"][js][ty] += 1
             if ganhou:
-                for o in venc:
+                for o in ganhadores:
                     ko = chave(o)
                     if ko and ko != k: b["par"][ko] += 1
             pl = A["p"].setdefault(p.get("Id"), {"xp": xp(c, p.get("Id")), "nome": p.get("Name"), "v": 0, "d": 0, "ip": [], "b": collections.Counter(), "guild": p.get("GuildName") or "", "g": {}})
@@ -143,10 +143,71 @@ def main():
                 if ty: gk[js][ty] += 1
             if p.get("AverageItemPower"): pl["ip"].append(p["AverageItemPower"])
             pl["b"][k] += 1; ativos[c][p.get("Id")] += 1; nomes_at[p.get("Id")] = p.get("Name")
-        for p in venc: reg(p, True)
-        if v: reg(v, False)
-        if kv:
-            for kk in kvs: A["x"][(kk, kv)][0] += 1      # kk venceu kv
+        for p in ganhadores: reg(p, True)
+        for p in perdedores: reg(p, False)
+        for kk in kvs:
+            for kz in kperd: A["x"][(kk, kz)][0] += 1      # kk venceu kz
+    def segs(e): return datetime.datetime.strptime(e["TimeStamp"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=datetime.timezone.utc).timestamp()
+    def lutas(c, evs):
+        """junta as mortes de uma mesma luta (jogadores em comum, até GAP s entre elas), separa os dois lados e diz qual ganhou:
+        o lado com menos mortes; empate fica de fora. Devolve (tamanho, ganhadores, perdedores, nº de mortes)"""
+        evs = sorted(evs, key=lambda x: x[0]["TimeStamp"]); n = len(evs); pai = list(range(n)); ts = [segs(x[0]) for x in evs]
+        def f(i):
+            while pai[i] != i: pai[i] = pai[pai[i]]; i = pai[i]
+            return i
+        ult = {}
+        for i, (e, venc, v) in enumerate(evs):
+            for p in venc + ([v] if v else []):
+                pid = p.get("Id")
+                if not pid: continue
+                if pid in ult and ts[i] - ult[pid][0] <= GAP: pai[f(i)] = f(ult[pid][1])
+                ult[pid] = (ts[i], i)
+        grupos = collections.defaultdict(list)
+        for i in range(n): grupos[f(i)].append(i)
+        out = []
+        for idx in grupos.values():
+            adj = collections.defaultdict(list); info = {}; mortos = set()
+            for i in idx:
+                e, venc, v = evs[i]; ids = [p["Id"] for p in venc if p.get("Id")]
+                for p in venc + ([v] if v else []):
+                    if p.get("Id") and p["Id"] not in info: info[p["Id"]] = p
+                for x in ids:
+                    for y in ids:
+                        if x != y: adj[x].append((y, 0))
+                if v and v.get("Id"):
+                    mortos.add(v["Id"])
+                    for x in ids: adj[x].append((v["Id"], 1)); adj[v["Id"]].append((x, 1))
+            cor = {}; ok = True
+            for s in info:
+                if s in cor: continue
+                cor[s] = 0; pilha = [s]
+                while pilha:
+                    x = pilha.pop()
+                    for y, dd in adj[x]:
+                        nc = cor[x] ^ dd
+                        if y not in cor: cor[y] = nc; pilha.append(y)
+                        elif cor[y] != nc: ok = False
+            if not ok or len(set(cor.values())) < 2:     # não deu para separar os lados: conta cada morte sozinha
+                for i in idx:
+                    e, venc, v = evs[i]; out.append((tamanho(c, e), venc, [v] if v else [], 1))
+                continue
+            lado = {0: [], 1: []}
+            for pid, cc in cor.items(): lado[cc].append(info[pid])
+            m = [sum(1 for p in lado[s] if p["Id"] in mortos) for s in (0, 1)]
+            if m[0] == m[1]: continue      # empate ou luta incompleta demais: não conta
+            w = 0 if m[0] < m[1] else 1
+            out.append((max(tamanho(c, evs[i][0]) for i in idx), lado[w], lado[1 - w], len(idx)))
+        return out
+    por_c = collections.defaultdict(list)
+    for c, e in cl:
+        n_class[c] += 1; datas.append(e["TimeStamp"])
+        venc, v = pessoas(e)
+        if not venc and v is None: continue
+        n_keep[c] += 1
+        if c in GRUPO: por_c[c].append((e, venc, v))
+        else: registrar(c, tamanho(c, e), venc, [v] if v else [], 1)
+    for c, evs in por_c.items():
+        for t, gan, per, nev in lutas(c, evs): registrar(c, t, gan, per, nev)
     try: ant = json.load(open(os.path.join(ROOT, "data", "pvp.json")))["janela"].get("experientes", 0)
     except Exception: ant = 0
     if ant and not MODO_ARM and sum(n_keep.values()) < 0.6 * ant:
@@ -169,7 +230,7 @@ def main():
            "janela": {"dias": DIAS, "eventos": sum(n_keep.values()), "classificados": sum(n_class.values()), "experientes": sum(n_keep.values()), "fama_min": 0, "de": min(datas), "ate": max(datas), "por_conteudo": dict(n_keep)}, "conteudos": {}}
     MINB = 4
     for (c, t), A in sorted(S.items()):
-        if A["n"] < 15: continue
+        if A.get("ev", 0) < 15: continue
         bs = []
         for k, b in A["b"].items():
             n = b["v"] + b["d"]
@@ -215,7 +276,7 @@ def main():
         for k, b in A["b"].items():
             w = k.split("|")[0]; a = arm.setdefault(w, [0, 0]); a[0] += b["v"]; a[1] += b["d"]
         armas = sorted(([w, v + d, v, d, round(100 * v / (v + d), 1)] for w, (v, d) in arm.items() if v + d >= 2), key=lambda x: (-x[1], -x[4]))[:40]
-        out["conteudos"][f"{c}:{t}"] = {"eventos": A["n"], "armas": armas, "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
+        out["conteudos"][f"{c}:{t}"] = {"eventos": A.get("ev", 0), "lutas": A["n"], "armas": armas, "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
     json.dump(out, open(os.path.join(ROOT, "data", "pvp.json"), "w"), ensure_ascii=False, separators=(",", ":"))
     if not MODO_ARM: json.dump(novas, open(sem_f, "w"), ensure_ascii=False, separators=(",", ":"))
     print("ok:", {k: (v["eventos"], len(v["builds"]), len(v["jogadores"])) for k, v in out["conteudos"].items()})
