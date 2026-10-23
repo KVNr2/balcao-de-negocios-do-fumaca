@@ -1,6 +1,7 @@
 /* ================= aba PVP: o que os jogadores que mais lutam usam em cada conteúdo (servidor US) ================= */
 let PVP = null, pvC = "hg2", pvV = "build", pvT = 0, pvSort = "wilson", pvOpen = null;
-const PV_CONT = [["hg2","Hellgate 2v2"],["hg5","Hellgate 5v5"],["corrompida","Corrompidas"],["solo","Brumas (solo)"],["depths","Depths"]];
+const PV_CONT = [["hg","Hellgate"],["corrompida","Corrompidas"],["solo","Brumas (solo)"],["depths","Depths"]];
+const pvGr = k => (k==="hg2"||k==="hg5")?"hg":k, pvChs = k => k==="hg"?["hg2","hg5"]:[k];
 const PV_TAM = t => t===1?"Solo":`Grupo de ${t}`;
 const pvWilson = (v,n) => { if(!n) return 0; const z=1.64, p=v/n, d=1+z*z/n; return (p+z*z/(2*n)-z*Math.sqrt((p*(1-p)+z*z/(4*n))/n))/d; };
 const pvKey = k => { const [w,o]=k.split("|"); return {w,o}; };
@@ -98,10 +99,10 @@ function renderPvp(){
   const host=$("pvList"); if(!host) return;
   if(!PVP){ if(!renderPvp._l){ renderPvp._l=1; need("pvp").then(d=>{ PVP=d; renderPvp(); }).catch(()=>{ $("pvNote").textContent="Os dados do PVP ainda não foram gerados. Eles aparecem depois da primeira atualização automática."; }); } return; }
   const j=PVP.janela; $("pvNote").textContent=`${PVP.fonte}. ${Object.values(PVP.conteudos).reduce((a,c)=>a+c.builds.length,0).toLocaleString("pt-BR")} builds, vindas de ${j.eventos.toLocaleString("pt-BR")} mortes dos últimos ${j.dias} dias · atualizado em ${new Date(PVP.atualizado).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}.`;
-  const cs=$("pvCont"); cs.textContent=""; for(const [k,n] of PV_CONT){ const tot=Object.keys(PVP.conteudos).filter(x=>x.startsWith(k+":")).reduce((a,x)=>a+PVP.conteudos[x].builds.length,0); const b=el("button",{type:"button","aria-pressed":String(pvC===k),text:`${n} (${tot} ${tot===1?"build":"builds"})`}); b.addEventListener("click",()=>{ pvC=k; pvT=0; pvOpen=null; renderPvp(); }); cs.append(b); }
-  const tams=Object.keys(PVP.conteudos).filter(x=>x.startsWith(pvC+":")).map(x=>+x.split(":")[1]).sort((a,b)=>a-b);
-  if(!tams.includes(pvT)) pvT=tams[tams.length-1]||0;
-  const ts=$("pvTam"); ts.textContent=""; for(const t of tams){ const b=el("button",{type:"button","aria-pressed":String(pvT===t),text:PV_TAM(t)}); b.addEventListener("click",()=>{ pvT=t; pvOpen=null; renderPvp(); }); ts.append(b); }
+  const cs=$("pvCont"); cs.textContent=""; for(const [k,n] of PV_CONT){ const tot=Object.keys(PVP.conteudos).filter(x=>pvChs(k).includes(x.split(":")[0])).reduce((a,x)=>a+PVP.conteudos[x].builds.length,0); const b=el("button",{type:"button","aria-pressed":String(pvGr(pvC)===k),text:`${n} (${tot} ${tot===1?"build":"builds"})`}); b.addEventListener("click",()=>{ if(pvGr(pvC)!==k){ pvC=pvChs(k)[0]; pvT=0; } pvOpen=null; renderPvp(); }); cs.append(b); }
+  const tams=Object.keys(PVP.conteudos).filter(x=>pvChs(pvGr(pvC)).includes(x.split(":")[0])).map(x=>({c:x.split(":")[0],t:+x.split(":")[1]})).sort((a,b)=>a.t-b.t);
+  if(!tams.some(x=>x.c===pvC&&x.t===pvT)){ const u=tams.filter(x=>x.c===pvC).pop()||tams[tams.length-1]; if(u){ pvC=u.c; pvT=u.t; } else pvT=0; }
+  const ts=$("pvTam"); ts.textContent=""; for(const x of tams){ const b=el("button",{type:"button","aria-pressed":String(pvC===x.c&&pvT===x.t),text:PV_TAM(x.t)}); b.addEventListener("click",()=>{ pvC=x.c; pvT=x.t; pvOpen=null; renderPvp(); }); ts.append(b); }
   const vs=$("pvView"); vs.textContent=""; const dc0=PVP.conteudos[`${pvC}:${pvT}`], temComp=["hg2","hg5","depths"].includes(pvC)&&!!dc0&&pvT>1; if(pvV==="comp"&&!temComp) pvV="build";
   for(const [k,n] of (temComp?[["build","Por build"],["comp","Por composição"],["jog","Por jogador"]]:[["build","Por build"],["jog","Por jogador"]])){ const b=el("button",{type:"button","aria-pressed":String(pvV===k),text:n}); b.addEventListener("click",()=>{ pvV=k; pvOpen=null; renderPvp(); }); vs.append(b); }
   $("pvSortW").hidden=pvV!=="build"; $("pvJSortW").hidden=pvV!=="jog"; $("pvRefresh").hidden=pvV!=="build";
