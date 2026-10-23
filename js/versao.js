@@ -14,6 +14,26 @@ async function renderVersao(){
   st.append(el("span",{class:"v-dot"}), el("span",{text:atual?"Você está usando a versão mais recente.":`Há uma versão nova (a sua é ${meu}).`}));
   if(!atual){ const b=el("button",{type:"button",class:"bc-more",text:"Recarregar agora"}); b.addEventListener("click",()=>location.reload()); st.append(b); }
   hero.append(st); box.append(hero);
+  /* novidades: com versão nova, mostra o que veio depois da versão do visitante; senão, as últimas */
+  (async()=>{ try{
+    const nv=await fetch("novidades.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()), todas=(nv.itens||[]).slice().sort((a,b)=>b.t.localeCompare(a.t));
+    const mine=(pub.hist||[]).find(h=>h.v===meu); let lista, titulo;
+    if(!atual&&mine){ lista=todas.filter(x=>x.t>mine.t); titulo="O que há de novo nesta versão"; } else if(!atual){ lista=todas.slice(0,5); titulo="Novidades recentes"; } else { lista=todas.slice(0,6); titulo="O que mudou nas últimas atualizações"; }
+    if(!lista.length) return;
+    const sec=el("div",{class:"v-nov"}); sec.append(el("h4",{text:titulo}));
+    for(const x of lista){ const c=el("div",{class:"v-nov-i"}); c.append(el("b",{text:x.titulo}),el("small",{class:"muted",text:fmtDH(new Date(x.t))})); const ul=el("ul",{class:"v-list"}); (x.itens||[]).forEach(t=>ul.append(el("li",{text:t}))); c.append(ul); sec.append(c); }
+    hero.insertAdjacentElement("afterend",sec);
+  }catch(e){} })();
+  /* novidades: se há versão nova, mostra o que veio depois da versão do visitante; senão, as últimas */
+  (async()=>{ try{
+    const nv=await fetch("novidades.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()), todas=(nv.itens||[]).slice().sort((a,b)=>b.t.localeCompare(a.t));
+    const mine=(pub.hist||[]).find(h=>h.v===meu); let lista, titulo;
+    if(!atual&&mine){ lista=todas.filter(x=>x.t>mine.t); titulo="O que há de novo nesta versão"; } else if(!atual){ lista=todas.slice(0,5); titulo="Novidades recentes (não sei a hora da sua versão)"; } else { lista=todas.slice(0,6); titulo="O que mudou nas últimas atualizações"; }
+    if(!lista.length) return;
+    const sec=el("div",{class:"v-nov"}); sec.append(el("h4",{text:titulo}));
+    for(const x of lista){ const c=el("div",{class:"v-nov-i"}); c.append(el("b",{text:x.titulo}),el("small",{class:"muted",text:fmtDH(new Date(x.t))})); const ul=el("ul",{class:"v-list"}); (x.itens||[]).forEach(t=>ul.append(el("li",{text:t}))); c.append(ul); sec.append(c); }
+    hero.insertAdjacentElement("afterend",sec);
+  }catch(e){} })();
   /* programa AlbionSpecs (.exe): a versão é publicada à parte do site; atualizar o programa não exige recarregar a página */
   const prog=el("div",{class:"v-hero v-prog"}); box.append(prog);
   prog.append(el("small",{class:"v-k",text:"Programa AlbionSpecs"}));
