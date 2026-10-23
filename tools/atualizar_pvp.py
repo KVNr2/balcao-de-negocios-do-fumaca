@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atualiza data/pvp.json (só jogadores com 500 milhões ou mais de fama de PvP): builds e jogadores do PvP por conteúdo (Hellgate 2v2/5v5, Corrompidas, Brumas solo, Depths), servidor US (Americas).
+"""Atualiza data/pvp.json (só jogadores com a fama de PvP mínima, hoje 300 milhões): builds e jogadores do PvP por conteúdo (Hellgate 2v2/5v5, Corrompidas, Brumas solo, Depths), servidor US (Americas).
 Fonte: API oficial (gameinfo.albiononline.com). O conteúdo de cada morte é deduzido por uma árvore treinada com os rótulos do killboard-1 (tools/treinar_pvp.py).
 Jogadores: sementes em data/pvp-sementes.json (criadas dos rótulos na primeira vez e renovadas a cada rodada pelos mais ativos de cada conteúdo).
 Janela: últimos 30 dias. Se algo falhar ou vierem poucos eventos, NÃO sobrescreve o arquivo atual."""
@@ -106,7 +106,8 @@ def main():
         venc, v = pessoas(e)
         for p in venc + [v]: cnt_j[(c, p.get("Id"))] += 1
     # experiência: fama de PvP do jogador (KillFame, total de fama por matar jogadores). A API não traz a Infâmia por conteúdo, só esse total
-    LIM = 500e6   # só entram na análise jogadores com 500 milhões ou mais de fama de PvP (quem não teve o perfil lido fica de fora)
+    FAMA_MIN = float(os.environ.get("PVP_FAMA_MIN", "300"))   # em milhões; o coletor guarda de 200 mi para cima e o corte final é este
+    LIM = FAMA_MIN * 1e6   # só entram na análise jogadores com essa fama de PvP ou mais (quem não teve o perfil lido fica de fora)
     tot_j = collections.Counter()
     for (c, i), n in cnt_j.items():
         if i: tot_j[i] += n
@@ -142,7 +143,7 @@ def main():
     for c, e in cl:
         n_class[c] += 1; datas.append(e["TimeStamp"])
         venc, v = pessoas(e)
-        venc = [p for p in venc if exp(c, p.get("Id"))]; v = v if exp(c, v.get("Id")) else None   # só jogadores com 500 mi de fama ou mais
+        venc = [p for p in venc if exp(c, p.get("Id"))]; v = v if exp(c, v.get("Id")) else None   # só jogadores com a fama mínima
         if not venc and v is None: continue
         n_keep[c] += 1; t = tamanho(c, e); A = ag(c, t); A["n"] += 1
         kv = chave(v) if v else None; kvs = {chave(p) for p in venc} - {None}
@@ -176,7 +177,7 @@ def main():
     if ant and not MODO_ARM and sum(n_keep.values()) < 0.6 * ant:
         print("muito menos eventos que o arquivo atual:", sum(n_keep.values()), "contra", ant, "- não sobrescrevo"); sys.exit(1)
     if sum(n_keep.values()) < 300:
-        print("poucos eventos de jogadores com 500 mi de fama:", dict(n_keep), "de", dict(n_class), "- não sobrescrevo"); sys.exit(1)
+        print(f"poucos eventos de jogadores com {FAMA_MIN:g} mi de fama:", dict(n_keep), "de", dict(n_class), "- não sobrescrevo"); sys.exit(1)
     # sementes novas: os mais ativos de cada conteúdo
     novas = {c: [[i, nomes_at[i]] for i, _ in ativos[c].most_common(SEMENTES_POR)] for c in CONT}
     for c in CONT:
@@ -189,8 +190,8 @@ def main():
         ach = [g for g in grind if g["k"] in CAT[c] and base(g.get("w")) == w and g.get("sk")]
         if not ach: ach = [g for g in grind if base(g.get("w")) == w and g.get("sk")]
         return max(ach, key=lambda g: g.get("pop", 0))["sk"] if ach else None
-    out = {"fonte": "API oficial do Albion (Americas), só jogadores com 500 milhões ou mais de fama de PvP; conteúdo deduzido do tipo de luta (precisão ~90%)", "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
-           "janela": {"dias": DIAS, "eventos": sum(n_keep.values()), "classificados": sum(n_class.values()), "experientes": sum(n_keep.values()), "fama_min": 500, "de": min(datas), "ate": max(datas), "por_conteudo": dict(n_keep)}, "conteudos": {}}
+    out = {"fonte": f"API oficial do Albion (Americas), só jogadores com {FAMA_MIN:g} milhões ou mais de fama de PvP; conteúdo deduzido do tipo de luta (precisão ~90%)", "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
+           "janela": {"dias": DIAS, "eventos": sum(n_keep.values()), "classificados": sum(n_class.values()), "experientes": sum(n_keep.values()), "fama_min": round(FAMA_MIN), "de": min(datas), "ate": max(datas), "por_conteudo": dict(n_keep)}, "conteudos": {}}
     MINB = 4
     for (c, t), A in sorted(S.items()):
         if A["n"] < 15: continue

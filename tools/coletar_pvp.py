@@ -8,12 +8,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pvp_comum as C
 B = "https://gameinfo.albiononline.com/api/gameinfo"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/130.0 Safari/537.36", "Accept": "application/json"}
-LIM = 500e6; BUDGET_PERFIS = 150   # só entra morte em que alguém (quem venceu ou a vítima) tem 500 mi de fama de PvP ou mais
+LIM = 200e6; BUDGET_PERFIS = 150   # só entra morte em que alguém (quem venceu ou a vítima) tem 200 mi de fama de PvP ou mais (o corte final, hoje 300 mi, é aplicado na atualização diária)
 CONT = ("hg2", "hg5", "corrompida", "solo", "depths"); CONF = 0.7; DIAS = 30; MAXEV = 600000; PAGS = 20
 import api_suave
 get = api_suave.get
 def fama_ok(c0, agora):
-    """cache [fama, quando]: quem já tem 500 mi nunca expira (a fama só sobe); os abaixo são relidos depois de 7 dias"""
+    """cache [fama, quando]: quem já tem 200 mi nunca expira (a fama só sobe); os abaixo são relidos depois de 7 dias"""
     return c0 and (c0[0] is not None and (c0[0] >= LIM or agora - c0[1] < 7 * 86400))
 def ler_dia(f):
     out = {}
