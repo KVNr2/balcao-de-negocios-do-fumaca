@@ -14,17 +14,8 @@ CONT = ["hg2", "hg5", "corrompida", "solo", "depths"]
 SLOT = {"MainHand": "w", "OffHand": "o", "Head": "h", "Armor": "a", "Shoes": "s", "Cape": "c", "Potion": "p", "Food": "f"}
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 FALHAS = collections.Counter()
-def get(path, tries=4):
-    for i in range(tries):
-        try:
-            with urllib.request.urlopen(urllib.request.Request(B + path, headers=UA), timeout=30) as r: return json.load(r)
-        except urllib.error.HTTPError as e:
-            FALHAS[e.code] += 1
-            if e.code == 404: return None
-            time.sleep(4 * (i + 1) if e.code in (429, 503) else 1 + i)
-        except Exception as e:
-            FALHAS["rede"] += 1; time.sleep(1 + i)
-    return None
+import api_suave
+get = api_suave.get; FALHAS = api_suave.FALHAS
 def base(t):
     m = re.match(r"T(\d)_(.+?)(?:@(\d))?$", t or ""); return m.group(2) if m else None
 def pessoas(e):
@@ -91,7 +82,7 @@ def main():
             except Exception: pass
         return out
     tarefas = [(pid, t) for pid in jog for t in ("kills", "deaths")]
-    with ThreadPoolExecutor(int(os.environ.get("PVP_THREADS", "10"))) as ex:
+    with ThreadPoolExecutor(int(os.environ.get("PVP_THREADS", "3"))) as ex:
         for k, evs in enumerate(ex.map(uma, tarefas)):
             for e in evs: eventos[e["EventId"]] = e
             if k % 50 == 0: print("lidas", k, "de", len(tarefas), "listas;", len(eventos), "eventos;", int(time.time() - inicio), "s; falhas", dict(FALHAS), flush=True)
@@ -135,7 +126,7 @@ def main():
         if c0 and agora - c0[1] < VAL: FAMA[i] = c0[0]
         else: falta.append(i)
     print("perfis em cache:", len(FAMA), "a ler:", len(falta), flush=True)
-    with ThreadPoolExecutor(24) as ex:
+    with ThreadPoolExecutor(4) as ex:
         for i, f in ex.map(perfil, falta):
             if f is not None: FAMA[i] = f; cache[i] = [f, agora]
             else: FAMA[i] = (cache.get(i) or [None])[0]
