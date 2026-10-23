@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pvp_comum as C
 B = "https://gameinfo.albiononline.com/api/gameinfo"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/130.0 Safari/537.36", "Accept": "application/json"}
-LIM = 500e6; BUDGET_PERFIS = 300   # só entra morte em que alguém (quem venceu ou a vítima) tem 500 mi de fama de PvP ou mais
+LIM = 500e6; BUDGET_PERFIS = 150   # só entra morte em que alguém (quem venceu ou a vítima) tem 500 mi de fama de PvP ou mais
 CONT = ("hg2", "hg5", "corrompida", "solo", "depths"); CONF = 0.7; DIAS = 30; MAXEV = 600000; PAGS = 20
 import api_suave
 get = api_suave.get
@@ -23,6 +23,7 @@ def ler_dia(f):
             except Exception: pass
     return out
 def main(d):
+    api_suave.PRAZO[0] = time.time() + 6.5 * 60   # passou disso, para de pedir e grava o que já tem (o job tem 10 min)
     ed = os.path.join(d, "eventos"); os.makedirs(ed, exist_ok=True); arv = C.carregar()
     hoje = datetime.datetime.utcnow().date(); dias = [str(hoje - datetime.timedelta(days=k)) for k in range(0, 2)]
     # um arquivo por dia (data da morte). Para não repetir, olho o de hoje e o de ontem
@@ -67,6 +68,7 @@ def main(d):
         if not any(i in nv for i in rs): continue   # só regrava o dia que recebeu mortes novas
         with gzip.open(os.path.join(ed, dia + ".jsonl.gz"), "wt", encoding="utf-8") as o:
             for r in sorted(rs.values(), key=lambda r: r["t"]): o.write(json.dumps(r, ensure_ascii=False, separators=(",", ":")) + "\n")
+    print(f"falhas da API: {dict(api_suave.FALHAS)}")
     print(f"feed lido: {lidos} mortes; candidatas {len(cand)}; sem fama conhecida {sem_fama}; jogadores na tabela {len(cache)}; novas guardadas: {novos}; arquivos de hoje/ontem {antes} -> {antes + novos}")
     if lidos == 0: sys.exit(1)
 main(sys.argv[1] if len(sys.argv) > 1 else "dados")
