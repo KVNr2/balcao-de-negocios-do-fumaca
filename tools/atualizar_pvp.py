@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atualiza data/pvp.json (só jogadores com a fama de PvP mínima, hoje 300 milhões): builds e jogadores do PvP por conteúdo (Hellgate 2v2/5v5, Corrompidas, Brumas solo, Depths), servidor US (Americas).
+"""Atualiza data/pvp.json: builds e jogadores do PvP por conteúdo (Hellgate 2v2/5v5, Corrompidas, Brumas solo, Depths), servidor US (Americas).
 Fonte: API oficial (gameinfo.albiononline.com). O conteúdo de cada morte é deduzido por uma árvore treinada com os rótulos do killboard-1 (tools/treinar_pvp.py).
 Jogadores: sementes em data/pvp-sementes.json (criadas dos rótulos na primeira vez e renovadas a cada rodada pelos mais ativos de cada conteúdo).
 Janela: últimos 30 dias. Se algo falhar ou vierem poucos eventos, NÃO sobrescreve o arquivo atual."""
@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pvp_comum as C
 B = "https://gameinfo.albiononline.com/api/gameinfo"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/130.0 Safari/537.36", "Accept": "application/json"}
-DIAS = 30; PAGINAS = int(os.environ.get("PVP_PAGINAS", "3")); ORCAMENTO = int(os.environ.get("PVP_MINUTOS", "25")) * 60; SEMENTES_POR = int(os.environ.get("PVP_SEMENTES", "45")); CONF = 0.7
+DIAS = 14; PAGINAS = int(os.environ.get("PVP_PAGINAS", "3")); ORCAMENTO = int(os.environ.get("PVP_MINUTOS", "25")) * 60; SEMENTES_POR = int(os.environ.get("PVP_SEMENTES", "45")); CONF = 0.7
 CONT = ["hg2", "hg5", "corrompida", "solo", "depths"]
 SLOT = {"MainHand": "w", "OffHand": "o", "Head": "h", "Armor": "a", "Shoes": "s", "Cape": "c", "Potion": "p", "Food": "f"}
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
@@ -97,7 +97,7 @@ def main():
     for e in eventos.values():
         try:
             if datetime.datetime.strptime(e["TimeStamp"][:19], "%Y-%m-%dT%H:%M:%S") < corte: continue
-            if e.get("_x"): pr = C.prever_vetor(arv, e["_x"])   # reclassifica com o modelo atual
+            if e.get("_x") and e.get("_m") != arv.get("_v"): pr = C.prever_vetor(arv, e["_x"])   # modelo mudou: reclassifica com o atual
             elif "_c" in e: pr = {e["_c"]: 1.0}
             else: pr = C.prever(arv, C.feat(e))
         except Exception: continue
@@ -106,45 +106,12 @@ def main():
         cl.append((c, e))
         venc, v = pessoas(e)
         for p in venc + [v]: cnt_j[(c, p.get("Id"))] += 1
-    # experiência: fama de PvP do jogador (KillFame, total de fama por matar jogadores). A API não traz a Infâmia por conteúdo, só esse total
-    FAMA_MIN = float(os.environ.get("PVP_FAMA_MIN", "300"))   # em milhões; o coletor guarda de 200 mi para cima e o corte final é este
-    LIM = FAMA_MIN * 1e6   # só entram na análise jogadores com essa fama de PvP ou mais (quem não teve o perfil lido fica de fora)
-    tot_j = collections.Counter()
-    for (c, i), n in cnt_j.items():
-        if i: tot_j[i] += n
-    ids = [i for i, _ in tot_j.most_common(int(os.environ.get("PVP_PERFIS", "6000")))]
-    print("perfis a ler:", len(ids), flush=True)
-    t_perfil = time.time(); ORC_PERFIL = int(os.environ.get("PVP_PERFIL_MIN", "12")) * 60
-    def perfil(i):
-        if time.time() - t_perfil > ORC_PERFIL: return i, None
-        r = get(f"/players/{i}"); return i, (r.get("KillFame") if isinstance(r, dict) else None)
-    FAMA = {}; PF = os.path.join(DADOS, "perfis.json") if DADOS else ""; cache = {}
-    try: cache = json.load(open(PF)) if PF and os.path.exists(PF) else {}
-    except Exception: cache = {}
-    agora = time.time(); VAL = 10 * 86400
-    falta = []
-    for i in ids:
-        c0 = cache.get(i)
-        if c0 and agora - c0[1] < VAL: FAMA[i] = c0[0]
-        else: falta.append(i)
-    print("perfis em cache:", len(FAMA), "a ler:", len(falta), flush=True)
-    with ThreadPoolExecutor(4) as ex:
-        for i, f in ex.map(perfil, falta):
-            if f is not None: FAMA[i] = f; cache[i] = [f, agora]
-            else: FAMA[i] = (cache.get(i) or [None])[0]
-    if PF:
-        cache = {i: v for i, v in cache.items() if agora - v[1] < 60 * 86400}
-        json.dump(cache, open(PF, "w"), separators=(",", ":"))
-    print("perfis lidos:", sum(1 for v in FAMA.values() if v is not None), flush=True)
-    def exp(c, pid):
-        f = FAMA.get(pid); return f is not None and f >= LIM
-    def xp(c, pid):
-        f = FAMA.get(pid); return None if f is None else round(f / 1e6)
+    def exp(c, pid): return True      # todos os jogadores entram (a fama de PvP não é usada: ela pode vir de ZvZ)
+    def xp(c, pid): return None
     n_keep = collections.Counter()
     for c, e in cl:
         n_class[c] += 1; datas.append(e["TimeStamp"])
         venc, v = pessoas(e)
-        venc = [p for p in venc if exp(c, p.get("Id"))]; v = v if exp(c, v.get("Id")) else None   # só jogadores com a fama mínima
         if not venc and v is None: continue
         n_keep[c] += 1; t = tamanho(c, e); A = ag(c, t); A["n"] += 1
         kv = chave(v) if v else None; kvs = {chave(p) for p in venc} - {None}
@@ -178,7 +145,7 @@ def main():
     if ant and not MODO_ARM and sum(n_keep.values()) < 0.6 * ant:
         print("muito menos eventos que o arquivo atual:", sum(n_keep.values()), "contra", ant, "- não sobrescrevo"); sys.exit(1)
     if sum(n_keep.values()) < 300:
-        print(f"poucos eventos de jogadores com {FAMA_MIN:g} mi de fama:", dict(n_keep), "de", dict(n_class), "- não sobrescrevo"); sys.exit(1)
+        print("poucos eventos classificados:", dict(n_keep), "de", dict(n_class), "- não sobrescrevo"); sys.exit(1)
     # sementes novas: os mais ativos de cada conteúdo
     novas = {c: [[i, nomes_at[i]] for i, _ in ativos[c].most_common(SEMENTES_POR)] for c in CONT}
     for c in CONT:
@@ -191,8 +158,8 @@ def main():
         ach = [g for g in grind if g["k"] in CAT[c] and base(g.get("w")) == w and g.get("sk")]
         if not ach: ach = [g for g in grind if base(g.get("w")) == w and g.get("sk")]
         return max(ach, key=lambda g: g.get("pop", 0))["sk"] if ach else None
-    out = {"fonte": f"API oficial do Albion (Americas), só jogadores com {FAMA_MIN:g} milhões ou mais de fama de PvP; conteúdo deduzido do tipo de luta (precisão ~94% nos testes)", "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
-           "janela": {"dias": DIAS, "eventos": sum(n_keep.values()), "classificados": sum(n_class.values()), "experientes": sum(n_keep.values()), "fama_min": round(FAMA_MIN), "de": min(datas), "ate": max(datas), "por_conteudo": dict(n_keep)}, "conteudos": {}}
+    out = {"fonte": "API oficial do Albion (Americas), todos os jogadores; conteúdo deduzido do tipo de luta (precisão ~94% nos testes)", "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
+           "janela": {"dias": DIAS, "eventos": sum(n_keep.values()), "classificados": sum(n_class.values()), "experientes": sum(n_keep.values()), "fama_min": 0, "de": min(datas), "ate": max(datas), "por_conteudo": dict(n_keep)}, "conteudos": {}}
     MINB = 4
     for (c, t), A in sorted(S.items()):
         if A["n"] < 15: continue

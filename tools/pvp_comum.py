@@ -34,7 +34,10 @@ def prever_vetor(arv, x):
         return dict(zip(arv["classes"], [sum(p[i] for p in ps) / len(ps) for i in range(len(arv["classes"]))]))
     return dict(zip(arv["classes"], _folha(arv, x)))
 def carregar(path=None):
-    return json.load(open(path or os.path.join(HERE, "pvp-arvore.json")))
+    import hashlib
+    f = path or os.path.join(HERE, "pvp-arvore.json"); a = json.load(open(f))
+    a["_v"] = hashlib.md5(open(f, "rb").read()).hexdigest()[:8]   # identifica o modelo: mortes classificadas com ele não precisam reclassificar
+    return a
 
 # ---- armazenamento compacto das mortes coletadas (branch pvp-dados) ----
 SLOTS = ("MainHand", "OffHand", "Head", "Armor", "Shoes", "Cape", "Potion", "Food")
@@ -43,17 +46,17 @@ def _pp(p):
     return {"i": p.get("Id"), "n": p.get("Name"), "g": p.get("GuildName") or "", "ip": round(p.get("AverageItemPower") or 0),
             "d": 1 if ((p.get("DamageDone") or 0) > 0 or (p.get("SupportHealingDone") or 0) > 0) else 0,
             "e": {s: _t(eq.get(s)) for s in SLOTS if _t(eq.get(s))}}
-def empacotar(e, c, q=None):
+def empacotar(e, c, q=None, m=None):
     """x = vetor de características e q = confiança, guardados para reclassificar com o modelo novo e para o auto-treino"""
     try: x = [round(v, 1) for v in vetor(feat(e))]
     except Exception: x = None
-    return {"id": e["EventId"], "t": e["TimeStamp"][:19], "c": c, "x": x, "q": round(q, 3) if q else None, "gm": len(e.get("GroupMembers") or []),
+    return {"id": e["EventId"], "t": e["TimeStamp"][:19], "c": c, "m": m, "x": x, "q": round(q, 3) if q else None, "gm": len(e.get("GroupMembers") or []),
             "k": _pp(e["Killer"]), "v": _pp(e["Victim"]), "p": [_pp(p) for p in (e.get("Participants") or []) if p.get("Id") and p.get("Id") != e["Killer"].get("Id")]}
 def _up(x):
     return {"Id": x["i"], "Name": x["n"], "GuildName": x["g"], "AverageItemPower": x["ip"], "DamageDone": x["d"], "SupportHealingDone": 0,
             "Equipment": {s: {"Type": t} for s, t in x["e"].items()}}
 def desempacotar(r):
-    return {"EventId": r["id"], "TimeStamp": r["t"] + ".000000000Z", "_c": r["c"], "_x": r.get("x"), "GroupMembers": [{}] * r["gm"],
+    return {"EventId": r["id"], "TimeStamp": r["t"] + ".000000000Z", "_c": r["c"], "_x": r.get("x"), "_m": r.get("m"), "GroupMembers": [{}] * r["gm"],
             "Killer": _up(r["k"]), "Victim": _up(r["v"]), "Participants": [_up(p) for p in r["p"]]}
 
 # máximo de jogadores do lado vencedor (quem matou + quem ajudou) por conteúdo; acima disso a luta é grande demais e não entra

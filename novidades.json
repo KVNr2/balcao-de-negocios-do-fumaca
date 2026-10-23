@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T16:20:00Z",
+   "titulo": "PvP: todos os jogadores, 14 dias",
+   "itens": [
+    "O PvP agora conta as mortes de todos os jogadores, sem filtro de fama: a fama pode vir do ZvZ, que é outro tipo de luta. A amostra fica muito maior.",
+    "A janela é de 14 dias; arquivos mais velhos são apagados sozinhos.",
+    "A tabela de perfis foi removida, o que libera espaço."
+   ]
+  },
+  {
    "t": "2026-10-23T16:00:00Z",
    "titulo": "PvP: armas populares com nível",
    "itens": [
@@ -29,8 +38,7 @@
    "t": "2026-10-23T14:40:00Z",
    "titulo": "PvP: base maior e mais recente",
    "itens": [
-    "Um coletor guarda as mortes do feed oficial do Albion a cada 15 minutos, e a janela do PvP agora é de 30 dias.",
-    "Só entram jogadores com 300 mi de fama de PvP ou mais.",
+    "Um coletor guarda as mortes do feed oficial do Albion a cada 15 minutos, e a janela do PvP agora é de 14 dias.",
     "Lutas com mais gente do lado vencedor que o limite do conteúdo ficam de fora (Hellgate 2v2: 2, 5v5: 5, Corrompida: 1, Brumas solo: 2, Depths: 3)."
    ]
   },
