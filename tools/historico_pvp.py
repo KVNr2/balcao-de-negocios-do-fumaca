@@ -9,7 +9,7 @@ from coletar_pvp import ler_dia, MAX_DIA, CONT, CONF, DIAS
 get = api_suave.get
 REFAZ = 14   # só relê um jogador depois de tantos dias
 GRUPO = ("hg2", "hg5", "depths")
-PESO = {"hg2": 4, "hg5": 4, "depths": 4}   # lutas em grupo valem mais: é onde falta amostra (os outros conteúdos pesam 1)
+PESO = {"hg2": 4, "hg5": 10, "depths": 4}   # lutas em grupo valem mais: é onde falta amostra (os outros conteúdos pesam 1)
 def main(d, minutos=4.5):
     api_suave.PRAZO[0] = time.time() + minutos * 60
     ed = os.path.join(d, "eventos"); os.makedirs(ed, exist_ok=True); arv = C.carregar()
@@ -23,6 +23,11 @@ def main(d, minutos=4.5):
             tem.add(r["id"]); w = PESO.get(r["c"], 1)
             for p in [r["k"], r["v"]] + r["p"] + r.get("s", []):   # inclui os colegas de grupo: viram candidatos também
                 if p.get("i"): freq[p["i"]] += w
+    # sementes: jogadores que já eram os mais ativos em cada conteúdo (do método antigo); entram na fila com peso extra, sobretudo no 5v5, que é o mais raro
+    try:
+        for c, lst in json.load(open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "pvp-sementes.json"))).items():
+            for pid, _ in lst: freq[pid] += {"hg5": 30, "hg2": 8, "depths": 8}.get(c, 2)
+    except Exception: pass
     ef = os.path.join(d, "historico.json")
     try: feitos = json.load(open(ef))
     except Exception: feitos = {}

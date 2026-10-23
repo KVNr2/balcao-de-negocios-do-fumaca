@@ -295,7 +295,7 @@ def main():
         comps = []
         for key, C_ in A.get("comp", {}).items():
             n = C_["v"] + C_["d"]
-            if n < (2 if c == "hg5" else 3): continue
+            if n < (1 if c == "hg5" else 3): continue
             ms = []
             for mm in C_["m"]:
                 row = {"k": mm["k"].most_common(1)[0][0], "ip": round(sum(mm["ip"]) / len(mm["ip"])) if mm["ip"] else 0}

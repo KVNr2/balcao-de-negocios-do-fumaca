@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T19:20:00Z",
+   "titulo": "PvP: mais dados, sobretudo no 5v5",
+   "itens": [
+    "O histórico dos jogadores agora roda 4 vezes por hora e começa pelos jogadores que já eram os mais ativos em cada conteúdo, com prioridade máxima para o Hellgate 5v5, que é o mais raro.",
+    "A visão \"Por composição\" aparece sempre em Hellgate 2v2/5v5 e Depths; no 5v5 mostra também composições com 1 ou 2 lutas, marcadas como amostra pequena."
+   ]
+  },
+  {
    "t": "2026-10-23T19:55:00Z",
    "titulo": "PvP: tier list em quadro",
    "itens": [
