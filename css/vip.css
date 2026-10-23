@@ -1514,7 +1514,6 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 .v-tag{font:700 11px var(--f-body);letter-spacing:.05em;text-transform:uppercase;border-radius:6px;padding:2px 7px}
 .v-tag.prog{background:rgba(79,176,163,.2);color:var(--tile-2)}.v-tag.site{background:rgba(232,171,69,.18);color:var(--saffron)}
 .v-nov>.bc-more{justify-self:start}
-.v-all{display:grid;gap:12px;margin-top:22px;scroll-margin-top:16px;outline:none}
-.v-all-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.v-all-col{display:grid;gap:10px}.v-all-col h5{margin:0;font:600 16px var(--f-display);color:var(--saffron)}
-.v-all>.bc-more{justify-self:start}
-@media (max-width:760px){.v-all-cols{grid-template-columns:1fr}}
+.v-tag.rot{background:rgba(157,143,127,.2);color:var(--parch-2)}
+.v-todas{justify-self:start;margin-top:12px}.v-res{margin:10px 0 2px}.v-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:12px}.v-top h3{margin:0}
+.v-hero+.v-hero{margin-top:14px}
