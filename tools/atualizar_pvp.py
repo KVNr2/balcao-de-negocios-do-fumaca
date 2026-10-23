@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atualiza data/pvp.json: builds e jogadores do PvP por conteúdo (Hellgate 2v2/5v5, Corrompidas, Brumas solo, Depths), servidor US (Americas).
+"""Atualiza data/pvp.json (só jogadores com 500 milhões ou mais de fama de PvP): builds e jogadores do PvP por conteúdo (Hellgate 2v2/5v5, Corrompidas, Brumas solo, Depths), servidor US (Americas).
 Fonte: API oficial (gameinfo.albiononline.com). O conteúdo de cada morte é deduzido por uma árvore treinada com os rótulos do killboard-1 (tools/treinar_pvp.py).
 Jogadores: sementes em data/pvp-sementes.json (criadas dos rótulos na primeira vez e renovadas a cada rodada pelos mais ativos de cada conteúdo).
 Janela: últimos 90 dias. Se algo falhar ou vierem poucos eventos, NÃO sobrescreve o arquivo atual."""
@@ -102,28 +102,37 @@ def main():
         venc, v = pessoas(e)
         for p in venc + [v]: cnt_j[(c, p.get("Id"))] += 1
     # experiência: fama de PvP do jogador (KillFame, total de fama por matar jogadores). A API não traz a Infâmia por conteúdo, só esse total
-    LIM = 500e6
-    ids = sorted({i for (c, i), n in cnt_j.items() if n >= 2 and i})[:1500]
+    LIM = 500e6   # só entram na análise jogadores com 500 milhões ou mais de fama de PvP (quem não teve o perfil lido fica de fora)
+    tot_j = collections.Counter()
+    for (c, i), n in cnt_j.items():
+        if i: tot_j[i] += n
+    ids = [i for i, _ in tot_j.most_common(int(os.environ.get("PVP_PERFIS", "6000")))]
     print("perfis a ler:", len(ids), flush=True)
+    t_perfil = time.time(); ORC_PERFIL = int(os.environ.get("PVP_PERFIL_MIN", "12")) * 60
     def perfil(i):
+        if time.time() - t_perfil > ORC_PERFIL: return i, None
         r = get(f"/players/{i}"); return i, (r.get("KillFame") if isinstance(r, dict) else None)
     FAMA = {}
     with ThreadPoolExecutor(24) as ex:
         for i, f in ex.map(perfil, ids): FAMA[i] = f
     print("perfis lidos:", sum(1 for v in FAMA.values() if v is not None), flush=True)
     def exp(c, pid):
-        f = FAMA.get(pid); return None if f is None else f >= LIM
+        f = FAMA.get(pid); return f is not None and f >= LIM
     def xp(c, pid):
         f = FAMA.get(pid); return None if f is None else round(f / 1e6)
+    n_keep = collections.Counter()
     for c, e in cl:
-        n_class[c] += 1; datas.append(e["TimeStamp"]); t = tamanho(c, e); A = ag(c, t); A["n"] += 1
-        venc, v = pessoas(e); kv = chave(v); kvs = {chave(p) for p in venc} - {None}
+        n_class[c] += 1; datas.append(e["TimeStamp"])
+        venc, v = pessoas(e)
+        venc = [p for p in venc if exp(c, p.get("Id"))]; v = v if exp(c, v.get("Id")) else None   # só jogadores com 500 mi de fama ou mais
+        if not venc and v is None: continue
+        n_keep[c] += 1; t = tamanho(c, e); A = ag(c, t); A["n"] += 1
+        kv = chave(v) if v else None; kvs = {chave(p) for p in venc} - {None}
         def reg(p, ganhou):
             k = chave(p)
             if not k: return
-            b = A["b"].setdefault(k, {"v": 0, "d": 0, "vx": 0, "dx": 0, "ip": [], "jog": set(), "gear": collections.defaultdict(collections.Counter), "par": collections.Counter()})
+            b = A["b"].setdefault(k, {"v": 0, "d": 0, "ip": [], "jog": set(), "gear": collections.defaultdict(collections.Counter), "par": collections.Counter()})
             b["v" if ganhou else "d"] += 1; b["jog"].add(p.get("Id"))
-            if exp(c, p.get("Id")): b["vx" if ganhou else "dx"] += 1
             if p.get("AverageItemPower"): b["ip"].append(p["AverageItemPower"])
             for sl, js in SLOT.items():
                 ty = ((p.get("Equipment") or {}).get(sl) or {}).get("Type")
@@ -141,15 +150,15 @@ def main():
             if p.get("AverageItemPower"): pl["ip"].append(p["AverageItemPower"])
             pl["b"][k] += 1; ativos[c][p.get("Id")] += 1; nomes_at[p.get("Id")] = p.get("Name")
         for p in venc: reg(p, True)
-        reg(v, False)
+        if v: reg(v, False)
         if kv:
             for kk in kvs: A["x"][(kk, kv)][0] += 1      # kk venceu kv
-    try: ant = json.load(open(os.path.join(ROOT, "data", "pvp.json")))["janela"]["eventos"]
+    try: ant = json.load(open(os.path.join(ROOT, "data", "pvp.json")))["janela"].get("experientes", 0)
     except Exception: ant = 0
-    if ant and sum(n_class.values()) < 0.6 * ant:
-        print("muito menos eventos que o arquivo atual:", sum(n_class.values()), "contra", ant, "- não sobrescrevo"); sys.exit(1)
-    if sum(n_class.values()) < 300:
-        print("poucos eventos classificados:", dict(n_class), "- não sobrescrevo"); sys.exit(1)
+    if ant and sum(n_keep.values()) < 0.6 * ant:
+        print("muito menos eventos que o arquivo atual:", sum(n_keep.values()), "contra", ant, "- não sobrescrevo"); sys.exit(1)
+    if sum(n_keep.values()) < 300:
+        print("poucos eventos de jogadores com 500 mi de fama:", dict(n_keep), "de", dict(n_class), "- não sobrescrevo"); sys.exit(1)
     # sementes novas: os mais ativos de cada conteúdo
     novas = {c: [[i, nomes_at[i]] for i, _ in ativos[c].most_common(SEMENTES_POR)] for c in CONT}
     for c in CONT:
@@ -162,8 +171,8 @@ def main():
         ach = [g for g in grind if g["k"] in CAT[c] and base(g.get("w")) == w and g.get("sk")]
         if not ach: ach = [g for g in grind if base(g.get("w")) == w and g.get("sk")]
         return max(ach, key=lambda g: g.get("pop", 0))["sk"] if ach else None
-    out = {"fonte": "API oficial do Albion (Americas); conteúdo deduzido do tipo de luta (precisão ~90%)", "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
-           "janela": {"dias": DIAS, "eventos": sum(n_class.values()), "de": min(datas), "ate": max(datas), "por_conteudo": dict(n_class)}, "conteudos": {}}
+    out = {"fonte": "API oficial do Albion (Americas), só jogadores com 500 milhões ou mais de fama de PvP; conteúdo deduzido do tipo de luta (precisão ~90%)", "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
+           "janela": {"dias": DIAS, "eventos": sum(n_keep.values()), "classificados": sum(n_class.values()), "experientes": sum(n_keep.values()), "fama_min": 500, "de": min(datas), "ate": max(datas), "por_conteudo": dict(n_keep)}, "conteudos": {}}
     MINB = 4
     for (c, t), A in sorted(S.items()):
         if A["n"] < 15: continue
@@ -172,7 +181,7 @@ def main():
             n = b["v"] + b["d"]
             if n < MINB: continue
             w, o = k.split("|")
-            row = {"id": f"{c}{t}:{k}", "k": c, "wc": w, "n": n, "v": b["v"], "d": b["d"], "wr": round(100 * b["v"] / n, 1), "vx": b["vx"], "dx": b["dx"], "jog": len(b["jog"]), "ip": round(sum(b["ip"]) / len(b["ip"])) if b["ip"] else 0}
+            row = {"id": f"{c}{t}:{k}", "k": c, "wc": w, "n": n, "v": b["v"], "d": b["d"], "wr": round(100 * b["v"] / n, 1), "jog": len(b["jog"]), "ip": round(sum(b["ip"]) / len(b["ip"])) if b["ip"] else 0}
             for js, cn in b["gear"].items():
                 top = [x for x, _ in cn.most_common(2)]
                 row[js] = top
