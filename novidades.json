@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T18:40:00Z",
+   "titulo": "Rotina: banco de preços se limpa sozinho",
+   "itens": [
+    "O banco de preços do AlbionSpecs agora confere com a API oficial do Albion Data: quando o preço da API é mais novo que o nosso, o nosso valor de venda ou de compra é apagado, e a linha some quando os dois ficam vazios.",
+    "A conferência roda sozinha no Supabase, um lote de 100 itens a cada 2 minutos, e um ciclo completo leva uns 26 minutos."
+   ]
+  },
+  {
    "t": "2026-10-23T18:50:00Z",
    "titulo": "PvP: vitória por luta em 2v2, 3v3 e 5v5",
    "itens": [
