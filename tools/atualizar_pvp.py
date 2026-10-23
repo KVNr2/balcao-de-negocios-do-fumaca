@@ -66,6 +66,15 @@ def main():
     print("jogadores a ler:", len(jog))
     eventos = {}
     inicio = time.time()
+    DADOS = os.environ.get("PVP_DADOS", ""); ARQ = os.path.join(DADOS, "eventos.jsonl.gz") if DADOS else ""
+    if ARQ and os.path.exists(ARQ):
+        import gzip
+        for l in gzip.open(ARQ, "rt", encoding="utf-8"):
+            try: r = json.loads(l); eventos[r["id"]] = C.desempacotar(r)
+            except Exception: pass
+        print("eventos lidos do armazém (coletor):", len(eventos), flush=True)
+    MODO_ARM = len(eventos) >= int(os.environ.get("PVP_MIN_ARM", "3000"))
+    if MODO_ARM: jog = {}
     def uma(args):
         pid, tipo = args
         out = []
@@ -94,7 +103,8 @@ def main():
     for e in eventos.values():
         try:
             if datetime.datetime.strptime(e["TimeStamp"][:19], "%Y-%m-%dT%H:%M:%S") < corte: continue
-            pr = C.prever(arv, C.feat(e))
+            if "_c" in e: pr = {e["_c"]: 1.0}
+            else: pr = C.prever(arv, C.feat(e))
         except Exception: continue
         c = max(pr, key=pr.get)
         if c not in CONT or pr[c] < CONF: continue
@@ -112,9 +122,23 @@ def main():
     def perfil(i):
         if time.time() - t_perfil > ORC_PERFIL: return i, None
         r = get(f"/players/{i}"); return i, (r.get("KillFame") if isinstance(r, dict) else None)
-    FAMA = {}
+    FAMA = {}; PF = os.path.join(DADOS, "perfis.json") if DADOS else ""; cache = {}
+    try: cache = json.load(open(PF)) if PF and os.path.exists(PF) else {}
+    except Exception: cache = {}
+    agora = time.time(); VAL = 10 * 86400
+    falta = []
+    for i in ids:
+        c0 = cache.get(i)
+        if c0 and agora - c0[1] < VAL: FAMA[i] = c0[0]
+        else: falta.append(i)
+    print("perfis em cache:", len(FAMA), "a ler:", len(falta), flush=True)
     with ThreadPoolExecutor(24) as ex:
-        for i, f in ex.map(perfil, ids): FAMA[i] = f
+        for i, f in ex.map(perfil, falta):
+            if f is not None: FAMA[i] = f; cache[i] = [f, agora]
+            else: FAMA[i] = (cache.get(i) or [None])[0]
+    if PF:
+        cache = {i: v for i, v in cache.items() if agora - v[1] < 60 * 86400}
+        json.dump(cache, open(PF, "w"), separators=(",", ":"))
     print("perfis lidos:", sum(1 for v in FAMA.values() if v is not None), flush=True)
     def exp(c, pid):
         f = FAMA.get(pid); return f is not None and f >= LIM
@@ -218,6 +242,6 @@ def main():
         jogs.sort(key=lambda x: (-x["n"])); jogs = jogs[:80]
         out["conteudos"][f"{c}:{t}"] = {"eventos": A["n"], "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
     json.dump(out, open(os.path.join(ROOT, "data", "pvp.json"), "w"), ensure_ascii=False, separators=(",", ":"))
-    json.dump(novas, open(sem_f, "w"), ensure_ascii=False, separators=(",", ":"))
+    if not MODO_ARM: json.dump(novas, open(sem_f, "w"), ensure_ascii=False, separators=(",", ":"))
     print("ok:", {k: (v["eventos"], len(v["builds"]), len(v["jogadores"])) for k, v in out["conteudos"].items()})
 main()

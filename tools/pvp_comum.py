@@ -28,3 +28,20 @@ def prever(arv, f):
     return dict(zip(arv["classes"], arv["p"][n]))
 def carregar(path=None):
     return json.load(open(path or os.path.join(HERE, "pvp-arvore.json")))
+
+# ---- armazenamento compacto das mortes coletadas (branch pvp-dados) ----
+SLOTS = ("MainHand", "OffHand", "Head", "Armor", "Shoes", "Cape", "Potion", "Food")
+def _pp(p):
+    eq = _eq(p)
+    return {"i": p.get("Id"), "n": p.get("Name"), "g": p.get("GuildName") or "", "ip": round(p.get("AverageItemPower") or 0),
+            "d": 1 if ((p.get("DamageDone") or 0) > 0 or (p.get("SupportHealingDone") or 0) > 0) else 0,
+            "e": {s: _t(eq.get(s)) for s in SLOTS if _t(eq.get(s))}}
+def empacotar(e, c):
+    return {"id": e["EventId"], "t": e["TimeStamp"][:19], "c": c, "gm": len(e.get("GroupMembers") or []),
+            "k": _pp(e["Killer"]), "v": _pp(e["Victim"]), "p": [_pp(p) for p in (e.get("Participants") or []) if p.get("Id") and p.get("Id") != e["Killer"].get("Id")]}
+def _up(x):
+    return {"Id": x["i"], "Name": x["n"], "GuildName": x["g"], "AverageItemPower": x["ip"], "DamageDone": x["d"], "SupportHealingDone": 0,
+            "Equipment": {s: {"Type": t} for s, t in x["e"].items()}}
+def desempacotar(r):
+    return {"EventId": r["id"], "TimeStamp": r["t"] + ".000000000Z", "_c": r["c"], "GroupMembers": [{}] * r["gm"],
+            "Killer": _up(r["k"]), "Victim": _up(r["v"]), "Participants": [_up(p) for p in r["p"]]}
