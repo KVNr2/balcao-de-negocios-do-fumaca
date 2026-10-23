@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T19:55:00Z",
+   "titulo": "PvP: tier list em quadro",
+   "itens": [
+    "A tier list (de armas e de composições) agora aparece como quadro de tiers: uma faixa para S, A, B e C, com os cartões de cada arma ou composição lado a lado, aproveitando a largura da tela.",
+    "A tabela continua disponível pelo botão \"Tabela\"."
+   ]
+  },
+  {
    "t": "2026-10-23T19:40:00Z",
    "titulo": "PvP: cards de composição redesenhados",
    "itens": [
