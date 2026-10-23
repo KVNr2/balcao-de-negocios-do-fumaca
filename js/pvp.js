@@ -60,18 +60,25 @@ function pvCard(b,d){
   if(open){ card.append(kbPanel(b),pvStats(b,d)); qMoveTop(card); }
   return card;
 }
-function pvComp(x){
+function pvTiersComp(L){ const sh=a=>(a.v+3)/(a.n+6), e=L.filter(a=>a.n>=3).sort((a,b)=>sh(b)-sh(a)), m=new Map(); e.forEach((a,i)=>{ const p=(i+.5)/e.length; m.set(a.id,p<=.2?"S":p<=.5?"A":p<=.8?"B":"C"); }); return m; }
+function pvComp(x,nv){
   const open=pvOpen===x.id; const card=el("article",{class:"pv-cc"+(open?" open":"")});
-  const top=el("div",{class:"pv-cc-t"}); const ic=el("span",{class:"pv-ics big"}); x.ws.forEach(w=>{ const im=itemImg(w,[8,7,6,5,4]); if(im){ im.classList.add("pv-ai"); ic.append(im); } }); top.append(ic);
-  const mid=el("div",{class:"pv-cc-m"}); const h4=el("h4"); h4.append(el("span",{text:x.ws.map(codeName).join(" + ")}));
-  const wr=el("div",{class:"pv-wc",title:`${x.v} vitórias e ${x.d} derrotas, contando a luta inteira.`}); wr.append(el("b",{text:x.wr.toLocaleString("pt-BR")+"%"}),el("small",{text:`winrate em ${x.n} ${x.n===1?"luta":"lutas"}`})); h4.append(wr); mid.append(h4);
-  const mt=el("div",{class:"bc-meta"}); mt.append(el("span",{class:"tag",text:`${x.v}V · ${x.d}D`})); mid.append(mt); top.append(mid); card.append(top);
-  const btn=el("button",{type:"button",class:"bc-more bc-tog","aria-expanded":String(open),text:open?"Fechar ▴":"Abrir ▾"}); btn.addEventListener("click",()=>{ pvOpen=open?null:x.id; renderPvp(); });
-  const act=el("div",{class:"bc-act"}); act.append(btn); card.append(act);
+  const top=el("div",{class:"pv-cc-t"});
+  const ic=el("div",{class:"pv-cc-w"}); x.ws.forEach((w,i)=>{ const f=el("figure",{class:"pv-wi"}); const im=itemImg(w,[8,7,6,5,4]); if(im){ im.classList.add("pv-ai"); f.append(im); } f.append(el("figcaption",{text:codeName(w)}),el("small",{class:"muted",text:x.m[i]&&x.m[i].ip?`IP ${x.m[i].ip}`:""})); ic.append(f); }); top.append(ic);
+  const mid=el("div",{class:"pv-cc-m"}); const tt=el("div",{class:"pv-cc-tt"});
+  if(nv) tt.append(el("span",{class:"pv-tier t"+nv,title:"Nível entre as composições desta lista, pelo winrate ajustado"+(nv?"":""),text:nv}));
+  tt.append(el("h4",{text:x.ws.map(codeName).join(" + ")})); mid.append(tt);
+  const mt=el("div",{class:"bc-meta"}); mt.append(el("span",{class:"tag",text:`${x.v}V · ${x.d}D`}),el("span",{class:"tag mute",text:`${x.n} ${x.n===1?"luta":"lutas"}`}),el("span",{class:"tag mute",text:`IP médio ${x.ip}`})); mid.append(mt); top.append(mid);
+  const gp=el("div",{class:"pv-cc-g",title:"Peças mais usadas de cada jogador (abra para ver tudo)"}); x.m.forEach(m=>{ const g=el("div",{class:"pv-cc-gi"}); for(const s of ["o","h","a","s","c"]){ const id=Array.isArray(m[s])?m[s][0]:m[s]; const im=id?fullImg(id,"nico bi-s"):null; if(im) g.append(im); } if(g.children.length) gp.append(g); }); if(gp.children.length) top.append(gp);
+  const wc=el("div",{class:"pv-cc-r",title:`${x.v} vitórias e ${x.d} derrotas, contando a luta inteira.`}); const big=el("div",{class:"pv-cc-wr"}); big.append(el("b",{text:x.wr.toLocaleString("pt-BR")+"%"}),el("small",{text:"winrate"}));
+  const barra=el("div",{class:"pv-cc-bar"}); barra.append(el("span",{class:x.wr>=50?"up":"dn",style:`width:${Math.max(3,Math.min(100,x.wr))}%`})); wc.append(big,barra); top.append(wc);
+  const btn=el("button",{type:"button",class:"bc-more bc-tog","aria-expanded":String(open),text:open?"Fechar ▴":"Abrir ▾"}); btn.addEventListener("click",()=>{ pvOpen=open?null:x.id; renderPvp(); }); top.append(btn);
+  card.append(top);
   if(open){ const lst=el("div",{class:"pv-cmp"}); x.m.forEach((m,i)=>{
-      const wc=(m.k||"").split("|")[0]; const b={id:x.id+":"+i,wc,w:m.w,w2:m.w2,o:m.o,h:m.h,a:m.a,s:m.s,c:m.c,p:m.p,f:m.f,ip:m.ip,n:x.n,v:x.v,d:x.d,wr:x.wr,jog:1}; pvPrep(b); b._qi=[];
-      const row=el("div",{class:"pv-cm"}); const hd=el("div",{class:"pv-cm-h"}); const wi=qImg(b,"w",b.w,"nico zbig"); if(wi) hd.append(wi); const nm=el("div"); nm.append(el("b",{text:b.nome}),el("br"),el("small",{class:"muted",text:`Jogador ${i+1} da composição`})); hd.append(nm); row.append(hd,gbStrip(b));
-      const ib=albionBadge(b); const ac=el("div",{class:"pv-cm-a"}); ac.append(ib,albionBar(b,ib,"pvc:"+b.id,{costHost:row})); row.append(ac); lst.append(row); });
+      const wcd=(m.k||"").split("|")[0]; const b={id:x.id+":"+i,wc:wcd,w:m.w,w2:m.w2,o:m.o,h:m.h,a:m.a,s:m.s,c:m.c,p:m.p,f:m.f,ip:m.ip,n:x.n,v:x.v,d:x.d,wr:x.wr,jog:1}; pvPrep(b); b._qi=[];
+      const row=el("div",{class:"pv-cm"}); const hd=el("div",{class:"pv-cm-h"}); const wi=qImg(b,"w",b.w,"nico zbig"); if(wi) hd.append(wi); const nm=el("div"); nm.append(el("b",{text:b.nome}),el("br"),el("small",{class:"muted",text:`Jogador ${i+1} de ${x.m.length}`})); hd.append(nm);
+      const st=gbStrip(b); const ib=albionBadge(b); ib.classList.add("pv-cm-ip"); const bar=el("div",{class:"bc-act pv-cm-a"}); bar.append(albionBar(b,ib,"pvc:"+b.id,{costHost:row}));
+      row.append(hd,st,ib,bar); lst.append(row); });
     card.append(lst); }
   return card;
 }
@@ -108,7 +115,7 @@ function renderPvp(){
   }
   if(pvV==="comp"){
     $("pvCount").textContent=`${d.comps.length} composições com ${pvC==="hg5"?2:3} lutas ou mais, só grupos completos`;
-    const L=d.comps.slice().sort((a,b)=>b.n-a.n||b.wr-a.wr); const pg=pgSlice("pvC",L,[pvC,pvT,pvV].join("|"),renderPvp); pg.items.forEach(x=>host.append(pvComp(x))); host.append(pg.bar); return;
+    const L=d.comps.slice().sort((a,b)=>b.n-a.n||b.wr-a.wr); const trc=pvTiersComp(L); const pg=pgSlice("pvC",L,[pvC,pvT,pvV].join("|"),renderPvp); pg.items.forEach(x=>host.append(pvComp(x,trc.get(x.id)||""))); host.append(pg.bar); return;
   }
   if((d.armas&&d.armas.length)||(d.comps&&d.comps.length)){ const bx=el("details",{class:"pv-arm"}); if(pvArmOpen) bx.open=true; bx.addEventListener("toggle",()=>{ pvArmOpen=bx.open; });
     const temC=!!(d.comps&&d.comps.length); if(pvArmM==="comp"&&!temC) pvArmM="arma"; if(pvArmM==="arma"&&!(d.armas&&d.armas.length)) pvArmM="comp";
