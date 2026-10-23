@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T19:40:00Z",
+   "titulo": "PvP: cards de composição redesenhados",
+   "itens": [
+    "Card fechado: armas com nome e IP, nível S a C, V/D, lutas, IP médio, peças principais de cada jogador e winrate grande com barra, aproveitando a largura de monitores ultrawide.",
+    "Card aberto: uma linha por jogador, com o IP no canto direito, as peças ao lado e a barra de tier, cidade e Copiar para o Albion na largura toda."
+   ]
+  },
+  {
    "t": "2026-10-23T19:30:00Z",
    "titulo": "PvP: histórico mais rápido",
    "itens": [
