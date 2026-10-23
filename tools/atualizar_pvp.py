@@ -21,9 +21,16 @@ def base(t):
 def pessoas(e):
     """(vitoriosos, vítima): vitoriosos = quem matou e quem ajudou (dano ou cura), sem repetir."""
     v = e["Victim"]; vistos = {}; 
-    for p in [e["Killer"]] + [p for p in (e.get("Participants") or []) if (p.get("DamageDone") or 0) > 0 or (p.get("SupportHealingDone") or 0) > 0]:
+    for p in [e["Killer"]] + [p for p in (e.get("Participants") or []) if p.get("_g") or (p.get("DamageDone") or 0) > 0 or (p.get("SupportHealingDone") or 0) > 0]:
         if p.get("Id") and p["Id"] not in vistos: vistos[p["Id"]] = p
     return list(vistos.values()), v
+def topo(cn, n=1):
+    """itens mais usados juntando as variações de tier e encantamento do mesmo item; devolve a variação mais comum de cada um"""
+    g = {}
+    for ty, q in cn.items():
+        b = base(ty) or ty; r = g.setdefault(b, [0, ty, 0]); r[0] += q
+        if q > r[2]: r[1], r[2] = ty, q
+    return [r[1] for r in sorted(g.values(), key=lambda r: -r[0])[:n]]
 def chave(p):
     eq = p.get("Equipment") or {}; w = base((eq.get("MainHand") or {}).get("Type"))
     if not w: return None
@@ -170,7 +177,7 @@ def main():
             w, o = k.split("|")
             row = {"id": f"{c}{t}:{k}", "k": c, "wc": w, "n": n, "v": b["v"], "d": b["d"], "wr": round(100 * b["v"] / n, 1), "jog": len(b["jog"]), "ip": round(sum(b["ip"]) / len(b["ip"])) if b["ip"] else 0}
             for js, cn in b["gear"].items():
-                top = [x for x, _ in cn.most_common(2)]
+                top = topo(cn, 2)
                 row[js] = top
             if row.get("w"):
                 if len(row["w"]) > 1: row["w2"] = row["w"][1]
@@ -201,13 +208,13 @@ def main():
         for pid, pl in A["p"].items():
             n = pl["v"] + pl["d"]
             if n < 5: continue
-            jogs.append({"xp": pl["xp"], "nome": pl["nome"], "guild": pl["guild"], "n": n, "v": pl["v"], "d": pl["d"], "wr": round(100 * pl["v"] / n, 1), "ip": round(sum(pl["ip"]) / len(pl["ip"])) if pl["ip"] else 0, "b": [[k, q, {js: [cn.most_common(1)[0][0]] for js, cn in pl["g"].get(k, {}).items() if cn}] for k, q in pl["b"].most_common(3)]})
+            jogs.append({"xp": pl["xp"], "nome": pl["nome"], "guild": pl["guild"], "n": n, "v": pl["v"], "d": pl["d"], "wr": round(100 * pl["v"] / n, 1), "ip": round(sum(pl["ip"]) / len(pl["ip"])) if pl["ip"] else 0, "b": [[k, q, {js: topo(cn, 1) for js, cn in pl["g"].get(k, {}).items() if cn}] for k, q in pl["b"].most_common(3)]})
         jogs.sort(key=lambda x: (-x["n"])); jogs = jogs[:80]
         # armas populares: soma por arma, sem o corte mínimo das builds (mostra o que mais aparece mesmo com poucas lutas)
         arm = {}
         for k, b in A["b"].items():
             w = k.split("|")[0]; a = arm.setdefault(w, [0, 0]); a[0] += b["v"]; a[1] += b["d"]
-        armas = sorted(([w, v + d, v, d, round(100 * v / (v + d), 1)] for w, (v, d) in arm.items() if v + d >= 2), key=lambda x: (-x[1], -x[4]))[:15]
+        armas = sorted(([w, v + d, v, d, round(100 * v / (v + d), 1)] for w, (v, d) in arm.items() if v + d >= 2), key=lambda x: (-x[1], -x[4]))[:40]
         out["conteudos"][f"{c}:{t}"] = {"eventos": A["n"], "armas": armas, "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
     json.dump(out, open(os.path.join(ROOT, "data", "pvp.json"), "w"), ensure_ascii=False, separators=(",", ":"))
     if not MODO_ARM: json.dump(novas, open(sem_f, "w"), ensure_ascii=False, separators=(",", ":"))

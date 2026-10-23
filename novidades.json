@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-23T17:50:00Z",
+   "titulo": "PvP: assistências e grupo contam",
+   "itens": [
+    "Na tier list e nas builds de Hellgate 2v2/5v5 e Depths, entram quem matou, quem ajudou (dano ou cura) e os colegas de grupo que estavam na luta, mesmo sem dano, como curandeiros.",
+    "Variações de tier e encantamento do mesmo item deixam de contar como builds ou itens alternativos diferentes.",
+    "A tier list mostra 15 armas e tem botão para ver todas (até 40). Os números novos aparecem a partir das próximas coletas e da próxima atualização do PvP."
+   ]
+  },
+  {
    "t": "2026-10-23T17:10:00Z",
    "titulo": "PvP: tier list de armas",
    "itens": [

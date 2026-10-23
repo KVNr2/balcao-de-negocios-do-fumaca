@@ -1529,3 +1529,5 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 .v-nov>.bc-more{justify-self:start}
 .v-tag.rot{background:rgba(157,143,127,.2);color:var(--parch-2)}
 .v-todas{justify-self:start;margin-top:12px}.v-res{margin:10px 0 2px}.v-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:12px}.v-top h3{margin:0}
+
+.pv-mais{justify-self:center}

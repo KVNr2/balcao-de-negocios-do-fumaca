@@ -46,24 +46,34 @@ def _pp(p):
     return {"i": p.get("Id"), "n": p.get("Name"), "g": p.get("GuildName") or "", "ip": round(p.get("AverageItemPower") or 0),
             "d": 1 if ((p.get("DamageDone") or 0) > 0 or (p.get("SupportHealingDone") or 0) > 0) else 0,
             "e": {s: _t(eq.get(s)) for s in SLOTS if _t(eq.get(s))}}
+def grupo(e):
+    """colegas do grupo de quem matou que estavam na luta (sobreviventes sem dano nem cura incluídos); só vale se o assassino está na lista, o que confirma que é o grupo dele"""
+    gm = e.get("GroupMembers") or []; k = (e.get("Killer") or {}).get("Id")
+    if not k or k not in {m.get("Id") for m in gm}: return []
+    ja = {k} | {p.get("Id") for p in (e.get("Participants") or [])}
+    vistos = []
+    for m in gm:
+        if m.get("Id") and m["Id"] not in ja and m.get("Equipment") and m["Id"] not in [v["Id"] for v in vistos]: vistos.append(m)
+    return vistos
 def empacotar(e, c, q=None, m=None):
     """x = vetor de características e q = confiança, guardados para reclassificar com o modelo novo e para o auto-treino"""
     try: x = [round(v, 1) for v in vetor(feat(e))]
     except Exception: x = None
     return {"id": e["EventId"], "t": e["TimeStamp"][:19], "c": c, "m": m, "x": x, "q": round(q, 3) if q else None, "gm": len(e.get("GroupMembers") or []),
-            "k": _pp(e["Killer"]), "v": _pp(e["Victim"]), "p": [_pp(p) for p in (e.get("Participants") or []) if p.get("Id") and p.get("Id") != e["Killer"].get("Id")]}
+            "k": _pp(e["Killer"]), "v": _pp(e["Victim"]), "p": [_pp(p) for p in (e.get("Participants") or []) if p.get("Id") and p.get("Id") != e["Killer"].get("Id")], "s": [_pp(p) for p in grupo(e)]}
 def _up(x):
     return {"Id": x["i"], "Name": x["n"], "GuildName": x["g"], "AverageItemPower": x["ip"], "DamageDone": x["d"], "SupportHealingDone": 0,
             "Equipment": {s: {"Type": t} for s, t in x["e"].items()}}
 def desempacotar(r):
     return {"EventId": r["id"], "TimeStamp": r["t"] + ".000000000Z", "_c": r["c"], "_x": r.get("x"), "_m": r.get("m"), "GroupMembers": [{}] * r["gm"],
-            "Killer": _up(r["k"]), "Victim": _up(r["v"]), "Participants": [_up(p) for p in r["p"]]}
+            "Killer": _up(r["k"]), "Victim": _up(r["v"]), "Participants": [_up(p) for p in r["p"]] + [dict(_up(p), _g=True) for p in r.get("s") or []]}
 
 # máximo de jogadores do lado vencedor (quem matou + quem ajudou) por conteúdo; acima disso a luta é grande demais e não entra
 MAX_VENC = {"hg2": 2, "hg5": 5, "corrompida": 1, "solo": 2, "depths": 3}
 def n_venc(e):
     ids = {(e.get("Killer") or {}).get("Id")}
     for p in e.get("Participants") or []:
-        if p.get("Id") and ((p.get("DamageDone") or 0) > 0 or (p.get("SupportHealingDone") or 0) > 0): ids.add(p["Id"])
+        if p.get("Id") and (p.get("_g") or (p.get("DamageDone") or 0) > 0 or (p.get("SupportHealingDone") or 0) > 0): ids.add(p["Id"])
+    ids |= {m["Id"] for m in grupo(e)}
     return len(ids - {None})
 def cabe(c, e): return n_venc(e) <= MAX_VENC.get(c, 99)
