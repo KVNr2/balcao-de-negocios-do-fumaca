@@ -207,6 +207,13 @@
     "O coletor carrega histórico de jogadores em 8 das 10 coletas por hora (antes 4), mantendo o mesmo espaçamento entre pedidos à API oficial.",
     "O coletor passou a registrar quantos pedidos fez e quais erros a API devolveu em cada rodada, para ajustar o ritmo com segurança."
    ]
+  },
+  {
+   "t": "2026-10-23T22:05:00Z",
+   "titulo": "PvP: coleta menos presa em erros de rede",
+   "itens": [
+    "O coletor agora desiste de um pedido à API oficial após 12 s (antes 30 s), para não gastar a rodada esperando conexões que caem. O ritmo de pedidos por segundo não mudou."
+   ]
   }
  ]
 }
