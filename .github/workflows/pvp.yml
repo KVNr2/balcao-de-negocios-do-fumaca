@@ -22,16 +22,16 @@ jobs:
       - name: Mostrar o fim do log se falhou
         if: failure()
         run: echo "::error::$(grep -v '^::' /tmp/pvp.log | tail -c 700 | tr '\n' ' ')"
-      - name: Guardar cache de perfis (sem apagar o que o coletor guardou)
+      - name: Expurgar acervo antigo (mais de 14 dias)
         if: always()
         run: |
-          test -f dados/perfis.json || exit 0
-          cp dados/perfis.json /tmp/perfis.json
           git fetch origin pvp-dados 2>/dev/null || exit 0
           git worktree add /tmp/novo origin/pvp-dados && cd /tmp/novo
-          python3 $GITHUB_WORKSPACE/tools/mesclar_perfis.py /tmp/perfis.json .
-          git config user.name pvp-bot; git config user.email pvp-bot@users.noreply.github.com
-          git add -A; git commit -q --amend -m "mortes coletadas"; git push --force-with-lease origin HEAD:pvp-dados || true
+          python3 $GITHUB_WORKSPACE/tools/expurgar.py .
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name pvp-bot; git config user.email pvp-bot@users.noreply.github.com
+            git add -A; git commit -q --amend -m "mortes coletadas"; git push --force-with-lease origin HEAD:pvp-dados || true
+          fi
       - name: Atualizar a versão dos arquivos e publicar se mudou
         run: |
           if [ -n "$(git status --porcelain data)" ]; then
