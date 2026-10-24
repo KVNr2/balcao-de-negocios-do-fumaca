@@ -1504,7 +1504,15 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 
 .pv-arm{border:1px solid var(--line-soft);border-radius:12px;padding:14px 16px;background:rgba(0,0,0,.18);display:grid;gap:10px;margin-bottom:14px}.pv-arm .pv-armw{max-width:1100px}
 .pv-arm>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;min-height:32px}.pv-arm>summary::-webkit-details-marker{display:none}
-.pv-arm-t h4{margin:0}.pv-arm-t::after{content:"▾";margin-left:auto;color:var(--smoke);transition:transform .2s}.pv-arm[open]>.pv-arm-t::after{transform:rotate(180deg)}.pv-arm-t:hover h4{color:var(--saffron,#e8ab45)}
+.pv-arm-t h4{margin:0}.pv-arm-t:hover h4{color:var(--saffron,#e8ab45)}
+/* deixa claro que é um accordion: faixa clicável com botão "Abrir/Fechar" à direita */
+.pv-arm{border-color:rgba(232,171,69,.35);transition:border-color .15s,background .15s}.pv-arm:not([open]){background:rgba(232,171,69,.06)}
+.pv-arm:not([open]):hover,.pv-arm[open]{border-color:rgba(232,171,69,.6)}
+.pv-arm-t::before{content:"▸";color:var(--saffron,#e8ab45);font-size:16px;transition:transform .2s;order:-1}.pv-arm[open]>.pv-arm-t::before{transform:rotate(90deg)}
+.pv-arm-t::after{content:"Clique para abrir  ▾";margin-left:auto;font:700 13px var(--f-body);color:#1a1208;background:var(--saffron,#e8ab45);border-radius:999px;padding:6px 14px;white-space:nowrap}
+.pv-arm[open]>.pv-arm-t::after{content:"Fechar  ▴";color:var(--saffron,#e8ab45);background:transparent;border:1px solid rgba(232,171,69,.6);padding:5px 13px}
+.pv-arm-t:hover::after{filter:brightness(1.1)}.pv-arm-t:focus-visible{outline:2px solid var(--saffron,#e8ab45);outline-offset:4px;border-radius:8px}
+@media(max-width:560px){.pv-arm:not([open])>.pv-arm-t::after{content:"Abrir  ▾"}}
 .pv-arm[open]>summary{margin-bottom:2px}
 .pv-arm-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px}.pv-arm-h h4{margin:0}
 .pv-arm-s{display:flex;flex-wrap:wrap;gap:6px}.pv-chip{font:600 13px var(--f-body);color:var(--smoke);background:transparent;border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;min-height:32px}
