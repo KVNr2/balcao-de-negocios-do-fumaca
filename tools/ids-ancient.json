@@ -58,6 +58,47 @@
     1469547882,
     1469548455
    ]
+  },
+  {
+   "video": "twitch:2905948267",
+   "dia": "2026-10-20",
+   "janela_utc": "16:51-17:46",
+   "zona": "Ancient Lands, zona preta (caveira), relógio=UTC (início do VOD 15:08 UTC); conferido 16:51, 16:54, 17:39, 17:46. Fora: 16:12 Mists, 18:03 Corrupted Lair",
+   "ids": [
+    1467890119,
+    1467890878,
+    1467891642,
+    1467904981,
+    1467905571,
+    1467906810,
+    1467908102
+   ]
+  }
+ ],
+ "fontes_laranja": [
+  {
+   "video": "twitch:2904185392",
+   "dia": "2026-10-18",
+   "janela_utc": "16:30-16:42",
+   "zona": "Ancient Lands com ícone LARANJA no relógio (conferido 16:30 e 16:42; início do VOD 13:50 UTC). Grupos de ~19 (20v20). NÃO rotulados ainda: aguardam decisão sobre contar zona laranja",
+   "ids": [
+    1466830468,
+    1466830478,
+    1466830484,
+    1466830492,
+    1466830496,
+    1466830514,
+    1466830470,
+    1466830476,
+    1466830482,
+    1466830488,
+    1466835543,
+    1466835558,
+    1466835530,
+    1466835535,
+    1466835537,
+    1466835545
+   ]
   }
  ]
 }
