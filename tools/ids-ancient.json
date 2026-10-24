@@ -1,5 +1,31 @@
-{"_nota": "Eventos de Ancient Lands confirmados por vídeo (relógio UTC do jogo + KillBoard#1). Só IDs de evento; sem nomes. Cada item: {video, janela UTC, ids}.",
+{
+ "_nota": "Eventos de Ancient Lands confirmados por vídeo (relógio UTC do jogo + KillBoard#1). Só IDs de evento; sem nomes. Cada item: {video, janela UTC, ids}.",
  "fontes": [
-  {"video": "GE-SKYCojnU", "dia": "2026-09-26", "janela_utc": "05:25-05:43", "zona": "T7 preta, 5v5",
-   "ids": [1455758409, 1455758360, 1455756934, 1455756932, 1455756928, 1455755796, 1455751667, 1455751263, 1455751108]}
- ]}
+  {
+   "video": "GE-SKYCojnU",
+   "dia": "2026-09-26",
+   "janela_utc": "05:25-05:43",
+   "zona": "T7 preta, 5v5",
+   "ids": [
+    1455758409,
+    1455758360,
+    1455756934,
+    1455756932,
+    1455756928,
+    1455755796,
+    1455751667,
+    1455751263,
+    1455751108
+   ]
+  },
+  {
+   "video": "dE5Fit8Bq_k",
+   "dia": "2026-10-21",
+   "janela_utc": "22:01",
+   "zona": "Ancient Lands (Death Recap no relógio 18:55; relógio do vídeo = UTC-3h06, conferido em 3 mortes)",
+   "ids": [
+    1468498659
+   ]
+  }
+ ]
+}
