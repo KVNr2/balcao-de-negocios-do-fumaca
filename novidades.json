@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-24T19:30:00Z",
+   "titulo": "Rotinas: PvP, builds e composições a cada 6 horas",
+   "itens": [
+    "PvP, builds e composições agora atualizam a cada 6 horas, porque mudam mais rápido.",
+    "O ZvZ passou a atualizar uma vez por dia: as grandes lutas mudam pouco e trazem muitos dados."
+   ]
+  },
+  {
    "t": "2026-10-23T19:20:00Z",
    "titulo": "PvP: mais dados, sobretudo no 5v5",
    "itens": [

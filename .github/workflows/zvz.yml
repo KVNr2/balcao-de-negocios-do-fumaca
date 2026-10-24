@@ -1,7 +1,7 @@
-name: Atualizar ZvZ (a cada 6 horas)
+name: Atualizar ZvZ (diário)
 on:
   schedule:
-    - cron: "41 */6 * * *"
+    - cron: "41 5 * * *"
   workflow_dispatch:
 permissions:
   contents: write
