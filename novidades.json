@@ -4,7 +4,8 @@
    "t": "2026-10-24T22:30:00Z",
    "titulo": "PvP: agora com Europa e Ásia",
    "itens": [
-    "A aba PvP passa a somar as mortes dos servidores Américas, Europa e Ásia. A coleta da Europa e da Ásia começou agora, então a parte delas cresce com os dias."
+    "A aba PvP soma as mortes dos servidores Américas, Europa e Ásia, lidas a cada 6 minutos, cada servidor por conta própria.",
+    "O texto da aba e a linha de cima da lista mostram quantas mortes vieram de cada servidor. A Europa e a Ásia começaram a ser coletadas em 24/10, então o peso delas cresce com os dias."
    ]
   },
   {

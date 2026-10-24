@@ -74,7 +74,7 @@ def main():
             for arq in sorted(glob.glob(os.path.join(base, "eventos", "*.jsonl.gz"))):
                 if os.path.basename(arq)[:10] < corte_d: continue
                 for l in gzip.open(arq, "rt", encoding="utf-8"):
-                    try: r = json.loads(l); eventos[(srv, r["id"])] = C.desempacotar(r)
+                    try: r = json.loads(l); eventos[(srv, r["id"])] = dict(C.desempacotar(r), _s=srv)
                     except Exception: pass
         print("eventos lidos do acervo (coletor):", len(eventos), flush=True)
     MODO_ARM = len(eventos) >= int(os.environ.get("PVP_MIN_ARM", "3000"))
@@ -118,7 +118,7 @@ def main():
         for p in venc + [v]: cnt_j[(c, p.get("Id"))] += 1
     def exp(c, pid): return True      # todos os jogadores entram (a fama de PvP não é usada: ela pode vir de ZvZ)
     def xp(c, pid): return None
-    n_keep = collections.Counter()
+    n_keep = collections.Counter(); n_srv = collections.Counter()
     GRUPO = ("hg2", "hg5", "depths")    # lutas em grupo: o resultado é da luta (qual grupo ganhou), não de cada morte
     GAP = 150                            # s entre mortes seguidas com jogadores em comum para valerem como a mesma luta
     def comp_reg(A, t, time, ganhou):
@@ -222,7 +222,7 @@ def main():
         n_class[c] += 1; datas.append(e["TimeStamp"])
         venc, v = pessoas(e)
         if not venc and v is None: continue
-        n_keep[c] += 1
+        n_keep[c] += 1; n_srv[e.get("_s", "us")] += 1
         if c in GRUPO: por_c[c].append((e, venc, v))
         else: registrar(c, tamanho(c, e), venc, [v] if v else [], 1)
     for c, evs in por_c.items():
@@ -245,8 +245,8 @@ def main():
         ach = [g for g in grind if g["k"] in CAT[c] and base(g.get("w")) == w and g.get("sk")]
         if not ach: ach = [g for g in grind if base(g.get("w")) == w and g.get("sk")]
         return max(ach, key=lambda g: g.get("pop", 0))["sk"] if ach else None
-    out = {"fonte": "API oficial do Albion (Americas), todos os jogadores; conteúdo deduzido do tipo de luta (precisão ~94% nos testes)", "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
-           "janela": {"dias": DIAS, "eventos": sum(n_keep.values()), "classificados": sum(n_class.values()), "experientes": sum(n_keep.values()), "fama_min": 0, "de": min(datas), "ate": max(datas), "por_conteudo": dict(n_keep)}, "conteudos": {}}
+    out = {"fonte": "API oficial do Albion (Américas, Europa e Ásia), todos os jogadores; conteúdo deduzido do tipo de luta (precisão ~94% nos testes)", "atualizado": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"),
+           "janela": {"dias": DIAS, "eventos": sum(n_keep.values()), "classificados": sum(n_class.values()), "experientes": sum(n_keep.values()), "fama_min": 0, "de": min(datas), "ate": max(datas), "por_conteudo": dict(n_keep), "por_servidor": dict(n_srv)}, "conteudos": {}}
     MINB = 4
     for (c, t), A in sorted(S.items()):
         if A.get("ev", 0) < 15: continue
