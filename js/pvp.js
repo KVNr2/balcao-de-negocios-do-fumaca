@@ -1,4 +1,4 @@
-/* ================= aba PVP: o que os jogadores que mais lutam usam em cada conteúdo (servidor US) ================= */
+/* ================= aba PVP: o que os jogadores que mais lutam usam em cada conteúdo (Américas, Europa e Ásia) ================= */
 let PVP = null, pvC = "hg2", pvV = "build", pvT = 0, pvSort = "wilson", pvOpen = null;
 const PV_CONT = [["hg","Hellgate"],["corrompida","Corrompidas"],["solo","Brumas (solo)"],["depths","Depths"]];
 const pvGr = k => (k==="hg2"||k==="hg5")?"hg":k, pvChs = k => k==="hg"?["hg2","hg5"]:[k];

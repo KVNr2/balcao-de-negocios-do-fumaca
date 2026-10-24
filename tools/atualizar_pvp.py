@@ -68,11 +68,13 @@ def main():
     if DADOS:
         import gzip, glob
         corte_d = (datetime.datetime.utcnow() - datetime.timedelta(days=DIAS)).strftime("%Y-%m-%d")
-        for arq in sorted(glob.glob(os.path.join(DADOS, "eventos", "*.jsonl.gz"))):
-            if os.path.basename(arq)[:10] < corte_d: continue
-            for l in gzip.open(arq, "rt", encoding="utf-8"):
-                try: r = json.loads(l); eventos[r["id"]] = C.desempacotar(r)
-                except Exception: pass
+        # Américas (eventos/), Europa (eventos-eu/) e Ásia (eventos-sgp/). Os ids de morte são por servidor, então a chave leva o servidor
+        for srv, pasta in (("us", "eventos"), ("eu", "eventos-eu"), ("sgp", "eventos-sgp")):
+            for arq in sorted(glob.glob(os.path.join(DADOS, pasta, "*.jsonl.gz"))):
+                if os.path.basename(arq)[:10] < corte_d: continue
+                for l in gzip.open(arq, "rt", encoding="utf-8"):
+                    try: r = json.loads(l); eventos[(srv, r["id"])] = C.desempacotar(r)
+                    except Exception: pass
         print("eventos lidos do acervo (coletor):", len(eventos), flush=True)
     MODO_ARM = len(eventos) >= int(os.environ.get("PVP_MIN_ARM", "3000"))
     if MODO_ARM: jog = {}
