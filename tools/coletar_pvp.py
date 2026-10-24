@@ -23,8 +23,8 @@ def ler_dia(f):
 SRV = {"us": "https://gameinfo.albiononline.com/api/gameinfo", "eu": "https://gameinfo-ams.albiononline.com/api/gameinfo", "sgp": "https://gameinfo-sgp.albiononline.com/api/gameinfo"}
 def main(d, srv="us"):
     api_suave.PRAZO[0] = time.time() + 6.5 * 60   # passou disso, para de pedir e grava o que já tem (o job tem 10 min)
-    # Américas: eventos/ (alimenta o site). Europa e Ásia: eventos-eu/ e eventos-sgp/ (os ids são por servidor, então não se misturam)
-    api_suave.B = SRV[srv]; ed = os.path.join(d, "eventos" if srv == "us" else "eventos-" + srv); os.makedirs(ed, exist_ok=True); arv = C.carregar()
+    # cada servidor grava na sua própria branch (pvp-dados, pvp-dados-eu, pvp-dados-sgp): os ids de morte são por servidor e as coletas não se atropelam
+    api_suave.B = SRV[srv]; ed = os.path.join(d, "eventos"); os.makedirs(ed, exist_ok=True); arv = C.carregar()
     hoje = datetime.datetime.utcnow().date(); dias = [str(hoje - datetime.timedelta(days=k)) for k in range(0, 2)]
     # um arquivo por dia (data da morte). Para não repetir, olho o de hoje e o de ontem
     tem = {}; arqs = {}
@@ -55,7 +55,7 @@ def main(d, srv="us"):
         with gzip.open(os.path.join(ed, dia + ".jsonl.gz"), "wt", encoding="utf-8") as o:
             for r in sorted(rs.values(), key=lambda r: r["t"]): o.write(json.dumps(r, ensure_ascii=False, separators=(",", ":")) + "\n")
     print(f"falhas da API: {dict(api_suave.FALHAS)}")
-    try: nal = cand_ancient.guardar(d if srv == "us" else os.path.join(d, "srv-" + srv), al)
+    try: nal = cand_ancient.guardar(d, al)
     except Exception as ex: nal = -1; print("candidatas Ancient Lands: erro", ex)
     api_suave.registrar(d, "coleta" if srv == "us" else "coleta-" + srv, {"cand_al": nal})
     print(f"feed lido: {lidos} mortes; candidatas {len(cand)}; novas guardadas: {novos}; arquivos de hoje/ontem {antes} -> {antes + novos}")

@@ -1,0 +1,37 @@
+name: Coletar mortes EU (ciclos de 6 min)
+# Servidor EU: branch pvp-dados-eu, separada das Américas para as coletas não se atropelarem.
+# O agendamento do GitHub atrasa ou pula execuções (na prática saía a cada 30-45 min).
+# Por isso cada execução dura ~1 hora e faz 10 coletas, uma a cada 6 minutos exatos;
+# o cron horário deixa sempre a próxima execução na fila (concurrency), então não há buraco.
+on:
+  schedule:
+    - cron: "5 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: pvp-dados-eu
+  cancel-in-progress: false
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dez coletas, uma a cada 6 minutos
+        run: |
+          export SRV=eu
+          INI=$(date +%s)
+          for i in 0 1 2 3 4 5 6 7 8 9; do
+            ALVO=$((INI + i*360)); AGORA=$(date +%s)
+            [ "$ALVO" -gt "$AGORA" ] && sleep $((ALVO-AGORA))
+            echo "::group::coleta $((i+1)) de 10 ($(date -u +%H:%M))"
+            bash tools/coleta_ciclo.sh || true
+            echo "::endgroup::"
+          done
+          FIM=$((INI + 3600)); AGORA=$(date +%s)
+          [ "$FIM" -gt "$AGORA" ] && sleep $((FIM-AGORA))
+          exit 0
