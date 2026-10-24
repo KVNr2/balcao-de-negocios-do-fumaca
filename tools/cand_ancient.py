@@ -3,8 +3,10 @@ sem cara de ZvZ e sem maioria de armas típicas de gank. Só servem de material 
 Saída: DIR/ancient/cand-AAAA-MM-DD.jsonl.gz {id,t,x,g,n,p:[classe,confiança],k:1 se já está no acervo}. Teto por dia e guarda de 7 dias (expurgar.py)."""
 import gzip, json, os, re
 import pvp_comum as C
-MAX_DIA = 3000
-TAM = set(range(4, 8)) | set(range(15, 21))
+MAX_DIA = 8000
+TAM = set(range(4, 8)) | set(range(15, 21))   # só existem em Ancient Lands (e gank/ZvZ): guarda todas, até POR_CICLO_G por ciclo
+PEQ = {1, 2, 3}                                 # portal pequeno (solo, 2-3 × 2-3): igual a Mists, Hellgate 2v2, Depths e Corrompidas, então só as que o classificador NÃO reconheceu
+POR_CICLO_G = 80; POR_CICLO_P = 9   # P vale por tamanho (1, 2 e 3)               # teto por ciclo (as de menor confiança primeiro), para o dia inteiro ficar coberto
 # armas típicas de gank (garras, patas de urso, adagas duplas, foices, cajado do equilíbrio, besta), tiradas das builds de gank da comunidade
 GANK = {"2H_CLAWPAIR", "2H_DUALAXE_KEEPER", "2H_DAGGERPAIR", "2H_DUALSICKLE_UNDEAD", "2H_QUARTERSTAFF_AVALON", "2H_CROSSBOW"}
 def _base(t): return re.sub(r"^T\d_", "", (t or "")).split("@")[0]
@@ -17,14 +19,21 @@ def _armas(e):
 def provavel_gank(e):
     a = _armas(e)
     return bool(a) and sum(1 for w in a if w in GANK) / len(a) >= 0.5
-def serve(e, pr):
+def serve(e, pr, kk=False):
     g = len(e.get("GroupMembers") or [])
-    return g in TAM and pr.get("zvz", 0) < 0.7 and not provavel_gank(e)
+    if pr.get("zvz", 0) >= 0.7 or provavel_gank(e): return False
+    if g in TAM: return True
+    return g in PEQ and not kk
 def guardar(d, itens):
     """itens: lista de (evento, previsão {classe:prob}, no_acervo:bool)"""
     pasta = os.path.join(d, "ancient"); os.makedirs(pasta, exist_ok=True); dias = {}; novos = 0
+    g_, p_ = [], []
     for e, pr, kk in itens:
-        if not serve(e, pr): continue
+        if not serve(e, pr, kk): continue
+        (g_ if len(e.get("GroupMembers") or []) in TAM else p_).append((max(pr.values()), e, pr, kk))
+    sel = [t[1:] for t in sorted(g_, key=lambda t: t[0])[:POR_CICLO_G]]
+    for tam in PEQ: sel += [t[1:] for t in sorted((t for t in p_ if len(t[1].get("GroupMembers") or []) == tam), key=lambda t: t[0])[:POR_CICLO_P]]
+    for e, pr, kk in sel:
         dia = e["TimeStamp"][:10]
         if dia not in dias:
             dias[dia] = {}; f = os.path.join(pasta, f"cand-{dia}.jsonl.gz")
