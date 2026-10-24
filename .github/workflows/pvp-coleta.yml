@@ -1,4 +1,4 @@
-name: Coletar mortes do Albion (ciclos de 6 min)
+name: Coletar mortes NA (ciclos de 6 min)
 # O agendamento do GitHub atrasa ou pula execuções (na prática saía a cada 30-45 min).
 # Por isso cada execução dura ~1 hora e faz 10 coletas, uma a cada 6 minutos exatos;
 # o cron horário deixa sempre a próxima execução na fila (concurrency), então não há buraco.

@@ -12,12 +12,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Branch de dados (mortes coletadas)
-        run: git fetch origin pvp-dados 2>/dev/null && git worktree add dados origin/pvp-dados || mkdir -p dados
+        run: |
+          git fetch origin pvp-dados 2>/dev/null && git worktree add dados origin/pvp-dados || mkdir -p dados
+          git fetch origin pvp-dados-eu 2>/dev/null && git worktree add dados-eu origin/pvp-dados-eu || mkdir -p dados-eu
+          git fetch origin pvp-dados-sgp 2>/dev/null && git worktree add dados-sgp origin/pvp-dados-sgp || mkdir -p dados-sgp
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Buscar e classificar as mortes
-        run: PVP_DADOS=$PWD/dados python3 tools/atualizar_pvp.py 2>&1 | tee /tmp/pvp.log; test ${PIPESTATUS[0]} -eq 0
+        run: PVP_DADOS=$PWD/dados PVP_DADOS_EU=$PWD/dados-eu PVP_DADOS_SGP=$PWD/dados-sgp python3 tools/atualizar_pvp.py 2>&1 | tee /tmp/pvp.log; test ${PIPESTATUS[0]} -eq 0
         shell: bash
       - name: Mostrar o fim do log se falhou
         if: failure()
@@ -25,13 +28,16 @@ jobs:
       - name: Expurgar acervo antigo (mais de 30 dias)
         if: always()
         run: |
-          git fetch origin pvp-dados 2>/dev/null || exit 0
-          git worktree add /tmp/novo origin/pvp-dados && cd /tmp/novo
-          python3 $GITHUB_WORKSPACE/tools/expurgar.py .
-          if [ -n "$(git status --porcelain)" ]; then
-            git config user.name pvp-bot; git config user.email pvp-bot@users.noreply.github.com
-            git add -A; git commit -q --amend -m "mortes coletadas"; git push --force-with-lease origin HEAD:pvp-dados || true
-          fi
+          for BR in pvp-dados pvp-dados-eu pvp-dados-sgp; do
+            git fetch origin $BR 2>/dev/null || continue
+            rm -rf /tmp/novo; git worktree prune; git worktree add /tmp/novo origin/$BR && (cd /tmp/novo
+            python3 $GITHUB_WORKSPACE/tools/expurgar.py .
+            if [ -n "$(git status --porcelain)" ]; then
+              git config user.name pvp-bot; git config user.email pvp-bot@users.noreply.github.com
+              git add -A; git commit -q --amend -m "mortes coletadas"; git push --force-with-lease origin HEAD:$BR || true
+            fi)
+            git worktree remove --force /tmp/novo
+          done
       - name: Atualizar a versão dos arquivos e publicar se mudou
         run: |
           if [ -n "$(git status --porcelain data)" ]; then
