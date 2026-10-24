@@ -44,7 +44,7 @@ def get(path, tries=4):
         if not _vez(): FALHAS["prazo"] += 1; return None
         TOTAL[0] += 1; t0 = time.time(); t1 = None; nb = 0
         try:
-            with urllib.request.urlopen(urllib.request.Request(B + path, headers=UA), timeout=12) as r:
+            with urllib.request.urlopen(urllib.request.Request(B + path, headers=UA), timeout=25) as r:
                 t1 = time.time() - t0; raw = r.read(); nb = len(raw)
             d = json.loads(raw); dt = time.time() - t0
             with _lock:

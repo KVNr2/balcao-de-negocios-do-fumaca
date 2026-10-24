@@ -235,6 +235,13 @@
    "itens": [
     "A faixa da tier list agora tem seta, fundo destacado e um botão \"Clique para abrir\" (e \"Fechar\" quando aberta), deixando claro que é só clicar para expandir."
    ]
+  },
+  {
+   "t": "2026-10-24T01:58:00Z",
+   "titulo": "PvP: coleta com mais paciência na API",
+   "itens": [
+    "As métricas mostraram que o limite de 12 s por pedido estava cortando respostas boas que levam de 8 a 12 s. O limite subiu para 25 s. O ritmo de pedidos por segundo continua o mesmo."
+   ]
   }
  ]
 }
