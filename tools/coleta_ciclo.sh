@@ -3,6 +3,7 @@
 # Chamado de 6 em 6 minutos pelo workflow pvp-coleta.yml. Com o argumento "hist" lê o branch inteiro e faz também a carga de histórico.
 set -u
 HIST=${1:-}
+T0=$(date +%s)   # o ciclo tem de caber em 6 min: a leitura do feed (Américas, Europa e Ásia) vem primeiro e o histórico usa só o que sobrar
 git worktree remove --force dados 2>/dev/null; rm -rf dados; git worktree prune
 H=$(date -u +%F); O=$(date -u -d yesterday +%F)
 if git fetch origin pvp-dados 2>/dev/null; then
@@ -15,7 +16,11 @@ fi
 python3 tools/coletar_pvp.py dados || echo "::warning::a coleta terminou com erro; guardo o que houver"
 for S in eu sgp; do python3 tools/coletar_pvp.py dados $S || echo "::warning::a coleta do servidor $S terminou com erro"; done
 python3 tools/colher_ancient.py dados || echo "::warning::a colheita de Ancient Lands terminou com erro"
-if [ "$HIST" = "hist" ]; then python3 tools/historico_pvp.py dados 4.5 || echo "::warning::o histórico terminou com erro"; fi
+if [ "$HIST" = "hist" ]; then
+  # 330 s de ciclo menos o que já gastei e ~20 s para enviar; menos de 40 s não vale a pena
+  MIN=$(python3 -c "import time;r=330-20-(time.time()-$T0);print(round(min(4.5,r/60),2) if r>=40 else 0)")
+  if [ "$MIN" != "0" ]; then python3 tools/historico_pvp.py dados "$MIN" || echo "::warning::o histórico terminou com erro"; else echo "sem tempo para o histórico neste ciclo"; fi
+fi
 cd dados
 git config user.name "pvp-bot"; git config user.email "pvp-bot@users.noreply.github.com"
 git add -A
