@@ -6,6 +6,7 @@ Rodado a cada ~15 min pelo workflow pvp-coleta.yml. Uso: coletar_pvp.py DIR_DADO
 import gzip, json, os, sys, time, datetime, urllib.request, urllib.error
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pvp_comum as C
+import cand_ancient
 B = "https://gameinfo.albiononline.com/api/gameinfo"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/130.0 Safari/537.36", "Accept": "application/json"}
 MAX_DIA = 45000   # teto de mortes guardadas por dia (cada arquivo diário fica em ~10 MB)
@@ -28,7 +29,7 @@ def main(d):
     for dia in dias:
         arqs[dia] = ler_dia(os.path.join(ed, dia + ".jsonl.gz")); tem.update(arqs[dia])
     antes = len(tem); lidos = novos = 0
-    cand = []; novas_l = []; nv = set()
+    cand = []; novas_l = []; nv = set(); al = []
     for pg in range(PAGS):
         r = get(f"/events?limit=51&offset={pg * 51}")
         if not isinstance(r, list) or not r: break
@@ -40,6 +41,7 @@ def main(d):
             except Exception: continue
             c = max(pr, key=pr.get)
             if c in CONT and pr[c] >= CONF and C.cabe(c, e): cand.append((c, e, pr[c]))
+            al.append((e, pr, c in CONT and pr[c] >= CONF and C.cabe(c, e)))
     for c, e, q in cand:
         r = C.empacotar(e, c, q, arv.get("_v")); tem[e["EventId"]] = r; novas_l.append(r); nv.add(r["id"]); novos += 1
     for r in novas_l:
@@ -51,7 +53,9 @@ def main(d):
         with gzip.open(os.path.join(ed, dia + ".jsonl.gz"), "wt", encoding="utf-8") as o:
             for r in sorted(rs.values(), key=lambda r: r["t"]): o.write(json.dumps(r, ensure_ascii=False, separators=(",", ":")) + "\n")
     print(f"falhas da API: {dict(api_suave.FALHAS)}")
-    api_suave.registrar(d, "coleta")
+    try: nal = cand_ancient.guardar(d, al)
+    except Exception as ex: nal = -1; print("candidatas Ancient Lands: erro", ex)
+    api_suave.registrar(d, "coleta", {"cand_al": nal})
     print(f"feed lido: {lidos} mortes; candidatas {len(cand)}; novas guardadas: {novos}; arquivos de hoje/ontem {antes} -> {antes + novos}")
     if lidos == 0: sys.exit(1)
 if __name__ == "__main__": main(sys.argv[1] if len(sys.argv) > 1 else "dados")

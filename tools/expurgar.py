@@ -7,3 +7,8 @@ for f in glob.glob(os.path.join(d, "eventos", "*.jsonl.gz")):
     if os.path.basename(f)[:10] < corte: os.remove(f); print("expurgado", os.path.basename(f))
 for f in ("perfis.json", "eventos.jsonl.gz"):
     if os.path.exists(os.path.join(d, f)): os.remove(os.path.join(d, f)); print("removido", f)
+
+# candidatas a Ancient Lands: só 7 dias
+_c7 = (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
+for f in glob.glob(os.path.join(d, "ancient", "cand-*.jsonl.gz")):
+    if os.path.basename(f)[5:15] < _c7: os.remove(f); print("expurgado", os.path.basename(f))
