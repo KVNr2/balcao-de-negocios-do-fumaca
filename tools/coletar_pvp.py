@@ -20,9 +20,11 @@ def ler_dia(f):
             try: r = json.loads(l); out[r["id"]] = r
             except Exception: pass
     return out
-def main(d):
+SRV = {"us": "https://gameinfo.albiononline.com/api/gameinfo", "eu": "https://gameinfo-ams.albiononline.com/api/gameinfo", "sgp": "https://gameinfo-sgp.albiononline.com/api/gameinfo"}
+def main(d, srv="us"):
     api_suave.PRAZO[0] = time.time() + 6.5 * 60   # passou disso, para de pedir e grava o que já tem (o job tem 10 min)
-    ed = os.path.join(d, "eventos"); os.makedirs(ed, exist_ok=True); arv = C.carregar()
+    # Américas: eventos/ (alimenta o site). Europa e Ásia: eventos-eu/ e eventos-sgp/ (os ids são por servidor, então não se misturam)
+    api_suave.B = SRV[srv]; ed = os.path.join(d, "eventos" if srv == "us" else "eventos-" + srv); os.makedirs(ed, exist_ok=True); arv = C.carregar()
     hoje = datetime.datetime.utcnow().date(); dias = [str(hoje - datetime.timedelta(days=k)) for k in range(0, 2)]
     # um arquivo por dia (data da morte). Para não repetir, olho o de hoje e o de ontem
     tem = {}; arqs = {}
@@ -53,9 +55,9 @@ def main(d):
         with gzip.open(os.path.join(ed, dia + ".jsonl.gz"), "wt", encoding="utf-8") as o:
             for r in sorted(rs.values(), key=lambda r: r["t"]): o.write(json.dumps(r, ensure_ascii=False, separators=(",", ":")) + "\n")
     print(f"falhas da API: {dict(api_suave.FALHAS)}")
-    try: nal = cand_ancient.guardar(d, al)
+    try: nal = cand_ancient.guardar(d if srv == "us" else os.path.join(d, "srv-" + srv), al)
     except Exception as ex: nal = -1; print("candidatas Ancient Lands: erro", ex)
-    api_suave.registrar(d, "coleta", {"cand_al": nal})
+    api_suave.registrar(d, "coleta" if srv == "us" else "coleta-" + srv, {"cand_al": nal})
     print(f"feed lido: {lidos} mortes; candidatas {len(cand)}; novas guardadas: {novos}; arquivos de hoje/ontem {antes} -> {antes + novos}")
     if lidos == 0: sys.exit(1)
-if __name__ == "__main__": main(sys.argv[1] if len(sys.argv) > 1 else "dados")
+if __name__ == "__main__": main(sys.argv[1] if len(sys.argv) > 1 else "dados", sys.argv[2] if len(sys.argv) > 2 else "us")
