@@ -5,11 +5,11 @@ let VTOK=0;
 window.addEventListener("popstate",()=>{ const p=$("p-versao"); if(p&&!p.hidden){ renderVersao(); const y=history.state&&history.state.y; if(y!=null&&!location.hash.startsWith("#versao/atualizacoes")) setTimeout(()=>window.scrollTo({top:y}),60); else window.scrollTo({top:0}); } });
 /* categorias da lista completa: Site, AlbionSpecs (o programa) e Rotinas (atualizações automáticas dos dados) */
 const V_CATS=[["site","Site"],["programa","AlbionSpecs"],["rotinas","Rotinas"]];
-const V_ROTINAS=[["PvP","data/pvp.json","uma vez por dia","Builds, armas e jogadores do PvP, a partir das mortes guardadas pelo coletor."],
+const V_ROTINAS=[["PvP","data/pvp.json","a cada 6 horas","Builds, armas e jogadores do PvP, a partir das mortes guardadas pelo coletor."],
   ["Coletor de mortes","","a cada 6 minutos","Lê o feed oficial de mortes do Albion, recupera o histórico dos jogadores já vistos e guarda as lutas pequenas dos últimos 30 dias."],
-  ["ZvZ","data/zvz.json","a cada 6 horas","Funções e armas das maiores lutas recentes (200 jogadores ou mais)."],
-  ["Builds (AlbionOnlineGrind)","data/builds-grind.json","todo dia","As builds mais votadas de cada conteúdo."],
-  ["Composições (Top Comps)","data/comps.json","todo dia","As composições de grupo mais usadas."]];
+  ["ZvZ","data/zvz.json","uma vez por dia","Funções e armas das maiores lutas recentes (200 jogadores ou mais)."],
+  ["Builds (AlbionOnlineGrind)","data/builds-grind.json","a cada 6 horas","As builds mais votadas de cada conteúdo."],
+  ["Composições (Top Comps)","data/comps.json","a cada 6 horas","As composições de grupo mais usadas."]];
 function vIr(cat){ history.replaceState({...(history.state||{}),y:window.scrollY},""); history.pushState({vsub:1},"","#versao/atualizacoes"+(cat?"/"+cat:"")); renderVersao(); window.scrollTo({top:0}); }
 function vVoltar(){ if(history.state&&history.state.vsub) history.back(); else { history.replaceState(null,"","#versao"); renderVersao(); } }
 function vCard(x){ const c=el("div",{class:"v-nov-i"}), h=el("div",{class:"v-nov-h"}); h.append(el("b",{text:x.titulo}),el("span",{class:"v-tag "+(x.programa?"prog":"site"),text:x.programa?"AlbionSpecs":"Site"}),el("small",{class:"muted",text:fmtDH(new Date(x.t))})); c.append(h);

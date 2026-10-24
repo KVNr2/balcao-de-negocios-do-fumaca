@@ -80,7 +80,7 @@ function synergyPanel(b){
   }
   box.append(el("h4",{text:"Composições de exemplo"}));
   const list=el("div",{class:"cc-list"}); s.comps.slice(0,4).forEach(r=>list.append(compCard(r))); box.append(list);
-  box.append(el("p",{class:"tiny muted",text:`Fonte: Albion Online Builds, Top Comps. Os dados são atualizados todo dia (última vez em ${COMPS.atualizado.split("-").reverse().join("/")}).`}));
+  box.append(el("p",{class:"tiny muted",text:`Fonte: Albion Online Builds, Top Comps. Os dados são atualizados a cada 6 horas (última vez em ${COMPS.atualizado.split("-").reverse().join("/")}).`}));
   return box;
 }
 const GEAR_SLOTS = [["h","Elmo"],["a","Peito"],["s","Botas"],["c","Capa"],["o","Secundária"]];
