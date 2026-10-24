@@ -1,0 +1,21 @@
+name: Rotular Ancient Lands (manual)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  rotular:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 tools/rotular_ancient.py | tee rotular.log
+      - name: Publicar o resultado
+        run: |
+          git config user.name "rotulo-bot"
+          git config user.email "rotulo-bot@users.noreply.github.com"
+          git add tools/exemplos-ancient.json
+          git commit -m "Exemplos de Ancient Lands rotulados por vídeo" || exit 0
+          for i in 1 2 3; do git pull --rebase -X theirs && git push && break; sleep 3; done
