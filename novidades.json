@@ -228,6 +228,13 @@
    "itens": [
     "A tier list (por arma e por composição) agora aparece nas visões Por build e Por composição. Em Por jogador continua escondida."
    ]
+  },
+  {
+   "t": "2026-10-24T01:55:00Z",
+   "titulo": "PvP: tier list com cara de accordion",
+   "itens": [
+    "A faixa da tier list agora tem seta, fundo destacado e um botão \"Clique para abrir\" (e \"Fechar\" quando aberta), deixando claro que é só clicar para expandir."
+   ]
   }
  ]
 }
