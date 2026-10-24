@@ -1,6 +1,6 @@
 /* ================= aba PVP: o que os jogadores que mais lutam usam em cada conteúdo (servidor US) ================= */
 let PVP = null, pvC = "hg2", pvV = "build", pvT = 0, pvSort = "wilson", pvOpen = null;
-const PV_CONT = [["hg","Hellgate"],["corrompida","Corrompidas"],["solo","Brumas (solo)"],["depths","Depths"]];
+const PV_CONT = [["hg","Hellgate"],["corrompida","Corrompidas"],["solo","Brumas (solo)"],["depths","Depths"],["ancient","Ancient Lands"]];
 const pvGr = k => (k==="hg2"||k==="hg5")?"hg":k, pvChs = k => k==="hg"?["hg2","hg5"]:[k];
 const PV_TAM = t => t===1?"Solo":`Grupo de ${t}`;
 const pvWilson = (v,n) => { if(!n) return 0; const z=1.64, p=v/n, d=1+z*z/n; return (p+z*z/(2*n)-z*Math.sqrt((p*(1-p)+z*z/(4*n))/n))/d; };
@@ -99,7 +99,8 @@ function renderPvp(){
   const host=$("pvList"); if(!host) return;
   if(!PVP){ if(!renderPvp._l){ renderPvp._l=1; need("pvp").then(d=>{ PVP=d; renderPvp(); }).catch(()=>{ $("pvNote").textContent="Os dados do PVP ainda não foram gerados. Eles aparecem depois da primeira atualização automática."; }); } return; }
   const j=PVP.janela; $("pvNote").textContent=`${PVP.fonte}. ${Object.values(PVP.conteudos).reduce((a,c)=>a+c.builds.length,0).toLocaleString("pt-BR")} builds, vindas de ${j.eventos.toLocaleString("pt-BR")} mortes dos últimos ${j.dias} dias · atualizado em ${new Date(PVP.atualizado).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}.`;
-  const cs=$("pvCont"); cs.textContent=""; for(const [k,n] of PV_CONT){ const tot=Object.keys(PVP.conteudos).filter(x=>pvChs(k).includes(x.split(":")[0])).reduce((a,x)=>a+PVP.conteudos[x].builds.length,0); const b=el("button",{type:"button","aria-pressed":String(pvGr(pvC)===k),text:`${n} (${tot} ${tot===1?"build":"builds"})`}); b.addEventListener("click",()=>{ if(pvGr(pvC)!==k){ pvC=pvChs(k)[0]; pvT=0; } pvOpen=null; renderPvp(); }); cs.append(b); }
+  const cs=$("pvCont"); cs.textContent=""; for(const [k,n] of PV_CONT){ const tot=k==="ancient"?(GB?GB.filter(x=>x.k==="ANCIENT_LANDS").length:null):Object.keys(PVP.conteudos).filter(x=>pvChs(k).includes(x.split(":")[0])).reduce((a,x)=>a+PVP.conteudos[x].builds.length,0); const b=el("button",{type:"button","aria-pressed":String(pvGr(pvC)===k),text:tot==null?n:`${n} (${tot} ${tot===1?"build":"builds"})`}); b.addEventListener("click",()=>{ if(pvGr(pvC)!==k){ pvC=pvChs(k)[0]; pvT=0; } pvOpen=null; renderPvp(); }); cs.append(b); }
+  if(pvC==="ancient"){ pvAnc(); return; }
   const tams=Object.keys(PVP.conteudos).filter(x=>pvChs(pvGr(pvC)).includes(x.split(":")[0])).map(x=>({c:x.split(":")[0],t:+x.split(":")[1]})).sort((a,b)=>a.t-b.t);
   if(!tams.some(x=>x.c===pvC&&x.t===pvT)){ const u=tams.filter(x=>x.c===pvC).pop()||tams[tams.length-1]; if(u){ pvC=u.c; pvT=u.t; } else pvT=0; }
   const ts=$("pvTam"); ts.textContent=""; for(const x of tams){ const b=el("button",{type:"button","aria-pressed":String(pvC===x.c&&pvT===x.t),text:PV_TAM(x.t)}); b.addEventListener("click",()=>{ pvC=x.c; pvT=x.t; pvOpen=null; renderPvp(); }); ts.append(b); }
@@ -159,6 +160,49 @@ function pvTierBox(host,d){
     const wp=el("div",{class:"pv-armw"}); wp.append(tb); bx.append(wp); if(L.length>15){ const mb=el("button",{type:"button",class:"pv-chip pv-mais",text:pvArmAll?"Mostrar só as 15 primeiras":`Mostrar todas (${L.length})`}); mb.onclick=()=>{ pvArmAll=!pvArmAll; pvArmOpen=true; renderPvp(); }; bx.append(mb); }
     host.append(bx); } }
 }
+/* Ancient Lands (Dragonfire): a API oficial não separa essas mortes, então não há winrate. Mostra as builds e composições do próprio site (comunidade). */
+let pvAV="build", pvAT=5;
+function pvAncLoad(){ if(pvAncLoad._l) return; pvAncLoad._l=1;
+  need("builds-grind").then(d=>{ if(!GB){ GB=d.builds; GBC=d.conteudos; GB_DATE=d.atualizado; } gbPrep(); renderPvp(); }).catch(()=>{});
+  need("comps").then(c=>{ if(!COMPS) COMPS=c; renderPvp(); }).catch(()=>{}); }
+function pvAncCard(b){
+  b._qi=[]; const open=pvOpen===b.id; const card=el("article",{class:"bcard"+(open?" open":"")});
+  const top=el("div",{class:"bc-top"}); const wi=qImg(b,"w",b.w,"nico zbig"); top.append(wi||el("span",{class:"btile"}));
+  const mid=el("div",{class:"bc-mid"}); const h=el("h4"); h.append(b.t||b.nome); mid.append(h);
+  const nv=gbSpec(b), lv=nv>=SPEC_MIN?3:nv>0?2:0; const meta=el("div",{class:"bc-meta"}); meta.append(el("span",{class:"tag",text:"Ancient Lands"}));
+  if(b.l) meta.append(el("span",{class:"tag"+(lv>=2?" good":""),text:nv?`${b.nome}: spec ${nv}`:`${b.nome}: sem spec`}));
+  const gaps=gbGaps(b); if(gaps.length) meta.append(el("span",{class:"tag bad",text:`Sem spec em ${gaps.join(" e ")}`}));
+  (b.tg||[]).slice(0,3).forEach(t=>meta.append(el("span",{class:"tag mute",text:t})));
+  mid.append(meta); top.append(mid);
+  const ib=albionBadge(b); const rt=el("div",{class:"bc-r"}); rt.append(ib,el("span",{class:"pop",text:`${b.pop} votos`})); top.append(rt); card.append(top); card.append(gbStrip(b));
+  const btn=el("button",{type:"button",class:"bc-more bc-tog","aria-expanded":String(open),text:open?"Fechar ▴":"Abrir ▾"}); btn.addEventListener("click",()=>{ pvOpen=open?null:b.id; renderPvp(); });
+  const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"pva:"+b.id,{costHost:card})); card.append(act);
+  if(open){ card.append(kbPanel(b)); qMoveTop(card); }
+  return card;
+}
+function pvAnc(){
+  pvAncLoad(); const host=$("pvList"); host.textContent="";
+  $("pvSortW").hidden=true; $("pvJSortW").hidden=true; $("pvRefresh").hidden=true;
+  const gb=(GB||[]).filter(b=>b.k==="ANCIENT_LANDS").sort((a,b)=>b.pop-a.pop);
+  const modos=[3,5,7,20].map(t=>[t,COMPS?COMPS.comps.filter(c=>(c.modos||[]).includes(`Ancient Lands ${t}v${t}`)):[]]);
+  const vs=$("pvView"); vs.textContent="";
+  for(const [k,n] of [["build","Por build"],["comp","Por composição"]]){ const b=el("button",{type:"button","aria-pressed":String(pvAV===k),text:n}); b.addEventListener("click",()=>{ pvAV=k; pvOpen=null; renderPvp(); }); vs.append(b); }
+  const ts=$("pvTam"); ts.textContent="";
+  if(pvAV==="comp") for(const [t,l] of modos){ const b=el("button",{type:"button","aria-pressed":String(pvAT===t),text:`Grupo de ${t} (${l.length})`}); b.addEventListener("click",()=>{ pvAT=t; pvOpen=null; renderPvp(); }); ts.append(b); }
+  const aviso=el("div",{class:"pv-anc"}); aviso.append(el("b",{text:"Ancient Lands (atualização Dragonfire, 31/08/2026)"}),
+    el("p",{text:"Modo PvPvE com ilhas flutuantes, aberto por portais para solo, 2–3, 4–5, 5–7 e 15–20 jogadores. Em zona amarela só o inventário cai; em zona preta é full loot. Quem cai fica em sangramento e os aliados podem reanimar."}),
+    el("p",{class:"muted",text:"A API oficial de mortes não informa em que conteúdo cada morte aconteceu, então aqui não há winrate nem tier list. Estão as builds e composições mais votadas pela comunidade (AlbionOnlineGrind e Albion Online Builds), como na aba Builds."}));
+  host.append(aviso);
+  if(pvAV==="comp"){
+    const L=(modos.find(m=>m[0]===pvAT)||[0,[]])[1].slice().sort((a,b)=>((TIERV[b.tier]||0)-(TIERV[a.tier]||0))||(a.slots.length-b.slots.length));
+    $("pvCount").textContent=COMPS?`${L.length} ${L.length===1?"composição":"composições"} para grupo de ${pvAT}`:"Carregando as composições…";
+    if(COMPS&&!L.length) host.append(el("p",{class:"empty",text:"Nenhuma composição cadastrada para este tamanho de grupo."}));
+    const pg=pgSlice("pvAC",L,["anc",pvAT].join("|"),renderPvp); const lst=el("div",{class:"cc-list"}); pg.items.forEach(c=>lst.append(compCard({c,hit:-1}))); host.append(lst,pg.bar); return;
+  }
+  $("pvCount").textContent=GB?`${gb.length} builds mais votadas · dados de ${(GB_DATE||"").split("-").reverse().join("/")}`:"Carregando as builds…";
+  const pg=pgSlice("pvAB",gb,"anc",renderPvp); pg.items.forEach(b=>host.append(pvAncCard(b))); host.append(pg.bar);
+}
+
 { const s=$("pvSort"); if(s) s.addEventListener("change",()=>{ pvSort=s.value; renderPvp(); }); const sj=$("pvJSort"); if(sj) sj.addEventListener("change",renderPvp);
   const r=$("pvRefresh"); if(r) r.addEventListener("click",async()=>{ if(r.disabled) return; r.disabled=true; const old=r.textContent; r.textContent="Atualizando…"; FORCE=true;
     try{ await Promise.all([...BLD_PANELS].filter(p=>p.isConnected).map(p=>p._upd(true))); r.textContent="Atualizado "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}); }
