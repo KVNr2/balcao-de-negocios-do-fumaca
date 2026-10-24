@@ -1,0 +1,32 @@
+name: Coletar candidatas Ancient Lands (Europa e Ásia)
+# Variedade para o treino do classificador: lê o feed de mortes dos servidores da Europa e da Ásia (cada um tem a sua API e o seu limite)
+# e guarda candidatas sem rótulo na branch ancient-srv. Não mexe nos dados do site. Seis ciclos de 10 minutos por execução.
+on:
+  schedule:
+    - cron: "20 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: coleta-servidores
+  cancel-in-progress: false
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Seis coletas, uma a cada 10 minutos
+        run: |
+          INI=$(date +%s)
+          for i in 0 1 2 3 4 5; do
+            ALVO=$((INI + i*600)); AGORA=$(date +%s)
+            [ "$ALVO" -gt "$AGORA" ] && sleep $((ALVO-AGORA))
+            echo "::group::coleta $((i+1)) de 6 ($(date -u +%H:%M))"
+            bash tools/coleta_srv.sh || true
+            echo "::endgroup::"
+          done
+          exit 0
