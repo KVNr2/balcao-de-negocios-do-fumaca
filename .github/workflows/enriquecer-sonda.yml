@@ -1,0 +1,24 @@
+name: Enriquecer sonda (manual)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  enriquecer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 tools/enriquecer_sonda.py
+      - name: Refazer exemplos de Ancient Lands com as características novas
+        run: rm -f tools/exemplos-ancient.json && python3 tools/rotular_ancient.py | tail -3
+      - name: Publicar
+        run: |
+          git config user.name "rotulo-bot"
+          git config user.email "rotulo-bot@users.noreply.github.com"
+          git add tools/sonda-eventos.json tools/exemplos-ancient.json
+          git commit -m "Sonda e exemplos de Ancient Lands com tesouros/dragão no inventário" || exit 0
+          for i in 1 2 3; do git pull --rebase -X theirs && git push && break; sleep 3; done
