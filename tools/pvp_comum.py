@@ -7,6 +7,11 @@ def _t(x): return ((x or {}).get("Type") or "")
 def _conta(V, palavra):
     """quantos itens do inventário da vítima têm essa palavra no tipo (tesouros e itens de dragão aparecem nas mortes de Ancient Lands)"""
     return sum(1 for v in (V.get("Inventory") or []) if v and palavra in _t(v))
+def familias(V):
+    """tipos distintos de item da vítima (inventário + equipamento), sem tier nem encanto: material para descobrir quais itens indicam Ancient Lands"""
+    import re
+    its = list(V.get("Inventory") or []) + list(_eq(V).values())
+    return sorted({re.sub(r"^T\d_", "", _t(v)).split("@")[0] for v in its if v and _t(v)})
 def feat(e):
     K, V = e["Killer"], e["Victim"]
     ps = e.get("Participants") or []; gm = e.get("GroupMembers") or []
