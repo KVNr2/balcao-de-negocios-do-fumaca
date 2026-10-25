@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-25T21:20:00Z",
+   "titulo": "Custo das builds: trava contra pedido de venda absurdo",
+   "itens": [
+    "Um pedido de venda atual que passa de 8 vezes a menor média de 7 ou 30 dias da peça é ignorado, e o preço cai para a próxima etapa (exemplo: um capacete T4.2 a 1,97 milhão que inflava o total).",
+    "PvP: a atualização automática voltou a funcionar depois de falhar desde a madrugada de 25/10."
+   ]
+  },
+  {
    "t": "2026-10-25T04:50:00Z",
    "titulo": "Custo das builds: ordem de busca do preço",
    "itens": [

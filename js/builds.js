@@ -234,9 +234,12 @@ function costPanel(b,get,ui){
        a) cada versão equivalente (T8 = 8.0, 7.1, 6.2, 5.3, 4.4) acha o seu preço na qualidade pedida e, se não houver, TROCA a qualidade (a mais próxima: primeiro abaixo, depois acima);
        b) depois vale a EQUIVALÊNCIA: a versão de menor preço. Só passa para a etapa seguinte se nenhuma versão tem preço naquela etapa. */
     const qOrder=q=>[q,...Array.from({length:q-1},(_,i)=>q-1-i),...Array.from({length:5-q},(_,i)=>q+1+i)];
-    const preco=(id,d,q)=>d===0?bldLiveP(id,BLD_CITY,q):bldPrice(id,BLD_CITY,q,d);
-    const pickX=g=>{ const qs=qOrder(g.q); for(const d of [0,7,30]){ let best=null;
-        for(const [t,e] of g.groups[0]){ for(let k=0;k<qs.length;k++){ const r=preco(idOf(g,t,e),d,qs[k]); if(r){ if(!best||r.p<best.p||(r.p===best.p&&k<best.k)) best={...r,d,t,e,q:qs[k],k}; break; } } }
+    /* trava contra pedido de venda absurdo (ex.: capacete T4.2 a 1,97 milhão): o pedido atual é descartado se passa de 8x a menor média (7 ou 30 dias, em qualquer qualidade) de qualquer versão equivalente da peça; sem histórico, vale o pedido */
+    const refOf=id=>{ let m=0; for(let q=1;q<=5;q++){ const r=BLD_P[`${id}|${BLD_CITY}|${q}`]; if(!r) continue; for(const v of [r.p7,r.p30]) if(v>0&&(!m||v<m)) m=v; } return m; };
+    const refG=g=>{ let m=0; for(const [t,e] of g.groups[0]){ const v=refOf(idOf(g,t,e)); if(v&&(!m||v<m)) m=v; } return m; };
+    const preco=(id,d,q,ref)=>{ if(d!==0) return bldPrice(id,BLD_CITY,q,d); const l=bldLiveP(id,BLD_CITY,q); return l&&ref&&l.p>ref*8?null:l; };
+    const pickX=g=>{ const qs=qOrder(g.q), ref=refG(g); for(const d of [0,7,30]){ let best=null;
+        for(const [t,e] of g.groups[0]){ for(let k=0;k<qs.length;k++){ const r=preco(idOf(g,t,e),d,qs[k],ref); if(r){ if(!best||r.p<best.p||(r.p===best.p&&k<best.k)) best={...r,d,t,e,q:qs[k],k}; break; } } }
         if(best) return best; } return null; };
     const sel=gear.map(g=>({g,x:pickX(g)}));
     b._costSel={}; for(const {g,x} of sel) if(x) b._costSel[g.k]={from:g.src,id:idOf(g,x.t,x.e),q:x.q!==g.q?x.q:0}; bQApply(b); if(badgeUpd) badgeUpd();
