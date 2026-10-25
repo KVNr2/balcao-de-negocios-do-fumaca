@@ -212,7 +212,7 @@ let BLD_CITY=(()=>{ try{ const c=localStorage.getItem("bldCity"); return c&&c!==
 const BLD_PANELS=new Set();
 let BLD_TIER=(()=>{ try{ const t=+localStorage.getItem("bldTier"); return t>=4&&t<=8?t:0; }catch(e){ return 0; } })();   // tier escolhido vale para todas as builds e não se perde ao abrir o card
 function costPanel(b,get,ui){
-  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade de referência. Preço de cada peça, nesta ordem: pedido de venda atual (o menor entre as versões equivalentes T8 = 8.0, 7.1, 6.2, 5.3, 4.4); troca de qualidade; média de 7 dias; média de 30 dias"});
+  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade de referência. Preço de cada peça, nesta ordem: pedido de venda atual (cada versão equivalente troca de qualidade se preciso, e vale a de menor preço; T8 = 8.0, 7.1, 6.2, 5.3, 4.4); média de 7 dias; média de 30 dias"});
   SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
   const out=el("span",{class:"bld-tot",role:"status","aria-live":"polite"});
   const seg=(selEl,label,lab)=>{ const g=el("div",{class:"bld-seg",role:"group","aria-label":label}); const bs=[...selEl.options].map(o=>{ const bt=el("button",{type:"button",text:lab(o),title:o.text,"aria-pressed":"false"}); bt.addEventListener("click",()=>{ selEl.value=o.value; selEl.dispatchEvent(new Event("change")); g._sync(); }); g.append(bt); return [o.value,bt]; });
@@ -230,14 +230,14 @@ function costPanel(b,get,ui){
     const ids=[...new Set([...gear.flatMap(g=>g.groups.flat().map(([t,e])=>idOf(g,t,e))),...cons])];
     try{ await Promise.all([bldFetch(ids,BLD_CITY), bldLive(ids,BLD_CITY).catch(()=>{})]); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
     if(my!==run) return;
-    /* Ordem de busca do preço de cada peça (cidade escolhida):
-       1) pedido de venda atual na qualidade pedida, o menor entre as versões equivalentes (T8 = 8.0, 7.1, 6.2, 5.3, 4.4);
-       2) troca de qualidade: pedido de venda atual na qualidade mais próxima (primeiro abaixo, depois acima), também o menor entre as equivalentes;
-       3) média de vendas de 7 dias (qualidade pedida, depois a mais próxima), menor entre as equivalentes;
-       4) média de 30 dias, do mesmo jeito. */
-    const find=(g,d,q)=>{ let best=null; for(const [t,e] of g.groups[0]){ const r=d===0?bldLiveP(idOf(g,t,e),BLD_CITY,q):bldPrice(idOf(g,t,e),BLD_CITY,q,d); if(r&&(!best||r.p<best.p)) best={...r,d,t,e,q}; } return best; };
+    /* Ordem de busca do preço de cada peça (cidade escolhida). Em cada etapa de preço (1º pedido de venda atual, 2º média de 7 dias, 3º média de 30 dias):
+       a) cada versão equivalente (T8 = 8.0, 7.1, 6.2, 5.3, 4.4) acha o seu preço na qualidade pedida e, se não houver, TROCA a qualidade (a mais próxima: primeiro abaixo, depois acima);
+       b) depois vale a EQUIVALÊNCIA: a versão de menor preço. Só passa para a etapa seguinte se nenhuma versão tem preço naquela etapa. */
     const qOrder=q=>[q,...Array.from({length:q-1},(_,i)=>q-1-i),...Array.from({length:5-q},(_,i)=>q+1+i)];
-    const pickX=g=>{ const qs=qOrder(g.q); for(const d of [0,7,30]) for(const qq of qs){ const x=find(g,d,qq); if(x) return x; } return null; };
+    const preco=(id,d,q)=>d===0?bldLiveP(id,BLD_CITY,q):bldPrice(id,BLD_CITY,q,d);
+    const pickX=g=>{ const qs=qOrder(g.q); for(const d of [0,7,30]){ let best=null;
+        for(const [t,e] of g.groups[0]){ for(let k=0;k<qs.length;k++){ const r=preco(idOf(g,t,e),d,qs[k]); if(r){ if(!best||r.p<best.p||(r.p===best.p&&k<best.k)) best={...r,d,t,e,q:qs[k],k}; break; } } }
+        if(best) return best; } return null; };
     const sel=gear.map(g=>({g,x:pickX(g)}));
     b._costSel={}; for(const {g,x} of sel) if(x) b._costSel[g.k]={from:g.src,id:idOf(g,x.t,x.e),q:x.q!==g.q?x.q:0}; bQApply(b); if(badgeUpd) badgeUpd();
     const pr=id=>{ const l=bldLiveP(id,BLD_CITY,1); if(l) return l.p; const r=bldPrice(id,BLD_CITY,1,7)||bldPrice(id,BLD_CITY,1,30); return r?r.p:null; };
