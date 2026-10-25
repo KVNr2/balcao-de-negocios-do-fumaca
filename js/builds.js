@@ -212,7 +212,7 @@ let BLD_CITY=(()=>{ try{ const c=localStorage.getItem("bldCity"); return c&&c!==
 const BLD_PANELS=new Set();
 let BLD_TIER=(()=>{ try{ const t=+localStorage.getItem("bldTier"); return t>=4&&t<=8?t:0; }catch(e){ return 0; } })();   // tier escolhido vale para todas as builds e não se perde ao abrir o card
 function costPanel(b,get,ui){
-  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade de referência. Preço de cada peça: pedido de venda atual na qualidade escolhida; senão, em outra qualidade; senão, estimativa de 7 dias; senão, de 30 dias"});
+  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade de referência. Preço de cada peça: o menor entre as versões equivalentes (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), na qualidade escolhida ou acima; de cada versão vale o pedido de venda atual, senão a média de 7 dias, senão a de 30 dias"});
   SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
   const out=el("span",{class:"bld-tot",role:"status","aria-live":"polite"});
   const seg=(selEl,label,lab)=>{ const g=el("div",{class:"bld-seg",role:"group","aria-label":label}); const bs=[...selEl.options].map(o=>{ const bt=el("button",{type:"button",text:lab(o),title:o.text,"aria-pressed":"false"}); bt.addEventListener("click",()=>{ selEl.value=o.value; selEl.dispatchEvent(new Event("change")); g._sync(); }); g.append(bt); return [o.value,bt]; });
@@ -230,26 +230,27 @@ function costPanel(b,get,ui){
     const ids=[...new Set([...gear.flatMap(g=>g.groups.flat().map(([t,e])=>idOf(g,t,e))),...cons])];
     try{ await Promise.all([bldFetch(ids,BLD_CITY), bldLive(ids,BLD_CITY).catch(()=>{})]); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
     if(my!==run) return;
-    /* só equivalentes do tier pedido (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), na cidade escolhida: média de 7 dias; sem ela, média de 30 dias. Nada de outra cidade nem de tier abaixo */
-    const find=(g,d,q)=>{ let best=null; for(const [t,e] of g.groups[0]){ const r=d===0?bldLiveP(idOf(g,t,e),BLD_CITY,q):bldPrice(idOf(g,t,e),BLD_CITY,q,d); if(r&&(!best||r.p<best.p)) best={...r,d,t,e,q}; } return best; };
-    /* qualidade pedida primeiro (7 dias, depois 30); se não houver preço nela, tenta a mais próxima: abaixo, e depois acima */
-    const qOrder=q=>[q,...Array.from({length:q-1},(_,i)=>q-1-i),...Array.from({length:5-q},(_,i)=>q+1+i)];
-    /* ordem: 1) pedido de venda ativo na qualidade pedida; 2) pedido de venda em outra qualidade (a mais próxima); 3) média de 7 dias; 4) média de 30 dias */
-    const pickX=g=>{ const qs=qOrder(g.q); const a=find(g,0,qs[0]); if(a) return a; for(const qq of qs.slice(1)){ const x=find(g,0,qq); if(x) return x; }
-      for(const d of [7,30]) for(const qq of qs){ const x=find(g,d,qq); if(x) return x; } return null; };
-    const sel=gear.map(g=>({g,x:pickX(g)}));
+    /* só equivalentes do tier pedido (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), na cidade escolhida. Preço de cada versão numa qualidade: pedido de venda atual; sem ele, média de 7 dias; sem ela, de 30 dias.
+       Vale o MENOR preço entre as versões. A qualidade pedida é o mínimo: uma qualidade acima entra na comparação (é igual ou melhor e às vezes custa menos que a pedida);
+       só se nenhuma versão tiver preço da pedida para cima é que desce, para a qualidade mais próxima abaixo. */
+    const cand=(g,q)=>{ let best=null; for(const [t,e] of g.groups[0]){ const id=idOf(g,t,e), l=bldLiveP(id,BLD_CITY,q);
+        const r=l?{p:l.p,app:l.app,d:0}:(()=>{ const a=bldPrice(id,BLD_CITY,q,7); if(a) return {p:a.p,d:7}; const b=bldPrice(id,BLD_CITY,q,30); return b?{p:b.p,d:30}:null; })();
+        if(r&&(!best||r.p<best.p)) best={...r,t,e,q}; } return best; };
+    const pickX=g=>{ let up=null; for(let qq=g.q;qq<=5;qq++){ const c=cand(g,qq); if(c&&(!up||c.p<up.p)) up=c; } if(up) return up;
+      for(let qq=g.q-1;qq>=1;qq--){ const c=cand(g,qq); if(c) return c; } return null; };
+    const sel=gear.map(g=>({g,x:pickX(g),had:!!cand(g,g.q)}));
     b._costSel={}; for(const {g,x} of sel) if(x) b._costSel[g.k]={from:g.src,id:idOf(g,x.t,x.e),q:x.q!==g.q?x.q:0}; bQApply(b); if(badgeUpd) badgeUpd();
     const pr=id=>{ const l=bldLiveP(id,BLD_CITY,1); if(l) return l.p; const r=bldPrice(id,BLD_CITY,1,7)||bldPrice(id,BLD_CITY,1,30); return r?r.p:null; };
     let tot=0, miss=0, old=0, est7=0; const tip=[], names=[], qch=[];
-    for(const {g,x} of sel){ const nm=itemNome(g.code);
-      if(x){ tot+=x.p; if(x.d===30) old++; if(x.d===7) est7++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} (${x.d===0?(x.app?"pedido de venda atual, via AlbionSpecs":"pedido de venda atual"):"estimativa de "+x.d+" dias"})`+(x.q!==g.q?` — sem ${x.d===0?"pedido de venda":"preço"} em ${QNAME[g.q]}, usei ${QNAME[x.q]}`:"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q]); }
+    for(const {g,x,had} of sel){ const nm=itemNome(g.code);
+      if(x){ tot+=x.p; if(x.d===30) old++; if(x.d===7) est7++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} (${x.d===0?(x.app?"pedido de venda atual, via AlbionSpecs":"pedido de venda atual"):"estimativa de "+x.d+" dias"})`+(x.q!==g.q?(had?` — em ${QNAME[x.q]} custa menos que em ${QNAME[g.q]}`:` — sem preço em ${QNAME[g.q]}, usei ${QNAME[x.q]}`):"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q,had]); }
       else { miss++; names.push(nm); tip.push(`${nm}: sem vendas em ${BLD_CITY} nos últimos 30 dias`); } }
     for(const id of cons){ const p=pr(id), ii=idInfo(id), cx=cosInfo(id), nm=(cx&&cx.n)||itemNome(ii.c); if(p) tot+=p; else { miss++; names.push(nm); } tip.push(`${nm}: ${p?fmt(p):"sem preço"}`); }
     out.classList.remove("load"); out.textContent=""; out.title=`${fmt(tot)} de prata no total\n`+tip.join("\n");
     if(!tot){ out.textContent="sem preço nesta cidade"; return; }
     out.append(el("b",{text:(miss?"a partir de ":"")+fmtS(tot),title:miss?`Valor incompleto: ${miss} ${miss===1?"item sem preço":"itens sem preço"} em ${BLD_CITY} (${names.join(", ")}) ${miss===1?"não entrou":"não entraram"} na soma. O custo real é maior.`:""}));
     tags.textContent=""; const SL={w:"Arma",o:"Secundária",h:"Cabeça",a:"Peito",s:"Botas",c:"Capa"};
-    for(const [k,from,to] of qch) tags.append(el("span",{class:"bld-chip",title:`Sem preço em ${QNAME[from]} nesta cidade; o custo, o IP, os ícones e o texto copiado usam ${QNAME[to]}`,text:`${SL[k]}: ${QNAME[to]} (sem ${QNAME[from]})`}));
+    for(const [k,from,to,had] of qch) tags.append(el("span",{class:"bld-chip",title:(had?`Em ${QNAME[to]} custa menos que em ${QNAME[from]} nesta cidade (e é igual ou melhor)`:`Sem preço em ${QNAME[from]} nesta cidade`)+`; o custo, o IP, os ícones e o texto copiado usam ${QNAME[to]}`,text:`${SL[k]}: ${QNAME[to]} (${had?"mais barato que":"sem"} ${QNAME[from]})`}));
     const wn=[]; if(miss) wn.push(`faltam ${miss} ${miss===1?"item":"itens"} sem preço: ${names.slice(0,3).join(", ")}${names.length>3?"…":""}`); if(est7) wn.push(`${est7} com estimativa de 7 dias`); if(old) wn.push(`${old} com estimativa de 30 dias`);
     if(wn.length) out.append(el("span",{class:"bld-warn",text:wn.join(" · "),title:(miss?`Sem vendas em ${BLD_CITY} nos últimos 30 dias: ${names.join(", ")}. O total não inclui.\n`:"")+"Passe o mouse no valor para ver peça por peça."}));
   };

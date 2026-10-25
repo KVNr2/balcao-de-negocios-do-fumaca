@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-25T03:20:00Z",
+   "titulo": "Custo das builds: escolhe mesmo a versão mais barata",
+   "itens": [
+    "Antes, um anúncio atual na qualidade pedida ganhava de uma versão equivalente mais barata que só tinha média de 7 dias, ou que estava anunciada numa qualidade acima. Agora vale o menor preço entre todas as versões equivalentes (T8 = 8.0, 7.1, 6.2, 5.3, 4.4).",
+    "Uma qualidade acima da pedida entra na comparação, porque é igual ou melhor e às vezes custa menos. A etiqueta da peça diz quando isso acontece."
+   ]
+  },
+  {
    "t": "2026-10-25T03:00:00Z",
    "titulo": "Custo das builds: aviso quando faltam preços",
    "itens": [
