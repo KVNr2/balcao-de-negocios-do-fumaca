@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-25T03:45:00Z",
+   "titulo": "Custo das builds: preço pela média de vendas",
+   "itens": [
+    "O preço de cada peça passa a ser a média de vendas dos últimos 7 dias na cidade escolhida; se não houve venda nesse período, vale a média dos últimos 30 dias. Os anúncios do momento deixam de entrar, porque um anúncio isolado distorcia a escolha da versão mais barata.",
+    "Entre as versões equivalentes (T8 = 8.0, 7.1, 6.2, 5.3, 4.4) vale a de menor média."
+   ]
+  },
+  {
    "t": "2026-10-25T03:20:00Z",
    "titulo": "Custo das builds: escolhe mesmo a versão mais barata",
    "itens": [
