@@ -197,22 +197,13 @@ async function bldFetch(ids,city){
       BLD_P[k]={p7:n7?v7/n7:0,p30:n30?v30/n30:0}; }
     for(const id of part) BLD_F[`${id}|${city}`]=Date.now(); }
 }
-/* pedidos de venda ativos agora (menor preço de venda) por qualidade na cidade: Albion Data, ou o do AlbionSpecs quando for mais novo */
-const BLD_LV={};
-async function bldLive(ids,city){
-  const loc=encodeURIComponent(city), todo=[...new Set(ids)]; const parts=[]; for(let i=0;i<todo.length;i+=API_CHUNK) parts.push(todo.slice(i,i+API_CHUNK));
-  const res=await Promise.all(parts.map(p=>apiJSON(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=1,2,3,4,5`)));
-  for(const id of todo) for(let q=1;q<=5;q++) delete BLD_LV[`${id}|${city}|${q}`];
-  for(const j of res) for(const x of j){ const q=+x.quality; if(!(q>=1&&q<=5)) continue; if(x.sell_price_min>0&&fresh(x.sell_price_min_date)) BLD_LV[`${x.item_id}|${x.city}|${q}`]={p:x.sell_price_min,app:x._src==="app"}; }
-}
-const bldLiveP=(id,c,q)=>BLD_LV[`${id}|${c}|${q}`]||null;
 /* d = 7 pede só a média de 7 dias; d = 30 aceita a de 30 dias */
 const bldPrice=(id,c,q,d)=>{ const r=BLD_P[`${id}|${c}|${q}`]; if(!r) return null; if(d===7) return r.p7?{p:r.p7,d:7}:null; return r.p30?{p:r.p30,d:30}:null; };
 let BLD_CITY=(()=>{ try{ const c=localStorage.getItem("bldCity"); return c&&c!=="auto"?c:"Caerleon"; }catch(e){ return "Caerleon"; } })();
 const BLD_PANELS=new Set();
 let BLD_TIER=(()=>{ try{ const t=+localStorage.getItem("bldTier"); return t>=4&&t<=8?t:0; }catch(e){ return 0; } })();   // tier escolhido vale para todas as builds e não se perde ao abrir o card
 function costPanel(b,get,ui){
-  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade de referência. Preço de cada peça: o menor entre as versões equivalentes (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), na qualidade escolhida ou acima; de cada versão vale o pedido de venda atual, senão a média de 7 dias, senão a de 30 dias"});
+  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Cidade de referência. Preço de cada peça: o menor entre as versões equivalentes (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), na qualidade escolhida ou acima; de cada versão vale a média de vendas dos últimos 7 dias, senão a dos últimos 30"});
   SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
   const out=el("span",{class:"bld-tot",role:"status","aria-live":"polite"});
   const seg=(selEl,label,lab)=>{ const g=el("div",{class:"bld-seg",role:"group","aria-label":label}); const bs=[...selEl.options].map(o=>{ const bt=el("button",{type:"button",text:lab(o),title:o.text,"aria-pressed":"false"}); bt.addEventListener("click",()=>{ selEl.value=o.value; selEl.dispatchEvent(new Event("change")); g._sync(); }); g.append(bt); return [o.value,bt]; });
@@ -228,22 +219,21 @@ function costPanel(b,get,ui){
     const idOf=(g,t,e)=>`T${t}_${g.code}`+(e?`@${e}`:"");
     out.classList.add("load"); out.textContent="…";
     const ids=[...new Set([...gear.flatMap(g=>g.groups.flat().map(([t,e])=>idOf(g,t,e))),...cons])];
-    try{ await Promise.all([bldFetch(ids,BLD_CITY), bldLive(ids,BLD_CITY).catch(()=>{})]); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
+    try{ await bldFetch(ids,BLD_CITY); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
     if(my!==run) return;
-    /* só equivalentes do tier pedido (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), na cidade escolhida. Preço de cada versão numa qualidade: pedido de venda atual; sem ele, média de 7 dias; sem ela, de 30 dias.
+    /* só equivalentes do tier pedido (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), na cidade escolhida. Preço de cada versão numa qualidade: média de vendas dos últimos 7 dias; sem ela, a dos últimos 30 dias.
        Vale o MENOR preço entre as versões. A qualidade pedida é o mínimo: uma qualidade acima entra na comparação (é igual ou melhor e às vezes custa menos que a pedida);
        só se nenhuma versão tiver preço da pedida para cima é que desce, para a qualidade mais próxima abaixo. */
-    const cand=(g,q)=>{ let best=null; for(const [t,e] of g.groups[0]){ const id=idOf(g,t,e), l=bldLiveP(id,BLD_CITY,q);
-        const r=l?{p:l.p,app:l.app,d:0}:(()=>{ const a=bldPrice(id,BLD_CITY,q,7); if(a) return {p:a.p,d:7}; const b=bldPrice(id,BLD_CITY,q,30); return b?{p:b.p,d:30}:null; })();
-        if(r&&(!best||r.p<best.p)) best={...r,t,e,q}; } return best; };
+    const cand=(g,q)=>{ let best=null; for(const [t,e] of g.groups[0]){ const id=idOf(g,t,e), r=bldPrice(id,BLD_CITY,q,7)||bldPrice(id,BLD_CITY,q,30);
+        if(r&&(!best||r.p<best.p)) best={p:r.p,d:r.d,t,e,q}; } return best; };
     const pickX=g=>{ let up=null; for(let qq=g.q;qq<=5;qq++){ const c=cand(g,qq); if(c&&(!up||c.p<up.p)) up=c; } if(up) return up;
       for(let qq=g.q-1;qq>=1;qq--){ const c=cand(g,qq); if(c) return c; } return null; };
     const sel=gear.map(g=>({g,x:pickX(g),had:!!cand(g,g.q)}));
     b._costSel={}; for(const {g,x} of sel) if(x) b._costSel[g.k]={from:g.src,id:idOf(g,x.t,x.e),q:x.q!==g.q?x.q:0}; bQApply(b); if(badgeUpd) badgeUpd();
-    const pr=id=>{ const l=bldLiveP(id,BLD_CITY,1); if(l) return l.p; const r=bldPrice(id,BLD_CITY,1,7)||bldPrice(id,BLD_CITY,1,30); return r?r.p:null; };
-    let tot=0, miss=0, old=0, est7=0; const tip=[], names=[], qch=[];
+    const pr=id=>{ const r=bldPrice(id,BLD_CITY,1,7)||bldPrice(id,BLD_CITY,1,30); return r?r.p:null; };
+    let tot=0, miss=0, old=0; const tip=[], names=[], qch=[];
     for(const {g,x,had} of sel){ const nm=itemNome(g.code);
-      if(x){ tot+=x.p; if(x.d===30) old++; if(x.d===7) est7++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} (${x.d===0?(x.app?"pedido de venda atual, via AlbionSpecs":"pedido de venda atual"):"estimativa de "+x.d+" dias"})`+(x.q!==g.q?(had?` — em ${QNAME[x.q]} custa menos que em ${QNAME[g.q]}`:` — sem preço em ${QNAME[g.q]}, usei ${QNAME[x.q]}`):"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q,had]); }
+      if(x){ tot+=x.p; if(x.d===30) old++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} (média de ${x.d} dias)`+(x.q!==g.q?(had?` — em ${QNAME[x.q]} custa menos que em ${QNAME[g.q]}`:` — sem preço em ${QNAME[g.q]}, usei ${QNAME[x.q]}`):"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q,had]); }
       else { miss++; names.push(nm); tip.push(`${nm}: sem vendas em ${BLD_CITY} nos últimos 30 dias`); } }
     for(const id of cons){ const p=pr(id), ii=idInfo(id), cx=cosInfo(id), nm=(cx&&cx.n)||itemNome(ii.c); if(p) tot+=p; else { miss++; names.push(nm); } tip.push(`${nm}: ${p?fmt(p):"sem preço"}`); }
     out.classList.remove("load"); out.textContent=""; out.title=`${fmt(tot)} de prata no total\n`+tip.join("\n");
@@ -251,7 +241,7 @@ function costPanel(b,get,ui){
     out.append(el("b",{text:fmtS(tot),title:miss?`Valor incompleto: ${miss} ${miss===1?"item sem preço":"itens sem preço"} em ${BLD_CITY} (${names.join(", ")}) ${miss===1?"não entrou":"não entraram"} na soma. O custo real é maior.`:""}));
     tags.textContent=""; const SL={w:"Arma",o:"Secundária",h:"Cabeça",a:"Peito",s:"Botas",c:"Capa"};
     for(const [k,from,to,had] of qch) tags.append(el("span",{class:"bld-chip",title:(had?`Em ${QNAME[to]} custa menos que em ${QNAME[from]} nesta cidade (e é igual ou melhor)`:`Sem preço em ${QNAME[from]} nesta cidade`)+`; o custo, o IP, os ícones e o texto copiado usam ${QNAME[to]}`,text:`${SL[k]}: ${QNAME[to]} (${had?"mais barato que":"sem"} ${QNAME[from]})`}));
-    const wn=[]; if(miss) wn.push(`faltam ${miss} ${miss===1?"item":"itens"} sem preço: ${names.slice(0,3).join(", ")}${names.length>3?"…":""}`); if(est7) wn.push(`${est7} com estimativa de 7 dias`); if(old) wn.push(`${old} com estimativa de 30 dias`);
+    const wn=[]; if(miss) wn.push(`faltam ${miss} ${miss===1?"item":"itens"} sem preço: ${names.slice(0,3).join(", ")}${names.length>3?"…":""}`); if(old) wn.push(`${old} com média de 30 dias (sem vendas nos últimos 7)`);
     if(wn.length) out.append(el("span",{class:"bld-warn",text:wn.join(" · "),title:(miss?`Sem vendas em ${BLD_CITY} nos últimos 30 dias: ${names.join(", ")}. O total não inclui.\n`:"")+"Passe o mouse no valor para ver peça por peça."}));
   };
   cs.addEventListener("change",()=>{ BLD_CITY=cs.value; try{ localStorage.setItem("bldCity",BLD_CITY); }catch(e){} BLD_PANELS.forEach(p=>p._sync()); });
