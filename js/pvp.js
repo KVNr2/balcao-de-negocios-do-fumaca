@@ -1,5 +1,9 @@
 /* ================= aba PVP: o que os jogadores que mais lutam usam em cada conteúdo (Américas, Europa e Ásia) ================= */
-let PVP = null, pvC = "hg2", pvV = "build", pvT = 0, pvSort = "wilson", pvOpen = null;
+let PVP = null, pvC = "hg2", pvV = "build", pvT = 0, pvSort = "wilson", pvOpen = null, pvR = "";
+/* função da arma (tank, healer, support, range, melee): vem de PVP.roles, gerado junto com os dados */
+const PV_ROLES = [["tank","Tanks"],["healer","Curandeiros"],["support","Suportes"],["range","Ranged"],["melee","Melee"]];
+const pvRole = w => (PVP&&PVP.roles&&PVP.roles[w])||"";
+const pvRoleNome = r => (PV_ROLES.find(x=>x[0]===r)||[0,r])[1];
 const PV_CONT = [["hg","Hellgate"],["corrompida","Corrompidas"],["solo","Brumas (solo)"],["depths","Depths"]];
 const pvGr = k => (k==="hg2"||k==="hg5")?"hg":k, pvChs = k => k==="hg"?["hg2","hg5"]:[k];
 const PV_TAM = t => t===1?"Solo":`Grupo de ${t}`;
@@ -105,6 +109,9 @@ function renderPvp(){
   const ts=$("pvTam"); ts.textContent=""; for(const x of tams){ const b=el("button",{type:"button","aria-pressed":String(pvC===x.c&&pvT===x.t),text:PV_TAM(x.t)}); b.addEventListener("click",()=>{ pvC=x.c; pvT=x.t; pvOpen=null; renderPvp(); }); ts.append(b); }
   const vs=$("pvView"); vs.textContent=""; const dc0=PVP.conteudos[`${pvC}:${pvT}`], temComp=["hg2","hg5","depths"].includes(pvC)&&!!dc0&&pvT>1; if(pvV==="comp"&&!temComp) pvV="build";
   for(const [k,n] of (temComp?[["build","Por build"],["comp","Por composição"],["jog","Por jogador"]]:[["build","Por build"],["jog","Por jogador"]])){ const b=el("button",{type:"button","aria-pressed":String(pvV===k),text:n}); b.addEventListener("click",()=>{ pvV=k; pvOpen=null; renderPvp(); }); vs.append(b); }
+  const rs=$("pvRole"); if(rs){ rs.textContent=""; rs.hidden=pvV==="jog"||!PVP.roles; const dR=PVP.conteudos[`${pvC}:${pvT}`];
+    const cntR=r=>dR?(pvV==="comp"?(dR.comps||[]).filter(x=>!r||x.ws.some(w=>pvRole(w)===r)).length:dR.builds.filter(b=>!r||pvRole(b.wc)===r).length):0;
+    for(const [k,n] of [["","Todas as funções"],...PV_ROLES]){ const t=cntR(k); if(k&&!t&&pvR!==k) continue; const b=el("button",{type:"button","aria-pressed":String(pvR===k),text:k?`${n} (${t})`:n}); b.addEventListener("click",()=>{ pvR=k; pvOpen=null; renderPvp(); }); rs.append(b); } }
   $("pvSortW").hidden=pvV!=="build"; $("pvJSortW").hidden=pvV!=="jog"; $("pvRefresh").hidden=pvV!=="build";
   host.textContent=""; const d=PVP.conteudos[`${pvC}:${pvT}`];
   if(!d){ host.append(el("p",{class:"empty",text:"Sem amostra suficiente neste conteúdo e tamanho de grupo."})); return; }
@@ -117,14 +124,15 @@ function renderPvp(){
   if(pvV==="comp"){
     pvTierBox(host,d);
     if(!(d.comps&&d.comps.length)){ $("pvCount").textContent="Nenhuma composição com grupo completo ainda"; host.append(el("p",{class:"empty",text:"Ainda não há lutas suficientes com o grupo inteiro identificado (todos os jogadores e armas). Conforme o acervo cresce, as composições aparecem aqui."})); return; }
-    $("pvCount").textContent=`${d.comps.length} composições, só grupos completos${pvC==="hg5"?" (no 5v5 aparecem também as com 1 ou 2 lutas, marcadas como amostra pequena)":" com 3 lutas ou mais"}`;
-    const L=d.comps.slice().sort((a,b)=>b.n-a.n||b.wr-a.wr); const trc=pvTiersComp(L); const pg=pgSlice("pvC",L,[pvC,pvT,pvV].join("|"),renderPvp); pg.items.forEach(x=>host.append(pvComp(x,trc.get(x.id)||""))); host.append(pg.bar); return;
+    $("pvCount").textContent=`${d.comps.filter(x=>!pvR||x.ws.some(w=>pvRole(w)===pvR)).length} composições${pvR?` com ${pvRoleNome(pvR).toLowerCase()}`:""}, só grupos completos${pvC==="hg5"?" (no 5v5 aparecem também as com 1 ou 2 lutas, marcadas como amostra pequena)":" com 3 lutas ou mais"}`;
+    const L=d.comps.filter(x=>!pvR||x.ws.some(w=>pvRole(w)===pvR)).sort((a,b)=>b.n-a.n||b.wr-a.wr); const trc=pvTiersComp(L); if(!L.length){ $("pvCount").textContent=`Nenhuma composição com ${pvRoleNome(pvR).toLowerCase()}`; return; } const pg=pgSlice("pvC",L,[pvC,pvT,pvV,pvR].join("|"),renderPvp); pg.items.forEach(x=>host.append(pvComp(x,trc.get(x.id)||""))); host.append(pg.bar); return;
   }
   pvTierBox(host,d);
-  let l=d.builds.slice(); pvSort=$("pvSort").value||pvSort;
+  let l=d.builds.filter(b=>!pvR||pvRole(b.wc)===pvR); pvSort=$("pvSort").value||pvSort;
   if(pvSort==="wilson") l.sort((a,b)=>pvWilson(b.v,b.n+0)-pvWilson(a.v,a.n)); else if(pvSort==="wr") l.sort((a,b)=>b.wr-a.wr||b.n-a.n); else if(pvSort==="spec"){ l.forEach(pvPrep); l.sort((a,b)=>(gbSpec(b)-gbSpec(a))||(b.n-a.n)); } else l.sort((a,b)=>b.n-a.n);
-  $("pvCount").textContent=`${l.length} builds com 4 lutas ou mais · ${d.eventos.toLocaleString("pt-BR")} mortes${PVP.janela.fama_min?` de jogadores com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
-  const pg=pgSlice("pvB",l,[pvC,pvT,pvV,pvSort].join("|"),renderPvp); pg.items.forEach(b=>host.append(pvCard(b,d))); host.append(pg.bar);
+  $("pvCount").textContent=`${l.length} builds${pvR?` de ${pvRoleNome(pvR).toLowerCase()}`:""} com 4 lutas ou mais · ${d.eventos.toLocaleString("pt-BR")} mortes${PVP.janela.fama_min?` de jogadores com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
+  if(!l.length){ host.append(el("p",{class:"empty",text:"Nenhuma build desta função neste conteúdo e tamanho de grupo."})); return; }
+  const pg=pgSlice("pvB",l,[pvC,pvT,pvV,pvSort,pvR].join("|"),renderPvp); pg.items.forEach(b=>host.append(pvCard(b,d))); host.append(pg.bar);
 }
 function pvTierBox(host,d){
   if((d.armas&&d.armas.length)||(d.comps&&d.comps.length)){ const bx=el("details",{class:"pv-arm"}); if(pvArmOpen) bx.open=true; bx.addEventListener("toggle",()=>{ pvArmOpen=bx.open; });
@@ -132,14 +140,16 @@ function pvTierBox(host,d){
     const sm=el("summary",{class:"pv-arm-t"}); sm.append(el("h4",{text:pvArmM==="comp"?"Tier list de composições":"Tier list de armas"}),el("small",{class:"muted",text:"Níveis S a C por winrate e lutas"})); bx.append(sm);
     const hd=el("div",{class:"pv-arm-h"});
     const mini=pvArmM==="comp"?3:5, min=n=>n>=mini;
-    const L=(pvArmM==="comp"?d.comps.map(x=>({id:x.id,ws:x.ws,n:x.n,v:x.v,wr:x.wr})):d.armas.map(a=>({id:a[0],ws:[a[0]],n:a[1],v:a[2],wr:a[4]})));
+    let L=(pvArmM==="comp"?d.comps.map(x=>({id:x.id,ws:x.ws,n:x.n,v:x.v,wr:x.wr})):d.armas.map(a=>({id:a[0],ws:[a[0]],n:a[1],v:a[2],wr:a[4]})));
+    if(pvR) L=L.filter(it=>it.ws.some(w=>pvRole(w)===pvR));   // com uma função escolhida, os níveis comparam só os itens dela
+    if(!L.length){ bx.append(hd,el("p",{class:"empty",text:"Nenhum item desta função na tier list."})); host.append(bx); return; }
     const sh=a=>(a.v+3)/(a.n+6); const el5=L.filter(a=>min(a.n)).sort((a,b)=>sh(b)-sh(a)); const tr=new Map(); el5.forEach((a,i)=>{ const p=(i+.5)/el5.length; tr.set(a.id,p<=.2?"S":p<=.5?"A":p<=.8?"B":"C"); });
     if(temC&&d.armas&&d.armas.length){ const sg0=el("div",{class:"pv-arm-s",role:"group","aria-label":"Tipo de tier list"}); [["arma","Por arma"],["comp","Por composição"]].forEach(([k,n])=>{ const bt=el("button",{type:"button",class:"pv-chip"+(pvArmM===k?" on":""),text:n}); bt.onclick=()=>{ pvArmM=k; pvArmAll=false; pvArmOpen=true; renderPvp(); }; sg0.append(bt); }); hd.append(sg0); }
     const sgv=el("div",{class:"pv-arm-s",role:"group","aria-label":"Forma de exibir"}); [["quadro","Quadro de tiers"],["tabela","Tabela"]].forEach(([k,n])=>{ const bt=el("button",{type:"button",class:"pv-chip"+(pvArmV===k?" on":""),text:n}); bt.onclick=()=>{ pvArmV=k; pvArmOpen=true; renderPvp(); }; sgv.append(bt); }); hd.append(sgv);
     const sg=el("div",{class:"pv-arm-s",role:"group","aria-label":"Ordenar"}); const ord={usos:pvArmM==="comp"?"Mais lutas":"Mais usadas",wr:"Maior winrate",nivel:"Melhor nível"};
     Object.keys(ord).forEach(k=>{ const bt=el("button",{type:"button",class:"pv-chip"+(pvArmO===k?" on":""),text:ord[k]}); bt.onclick=()=>{ pvArmO=k; pvArmOpen=true; renderPvp(); }; sg.append(bt); }); hd.append(sg);
     const mt=pvArmM==="comp"?"Cada linha é um grupo com as mesmas armas (só vale com o grupo completo). Vitória é da luta inteira.":"Conta quem matou, quem ajudou (dano ou cura) e os colegas de grupo que estavam na luta, mesmo sem dano. Variações de tier e encantamento contam como a mesma arma.";
-    bx.append(hd,el("small",{class:"muted",text:`${mt} Nível compara os itens desta lista pelo winrate (ajustado quando há poucas lutas): S = 20% melhores, A = próximos 30%, B = 30% seguintes, C = restante. Com menos de ${mini} ${pvArmM==="comp"?"lutas":"usos"} fica sem nível.`}));
+    bx.append(hd,el("small",{class:"muted",text:`${mt} ${pvR?`Só ${pvRoleNome(pvR).toLowerCase()}: os níveis comparam os itens dessa função entre si. `:""}Nível compara os itens desta lista pelo winrate (ajustado quando há poucas lutas): S = 20% melhores, A = próximos 30%, B = 30% seguintes, C = restante. Com menos de ${mini} ${pvArmM==="comp"?"lutas":"usos"} fica sem nível.`}));
     const ro={S:0,A:1,B:2,C:3}; if(pvArmO==="wr") L.sort((a,b)=>b.wr-a.wr||b.n-a.n); else if(pvArmO==="nivel") L.sort((a,b)=>(ro[tr.get(a.id)]??9)-(ro[tr.get(b.id)]??9)||sh(b)-sh(a)); else L.sort((a,b)=>b.n-a.n);
     if(pvArmV==="quadro"){
       const board=el("div",{class:"pv-board"});
