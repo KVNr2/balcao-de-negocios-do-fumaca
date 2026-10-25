@@ -244,13 +244,13 @@ function costPanel(b,get,ui){
     for(const {g,x} of sel){ const nm=itemNome(g.code);
       if(x){ tot+=x.p; if(x.d===30) old++; if(x.d===7) est7++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} (${x.d===0?(x.app?"pedido de venda atual, via AlbionSpecs":"pedido de venda atual"):"estimativa de "+x.d+" dias"})`+(x.q!==g.q?` — sem ${x.d===0?"pedido de venda":"preço"} em ${QNAME[g.q]}, usei ${QNAME[x.q]}`:"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q]); }
       else { miss++; names.push(nm); tip.push(`${nm}: sem vendas em ${BLD_CITY} nos últimos 30 dias`); } }
-    for(const id of cons){ const p=pr(id), ii=idInfo(id), cx=cosInfo(id); if(p) tot+=p; tip.push(`${(cx&&cx.n)||itemNome(ii.c)}: ${p?fmt(p):"sem preço"}`); }
+    for(const id of cons){ const p=pr(id), ii=idInfo(id), cx=cosInfo(id), nm=(cx&&cx.n)||itemNome(ii.c); if(p) tot+=p; else { miss++; names.push(nm); } tip.push(`${nm}: ${p?fmt(p):"sem preço"}`); }
     out.classList.remove("load"); out.textContent=""; out.title=`${fmt(tot)} de prata no total\n`+tip.join("\n");
     if(!tot){ out.textContent="sem preço nesta cidade"; return; }
-    out.append(el("b",{text:fmtS(tot)}));
+    out.append(el("b",{text:(miss?"a partir de ":"")+fmtS(tot),title:miss?`Valor incompleto: ${miss} ${miss===1?"item sem preço":"itens sem preço"} em ${BLD_CITY} (${names.join(", ")}) ${miss===1?"não entrou":"não entraram"} na soma. O custo real é maior.`:""}));
     tags.textContent=""; const SL={w:"Arma",o:"Secundária",h:"Cabeça",a:"Peito",s:"Botas",c:"Capa"};
     for(const [k,from,to] of qch) tags.append(el("span",{class:"bld-chip",title:`Sem preço em ${QNAME[from]} nesta cidade; o custo, o IP, os ícones e o texto copiado usam ${QNAME[to]}`,text:`${SL[k]}: ${QNAME[to]} (sem ${QNAME[from]})`}));
-    const wn=[]; if(miss) wn.push(`faltam ${miss}`); if(est7) wn.push(`${est7} com estimativa de 7 dias`); if(old) wn.push(`${old} com estimativa de 30 dias`);
+    const wn=[]; if(miss) wn.push(`faltam ${miss} ${miss===1?"item":"itens"} sem preço: ${names.slice(0,3).join(", ")}${names.length>3?"…":""}`); if(est7) wn.push(`${est7} com estimativa de 7 dias`); if(old) wn.push(`${old} com estimativa de 30 dias`);
     if(wn.length) out.append(el("span",{class:"bld-warn",text:wn.join(" · "),title:(miss?`Sem vendas em ${BLD_CITY} nos últimos 30 dias: ${names.join(", ")}. O total não inclui.\n`:"")+"Passe o mouse no valor para ver peça por peça."}));
   };
   cs.addEventListener("change",()=>{ BLD_CITY=cs.value; try{ localStorage.setItem("bldCity",BLD_CITY); }catch(e){} BLD_PANELS.forEach(p=>p._sync()); });
