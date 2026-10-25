@@ -188,7 +188,7 @@ const qSelect=(val,todas,label)=>{ const x=el("select",{class:"kx-q","aria-label
    Ficam à parte do BMP, para não misturar com as outras abas. */
 const BLD_P={}, BLD_F={};
 async function bldFetch(ids,city){
-  const todo=[...new Set(ids)].filter(id=>!BLD_F[`${id}|${city}`]||Date.now()-BLD_F[`${id}|${city}`]>6*36e5);
+  const todo=[...new Set(ids)].filter(id=>FORCE||!BLD_F[`${id}|${city}`]||Date.now()-BLD_F[`${id}|${city}`]>6*36e5);   // "Atualizar preços" (FORCE) busca de novo mesmo dentro das 6 h
   const loc=encodeURIComponent(city), t7=Date.now()-7*864e5, t30=Date.now()-30*864e5;
   for(let i=0;i<todo.length;i+=20){ const part=todo.slice(i,i+20);
     const j=await apiJSON(`${HOST}/api/v2/stats/history/${part.join(",")}.json?locations=${loc}&time-scale=24`,360);
