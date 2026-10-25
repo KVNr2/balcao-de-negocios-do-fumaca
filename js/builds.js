@@ -248,7 +248,7 @@ function costPanel(b,get,ui){
     for(const id of cons){ const p=pr(id), ii=idInfo(id), cx=cosInfo(id), nm=(cx&&cx.n)||itemNome(ii.c); if(p) tot+=p; else { miss++; names.push(nm); } tip.push(`${nm}: ${p?fmt(p):"sem preço"}`); }
     out.classList.remove("load"); out.textContent=""; out.title=`${fmt(tot)} de prata no total\n`+tip.join("\n");
     if(!tot){ out.textContent="sem preço nesta cidade"; return; }
-    out.append(el("b",{text:(miss?"a partir de ":"")+fmtS(tot),title:miss?`Valor incompleto: ${miss} ${miss===1?"item sem preço":"itens sem preço"} em ${BLD_CITY} (${names.join(", ")}) ${miss===1?"não entrou":"não entraram"} na soma. O custo real é maior.`:""}));
+    out.append(el("b",{text:fmtS(tot),title:miss?`Valor incompleto: ${miss} ${miss===1?"item sem preço":"itens sem preço"} em ${BLD_CITY} (${names.join(", ")}) ${miss===1?"não entrou":"não entraram"} na soma. O custo real é maior.`:""}));
     tags.textContent=""; const SL={w:"Arma",o:"Secundária",h:"Cabeça",a:"Peito",s:"Botas",c:"Capa"};
     for(const [k,from,to,had] of qch) tags.append(el("span",{class:"bld-chip",title:(had?`Em ${QNAME[to]} custa menos que em ${QNAME[from]} nesta cidade (e é igual ou melhor)`:`Sem preço em ${QNAME[from]} nesta cidade`)+`; o custo, o IP, os ícones e o texto copiado usam ${QNAME[to]}`,text:`${SL[k]}: ${QNAME[to]} (${had?"mais barato que":"sem"} ${QNAME[from]})`}));
     const wn=[]; if(miss) wn.push(`faltam ${miss} ${miss===1?"item":"itens"} sem preço: ${names.slice(0,3).join(", ")}${names.length>3?"…":""}`); if(est7) wn.push(`${est7} com estimativa de 7 dias`); if(old) wn.push(`${old} com estimativa de 30 dias`);

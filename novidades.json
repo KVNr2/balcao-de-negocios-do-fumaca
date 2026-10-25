@@ -10,9 +10,9 @@
   },
   {
    "t": "2026-10-25T03:00:00Z",
-   "titulo": "Custo das builds: aviso quando faltam preços",
+   "titulo": "Custo das builds: aviso dos itens sem preço",
    "itens": [
-    "Quando alguma peça (ou poção e comida) não tem preço na cidade escolhida, o valor da build aparece como \"a partir de\" e a linha de aviso lista quais itens ficaram de fora. Antes parecia o custo total, mas a soma estava incompleta."
+    "Quando alguma peça (ou poção e comida) não tem preço na cidade escolhida, a linha de aviso lista quais itens ficaram de fora da soma."
    ]
   },
   {
