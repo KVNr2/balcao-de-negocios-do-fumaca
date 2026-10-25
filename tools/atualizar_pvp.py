@@ -260,6 +260,7 @@ def main():
             for js, cn in b["gear"].items():
                 top = topo(cn, 2)
                 row[js] = top
+            if not any(row.get(sl) for sl in ("h", "a", "s")): continue   # sem cabeça, peito e botas nos dados: não é uma build, só uma arma
             if row.get("w"):
                 if len(row["w"]) > 1: row["w2"] = row["w"][1]
                 row["w"] = row["w"][0]
