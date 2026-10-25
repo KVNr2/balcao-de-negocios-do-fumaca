@@ -4,7 +4,8 @@
    "t": "2026-10-25T04:50:00Z",
    "titulo": "Custo das builds: ordem de busca do preço",
    "itens": [
-    "O preço de cada peça segue sempre esta ordem: pedido de venda atual comparando as versões equivalentes (T8 = 8.0, 7.1, 6.2, 5.3, 4.4); troca de qualidade; média de 7 dias; média de 30 dias.",
+    "O preço de cada peça segue esta ordem: pedido de venda atual, depois média de 7 dias, depois média de 30 dias.",
+    "Em cada etapa, cada versão equivalente (T8 = 8.0, 7.1, 6.2, 5.3, 4.4) acha o seu preço trocando de qualidade se precisar, e depois vale a de menor preço.",
     "O botão Atualizar preços volta a buscar de novo, e a dica do valor lista as peças."
    ]
   },
