@@ -9,7 +9,7 @@ git worktree remove --force dados 2>/dev/null; rm -rf dados; git worktree prune
 H=$(date -u +%F); O=$(date -u -d yesterday +%F)
 if git fetch origin $BR 2>/dev/null; then
   git worktree add --no-checkout dados origin/$BR
-  if [ "$HIST" != "hist" ]; then git -C dados sparse-checkout set --no-cone /perfis.json "/eventos/$H.jsonl.gz" "/eventos/$O.jsonl.gz" "/ancient/*.jsonl.gz"; fi
+  if [ "$HIST" != "hist" ]; then git -C dados sparse-checkout set --no-cone /perfis.json "/eventos/$H.jsonl.gz" "/eventos/$O.jsonl.gz" "/ancient/*.jsonl.gz" "/coleta-log.jsonl"; fi
   git -C dados checkout
 else
   git worktree add --detach dados; (cd dados && git checkout --orphan $BR && git rm -rf . -q)
