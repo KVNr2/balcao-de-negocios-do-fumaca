@@ -70,9 +70,9 @@ def main():
         import gzip, glob
         corte_d = (datetime.datetime.utcnow() - datetime.timedelta(days=DIAS)).strftime("%Y-%m-%d")
         # Américas (PVP_DADOS), Europa (PVP_DADOS_EU) e Ásia (PVP_DADOS_SGP): uma branch de dados por servidor. Os ids de morte são por servidor, então a chave leva o servidor
-        for srv, base in (("us", DADOS), ("eu", os.environ.get("PVP_DADOS_EU", "")), ("sgp", os.environ.get("PVP_DADOS_SGP", ""))):
-            if not base: continue
-            for arq in sorted(glob.glob(os.path.join(base, "eventos", "*.jsonl.gz"))):
+        for srv, raiz in (("us", DADOS), ("eu", os.environ.get("PVP_DADOS_EU", "")), ("sgp", os.environ.get("PVP_DADOS_SGP", ""))):
+            if not raiz: continue
+            for arq in sorted(glob.glob(os.path.join(raiz, "eventos", "*.jsonl.gz"))):
                 if os.path.basename(arq)[:10] < corte_d: continue
                 for l in gzip.open(arq, "rt", encoding="utf-8"):
                     try: r = json.loads(l); eventos[(srv, r["id"])] = dict(C.desempacotar(r), _s=srv)
