@@ -7,6 +7,7 @@ import json, os, re, sys, time, datetime, collections, urllib.request, urllib.er
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pvp_comum as C
+import papel_arma
 B = "https://gameinfo.albiononline.com/api/gameinfo"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/130.0 Safari/537.36", "Accept": "application/json"}
 DIAS = 30; PAGINAS = int(os.environ.get("PVP_PAGINAS", "3")); ORCAMENTO = int(os.environ.get("PVP_MINUTOS", "25")) * 60; SEMENTES_POR = int(os.environ.get("PVP_SEMENTES", "45")); CONF = 0.7
@@ -310,6 +311,12 @@ def main():
             comps.append({"id": f"{c}{t}:C:{key}", "ws": key.split("+"), "n": n, "v": C_["v"], "d": C_["d"], "wr": round(100 * C_["v"] / n, 1), "ip": round(sum(m["ip"] for m in ms) / len(ms)), "m": ms})
         comps.sort(key=lambda x: (-x["n"], -x["wr"])); comps = comps[:40]
         out["conteudos"][f"{c}:{t}"] = {"eventos": A.get("ev", 0), "lutas": A["n"], "armas": armas, "comps": comps, "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
+    # função (tank, healer, support, range, melee) de cada arma que aparece, para o filtro por função da aba
+    _ws = set()
+    for v in out["conteudos"].values():
+        _ws.update(x["wc"] for x in v["builds"]); _ws.update(x[0] for x in v["armas"])
+        for x in v.get("comps") or []: _ws.update(x["ws"])
+    out["roles"] = {w: papel_arma.papel(w) for w in sorted(_ws) if papel_arma.papel(w)}
     json.dump(out, open(os.path.join(ROOT, "data", "pvp.json"), "w"), ensure_ascii=False, separators=(",", ":"))
     if not MODO_ARM: json.dump(novas, open(sem_f, "w"), ensure_ascii=False, separators=(",", ":"))
     print("ok:", {k: (v["eventos"], len(v["builds"]), len(v["jogadores"])) for k, v in out["conteudos"].items()})

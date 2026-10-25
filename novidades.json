@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-25T02:30:00Z",
+   "titulo": "PvP: filtro por função",
+   "itens": [
+    "Na aba PvP há botões de função (Tanks, Curandeiros, Suportes, Ranged e Melee) que filtram a lista de builds e a tier list.",
+    "Com uma função escolhida, os níveis S a C da tier list comparam só os itens dessa função entre si."
+   ]
+  },
+  {
    "t": "2026-10-24T22:30:00Z",
    "titulo": "PvP: agora com Europa e Ásia",
    "itens": [
