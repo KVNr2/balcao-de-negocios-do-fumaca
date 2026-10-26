@@ -151,8 +151,9 @@ async function renderBM(partial){
   { const fbx=$("bmFocBox"); if(fbx){ fbx.hidden=!$("bmFocus").checked||bmMode==="flip"; FOC_UIS.forEach(u=>u._sync()); } }
   if(!BM){ $("bmNote").textContent="Abrindo o livro do Mercado Negro…"; try{ BM=await need("bm"); }catch(e){ $("bmNote").textContent="Não consegui abrir os dados do Mercado Negro."; return; } }
   setupBM(); if(!$("bmAtivo").dataset.init){ $("bmAtivo").dataset.init="1"; try{ $("bmAtivo").checked=store.get("bmAtivo")==="1"; }catch(e){} }
-  const tb=$("bmTable"), note=$("bmNote"), T=bmTierSel, keys=bmSelKeys(), groups=bmSelGroups(keys);
-  const lim=Math.max(BMF.lim||0, T?8:4), useG=groups.slice(0,lim), useSet=new Set(useG), more=groups.length>useG.length;
+  const FAVON=!!(window.FAV&&FAV.on("mercado")), favs=FAVON?FAV.list("mercado"):[], favSet=new Set(favs.map(f=>f.k));
+  const tb=$("bmTable"), note=$("bmNote"), T=FAVON?0:bmTierSel, keys=FAVON?[...new Set(favs.map(f=>f.c&&f.c.key).filter(k=>k&&BM[k]))]:bmSelKeys(), groups=bmSelGroups(keys);
+  const lim=FAVON?groups.length:Math.max(BMF.lim||0, T?8:4), useG=groups.slice(0,lim), useSet=new Set(useG), more=groups.length>useG.length;
   if(!partial) for(const g of useG) bmStaleCheck(g,T);
   const falta=useG.filter(g=>!BM_LOADED.has(bmLk(g,T)));
   if(!partial&&falta.length){   // busca um tipo por vez e mostra o que já chegou (a API limita pedidos por minuto)
@@ -164,7 +165,7 @@ async function renderBM(partial){
       if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; }
       if(i<falta.length-1){ await renderBM(true); if(tok!==BM_TOK) return; } }
   }
-  const rows=[]; for(const k of keys){ if(!useSet.has(BM[k][1])) continue; for(let t=2;t<=8;t++){ if(T&&t!==T) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++){ if(BMF.ench>=0&&e!==BMF.ench) continue; for(let q=1;q<=5;q++){ if(bmQualSel&&q!==bmQualSel) continue; if(!bmHas(bmId(k,t,e),q)) continue; if($("bmAtivo").checked&&(bmRec(bmId(k,t,e),q)["Black Market"][2]||0)>BM_ATIVO_H) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } } } }
+  const rows=[]; for(const k of keys){ if(!useSet.has(BM[k][1])) continue; for(let t=2;t<=8;t++){ if(T&&t!==T) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++){ if(!FAVON&&BMF.ench>=0&&e!==BMF.ench) continue; for(let q=1;q<=5;q++){ if(!FAVON&&bmQualSel&&q!==bmQualSel) continue; if(FAVON&&!favSet.has(bmId(k,t,e)+"|"+q)) continue; if(!bmHas(bmId(k,t,e),q)) continue; if(!FAVON&&$("bmAtivo").checked&&(bmRec(bmId(k,t,e),q)["Black Market"][2]||0)>BM_ATIVO_H) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } } } }
   const val=m=>bmMode==="flip"?m.flip:m.craft, base=m=>bmMode==="flip"?(m.buy&&m.buy.p):m.cost, pct=m=>{ const b=base(m), v=val(m); return b>0&&v!=null?v/b*100:-Infinity; };
   /* ordem: primeiro pela porcentagem de lucro, depois pelo valor em prata (o cabeçalho de cada coluna inverte a prioridade) */
   const cmp=bmSort==="val"?(a,b)=>val(b)-val(a)||pct(b)-pct(a):(a,b)=>pct(b)-pct(a)||val(b)-val(a);
@@ -187,7 +188,7 @@ async function renderBM(partial){
     const c3=tr.insertCell(); c3.className="num bm-profit "+(v>=0?"gain":"loss"); c3.textContent=sgn(v); { const key=m.id+"|"+m.q+"|"+bmMode, old=BM_BASE[key]; BM_CUR[key]=v; if(old!=null&&Math.abs(v-old)>=1){ const up=v>old; c3.prepend(el("span",{class:"bm-chg "+(up?"up":"dn"),title:`${up?"Subiu":"Caiu"} desde a última atualização: o lucro era ${sgn(old)}`,text:up?"▲":"▼"})," "); } }
     if(bmMode!=="flip"){ const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=`${m.city}${m.thin?", pouca oferta":""}`;
       if(m.focus&&m.fc>0){ const nR=Math.floor(focBud()/m.fc), fm=el("span",{class:"wk-fm"+(nR>0?" full":" none"),title:`Cada receita gasta ${fmt(m.fc)} de foco; com ${fmt(focBud())} por dia o foco cobre ${nR} receita${nR===1?"":"s"}`}); fm.append(el("span",{class:"wk-fl",text:"Foco"}),el("b",{text:nR>0?`cobre ${fmt(nR)} receita${nR===1?"":"s"}`:"não cobre 1 receita"})); c4.append(el("br"),fm); } }
-    const cv=tr.insertCell(); cv.className="num vol"; cv.textContent=volTxt(bmVolOf(m.id,m.q)); tr.dataset.id=m.id; tr.dataset.q=String(m.q);
+    const cv=tr.insertCell(); cv.className="num vol"; cv.textContent=volTxt(bmVolOf(m.id,m.q)); tr.dataset.id=m.id; tr.dataset.q=String(m.q); tr.dataset.fav=m.id+"|"+m.q; tr.dataset.fctx=JSON.stringify({key:m.key,t:m.t,e:m.e,q:m.q});
     const cg=tr.insertCell(); const gb=el("button",{type:"button",class:"btn mn-craft",title:"Abrir no Craft: fabricar este item e vender para o Mercado Negro",text:"Craft ➜"}); gb.addEventListener("click",ev=>{ ev.stopPropagation(); ofFromBM(BM[m.key][1],m); }); gb.addEventListener("keydown",ev=>ev.stopPropagation()); cg.append(gb);
     const dr=document.createElement("tr"); body.append(dr); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dr.append(dc); dc.colSpan=11;
     const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open)); if(open){ dc.textContent=""; try{ dc.append(bmPanel(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes: "+(e&&e.message||e)})); } setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8) dr.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"}); }catch(e){} },60); } };
@@ -198,6 +199,7 @@ async function renderBM(partial){
   note.textContent = !keys.length ? "Nenhuma peça com esse filtro."
     : !rows.length ? `Nenhuma ordem do Mercado Negro para ${gname.toLowerCase()}${qtxt} nos últimos 3 dias.${more?` Foram consultados ${useG.length} de ${groups.length} tipos: use "Consultar mais".`:""}`
     : `${rows.length} ordens de ${gname.toLowerCase()}${qtxt}; ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${more?` Foram consultados ${useG.length} de ${groups.length} tipos (as suas armas primeiro): use "Consultar mais" para os outros.`:""}${ok.length>100?` Mostrando as 100 de maior lucro de ${fmt(ok.length)} registros: não são todos.`:(bmSort==="val"?" Ordenado pelo valor do lucro e, se empatar, pela porcentagem.":" Ordenado pela porcentagem de lucro e, se empatar, pelo valor.")} Clique numa linha para ver a conta e o histórico.`;
+  if(FAVON) note.textContent=rows.length?`Só os seus favoritos (${rows.length} ordens do Mercado Negro): os filtros de seleção não valem aqui. ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}. Clique numa linha para ver a conta e o histórico.`:(favs.length?"Nenhuma ordem do Mercado Negro para os seus favoritos nos últimos 3 dias.":"Nenhum favorito aqui ainda: marque a estrela de uma linha.");
   { let mb=$("bmMore"); if(!mb){ mb=el("button",{type:"button",id:"bmMore",class:"btn mn-craft"}); $("bmWrap").after(mb); mb.addEventListener("click",()=>{ BMF.lim=(BMF.lim||(bmTierSel?8:4))+(bmTierSel?8:4); renderBM(); }); } mb.hidden=!more; mb.textContent=`Consultar mais tipos (${useG.length} de ${groups.length})`; }
   if(window.gsap&&!RM) gsap.from(tb.querySelectorAll(".bm-row"),{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
   hbar($("bmWrap")); bmVolumes(shown);
@@ -331,8 +333,10 @@ async function renderWK(){
   const body=tb.createTBody(), rows=[];
   for(const w of L) for(let jt=4;jt<=w.t;jt++){ const m=wkModelW(w,jt); if(m) rows.push(m); }
   rows.sort((a,b)=>(b.lucro==null?-Infinity:b.lucro*b.w.n)-(a.lucro==null?-Infinity:a.lucro*a.w.n));
+  const wkKey=m=>`${m.ty}|T${m.w.t}|T${m.t}|${m.w.n}`, FAVON=!!(window.FAV&&FAV.on("trab"));
+  if(FAVON){ const kept=rows.filter(m=>FAV.has("trab",wkKey(m))); rows.length=0; rows.push(...kept); }
   const cls=v=>v==null?"":v>=0?"gain":"loss", pc=v=>v==null?"—":(v>=0?"+":"")+dec(v)+"%";
-  for(const m of rows.slice(0,WK_SHOW)){ const w=m.w, N=w.n, nmW=WK.find(x=>x[0]===m.ty)[1], tr=body.insertRow();
+  for(const m of rows.slice(0,FAVON?rows.length:WK_SHOW)){ const w=m.w, N=w.n, nmW=WK.find(x=>x[0]===m.ty)[1], tr=body.insertRow(); tr.dataset.fav=wkKey(m);
     tr.insertCell().append(withIcon(`T${m.t}_JOURNAL_${m.ty}_FULL`,`${nmW} T${w.t}${N>1?` ×${N}`:""}: diário T${m.t}`));
     { const c=tr.insertCell(); c.className="small"; if(m.bc){ c.append(el("b",{text:fmt(Math.round(m.bc.p*N))})," ",el("span",{class:"muted",text:m.bc.c})); if(N>1) c.append(el("br"),el("small",{class:"muted",text:`${fmt(Math.round(m.bc.p))} cada`})); } else c.textContent="—"; }
     { const c=tr.insertCell(); c.className="num"; c.textContent=Math.round(m.yld*100)+"%"; c.title=`Este trabalhador T${w.t} com ${w.pct>0?`rendimento informado de ${w.pct}%`:`felicidade ${w.h>0?w.h:hapMax(w.t)}`} rende ${Math.round(m.yld*100)}% num diário T${m.t}`; }

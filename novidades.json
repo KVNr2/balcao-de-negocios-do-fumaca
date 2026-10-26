@@ -1,6 +1,47 @@
 {
  "itens": [
   {
+   "t": "2026-10-26T12:00:00Z",
+   "titulo": "Albion Overlay 2.0.0",
+   "programa": "2.0.0",
+   "itens": [
+    "O AlbionSpecs agora se chama Albion Overlay e mostra o site por cima do jogo: use F8 para abrir e esconder, e um atalho próprio para cada aba (em Ajustes).",
+    "Tem todas as abas do site, a Minha ficha sincronizada com o jogo, o mapa de Avalon em que você está e a coleta de preços do mercado.",
+    "A janela abre centralizada, com margens baseadas na resolução do Windows, e usa o seu navegador padrão (Chrome, Edge, Brave, Vivaldi ou Opera).",
+    "Ao fechar a janela ele pergunta se continua na bandeja ou se encerra de vez; a escolha pode ser lembrada.",
+    "Nova opção Iniciar com o Windows: abre sozinho na bandeja quando você liga o PC.",
+    "Quem já tinha o AlbionSpecs recebe o Albion Overlay sozinho, ao clicar em Sincronizar ou em Coletar preços. Não precisa baixar de novo."
+   ]
+  },
+  {
+   "t": "2026-10-26T11:50:00Z",
+   "titulo": "Minha ficha: como funciona o Albion Overlay",
+   "itens": [
+    "A aba Minha ficha ganhou uma explicação do que o Albion Overlay faz (sincronizar a ficha, coletar preços, mapas de Avalon), com botão para baixar.",
+    "O passo a passo da primeira vez mostra o que o Windows vai perguntar (SmartScreen e permissão de Administrador) e o que o programa lê e envia.",
+    "Os botões Sincronizar e Coletar preços abrem o Albion Overlay; se ele ainda não estiver instalado, baixam o programa.",
+    "O guia completo, com perguntas comuns e como desinstalar, está em programa/leia-me."
+   ]
+  },
+  {
+   "t": "2026-10-26T11:40:00Z",
+   "titulo": "Favoritos nas listas",
+   "itens": [
+    "Refino, Craft, Encantar, Cozinha e alquimia, Ilha e fazenda, Trabalhadores, Mercado e Mercado Negro ganharam uma estrela para marcar favoritos.",
+    "O filtro Só favoritos mostra apenas o que você marcou, ignorando categoria, tier, encantamento e busca da tela.",
+    "Os favoritos ficam salvos neste navegador e são os mesmos no overlay."
+   ]
+  },
+  {
+   "t": "2026-10-26T11:30:00Z",
+   "titulo": "Avalon: ícones e nomes dos tipos de mapa",
+   "itens": [
+    "Cada mapa mostra à esquerda do nome um ícone do tipo (Hideout, Tunnel e caveiras preta, vermelha e azul para Black, Royal vermelho e Royal azul).",
+    "Ao lado do nome ficam ícones de Brecilien, baú azul, baú verde e número de dungeons.",
+    "Os tipos de risco passaram a usar os nomes do jogo: Low Black, Medium Black, High Black, Low Tunnel, Medium Tunnel, High Tunnel e Deep Tunnel."
+   ]
+  },
+  {
    "t": "2026-10-25T21:20:00Z",
    "titulo": "Custo das builds: trava contra pedido de venda absurdo",
    "itens": [

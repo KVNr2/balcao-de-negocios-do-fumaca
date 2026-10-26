@@ -1,8 +1,22 @@
 <!doctype html>
-<html lang="pt-BR" data-v="a0c22f55">
+<html lang="pt-BR" data-v="5fca345e">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
+<script>/* aberto dentro do Albion Overlay (?overlay=1): sem cabeçalho nem menu lateral, só a página pedida (o overlay tem o próprio menu) */if(/[?&]overlay=1\b/.test(location.search))document.documentElement.classList.add("em-overlay");if(/[?&]atual=1\b/.test(location.search))document.documentElement.classList.add("em-atual");</script>
+<style>
+html.em-overlay .vip-top,html.em-overlay .ledger-book,html.em-overlay .vip-top::after,html.em-overlay .nav-toggle{display:none!important}
+html.em-overlay .wrap.app,html.em-overlay .wrap.app.rail{display:block;min-height:0;grid-template-columns:none}
+html.em-overlay .main{padding-left:clamp(10px,2vw,22px);padding-right:clamp(10px,2vw,22px);max-width:none}
+html.em-overlay .pagehead{padding-top:12px}
+html.em-overlay body{overflow-x:hidden}
+#avAtual{display:none}
+html.em-atual .wrap.app{display:none!important}
+html.em-atual #avAtual{display:block;padding:0}
+html.em-atual body{background:transparent;overflow:hidden}
+html.em-atual .av-card{margin:0}
+</style>
+
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Balcão de Negócios do Fumaça</title>
 <meta name="description" content="O balcão clandestino do Fumaça: prata, refino, craft, cozinha, pesca, mapas e builds no Albion Online (Américas), com preços ao vivo e recomendações pela ficha de cada jogador.">
@@ -12,9 +26,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=a0c22f55">
-<link rel="stylesheet" href="css/vip.css?v=a0c22f55">
-<link rel="stylesheet" href="css/souk.css?v=a0c22f55">
+<link rel="stylesheet" href="css/balcao.css?v=5fca345e">
+<link rel="stylesheet" href="css/vip.css?v=5fca345e">
+<link rel="stylesheet" href="css/avicons.css?v=5fca345e">
+<link rel="stylesheet" href="css/souk.css?v=5fca345e">
 </head>
 <body>
 <div class="wrap app">
@@ -30,7 +45,7 @@
     <span title="Premium de 30 dias (3.750 ouro) em prata"><span class="fl">Premium</span> <strong class="num" id="premV">31,4M</strong></span>
     <span class="patchchip"><span class="fl">Patch</span> <strong>Dragonfire 3</strong></span>
     <button type="button" id="reload" class="linkbtn" title="Buscar os preços de novo agora"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg><span>Atualizar preços</span></button>
-    <button type="button" id="mkBtn" class="linkbtn" title="Abre o AlbionSpecs na bandeja do Windows para coletar os preços do mercado enquanto você joga (sem ler a ficha). Só preços, nada do personagem."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span>Coletar preços</span></button>
+    <button type="button" id="mkBtn" class="linkbtn" title="Abre o Albion Overlay no Windows (na bandeja). Enquanto ele está aberto, ele coleta os preços do mercado quando você olha o mercado no jogo. Só preços, nada do personagem. Na primeira vez, baixa o programa."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span>Coletar preços</span></button>
   </div>
   <button type="button" class="who-chip" data-goto="t-ficha" title="Abrir Minha ficha"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.4 7-5.4s6.2 1.8 7 5.4"/></svg><span id="who"></span></button>
 </header>
@@ -127,19 +142,31 @@
   <!-- FICHA -->
   <section class="panel" id="p-ficha" role="tabpanel" aria-labelledby="t-ficha" hidden>
     <div class="block">
+      <section class="primeira ovbox" id="pfOverlay" aria-label="O que é o Albion Overlay">
+        <h3>Albion Overlay: o programa que liga o site ao seu jogo</h3>
+        <p>O <b>Albion Overlay</b> é um programa gratuito para <b>Windows</b>. Ele abre este site em uma janela por cima do Albion (atalho <kbd>F8</kbd>) e faz duas coisas que o navegador sozinho não consegue:</p>
+        <ul class="ovlist">
+          <li><b>Sincronizar a ficha.</b> Quando o personagem entra no jogo, ele lê o seu Destiny Board (maestria e spec) e preenche esta página sem você digitar nada. A ficha é a mesma no site e no overlay.</li>
+          <li><b>Coletar preços.</b> Enquanto você olha o mercado no jogo, ele envia ao nosso banco só os preços que aparecem na tela (item, cidade, qualidade, preço e quantidade). Assim todos do grupo veem preços mais novos. Nada do personagem vai junto, e dá para desligar nos Ajustes do overlay.</li>
+          <li><b>Mapas de Avalon e atalhos.</b> Mostra o mapa em que você está e deixa abrir cada aba do site por atalho, sem sair do jogo.</li>
+        </ul>
+        <p class="tiny muted">Precisa baixar uma vez (cerca de 7 MB, sem instalador e sem cadastro). Depois ele se atualiza sozinho. <a href="programa/leia-me.html">Guia completo, perguntas e como desinstalar</a>.</p>
+        <div class="btnrow"><button type="button" class="btn" id="pfBaixar">Baixar o Albion Overlay</button></div>
+      </section>
       <ol class="steps" id="pfSteps">
-        <li><b>Clique em Sincronizar.</b> Na primeira vez o site baixa o programa AlbionSpecs e explica cada passo; nas próximas ele abre direto.</li>
-        <li><b>Entre com o seu personagem no Albion.</b> O programa lê o Destiny Board sozinho e o site volta para esta mesma página com os níveis já preenchidos.</li>
-        <li><b>Pronto.</b> Todas as páginas usam a sua ficha. Ela fica salva só neste navegador; cada amigo usa o próprio programa e a própria ficha.</li>
+        <li><b>Baixe o Albion Overlay (só na primeira vez).</b> Clique em <i>Sincronizar</i> ou em <i>Baixar o Albion Overlay</i>: o download começa e a página explica cada passo. Quem já tem o AlbionSpecs não precisa baixar de novo: ele vira Albion Overlay sozinho ao clicar em Sincronizar.</li>
+        <li><b>Clique em Sincronizar.</b> O overlay abre na aba Minha ficha.</li>
+        <li><b>Entre com o seu personagem no Albion.</b> Se o jogo já estiver aberto, saia para a seleção de personagem e entre de novo: a leitura acontece no login. Esta página recebe os níveis sozinha.</li>
+        <li><b>Pronto.</b> Site e overlay usam a mesma ficha: edite onde preferir. Ela fica só no seu PC e neste navegador; cada amigo usa o próprio programa e a própria ficha.</li>
       </ol>
       <div class="semsync" id="pfSemSync" hidden role="note"><b id="pfSemTit"></b><p id="pfSemTxt"></p></div>
       <div class="row-ctl">
         <label class="f" style="max-width:280px">Nome do personagem<input id="pfName" type="text" maxlength="40" placeholder="Ex.: Oleran"></label>
         <div class="btnrow">
-          <a class="btn" id="pfAlbion" href="albion-ficha://iniciar" title="Abre o programa no seu PC, espera você entrar no jogo e traz os níveis do Destiny Board para cá">Sincronizar</a>
+          <a class="btn" id="pfAlbion" href="albion-ficha://iniciar" title="Abre o Albion Overlay no seu PC, espera você entrar no jogo e traz os níveis do Destiny Board para cá">Sincronizar</a>
           <button type="button" class="btn ghost" id="pfClear">Limpar ficha</button>
         </div>
-        <p class="tiny muted" id="pfDica" style="margin:.5rem 0 0">Primeira vez? É só clicar em <b>Sincronizar</b>: o site baixa o programa e explica cada passo. <a href="programa/leia-me.html">Como funciona</a>.</p>
+        <p class="tiny muted" id="pfDica" style="margin:.5rem 0 0">Primeira vez? É só clicar em <b>Sincronizar</b>: o site baixa o Albion Overlay e explica cada passo. <a href="programa/leia-me.html">Como funciona</a>.</p>
         <details class="tiny muted" style="margin-top:.6rem">
           <summary>Mais opções (outro aparelho, colar código, exemplo)</summary>
           <div class="btnrow" style="margin-top:.5rem">
@@ -157,17 +184,19 @@
       </div>
       <div id="pfPrimeira" class="primeira" hidden role="region" aria-label="Primeira vez: o que vai acontecer">
         <h3>Primeira vez? Veja exatamente o que vai acontecer</h3>
-        <p>O download do <b>AlbionSpecs.exe</b> começou. Ele é um programa pequeno que lê o seu <b>Destiny Board</b> (os níveis de maestria e spec) e entrega para esta página. Nada além disso.</p>
+        <p>O download do <b>AlbionOverlay.exe</b> começou. Ele é um programa pequeno que mostra este site por cima do Albion, lê o seu <b>Destiny Board</b> (os níveis de maestria e spec) e coleta os preços do mercado que aparecem enquanto você joga.</p>
         <ol>
-          <li><b>Abra o arquivo baixado</b> (dois cliques). Ele se copia para a pasta <code>%LOCALAPPDATA%\FichaAlbion</code> e liga o botão Sincronizar. Não tem instalador, não pede cadastro e você pode apagar o arquivo baixado depois.</li>
+          <li><b>Abra o arquivo baixado</b> (dois cliques). Ele se copia para a pasta <code>%LOCALAPPDATA%\FichaAlbion</code>, liga o botão Sincronizar e abre o overlay. Não tem instalador, não pede cadastro e você pode apagar o arquivo baixado depois.</li>
           <li><b>O Windows pode avisar "editor desconhecido"</b> (SmartScreen), porque o programa não tem assinatura paga. Clique em <i>Mais informações</i> e depois em <i>Executar assim mesmo</i>.</li>
-          <li><b>Volte aqui e clique em Sincronizar de novo.</b> O Windows vai pedir permissão de <b>Administrador</b>: é necessária para ouvir a rede do jogo, do mesmo jeito que o Albion Data Client faz.</li>
-          <li><b>Entre no personagem.</b> A leitura acontece quando o personagem loga; se o jogo já estiver aberto, deslogue e logue de novo.</li>
+          <li><b>Aceite o pedido de Administrador.</b> Ele é necessário para ouvir a rede do jogo, do mesmo jeito que o Albion Data Client faz. Sem isso o programa não consegue ler a ficha nem os preços.</li>
+          <li><b>Volte aqui e clique em Sincronizar.</b> O overlay abre na aba Minha ficha e espera o personagem entrar no jogo.</li>
+          <li><b>Entre no personagem.</b> A leitura acontece no login; se o jogo já estiver aberto, deslogue e logue de novo.</li>
+          <li><b>Use o <kbd>F8</kbd></b> para mostrar ou esconder o overlay. Ao fechar a janela (X) ele pergunta se deve continuar na bandeja do Windows (ao lado do relógio) ou encerrar.</li>
         </ol>
-        <p class="tiny"><b>O que ele faz:</b> ouve só o tráfego local do Albion e pega os níveis do Destiny Board. <b>O que ele não faz:</b> não altera o jogo, não lê senhas, não mexe em outros arquivos, e não envia nada para a internet nem para nós: o resultado vai só para este navegador, no seu PC. A ficha fica salva só aqui.</p>
-        <p class="tiny muted">Quer conferir? Impressão digital (SHA-256) do arquivo: <code id="pfSha">carregando…</code> (versão <span id="pfVer">…</span>). No PowerShell: <code>Get-FileHash AlbionSpecs.exe</code>. <a href="programa/leia-me.html">Como funciona</a>.</p>
+        <p class="tiny"><b>O que ele faz:</b> ouve só o tráfego local do Albion para ler o Destiny Board e os preços do mercado, e mostra este site numa janela. <b>O que ele não faz:</b> não altera o jogo, não aperta teclas por você, não lê senhas e não mexe em outros arquivos. A <b>ficha fica só no seu PC</b> e neste navegador, nada dela vai para a internet. Os <b>preços</b> são a única coisa enviada (item, cidade, qualidade, preço e quantidade), sem nome de personagem; dá para desligar em Ajustes.</p>
+        <p class="tiny muted">Quer conferir? Impressão digital (SHA-256) do arquivo: <code id="pfSha">carregando…</code> (versão <span id="pfVer">…</span>). No PowerShell: <code>Get-FileHash AlbionOverlay.exe</code>. <a href="programa/leia-me.html">Como funciona</a>.</p>
         <div class="btnrow">
-          <a class="btn ghost" href="programa/AlbionSpecs.exe" download="AlbionSpecs.exe">Baixar de novo</a>
+          <a class="btn ghost" href="programa/AlbionOverlay.exe" download="AlbionOverlay.exe">Baixar de novo</a>
           <button type="button" class="btn ghost" id="pfJaTenho">Já tenho o programa</button>
           <button type="button" class="btn ghost" id="pfFechaPrim">Fechar</button>
         </div>
@@ -708,25 +737,27 @@
 <div id="tip" hidden></div>
 <div id="toast" hidden></div>
 
+<div id="avAtual"></div>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=a0c22f55"></script>
-<script src="js/base.js?v=a0c22f55"></script>
-<script src="js/fx.js?v=a0c22f55"></script>
-<script src="js/biz.js?v=a0c22f55"></script>
-<script src="js/builds.js?v=a0c22f55"></script>
-<script src="js/nossas.js?v=a0c22f55"></script>
-<script src="js/ip.js?v=a0c22f55"></script>
-<script src="js/zvz.js?v=a0c22f55"></script>
-<script src="js/pvp.js?v=a0c22f55"></script>
-<script src="js/novos.js?v=a0c22f55"></script>
-<script src="js/guia.js?v=a0c22f55"></script>
-<script src="js/ui.js?v=a0c22f55"></script>
-<script src="js/avalon.js?v=a0c22f55"></script>
-<script src="js/oficina.js?v=a0c22f55"></script>
-<script src="js/versao.js?v=a0c22f55"></script>
-<script src="js/main.js?v=a0c22f55"></script>
+<script src="js/icons.js?v=5fca345e"></script>
+<script src="js/base.js?v=5fca345e"></script>
+<script src="js/fx.js?v=5fca345e"></script>
+<script src="js/biz.js?v=5fca345e"></script>
+<script src="js/builds.js?v=5fca345e"></script>
+<script src="js/nossas.js?v=5fca345e"></script>
+<script src="js/ip.js?v=5fca345e"></script>
+<script src="js/zvz.js?v=5fca345e"></script>
+<script src="js/pvp.js?v=5fca345e"></script>
+<script src="js/novos.js?v=5fca345e"></script>
+<script src="js/guia.js?v=5fca345e"></script>
+<script src="js/ui.js?v=5fca345e"></script>
+<script src="js/avalon.js?v=5fca345e"></script>
+<script src="js/oficina.js?v=5fca345e"></script>
+<script src="js/versao.js?v=5fca345e"></script>
+<script src="js/fav.js?v=5fca345e"></script>
+<script src="js/main.js?v=5fca345e"></script>
 </body>
 </html>

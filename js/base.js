@@ -165,7 +165,7 @@ function deriveLv(){ // mantém .lv (0 a 3) para as recomendações
 function loadProfile(){ try{ const s=store.get("ficha"); if(s){ PF=migrate(Object.assign({},JSON.parse(s))); PF=Object.assign(EMPTY(),PF); PF.v=3; IS_EXAMPLE=false; deriveLv(); return; } }catch(e){} PF=OLERAN(); IS_EXAMPLE=true; deriveLv(); }
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._h);
   if(window.gsap&&!RM) gsap.fromTo(t,{y:16,opacity:0},{y:0,opacity:1,duration:.3,ease:"back.out(2)"}); toast._h=setTimeout(()=>{ if(window.gsap&&!RM) gsap.to(t,{opacity:0,y:10,duration:.25,onComplete:()=>t.hidden=true}); else t.hidden=true; },1800); }
-function saveProfile(){ IS_EXAMPLE=false; deriveLv(); store.set("ficha",JSON.stringify(PF)); $("pfStatus").textContent="Ficha salva neste navegador."; toast("Ficha guardada no livro"); coinBurst(); renderWho(); recompute(); }
+function saveProfile(){ IS_EXAMPLE=false; deriveLv(); store.set("ficha",JSON.stringify(PF)); if(typeof ponteEmpurrar==="function") ponteEmpurrar(); $("pfStatus").textContent="Ficha salva neste navegador."; toast("Ficha guardada no livro"); coinBurst(); renderWho(); recompute(); }
 const spMax = g => g ? Math.max(g.m||0,...Object.values(g.s||{}).map(x=>+x||0)) : 0;
 const wl = k => band(Math.max(PF.armas[k]||0, spMax((PF.sp||{})["c:"+k])));
 const armorLv = t => band(PF.armaduras[t]||0);
@@ -308,7 +308,7 @@ const API_CHUNK=120;   // itens por pedido (a API aceitou 160 sem problema)
 const API_BUDGET=70, apiStamps=[];
 async function apiPace(){ for(;;){ const now=Date.now(); while(apiStamps.length&&now-apiStamps[0]>60e3) apiStamps.shift(); if(apiStamps.length<API_BUDGET){ apiStamps.push(now); return; } await new Promise(f=>setTimeout(f,Math.max(250,60e3-(now-apiStamps[0])+50))); } }
 const apiResetMs=txt=>{ const m=/resets at (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/.exec(txt||""); if(!m) return 0; const t=Date.parse(m[1]+"T"+m[2]+"Z")-Date.now(); return Math.min(65e3,Math.max(1e3,t+1000)); };
-/* Preços coletados pelo AlbionSpecs (tabela market_latest no Supabase, mesmo formato do Albion Data).
+/* Preços coletados pelo Albion Overlay (tabela market_latest no Supabase, mesmo formato do Albion Data).
    Para cada item/cidade/qualidade vale o valor mais recente entre o Albion Data e o nosso. */
 const CROWD_MEM=new Map(); let CROWD_OFF=false; const CROWD={hits:0};
 async function crowdMerge(url,j){
@@ -701,13 +701,13 @@ const AF_OS = (()=>{ const ua=navigator.userAgent||"", uad=navigator.userAgentDa
 if(AF_OS!=="windows"){ document.body.classList.add("sem-sync"); const cel=["android","ios","mobile"].includes(AF_OS);
   $("pfSemTit").textContent=cel?"Sincronizar ainda não funciona no celular":"Sincronizar só funciona no Windows";
   $("pfSemTxt").textContent=cel?"Por enquanto não há suporte para sincronizar a ficha pelo celular. Nesse aparelho você digita tudo manualmente: abra cada seção abaixo (Combate, Craft, Coleta, Refino, Árvore da fazenda e da cozinha, Caçada) e preencha os níveis do seu Destiny Board. A ficha fica salva neste navegador.":"O programa de sincronia é feito para Windows. Neste sistema você digita os níveis manualmente: abra cada seção abaixo e preencha os do seu Destiny Board. A ficha fica salva neste navegador.";
-  $("pfSemSync").hidden=false; }
+  $("pfSemSync").hidden=false; $("pfOverlay").hidden=true; }
 $("pfAlbion").href="albion-ficha://iniciar?voltar="+encodeURIComponent(location.origin+location.pathname);
 async function lerFichaDoAlbion(txt){ txt=decodeURIComponent(txt);
   if(txt.startsWith("gz.")){ const bin=Uint8Array.from(atob(txt.slice(3).replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
     return JSON.parse(await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).text()); }
   return JSON.parse(decodeURIComponent(escape(atob(txt)))); }
-async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.hash); if(!m) return; history.replaceState(null,"",location.pathname+location.search);
+async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.hash); if(!m) return; history.replaceState(null,"",location.pathname+location.search+ponteHash0);   /* devolve o endereço de antes (ex.: #ficha), senão a página perde a aba em que estava */
   let o=null; try{ o=await lerFichaDoAlbion(m[1]); if(typeof o!=="object"||!o||!o.armas) o=null; }catch(err){ o=null; }
   if(!o){ $("pfStatus").textContent="Não consegui ler a ficha vinda do Albion."; return; }
   for(let i=0;!PF&&i<200;i++) await new Promise(r=>setTimeout(r,50)); if(!PF) return;
@@ -721,35 +721,56 @@ async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.has
     for(const k of ["cozinha","alquimia"]) if(novo[k]&&novo[k].s&&Object.keys(novo[k].s).length&&PF[k]) delete PF[k].all; if(nomeAntes&&!(o.nome&&String(o.nome).trim())) PF.nome=nomeAntes; else if(o.nome) PF.nome=String(o.nome).trim().slice(0,40); saveProfile(); renderProfile(); renderWho(); $("pfStatus").textContent=outra?`Ficha de ${nomeNovo} aplicada. Ela substituiu a ficha de ${nomeAntes}, porque são personagens diferentes.`:"Ficha do Albion aplicada (o que você já tinha preenchido foi mantido)."; } }
 /* Navegação interna: ao clicar em Sincronizar, esta mesma aba vai para a página de andamento do programa (127.0.0.1, só no seu PC)
    e volta sozinha para cá já com a ficha. Nada de aba nova. */
+/* Ponte com o Albion Overlay (o programa): site e overlay usam a MESMA ficha. O programa guarda a ficha em
+   http://127.0.0.1:47832/ficha (só neste PC). O site puxa quando há novidade (seq maior) e empurra quando você edita. */
+const PONTE="http://127.0.0.1:47832/ficha";
+let ponteHash0="", ponteSeq=0, ponteLig=false, ponteEco="", ponteInit=false;   /* ponteInit: só empurra depois de ter puxado a ficha do programa uma vez (uma ficha vazia do site nunca apaga a do jogo) */ try{ ponteSeq=+localStorage.getItem("ponteSeq")||0; }catch(e){}
+async function pontePuxar(){ try{
+    const r=await fetch(PONTE,{cache:"no-store"}); if(!r.ok) return false; const j=await r.json(); ponteLig=true; ponteInit=true;
+    if(j.code && j.seq>ponteSeq && j.code!==ponteEco && j.code!==fichaCode()){
+      ponteSeq=j.seq; try{ localStorage.setItem("ponteSeq",String(ponteSeq)); }catch(e){}
+      ponteEco=j.code; if(!/^#ficha=/.test(location.hash)) ponteHash0=location.hash; location.hash="#ficha="+encodeURIComponent(j.code); }   /* reaproveita o caminho que já aplica a ficha do jogo */
+    else if(j.seq>ponteSeq){ ponteSeq=j.seq; try{ localStorage.setItem("ponteSeq",String(ponteSeq)); }catch(e){} }
+    if(typeof afSet==="function") afSet(); return true; }catch(e){ ponteLig=false; return false; } }
+let pontePush=0;
+function ponteEmpurrar(){ clearTimeout(pontePush); pontePush=setTimeout(async()=>{ try{
+    if(!ponteInit) return; const code=fichaCode(); if(code===ponteEco) return;
+    const r=await fetch(PONTE,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({code})}); if(!r.ok) return;
+    const j=await r.json(); ponteEco=code; ponteSeq=Math.max(ponteSeq,j.seq||0); try{ localStorage.setItem("ponteSeq",String(ponteSeq)); }catch(e){} }catch(e){} },1500); }
+/* Sincronizar: o programa abre o overlay na aba Minha ficha; aqui só esperamos a ficha chegar pela ponte */
 let irSync=false;
-async function irParaSincronia(){ if(irSync) return; irSync=true; const alvo="http://127.0.0.1:47831/", t0=Date.now(), st=$("pfStatus");
-  st.textContent="Abrindo o programa… se o Windows perguntar, permita abrir o AlbionSpecs e aceite o aviso de Administrador.";
-  /* O Brave (e alguns outros) bloqueia o site de "perguntar" ao programa se ele já está aberto, então o teste abaixo nunca dá certo ali.
-     Abrir a página do programa direto (navegação normal, não é bloqueada) funciona em qualquer navegador. */
-  let brave=false; try{ brave=!!(navigator.brave&&await navigator.brave.isBrave()); }catch(e){}
-  if(brave){ await new Promise(r=>setTimeout(r,3500)); st.textContent="Abrindo a página do programa… Se aparecer erro de conexão, o AlbionSpecs não está aberto: abra-o, entre no Albion e clique em Sincronizar de novo."; afSet(); await new Promise(r=>setTimeout(r,900)); irSync=false; location.href=alvo; return; }
-  while(Date.now()-t0<30000){
-    const ok=await new Promise(res=>{ const im=new Image(); im.onload=()=>res(true); im.onerror=()=>res(false); im.src=alvo+"ping.gif?"+Date.now(); });
-    if(ok){ afSet(); location.href=alvo; return; }
-    await new Promise(r=>setTimeout(r,700)); }
-  st.textContent="Não consegui falar com o programa. Confira se o AlbionSpecs está aberto (ícone na barra de tarefas) e se o Albion está com o personagem logado; se estiver, "; 
-  st.append(el("a",{href:alvo,text:"clique aqui para abrir a página do programa direto"}),". Se ainda não baixou o programa, use \"Primeira vez? Baixe o programa\" acima."); irSync=false; }
+async function irParaSincronia(){ if(irSync) return; irSync=true; const st=$("pfStatus"), t0=Date.now();
+  st.textContent="Abrindo o Albion Overlay… se o Windows perguntar, permita e aceite o aviso de Administrador. Se o Albion já estiver aberto, saia para a seleção de personagem e entre de novo.";
+  const seq0=ponteSeq;
+  while(Date.now()-t0<300000){ await new Promise(r=>setTimeout(r,2000)); await pontePuxar();
+    if(ponteSeq>seq0){ st.textContent="Ficha lida do jogo e aplicada."; irSync=false; return; }
+    if(Date.now()-t0>20000&&!ponteLig) st.textContent="Não consegui falar com o programa. Confira se o Albion Overlay está aberto (ícone na bandeja) e, se o seu navegador bloqueia acesso ao PC local (Brave), permita para este site."; }
+  st.textContent="Tempo esgotado: a ficha não chegou. Relogue no personagem e clique em Sincronizar de novo."; irSync=false; }
+pontePuxar(); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) pontePuxar(); }); window.addEventListener("focus",pontePuxar); setInterval(()=>{ if(!document.hidden) pontePuxar(); },15000);
 /* primeira vez neste navegador: baixa o programa e explica tudo na própria página (o protocolo albion-ficha:// só existe depois de abrir o programa uma vez) */
 const afOk = () => { try{ return localStorage.getItem("afProg")==="1"; }catch(e){ return false; } };
 const afSet = () => { try{ localStorage.setItem("afProg","1"); }catch(e){} };
-function afBaixar(){ const a=el("a",{href:"programa/AlbionSpecs.exe",download:"AlbionSpecs.exe"}); document.body.append(a); a.click(); a.remove(); }
+function afBaixar(){ const a=el("a",{href:"programa/AlbionOverlay.exe",download:"AlbionOverlay.exe"}); document.body.append(a); a.click(); a.remove(); }
 let afInfo=false;
 function afMostrarPrimeira(){ $("pfPrimeira").hidden=false; $("pfPrimeira").scrollIntoView({behavior:RM?"auto":"smooth",block:"center"});
   if(!afInfo){ afInfo=true; fetch("programa/versao.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{ $("pfSha").textContent=j.sha256||"indisponível"; $("pfVer").textContent=j.versao||"?"; }).catch(()=>{ $("pfSha").textContent="indisponível agora"; $("pfVer").textContent="?"; }); } }
 $("pfAlbion").addEventListener("click",ev=>{
   if(afOk()){ setTimeout(irParaSincronia,1200); return; }
   ev.preventDefault(); afMostrarPrimeira(); afBaixar();
-  $("pfStatus").textContent="Baixando o AlbionSpecs.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Sincronizar de novo."; });
-/* "Coletar preços": abre o programa só no modo de coleta (bandeja), sem ler a ficha e sem abrir aba */
+  $("pfStatus").textContent="Baixando o AlbionOverlay.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Sincronizar."; });
+/* "Coletar preços": abre o Albion Overlay (na aba Ajustes, onde fica o botão da coleta); a coleta liga sozinha e roda enquanto o programa estiver aberto */
 $("mkBtn").addEventListener("click",()=>{
-  if(!afOk()){ afMostrarPrimeira(); afBaixar(); $("pfStatus").textContent="Baixando o AlbionSpecs.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Coletar preços."; return; }
+  if(!afOk()){ afMostrarPrimeira(); afBaixar(); $("pfStatus").textContent="Baixando o AlbionOverlay.exe… siga os passos acima. Depois de abrir o programa uma vez, ele já coleta os preços sozinho enquanto estiver aberto."; return; }
   const a=el("a",{href:"albion-ficha://mercado",style:"display:none"}); document.body.append(a); a.click(); setTimeout(()=>a.remove(),2000);
-  toast("Abrindo o AlbionSpecs na bandeja do Windows… se o Windows pedir, aceite o aviso de Administrador."); });
+  toast("Abrindo o Albion Overlay… se o Windows pedir, aceite o aviso de Administrador. Ele coleta os preços enquanto estiver aberto."); });
+/* Página aberta DENTRO do Albion Overlay (?overlay=1) ou com o programa já rodando: nada para baixar nem instalar.
+   Dentro do overlay a sincronia e a coleta de preços ficam nos botões do próprio overlay. */
+const EM_OVERLAY=/[?&]overlay=1\b/.test(location.search);
+if(EM_OVERLAY){ document.body.classList.add("em-overlay"); afSet();
+  $("pfAlbion").hidden=true; $("mkBtn").hidden=true; $("pfPrimeira").hidden=true; $("pfOverlay").hidden=true;
+  $("pfSteps").innerHTML="<li><b>Você está no Albion Overlay.</b> Não precisa baixar nem instalar nada.</li><li>Para ler a ficha do jogo, use o botão <b>Sincronizar agora</b> no topo desta aba do overlay. Se o Albion já estiver aberto, saia para a seleção de personagem e entre de novo.</li><li>A ficha daqui e a do site no navegador são a mesma: edite onde preferir.</li>";
+  $("pfDica").textContent="A coleta de preços do mercado fica em Ajustes, no overlay."; }
+$("pfBaixar").addEventListener("click",()=>{ afMostrarPrimeira(); afBaixar(); $("pfStatus").textContent="Baixando o AlbionOverlay.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Sincronizar."; });
 $("pfJaTenho").addEventListener("click",()=>{ afSet(); $("pfPrimeira").hidden=true; location.href=$("pfAlbion").href; setTimeout(irParaSincronia,1200); });
 $("pfFechaPrim").addEventListener("click",()=>{ $("pfPrimeira").hidden=true; });
 aplicarFichaDoAlbion(); window.addEventListener("hashchange",aplicarFichaDoAlbion);
@@ -812,10 +833,10 @@ async function renderCook(){
   const hr=tb.createTHead().insertRow(); ["Item","Fornada","Lucro com foco","Por ponto de foco","Venda típica",""].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
   if(!COOK_LOADED){ const td=body.insertRow().insertCell(); td.colSpan=6; td.textContent="Buscando preços dos ingredientes…"; await ensureCook(); if(!COOK_LOADED){ td.textContent="Não consegui buscar os preços agora. Tente atualizar."; return; } return renderCook(); }
-  const only=$("ckBuilds").checked;
-  const rows=Object.keys(COOK.r).filter(id=>COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id))).map(cookModel).filter(Boolean)
+  const only=$("ckBuilds").checked, FAVON=!!(window.FAV&&FAV.on("cozinha"));
+  const rows=Object.keys(COOK.r).filter(id=>FAVON?FAV.has("cozinha",id):(COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id)))).map(cookModel).filter(Boolean)
     .sort((a,b)=>((b.p1??-1e12)-(a.p1??-1e12)));
-  for(const m of rows){ const tr=body.insertRow(); tr.tabIndex=0; tr.className="clickrow";
+  for(const m of rows){ const tr=body.insertRow(); tr.dataset.fav=m.id; tr.tabIndex=0; tr.className="clickrow";
     const a=tr.insertCell(); const an=el("span"); an.append(m.name); if(BUILD_FOOD.includes(m.id)) an.append(" ",el("span",{class:"spec",text:"build"})); a.append(withIcon(m.id,an));
     tr.insertCell().textContent=`${m.q} ${m.kind==="f"?(m.q>1?"porções":"porção"):(m.q>1?"poções":"poção")}`;
     if(m.miss){ const td=tr.insertCell(); td.colSpan=3; td.className="muted"; td.textContent=`Sem preço: ${m.miss}`; tr.insertCell(); continue; }
