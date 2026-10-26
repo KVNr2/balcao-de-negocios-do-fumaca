@@ -140,3 +140,13 @@ async function renderAv(){
   l.slice(0,AV.shown).forEach(m=>host.append(avCard(m))); $("avMore").hidden=l.length<=AV.shown; $("avMore").textContent=`Mostrar mais (${l.length-AV.shown})`;
   avSavedUI();
 }
+
+/* overlay do AlbionSpecs: o cartão do site para o mapa em que o jogador está agora (o overlay chama avMapaAtual(id) em ?overlay=1&atual=1) */
+async function avMapaAtual(id){
+  const host=document.getElementById("avAtual"); if(!host) return false;
+  if(!AV.data){ try{ AV.data=await need("avalon"); }catch(e){ return false; } AV.byId={}; for(const m of AV.data){ m._n=avNorm(m.n); AV.byId[m.i]=m; } }
+  if(AV.img===undefined){ try{ const r=await fetch(`imagens/avalon/index.json?v=${VER}`); AV.img=r.ok?await r.json():null; }catch(e){ AV.img=null; } }
+  if(!AV.inited) AV.saved=avRead("avSaved",[]).filter(x=>x&&x.i);
+  host.textContent=""; const m=AV.byId&&AV.byId[id]; if(!m) return false;
+  host.append(avCard(m)); return true;
+}

@@ -3,13 +3,18 @@
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
-<script>/* aberto dentro do overlay do AlbionSpecs (?overlay=1): sem cabeçalho nem menu lateral, só a página pedida (o overlay tem o próprio menu) */if(/[?&]overlay=1\b/.test(location.search))document.documentElement.classList.add("em-overlay");</script>
+<script>/* aberto dentro do overlay do AlbionSpecs (?overlay=1): sem cabeçalho nem menu lateral, só a página pedida (o overlay tem o próprio menu) */if(/[?&]overlay=1\b/.test(location.search))document.documentElement.classList.add("em-overlay");if(/[?&]atual=1\b/.test(location.search))document.documentElement.classList.add("em-atual");</script>
 <style>
 html.em-overlay .vip-top,html.em-overlay .ledger-book,html.em-overlay .vip-top::after,html.em-overlay .nav-toggle{display:none!important}
 html.em-overlay .wrap.app,html.em-overlay .wrap.app.rail{display:block;min-height:0;grid-template-columns:none}
 html.em-overlay .main{padding-left:clamp(10px,2vw,22px);padding-right:clamp(10px,2vw,22px);max-width:none}
 html.em-overlay .pagehead{padding-top:12px}
 html.em-overlay body{overflow-x:hidden}
+#avAtual{display:none}
+html.em-atual .wrap.app{display:none!important}
+html.em-atual #avAtual{display:block;padding:0}
+html.em-atual body{background:transparent;overflow:hidden}
+html.em-atual .av-card{margin:0}
 </style>
 
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -717,6 +722,7 @@ html.em-overlay body{overflow-x:hidden}
 <div id="tip" hidden></div>
 <div id="toast" hidden></div>
 
+<div id="avAtual"></div>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
