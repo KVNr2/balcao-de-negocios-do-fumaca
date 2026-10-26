@@ -1,8 +1,8 @@
 /* ================= Avalon: mapas das Estradas de Avalon ================= */
 const AV_RES={ORE:["Minério","ore"],FIBER:["Fibra","fiber"],WOOD:["Madeira","wood"],ROCK:["Pedra","stone"],HIDE:["Couro","hide"]};
 const AV_TYPE_G=g=>/^HIDEOUT/.test(g)?"HO":/^ROYAL/.test(g)?"ROYAL":/^BLACK/.test(g)?"BLACK":"TUNNEL";
-const AV_G_PT={HO:"Hideout",ROYAL:"Royal",BLACK:"Black",TUNNEL:"Tunnel"};
-const AV_Y_PT={ROYAL:"Royal",ROYAL_RED:"Red",BLACK_LOW:"Black, risco baixo",BLACK_MEDIUM:"Black, risco médio",BLACK_HIGH:"Black, risco alto",LOW:"Tunnel, risco baixo",MEDIUM:"Tunnel, risco médio",HIGH:"Tunnel, risco alto",DEEP:"Tunnel profundo",DEEP_RAID:"Tunnel profundo com raid",HIDEOUT:"Hideout",HIDEOUT_DEEP:"Hideout profundo"};
+const AV_G_PT={HO:"Hideout",ROYAL:"Royal Blue",BLACK:"Black",TUNNEL:"Tunnel"};
+const AV_Y_PT={ROYAL:"Royal Blue",ROYAL_RED:"Royal Red",BLACK_LOW:"Low Black",BLACK_MEDIUM:"Medium Black",BLACK_HIGH:"High Black",LOW:"Low Tunnel",MEDIUM:"Medium Tunnel",HIGH:"High Tunnel",DEEP:"Deep Tunnel",DEEP_RAID:"Deep Tunnel (raid)",HIDEOUT:"Hideout",HIDEOUT_DEEP:"Deep Hideout"};
 const AV_EXTRA={blue:["Baú azul",m=>m.cb>0],green:["Baú verde",m=>m.cg>0],solo:["Dungeon solo",m=>m.s>0],group:["Dungeon de grupo",m=>m.g>0],raid:["Raid",m=>m.e>0],mist:["Portal da Brecilien",m=>m.mi>0]};
 const AV_TZ=[["local","Do meu navegador"],["UTC","UTC"],["America/Sao_Paulo","São Paulo"],["America/New_York","Nova York"],["Europe/London","Londres"],["Europe/Berlin","Berlim"],["Asia/Tokyo","Tóquio"]];
 const AV={data:null,q:"",tier:0,type:"",sort:"nome",res:new Set(),extra:new Set(),shown:60,saved:[],hist:[],inited:false};
@@ -14,7 +14,7 @@ const avResTot=m=>Object.keys(m.r).reduce((a,k)=>a+avRes(m,k),0);
 const avDg=m=>m.s+m.g+m.e;
 function avMatch(m){
   if(AV.tier&&m.t!==AV.tier) return false;
-  if(AV.type&&AV_TYPE_G(m.y)!==AV.type&&m.y!==AV.type) return false;
+  if(AV.type&&(AV.type==="ROYAL"?m.y!=="ROYAL":AV_TYPE_G(m.y)!==AV.type&&m.y!==AV.type)) return false;
   for(const k of AV.res) if(!avRes(m,k)) return false;
   for(const k of AV.extra) if(!AV_EXTRA[k][1](m)) return false;
   if(AV.q){ const n=m._n; for(const w of avNorm(AV.q).split(" ")) if(w&&!n.includes(w)) return false; }
@@ -36,7 +36,7 @@ function avMini(m){
   return sv;
 }
 const avTyCls=y=>y==="ROYAL_RED"?"red":({HO:"ho",ROYAL:"royal",BLACK:"black",TUNNEL:"tunnel"})[AV_TYPE_G(y)];
-const avTypeTxt=y=>{ if(y==="ROYAL_RED") return "Red"; const g=AV_G_PT[AV_TYPE_G(y)], r=/(LOW|MEDIUM|HIGH)$/.exec(y); return r?`${g} · ${{LOW:"risco baixo",MEDIUM:"risco médio",HIGH:"risco alto"}[r[1]]}`:/DEEP/.test(y)?`${g} · profundo`:g; };
+const avTypeTxt=y=>AV_Y_PT[y]||y;
 /* dungeons e portais do mapa, como tags coloridas (mesmas cores do minimapa) */
 function avInfo(m){ const o=[]; const add=(cls,txt,n,tip)=>{ if(n>0) o.push({cls,txt,n,tip}); };
   add("solo","Dungeon solo",m.s,"Dungeons de 1 jogador"); add("grp","Dungeon de grupo",m.g,"Dungeons de grupo"); add("raid","Raid",m.e,"Raids");
@@ -53,10 +53,9 @@ function avIcons(m){ const w=el("span",{class:"av-ics"});
   const dg=avDg(m); if(dg>0) w.append(avIcon("dg","dg",`${dg} dungeon${dg>1?"s":""} (solo ${m.s}, grupo ${m.g}, raid ${m.e})`,dg));
   return w; }
 /* ícone grande do tipo do mapa, à esquerda do nome (imagens do jogo para HO e Tunnel) */
-const AV_TYIMG={ho:"imagens/ico-ho.png",tunnel:"imagens/ico-tunnel.png"};
-function avTyIcon(m){ const c=avTyCls(m.y), g=AV_TYPE_G(m.y).toLowerCase(), tip=avTypeTxt(m.y), b=el("span",{class:"av-tyi "+c,title:tip,role:"img","aria-label":tip});
-  if(AV_TYIMG[g]&&c!=="red") b.append(el("img",{src:AV_TYIMG[g],alt:"",loading:"lazy",decoding:"async"})); else b.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true">${AV_SVG[c==="red"?"royal":g]}</svg>`;
-  return b; }
+const AV_TYIMG={ho:"imagens/ico-ho.png",tunnel:"imagens/ico-tunnel.png",black:"imagens/ico-black.svg",royal:"imagens/ico-blue.svg",red:"imagens/ico-red.svg"};
+function avTyIcon(m){ const c=avTyCls(m.y), g=AV_TYPE_G(m.y).toLowerCase(), tip=avTypeTxt(m.y), src=AV_TYIMG[c==="red"?"red":g], b=el("span",{class:"av-tyi "+c,title:tip,role:"img","aria-label":tip});
+  b.append(el("img",{src,alt:"",loading:"lazy",decoding:"async"})); return b; }
 function avZoom(m,pic){
   const old=document.getElementById("avZoom"); if(old) old.remove();
   const ov=el("div",{id:"avZoom",class:"av-zoom",role:"dialog","aria-modal":"true","aria-label":`Mapa ${m.n}`});
@@ -128,7 +127,7 @@ function avHistUI(){ const h=$("avHist"); h.textContent=""; if(!AV.hist.length) 
 function avInit(){
   AV.inited=true; AV.saved=avRead("avSaved",[]).filter(x=>x&&x.i); AV.hist=avRead("avHist",[]);
   const tier=$("avTier"); [[0,"Todos"],[4,"T4"],[6,"T6"],[8,"T8"]].forEach(([v,t])=>{ const b=el("button",{type:"button","aria-pressed":String(v===0),text:t}); b.addEventListener("click",()=>{ AV.tier=v; AV.shown=60; [...tier.children].forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderAv(); }); tier.append(b); });
-  const ty=$("avType"); ty.append(el("option",{value:"",text:"Todos os tipos"})); for(const [k,v] of Object.entries(AV_G_PT)) ty.append(el("option",{value:k,text:v})); ty.append(el("option",{value:"ROYAL_RED",text:"Red"})); ty.addEventListener("change",()=>{ AV.type=ty.value; AV.shown=60; renderAv(); });
+  const ty=$("avType"); ty.append(el("option",{value:"",text:"Todos os tipos"})); for(const [k,v] of Object.entries(AV_G_PT)) ty.append(el("option",{value:k,text:v})); ty.append(el("option",{value:"ROYAL_RED",text:"Royal Red"})); ty.addEventListener("change",()=>{ AV.type=ty.value; AV.shown=60; renderAv(); });
   const mk=(host,obj,set)=>{ for(const k in obj){ const b=el("button",{type:"button","aria-pressed":"false",text:Array.isArray(obj[k])?obj[k][0]:obj[k]}); b.addEventListener("click",()=>{ if(set.has(k)) set.delete(k); else set.add(k); b.setAttribute("aria-pressed",String(set.has(k))); AV.shown=60; renderAv(); }); host.append(b); } };
   mk($("avRes"),AV_RES,AV.res); mk($("avExtra"),AV_EXTRA,AV.extra);
   $("avSort").addEventListener("change",()=>{ AV.sort=$("avSort").value; renderAv(); });
