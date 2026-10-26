@@ -52,7 +52,7 @@ async function renderVersao(){
   const t=el("div",{class:"v-time"}); t.append(el("b",{text:fmtDH(d)}), el("span",{text:`horário de Brasília · ${haQuanto(d)}`})); hero.append(t);
   const resumo=el("ul",{class:"v-list v-res"}); hero.append(resumo);
   const st=el("div",{class:"v-st "+(atual?"ok":"novo")});
-  st.append(el("span",{class:"v-dot"}), el("span",{text:atual?"Você está usando a versão mais recente.":`Há uma versão nova (a sua é ${meu}).`}));
+  st.append(el("span",{class:"v-dot"}), el("span",{text:atual?"Você está usando a versão mais recente.":(document.body.classList.contains("em-overlay")?`O site foi atualizado depois que o Overlay abriu (a sua é ${meu}). A versão nova entra quando você reabrir o Overlay.`:`Há uma versão nova (a sua é ${meu}).`)}));
   /* no site o botão fica neste lado (recarregar a página); no Overlay ele fica no cartão do programa, ao lado */
   if(!atual&&!document.body.classList.contains("em-overlay")){ const b=el("button",{type:"button",class:"bc-more",text:"Recarregar agora"}); b.addEventListener("click",()=>location.reload()); st.append(b); }
   hero.append(st);
