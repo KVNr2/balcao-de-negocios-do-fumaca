@@ -119,11 +119,15 @@
    "video": "twitch:2909292331",
    "servidor": "eu",
    "dia": "2026-10-24",
-   "janela_utc": "09:33-09:34, 14:53 e 14:57",
+   "janela_utc": "09:33-09:34, 14:53 e 14:57 e 12:25 (5v5, VOD 4:11)",
    "zona": "Ancient Lands (Region Quest: Ancient Lands e Leygate Keystone Quest na tela); VOD do EugenGen começou 08:13:45 UTC; mensagens 'You killed BaldiSin' em 1:19:35 (evento 09:33:16) e 'You were killed by ProTurq' em 1:20:19 (evento 09:33:59), 1v1; morte com perda total do equipamento (Death Recap: respawn Caerleon)",
    "ids": [
     452403432,
     452403710,
+    452461674,
+    452461676,
+    452461678,
+    452461680,
     452535755,
     452538111
    ]
