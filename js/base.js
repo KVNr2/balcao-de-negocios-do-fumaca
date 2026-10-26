@@ -832,10 +832,10 @@ async function renderCook(){
   const hr=tb.createTHead().insertRow(); ["Item","Fornada","Lucro com foco","Por ponto de foco","Venda típica",""].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
   if(!COOK_LOADED){ const td=body.insertRow().insertCell(); td.colSpan=6; td.textContent="Buscando preços dos ingredientes…"; await ensureCook(); if(!COOK_LOADED){ td.textContent="Não consegui buscar os preços agora. Tente atualizar."; return; } return renderCook(); }
-  const only=$("ckBuilds").checked;
-  const rows=Object.keys(COOK.r).filter(id=>COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id))).map(cookModel).filter(Boolean)
+  const only=$("ckBuilds").checked, FAVON=!!(window.FAV&&FAV.on("cozinha"));
+  const rows=Object.keys(COOK.r).filter(id=>FAVON?FAV.has("cozinha",id):(COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id)))).map(cookModel).filter(Boolean)
     .sort((a,b)=>((b.p1??-1e12)-(a.p1??-1e12)));
-  for(const m of rows){ const tr=body.insertRow(); tr.tabIndex=0; tr.className="clickrow";
+  for(const m of rows){ const tr=body.insertRow(); tr.dataset.fav=m.id; tr.tabIndex=0; tr.className="clickrow";
     const a=tr.insertCell(); const an=el("span"); an.append(m.name); if(BUILD_FOOD.includes(m.id)) an.append(" ",el("span",{class:"spec",text:"build"})); a.append(withIcon(m.id,an));
     tr.insertCell().textContent=`${m.q} ${m.kind==="f"?(m.q>1?"porções":"porção"):(m.q>1?"poções":"poção")}`;
     if(m.miss){ const td=tr.insertCell(); td.colSpan=3; td.className="muted"; td.textContent=`Sem preço: ${m.miss}`; tr.insertCell(); continue; }
