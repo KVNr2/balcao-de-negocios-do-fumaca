@@ -707,7 +707,7 @@ async function lerFichaDoAlbion(txt){ txt=decodeURIComponent(txt);
   if(txt.startsWith("gz.")){ const bin=Uint8Array.from(atob(txt.slice(3).replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
     return JSON.parse(await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).text()); }
   return JSON.parse(decodeURIComponent(escape(atob(txt)))); }
-async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.hash); if(!m) return; history.replaceState(null,"",location.pathname+location.search);
+async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.hash); if(!m) return; history.replaceState(null,"",location.pathname+location.search+ponteHash0);   /* devolve o endereço de antes (ex.: #ficha), senão a página perde a aba em que estava */
   let o=null; try{ o=await lerFichaDoAlbion(m[1]); if(typeof o!=="object"||!o||!o.armas) o=null; }catch(err){ o=null; }
   if(!o){ $("pfStatus").textContent="Não consegui ler a ficha vinda do Albion."; return; }
   for(let i=0;!PF&&i<200;i++) await new Promise(r=>setTimeout(r,50)); if(!PF) return;
@@ -724,12 +724,12 @@ async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.has
 /* Ponte com o Albion Overlay (o programa): site e overlay usam a MESMA ficha. O programa guarda a ficha em
    http://127.0.0.1:47832/ficha (só neste PC). O site puxa quando há novidade (seq maior) e empurra quando você edita. */
 const PONTE="http://127.0.0.1:47832/ficha";
-let ponteSeq=0, ponteLig=false, ponteEco="", ponteInit=false;   /* ponteInit: só empurra depois de ter puxado a ficha do programa uma vez (uma ficha vazia do site nunca apaga a do jogo) */ try{ ponteSeq=+localStorage.getItem("ponteSeq")||0; }catch(e){}
+let ponteHash0="", ponteSeq=0, ponteLig=false, ponteEco="", ponteInit=false;   /* ponteInit: só empurra depois de ter puxado a ficha do programa uma vez (uma ficha vazia do site nunca apaga a do jogo) */ try{ ponteSeq=+localStorage.getItem("ponteSeq")||0; }catch(e){}
 async function pontePuxar(){ try{
     const r=await fetch(PONTE,{cache:"no-store"}); if(!r.ok) return false; const j=await r.json(); ponteLig=true; ponteInit=true;
     if(j.code && j.seq>ponteSeq && j.code!==ponteEco && j.code!==fichaCode()){
       ponteSeq=j.seq; try{ localStorage.setItem("ponteSeq",String(ponteSeq)); }catch(e){}
-      ponteEco=j.code; location.hash="#ficha="+encodeURIComponent(j.code); }   /* reaproveita o caminho que já aplica a ficha do jogo */
+      ponteEco=j.code; if(!/^#ficha=/.test(location.hash)) ponteHash0=location.hash; location.hash="#ficha="+encodeURIComponent(j.code); }   /* reaproveita o caminho que já aplica a ficha do jogo */
     else if(j.seq>ponteSeq){ ponteSeq=j.seq; try{ localStorage.setItem("ponteSeq",String(ponteSeq)); }catch(e){} }
     if(typeof afSet==="function") afSet(); return true; }catch(e){ ponteLig=false; return false; } }
 let pontePush=0;
