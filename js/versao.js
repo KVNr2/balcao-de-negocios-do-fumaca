@@ -32,6 +32,13 @@ async function renderLista(box,tok){
   w.before(el("p",{class:"muted small",text:`${sel.length} ${sel.length===1?"atualização":"atualizações"} ${cat==="programa"?"do programa Albion Overlay":"do site"}.`}));
   sel.forEach(x=>w.append(vCard(x)));
 }
+/* Overlay: atualiza o programa (se houver versão nova) e reabre; sem versão nova do programa, só relê o site publicado */
+async function ovAtualizar(b,msg){ b.disabled=true; const t0=b.textContent; b.textContent="Atualizando…";
+  try{ const r=await fetch("/atualizar",{method:"POST"}).then(x=>x.json());
+    if(r.ok&&r.atualizou){ msg.textContent="Atualizado. O Overlay vai fechar e abrir de novo em instantes."; b.remove(); return; }
+    if(r.ok||/instalado/.test(r.erro||"")){ location.reload(); return; }
+    msg.textContent=r.erro||"Não consegui atualizar agora."; b.disabled=false; b.textContent="Tentar de novo";
+  }catch(e){ msg.textContent="O Overlay fechou ou não respondeu. Se não reabrir, abra o Albion Overlay de novo."; b.remove(); } }
 async function renderVersao(){
   const tok=++VTOK, box=$("vBox"); const meu=document.documentElement.dataset.v||"";
   let pub=null; try{ pub=await fetch("versao.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()); }catch(e){}
@@ -46,7 +53,12 @@ async function renderVersao(){
   const resumo=el("ul",{class:"v-list v-res"}); hero.append(resumo);
   const st=el("div",{class:"v-st "+(atual?"ok":"novo")});
   st.append(el("span",{class:"v-dot"}), el("span",{text:atual?"Você está usando a versão mais recente.":`Há uma versão nova (a sua é ${meu}).`}));
-  if(!atual){ const b=el("button",{type:"button",class:"bc-more",text:"Recarregar agora"}); b.addEventListener("click",()=>location.reload()); st.append(b); }
+  if(!atual){
+    if(document.body.classList.contains("em-overlay")){
+      /* no Overlay não existe "recarregar o site": o botão atualiza o programa e reabre (o site publicado é lido de novo ao abrir) */
+      const b=el("button",{type:"button",class:"bc-more",text:"Atualizar e reabrir"}); const msg=st.lastChild; b.addEventListener("click",()=>ovAtualizar(b,msg)); st.append(b);
+    } else { const b=el("button",{type:"button",class:"bc-more",text:"Recarregar agora"}); b.addEventListener("click",()=>location.reload()); st.append(b); }
+  }
   hero.append(st);
   const todasBtn=el("button",{type:"button",class:"bc-more v-todas",text:"Ver todas as atualizações →"}); todasBtn.addEventListener("click",()=>vIr("site")); hero.append(todasBtn); box.append(hero);
   /* resumo curto do que mudou: com versão nova, o que veio depois da versão do visitante; senão, as últimas do site */
@@ -76,15 +88,10 @@ async function renderVersao(){
       const st2=el("div",{class:"v-st "+(igual?"ok":"novo")}); st2.append(el("span",{class:"v-dot"}));
       const msg=el("span",{text: !rodando?"Este é o programa em uso (versão de teste ou sem número).": igual?`Você está usando a versão mais recente do programa (${rodando}).`:`Você está na ${rodando} e já existe a ${pj.versao}.`}); st2.append(msg);
       if(!igual){ const b=el("button",{type:"button",class:"bc-more",text:"Atualizar e reabrir"});
-        b.addEventListener("click",async()=>{ b.disabled=true; b.textContent="Atualizando…";
-          try{ const r=await fetch("/atualizar",{method:"POST"}).then(x=>x.json());
-            if(r.ok&&r.atualizou){ msg.textContent="Atualizado. O Overlay vai fechar e abrir de novo em instantes."; b.remove(); }
-            else if(r.ok){ msg.textContent="Você já está na versão mais recente."; b.remove(); }
-            else { msg.textContent=r.erro||"Não consegui atualizar agora."; b.disabled=false; b.textContent="Tentar de novo"; }
-          }catch(e){ msg.textContent="O Overlay fechou ou não respondeu. Se não reabrir, abra o Albion Overlay de novo."; b.remove(); } });
+        b.addEventListener("click",()=>ovAtualizar(b,msg));
         st2.append(b); }
       prog.append(st2);
-      prog.append(el("small",{class:"muted",text:"O Overlay também confere sozinho ao abrir. O botão do site (Recarregar agora) só recarrega as páginas do site, não o programa."}));
+      prog.append(el("small",{class:"muted",text:"O Overlay também confere sozinho ao abrir."}));
     } else
     prog.append(el("div",{class:"v-st ok"},el("span",{class:"v-dot"}),el("span",{text:"O programa se atualiza sozinho ao abrir; não precisa recarregar o site."})));
   }catch(e){ prog.append(el("p",{class:"muted",text:"Não consegui ler a versão do programa agora."})); } })();
