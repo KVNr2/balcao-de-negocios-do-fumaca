@@ -68,6 +68,24 @@ async function renderVersao(){
     if(nota){ const dt=new Date(nota.t); pt.append(el("b",{text:fmtDH(dt)}), el("span",{text:`horário de Brasília · ${haQuanto(dt)}`})); const ul=el("ul",{class:"v-list"}); (nota.itens||[]).forEach(t=>ul.append(el("li",{text:t}))); prog.append(ul); }
     else try{ const c=(await fetch("https://api.github.com/repos/KVNr2/balcao-de-negocios-do-fumaca/commits?path=programa/versao.json&per_page=1",{headers:{Accept:"application/vnd.github+json"}}).then(r=>r.json()))[0];
       const dt=new Date(c.commit.committer.date); pt.append(el("b",{text:fmtDH(dt)}), el("span",{text:`horário de Brasília · ${haQuanto(dt)} · ${c.commit.message.split("\n")[0].replace(/^(?:AlbionSpecs|Albion Overlay)\s*[\d.]+:\s*/,"")}`})); }catch(e){}
+    if(document.body.classList.contains("em-overlay")){
+      /* dentro do Overlay: "Recarregar" do site só recarrega esta página; o programa só troca de versão ao reabrir */
+      let rodando=""; try{ const e=await fetch("/estado",{cache:"no-store"}).then(r=>r.json()); rodando=((e.versao||"").match(/\d+(?:\.\d+)+/)||[""])[0]; }catch(e){}
+      if(tok!==VTOK) return;
+      const igual=!rodando||rodando===pj.versao;
+      const st2=el("div",{class:"v-st "+(igual?"ok":"novo")}); st2.append(el("span",{class:"v-dot"}));
+      const msg=el("span",{text: !rodando?"Este é o programa em uso (versão de teste ou sem número).": igual?`Você está usando a versão mais recente do programa (${rodando}).`:`Você está na ${rodando} e já existe a ${pj.versao}.`}); st2.append(msg);
+      if(!igual){ const b=el("button",{type:"button",class:"bc-more",text:"Atualizar e reabrir"});
+        b.addEventListener("click",async()=>{ b.disabled=true; b.textContent="Atualizando…";
+          try{ const r=await fetch("/atualizar",{method:"POST"}).then(x=>x.json());
+            if(r.ok&&r.atualizou){ msg.textContent="Atualizado. O Overlay vai fechar e abrir de novo em instantes."; b.remove(); }
+            else if(r.ok){ msg.textContent="Você já está na versão mais recente."; b.remove(); }
+            else { msg.textContent=r.erro||"Não consegui atualizar agora."; b.disabled=false; b.textContent="Tentar de novo"; }
+          }catch(e){ msg.textContent="O Overlay fechou ou não respondeu. Se não reabrir, abra o Albion Overlay de novo."; b.remove(); } });
+        st2.append(b); }
+      prog.append(st2);
+      prog.append(el("small",{class:"muted",text:"O Overlay também confere sozinho ao abrir. O botão do site (Recarregar agora) só recarrega as páginas do site, não o programa."}));
+    } else
     prog.append(el("div",{class:"v-st ok"},el("span",{class:"v-dot"}),el("span",{text:"O programa se atualiza sozinho ao abrir; não precisa recarregar o site."})));
   }catch(e){ prog.append(el("p",{class:"muted",text:"Não consegui ler a versão do programa agora."})); } })();
   /* commits mais novos que esta versão: o commit que gerou a versão é o último que mexeu em versao.json; o que veio depois ainda não entrou no ar */
