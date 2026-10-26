@@ -53,12 +53,8 @@ async function renderVersao(){
   const resumo=el("ul",{class:"v-list v-res"}); hero.append(resumo);
   const st=el("div",{class:"v-st "+(atual?"ok":"novo")});
   st.append(el("span",{class:"v-dot"}), el("span",{text:atual?"Você está usando a versão mais recente.":`Há uma versão nova (a sua é ${meu}).`}));
-  if(!atual){
-    if(document.body.classList.contains("em-overlay")){
-      /* no Overlay não existe "recarregar o site": o botão atualiza o programa e reabre (o site publicado é lido de novo ao abrir) */
-      const b=el("button",{type:"button",class:"bc-more",text:"Atualizar e reabrir"}); const msg=st.lastChild; b.addEventListener("click",()=>ovAtualizar(b,msg)); st.append(b);
-    } else { const b=el("button",{type:"button",class:"bc-more",text:"Recarregar agora"}); b.addEventListener("click",()=>location.reload()); st.append(b); }
-  }
+  /* no site o botão fica neste lado (recarregar a página); no Overlay ele fica no cartão do programa, ao lado */
+  if(!atual&&!document.body.classList.contains("em-overlay")){ const b=el("button",{type:"button",class:"bc-more",text:"Recarregar agora"}); b.addEventListener("click",()=>location.reload()); st.append(b); }
   hero.append(st);
   const todasBtn=el("button",{type:"button",class:"bc-more v-todas",text:"Ver todas as atualizações →"}); todasBtn.addEventListener("click",()=>vIr("site")); hero.append(todasBtn); box.append(hero);
   /* resumo curto do que mudou: com versão nova, o que veio depois da versão do visitante; senão, as últimas do site */
