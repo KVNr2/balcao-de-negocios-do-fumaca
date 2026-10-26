@@ -237,32 +237,45 @@ function ofSpf(m){ if(m.spf!=null) return m.spf; const fb=ofFB(m.it), a=ofModel(
   m.spf=a&&b&&!a.miss&&!b.miss&&a.fc>0?(a.profit-b.profit)/a.fc:-Infinity; m.pF=a&&!a.miss?a:null; m.pN=b&&!b.miss?b:null; return m.spf; }
 const ofDayProfit=m=>{ const h=OF2.hs[nk(m.it.id)+"|"+m.sale.c], v=h&&h.vol>0?h.vol:0; return m.units>0?m.profit/m.units*Math.min(m.units,v):m.profit; };   // lucro que dá para realizar em 1 dia de venda
 function ofSorter(){ if(OF.sort==="day") return (a,b)=>ofDayProfit(b)-ofDayProfit(a); if(OF.sort==="pct") return (a,b)=>b.pct-a.pct; if(OF.sort==="focus") return (a,b)=>ofSpf(b)-ofSpf(a); return (a,b)=>b.profit-a.profit; }
+/* favoritos: contexto para achar o item de novo (categoria que o carrega) e lista dos favoritos ignorando tier, encantamento, busca e categoria */
+const ofFavCtx=it=>JSON.stringify({cat:OF.mode==="refine"?"refine":(BM&&BM[it.key]?"g:"+BM[it.key][1]:(COOK&&COOK.r&&COOK.r[it.id]?(COOK.r[it.id][1]==="f"?"meal":"potion"):""))});
+async function ofFavItems(){
+  const tab=OF.mode==="refine"?"refine":"craft", favs=FAV.list(tab), keep=new Set(favs.map(f=>f.k)), cats=[...new Set(favs.map(f=>f.c&&f.c.cat).filter(Boolean))];
+  const sT=OF.tier, sE=OF.ench, out=[], seen=new Set();
+  try{ for(const c of cats){ if(!OF.loaded.has(c.startsWith("refine")?"refine":c)){ if(!await ensureOf(c)) return null; }
+      OF.tier=0; OF.ench=-1; for(const it of ofItems(c)) if(keep.has(it.id)&&!seen.has(it.id)){ seen.add(it.id); out.push(it); } } }
+  finally{ OF.tier=sT; OF.ench=sE; }
+  return out;
+}
 async function renderOf(){
   const note=$("ofNote"), tb=$("ofTable");
   if(!BM){ try{ BM=await need("bm"); }catch(e){ note.textContent="Não consegui abrir as receitas."; return; } }
   ofApplyMode(!$("p-refino").hidden?"refine":!$("p-craft").hidden?"craft":(OF.mode||"craft")); setupOf(); const cat=$("ofCat").value;
-  const isG=cat.startsWith("g:"), agg=cat.startsWith("g:*");
+  const FAVON=!!(window.FAV&&FAV.on(OF.mode==="refine"?"refine":"craft"));
+  const isG=!FAVON&&cat.startsWith("g:"), agg=!FAVON&&cat.startsWith("g:*");
   $("ofPrem").checked=!!st.prem; $("ofDaily").checked=st.daily>0;
   if(agg&&!OF.tier){ tb.textContent=""; $("ofCount").textContent="—"; note.textContent="Para comparar todos os itens do grupo, escolha um tier (T4 a T8) no painel à esquerda. O encantamento pode ficar em Todos."; return; }
   const sellKey=ofSig(), tierKey=OF.tier, enchKey=OF.ench, qKey=OF2.qual;
   const stale=()=>$("ofCat").value!==cat||ofSig()!==sellKey||OF.tier!==tierKey||OF.ench!==enchKey||OF2.qual!==qKey;
-  if(isG){ tb.textContent=""; note.textContent="Consultando receitas e preços…"; const ok=await ensureOfG(cat,note); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if(stale()) return; }
+  let items;
+  if(FAVON){ tb.textContent=""; note.textContent="Consultando os favoritos…"; items=await ofFavItems(); if(items===null){ note.textContent="Não consegui consultar os preços agora."; return; } if(stale()) return; }
+  else if(isG){ tb.textContent=""; note.textContent="Consultando receitas e preços…"; const ok=await ensureOfG(cat,note); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if(stale()) return; }
   else if(!OF.loaded.has(cat.startsWith("refine")?"refine":cat)){ tb.textContent=""; note.textContent="Consultando receitas e preços…"; const ok=await ensureOf(cat); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("ofCat").value!==cat) return; }
-  let items=ofItems(cat).filter(it=>(!OF.tier||it.t===OF.tier)&&(OF.ench<0||it.e===OF.ench)&&(!OF.q||it.name.toLowerCase().includes(OF.q)));
+  if(!FAVON) items=ofItems(cat).filter(it=>(!OF.tier||it.t===OF.tier)&&(OF.ench<0||it.e===OF.ench)&&(!OF.q||it.name.toLowerCase().includes(OF.q)));
   $("ofCount").textContent=fmt(items.length);
   if(OF2.qual>1&&isG){ note.textContent=`Consultando preços de venda em qualidade ${QNAME[OF2.qual].toLowerCase()}…`; if(!await ensureOfQ(items)){ note.textContent="Não consegui consultar a qualidade agora."; return; } if(stale()) return; }
   if(OF.sellS==='medio'||OF.buyS==='medio'){ note.textContent='Consultando valores médios…'; await ofPrefetchAvg(items); if(stale()) return; }
   OF2.sample=items[0];
   const rows=items.map(it=>ofModel(it)).filter(Boolean); let ok0=rows.filter(m=>!m.miss);
   if(OF.sort==="day"){ note.textContent="Consultando as vendas por dia…"; ok0=ok0.slice().sort((a,b)=>b.profit-a.profit).slice(0,200); await histFetch(ok0.map(m=>nk(m.it.id)+"|"+m.sale.c)); if(stale()) return; }
-  const ok=ok0.sort(ofSorter()), LIM=agg?120:60, shown=ok.slice(0,LIM);
+  const ok=ok0.sort(ofSorter()), LIM=FAVON?400:agg?120:60, shown=ok.slice(0,LIM);
   ofSyncRR();
   tb.textContent=""; const hr=el("div",{class:"of-lh"}); [["Item",""],["Custo","Custo total real: materiais, taxa da estação, taxas de compra e de venda"],["Venda","Venda bruta, antes das taxas"],["Lucro","Lucro total das receitas"],["Venda e compra","O número no ícone é a quantidade: unidades a vender e materiais a comprar"]].forEach(([h,t])=>hr.append(el("span",{text:h,title:t}))); tb.append(hr);
   const fitW=()=>{ const w=tb.parentNode; if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }; fitW(); if(!OF2.rs){ OF2.rs=1; addEventListener("resize",()=>{ const w=$("ofTable").parentNode; w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }); }
   const body=tb; let oldest=Infinity, newest=0;
   const stamp=t=>{ if(t>0){ oldest=Math.min(oldest,t); newest=Math.max(newest,t); } };
   const qIc=OF2.qual>1&&isG?OF2.qual:1; OF2.rows=[];
-  for(const m of shown){ const key=m.it.id; const item=el("div",{class:"of-item"}); body.append(item); const tr=el("div",{class:"of-row"}); item.append(tr); tr.dataset.id=m.it.id; tr.dataset.city=m.sale.c; tr.className="clickrow of-row "+(m.profit>=0?"is-gain":"is-loss"); tr.tabIndex=0; tr.setAttribute("aria-expanded","false");
+  for(const m of shown){ const key=m.it.id; const item=el("div",{class:"of-item"}); body.append(item); const tr=el("div",{class:"of-row"}); item.append(tr); tr.dataset.id=m.it.id; tr.dataset.fav=m.it.id; tr.dataset.fctx=ofFavCtx(m.it); tr.dataset.city=m.sale.c; tr.className="clickrow of-row "+(m.profit>=0?"is-gain":"is-loss"); tr.tabIndex=0; tr.setAttribute("aria-expanded","false");
     stamp(m.sale.t); m.parts.forEach(g=>stamp(g.b&&g.b.t));
     const c0=el("div",{class:"itemcell"}); tr.append(c0); const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▾"});
     const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:OF.mode==="refine"?`${fmt(m.N)} ${m.N>1?"unidades":"unidade"} com ${fmt(m.fc)} de foco`:m.Np!==m.N?`${fmt(m.Np)} pagas → ${fmt(m.N)} ${m.N>1?"receitas":"receita"} com o retorno`:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}${OF.mode==="refine"?"refina":"faz"} em ${m.it.city}`})); if(OF.mode!=="refine"&&OF.rr==="focus"&&OF2.rrMan==null){ try{ ofSpf(m); }catch(e){} if(m.pF&&m.pF.fc1>0){ const cov=Math.min(m.N,Math.floor(focBud()/m.pF.fc1)), full=cov>=m.N, pc=m.N?Math.round(cov/m.N*100):0, un=OF.mode==="refine"?"unidades":"receitas"; const fm=el("span",{class:"wk-fm"+(full?" full":cov?"":" none"),title:`Cada ${OF.mode==="refine"?"unidade":"receita"} gasta ${fmt(m.pF.fc1)} de foco; com ${fmt(focBud())} por dia o foco cobre ${fmt(cov)} de ${fmt(m.N)}`}); fm.append(el("span",{class:"wk-fl",text:"Foco"}),el("span",{class:"wk-fbar"},el("i",{style:`width:${pc}%`})),el("b",{text:`cobre ${fmt(cov)} de ${fmt(m.N)} ${un}`})); nmb.append(fm); } }
@@ -388,27 +401,29 @@ async function renderMk(){
   if(!CATALOG){ note.textContent="Abrindo o catálogo de itens do jogo…"; try{ CATALOG=await need("catalog"); }catch(e){ note.textContent="Não consegui abrir o catálogo."; return; } }
   setupMk();
   const q=MK.q, search=q.length>=2;
-  let base=CATALOG.i.filter(r=> search ? ((r[5]||"").toLowerCase().includes(q)||(r[6]||"").toLowerCase().includes(q)||r[0].toLowerCase().includes(q)) : ((!MK.cat||r[1]===MK.cat)&&(!MK.sub||r[2]===MK.sub)));
-  base=base.filter(r=>!MK.tier||r[3]===MK.tier);
-  if(search){ const rank={weapons:0,armors:1,head:1,shoes:1,offhands:2,capes:2,crafting:3,consumables:3,farming:4,mounts:4,bags:4,gathering:5,artefacts:6,other:7,furniture:8,vanity:9};
+  const FAVON=!!(window.FAV&&FAV.on("mk"));
+  let base=CATALOG.i.filter(r=> FAVON ? true : search ? ((r[5]||"").toLowerCase().includes(q)||(r[6]||"").toLowerCase().includes(q)||r[0].toLowerCase().includes(q)) : ((!MK.cat||r[1]===MK.cat)&&(!MK.sub||r[2]===MK.sub)));
+  base=base.filter(r=>FAVON||!MK.tier||r[3]===MK.tier);
+  if(search&&!FAVON){ const rank={weapons:0,armors:1,head:1,shoes:1,offhands:2,capes:2,crafting:3,consumables:3,farming:4,mounts:4,bags:4,gathering:5,artefacts:6,other:7,furniture:8,vanity:9};
     const nm_=r=>(mkName(r)||"").toLowerCase(); base.sort((a,b)=>((nm_(b).startsWith(q))-(nm_(a).startsWith(q)))||((rank[a[1]]??9)-(rank[b[1]]??9))||(a[3]-b[3])); }
   else if(!MK.cat){ const rank={weapons:0,armors:1,head:1,shoes:1,offhands:2,capes:2,crafting:3,consumables:3,farming:4,mounts:4,bags:4,gathering:5,artefacts:6,other:7,furniture:8,vanity:9}; base.sort((a,b)=>((rank[a[1]]??9)-(rank[b[1]]??9))||mkName(a).localeCompare(mkName(b),"pt-BR")||(a[3]-b[3])); }
   else base.sort((a,b)=>subName(a[2]).localeCompare(subName(b[2]),"pt-BR")||mkName(a).localeCompare(mkName(b),"pt-BR")||(a[3]-b[3]));
-  const list=[]; for(const r of base){ const es = MK.ench<0 ? (r[4]||isLevelRes(r)?[0,1,2,3,4]:[0]) : (MK.ench===0||r[4]||isLevelRes(r)?[MK.ench]:[]); for(const e of es) list.push({r,e,id:mkId(r,e)}); }
-  const total=list.length, slice=list.slice(0,MK.limit);
+  const list=[]; for(const r of base){ const es = (FAVON||MK.ench<0) ? (r[4]||isLevelRes(r)?[0,1,2,3,4]:[0]) : (MK.ench===0||r[4]||isLevelRes(r)?[MK.ench]:[]); for(const e of es) list.push({r,e,id:mkId(r,e)}); }
+  if(FAVON){ const keep=new Set(FAV.list("mk").map(f=>f.k)); const kept=list.filter(x=>keep.has(x.id)); list.length=0; list.push(...kept); }
+  const total=list.length, slice=FAVON?list.slice():list.slice(0,MK.limit);
   const mq=MK.qual, seen=id=>mq>1?`${mq}|${id}`:id;
   const want=slice.map(x=>x.id).filter(id=>!MK_SEEN.has(seen(id)));
   if(want.length){ note.textContent=`Consultando ${want.length} itens em todas as cidades${mq>1?`, qualidade ${QNAME[mq].toLowerCase()}`:""}…`; tb.textContent="";
     try{ await fetchIds(want,mq>1?PQ[mq]:DATA.itens,SHOP_LOCS,mq); want.forEach(id=>MK_SEEN.add(seen(id))); }catch(e){ note.textContent="Não consegui consultar os preços agora."; return; }
     if(MK.qual!==mq) return; }
-  const spr=x=>x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0; const rows=slice.map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>!MK.only||x.x.smin||x.x.bmax).sort((a,b)=>spr(b)-spr(a));
+  const spr=x=>x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0; const rows=slice.map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>FAVON||!MK.only||x.x.smin||x.x.bmax).sort((a,b)=>spr(b)-spr(a));
   const cities=MK.city?[MK.city]:SHOP_LOCS;
   tb.textContent=""; const hr=tb.createTHead().insertRow(); hr.append(el("th",{text:"Item"}));
   cities.forEach(c=>{ const th=el("th",{}); th.append(el("span",{class:"dot",style:`background:${CITY_COLOR[c]||"#999"}`}),c); hr.append(th); });
   ["Preço médio","Diferença","Atualizado",""].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody(), src=mq>1?(PQ[mq]||{}):DATA.itens;
   for(const x of rows){ const rec=src[mkKey(x.id)]||{}; const sp=x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0, spp=x.x.smin?sp/x.x.smin.p:0, hot=sp>0, tone=!(x.x.smax&&x.x.smin)?"is-flat":sp>0?"is-gain":"is-warn";
-    const tr=body.insertRow(); tr.className="clickrow bm-row mk-row "+tone; tr.tabIndex=0; const nm_=mkName(x.r);
+    const tr=body.insertRow(); tr.dataset.fav=x.id; tr.className="clickrow bm-row mk-row "+tone; tr.tabIndex=0; const nm_=mkName(x.r);
     const c0=tr.insertCell(); c0.className="itemcell"; const hd=el("div",{class:"ihead"}); const ii=iconImg(x.id,76,mq); ii.classList.add("ic-row"); if(x.r[3]) hd.append(el("span",{class:"tbadge",text:`T${x.r[3]}`})); hd.append(ii);
     const nb=el("span",{class:"inm"}); const tn=el("strong",{}); tn.append(nm_); if(mq>1) tn.append(el("span",{class:"qtag q"+mq,text:QNAME[mq]})); nb.append(tn,el("small",{text:`${x.r[3]?`T${x.r[3]}.${x.e}`:"sem tier"} · ${CATALOG.c[x.r[1]]||""}${x.r[2]&&subName(x.r[2])!==CATALOG.c[x.r[1]]?` › ${subName(x.r[2])}`:""}`})); hd.append(nb); c0.append(hd);
     for(const c of cities){ const v=rec[c], td=tr.insertCell(); td.className="num mk-city"; if(!v||!(v[0]>0)){ td.textContent="—"; td.classList.add("none"); continue; }
