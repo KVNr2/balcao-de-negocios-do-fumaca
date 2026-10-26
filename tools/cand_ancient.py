@@ -46,7 +46,7 @@ def guardar(d, itens):
         except Exception: continue
         c = max(pr, key=pr.get)
         dias[dia][e["EventId"]] = {"id": e["EventId"], "t": e["TimeStamp"][:19] + "Z", "x": [float(v) for v in x], "g": len(e.get("GroupMembers") or []),
-                                   "n": e.get("numberOfParticipants"), "p": [c, round(pr[c], 2)], "k": 1 if kk else 0}; novos += 1
+                                   "n": e.get("numberOfParticipants"), "p": [c, round(pr[c], 2)], "k": 1 if kk else 0, "dx": C.exatos_al(e["Victim"])}; novos += 1
     for dia, rs in dias.items():
         with gzip.open(os.path.join(pasta, f"cand-{dia}.jsonl.gz"), "wt", encoding="utf-8") as o:
             for r in sorted(rs.values(), key=lambda r: r["t"]): o.write(json.dumps(r, separators=(",", ":")) + "\n")

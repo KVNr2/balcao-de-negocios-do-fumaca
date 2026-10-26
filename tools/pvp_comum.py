@@ -7,6 +7,13 @@ def _t(x): return ((x or {}).get("Type") or "")
 def _conta(V, palavra):
     """quantos itens do inventário da vítima têm essa palavra no tipo (tesouros e itens de dragão aparecem nas mortes de Ancient Lands)"""
     return sum(1 for v in (V.get("Inventory") or []) if v and palavra in _t(v))
+# itens que, nos dados (57 mortes de AL contra 1.016 de outros conteúdos), só aparecem em Ancient Lands; o texto "DRAGON" solto não vale (pega a montaria do dragão do pântano e armaduras de dragão)
+EXATOS_AL = {"QUESTITEM_TOKEN_DRAGONS", "SHARD_FIRE_DRAGON", "SHARD_RANDOM_DUNGEON_ELITE_DRAGON_TOKEN", "ALCHEMY_RARE_DRAGONAREA", "UNIQUE_UNLOCK_LORE_DRAGON_11"}
+def exatos_al(V):
+    """quantos itens exclusivos de Ancient Lands (inventário + equipamento) a vítima levava"""
+    import re
+    its = list(V.get("Inventory") or []) + list(_eq(V).values())
+    return sum(1 for v in its if v and _t(v) and re.sub(r"^T\d_", "", _t(v)).split("@")[0] in EXATOS_AL)
 def familias(V):
     """tipos distintos de item da vítima (inventário + equipamento), sem tier nem encanto: material para descobrir quais itens indicam Ancient Lands"""
     import re
@@ -70,7 +77,9 @@ def empacotar(e, c, q=None, m=None):
     """x = vetor de características e q = confiança, guardados para reclassificar com o modelo novo e para o auto-treino"""
     try: x = [round(v, 1) for v in vetor(feat(e))]
     except Exception: x = None
+    dx = exatos_al(e["Victim"])
     return {"id": e["EventId"], "t": e["TimeStamp"][:19], "c": c, "m": m, "x": x, "q": round(q, 3) if q else None, "gm": len(e.get("GroupMembers") or []),
+            **({"dx": dx} if dx else {}),
             "k": _pp(e["Killer"]), "v": _pp(e["Victim"]), "p": [_pp(p) for p in (e.get("Participants") or []) if p.get("Id") and p.get("Id") != e["Killer"].get("Id")], "s": [_pp(p) for p in grupo(e)]}
 def _up(x):
     return {"Id": x["i"], "Name": x["n"], "GuildName": x["g"], "AverageItemPower": x["ip"], "DamageDone": x["d"], "SupportHealingDone": 0,
