@@ -85,7 +85,7 @@ def _up(x):
     return {"Id": x["i"], "Name": x["n"], "GuildName": x["g"], "AverageItemPower": x["ip"], "DamageDone": x["d"], "SupportHealingDone": 0,
             "Equipment": {s: {"Type": t} for s, t in x["e"].items()}}
 def desempacotar(r):
-    return {"EventId": r["id"], "TimeStamp": r["t"] + ".000000000Z", "_c": r["c"], "_x": r.get("x"), "_m": r.get("m"), "GroupMembers": [{}] * r["gm"],
+    return {"EventId": r["id"], "TimeStamp": r["t"] + ".000000000Z", "_c": r["c"], "_x": r.get("x"), "_m": r.get("m"), "_dx": r.get("dx") or 0, "GroupMembers": [{}] * r["gm"],
             "Killer": _up(r["k"]), "Victim": _up(r["v"]), "Participants": [_up(p) for p in r["p"]] + [dict(_up(p), _g=True) for p in r.get("s") or []]}
 
 # máximo de jogadores do lado vencedor (quem matou + quem ajudou) por conteúdo; acima disso a luta é grande demais e não entra
@@ -96,4 +96,12 @@ def n_venc(e):
         if p.get("Id") and (p.get("_g") or (p.get("DamageDone") or 0) > 0 or (p.get("SupportHealingDone") or 0) > 0): ids.add(p["Id"])
     ids |= {m["Id"] for m in grupo(e)}
     return len(ids - {None})
+# Terras Antigas (AL): morte classificada como solo, com item de dragão (dx>0), IP máximo entre 1150 e 1320 (soft cap 1200) e fama de abate acima de zero
+AL_IP = (1150, 1320)
+def eh_al(c, e):
+    if c != "solo" or (e.get("_dx") or 0) <= 0: return False
+    try: m = max(e["Killer"].get("AverageItemPower") or 0, e["Victim"].get("AverageItemPower") or 0)
+    except Exception: return False
+    x = e.get("_x") or []
+    return AL_IP[0] <= m <= AL_IP[1] and len(x) > 8 and x[8] > 0
 def cabe(c, e): return n_venc(e) <= MAX_VENC.get(c, 99)

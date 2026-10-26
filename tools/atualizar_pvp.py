@@ -11,7 +11,7 @@ import papel_arma
 B = "https://gameinfo.albiononline.com/api/gameinfo"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/130.0 Safari/537.36", "Accept": "application/json"}
 DIAS = 30; PAGINAS = int(os.environ.get("PVP_PAGINAS", "3")); ORCAMENTO = int(os.environ.get("PVP_MINUTOS", "25")) * 60; SEMENTES_POR = int(os.environ.get("PVP_SEMENTES", "45")); CONF = 0.7
-CONT = ["hg2", "hg5", "corrompida", "solo", "depths"]
+CONT = ["hg2", "hg5", "corrompida", "solo", "depths", "al"]
 SLOT = {"MainHand": "w", "OffHand": "o", "Head": "h", "Armor": "a", "Shoes": "s", "Cape": "c", "Potion": "p", "Food": "f"}
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 FALHAS = collections.Counter()
@@ -41,7 +41,7 @@ def tamanho(c, e):
     n = len(e.get("GroupMembers") or [])
     if c == "hg2": return 2
     if c == "hg5": return 5
-    if c in ("corrompida", "solo"): return 1
+    if c in ("corrompida", "solo", "al"): return 1
     return 1 if n <= 1 else 2 if n == 2 else 3
 def main():
     arv = C.carregar(); corte = datetime.datetime.utcnow() - datetime.timedelta(days=DIAS)
@@ -114,6 +114,7 @@ def main():
         except Exception: continue
         c = max(pr, key=pr.get)
         if c not in CONT or pr[c] < CONF or not C.cabe(c, e): continue
+        if C.eh_al(c, e): c = "al"      # Terras Antigas: mortes que o modelo chamou de solo mas têm item de dragão e IP na faixa do AL
         cl.append((c, e))
         venc, v = pessoas(e)
         for p in venc + [v]: cnt_j[(c, p.get("Id"))] += 1
@@ -241,7 +242,7 @@ def main():
         for i, n in sem.get(c, []):
             if i not in ja and len(novas[c]) < SEMENTES_POR + 15: novas[c].append([i, n])
     grind = json.load(open(os.path.join(ROOT, "data", "builds-grind.json")))["builds"]
-    CAT = {"hg2": ["HELLGATE_2V2"], "hg5": ["HELLGATE_5V5"], "corrompida": ["CORRUPTED_DUNGEON"], "solo": ["MISTS_SOLO", "MISTS_DUO"], "depths": ["ABYSSAL_DEPTHS_2V2", "ABYSSAL_DEPTHS_3V3"]}
+    CAT = {"hg2": ["HELLGATE_2V2"], "hg5": ["HELLGATE_5V5"], "corrompida": ["CORRUPTED_DUNGEON"], "solo": ["MISTS_SOLO", "MISTS_DUO"], "depths": ["ABYSSAL_DEPTHS_2V2", "ABYSSAL_DEPTHS_3V3"], "al": []}
     def sk_de(c, w):
         ach = [g for g in grind if g["k"] in CAT[c] and base(g.get("w")) == w and g.get("sk")]
         if not ach: ach = [g for g in grind if base(g.get("w")) == w and g.get("sk")]
