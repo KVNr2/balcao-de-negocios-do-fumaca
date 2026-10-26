@@ -162,7 +162,8 @@ function deriveLv(){ // mantém .lv (0 a 3) para as recomendações
   for(const k in PF.craft){ const r=PF.craft[k]; r.lv=r.obs>0?2:band(Math.max(r.m||0,...Object.values(r.s||{}))); }
   for(const k of ["cozinha","alquimia"]){ const r=PF[k]||(PF[k]={m:0,s:{}}); r.lv=band(Math.max(r.m||0,r.all||0,...Object.values(r.s||{}))); }
 }
-function loadProfile(){ try{ const s=store.get("ficha"); if(s){ PF=migrate(Object.assign({},JSON.parse(s))); PF=Object.assign(EMPTY(),PF); PF.v=3; IS_EXAMPLE=false; deriveLv(); return; } }catch(e){} PF=OLERAN(); IS_EXAMPLE=true; deriveLv(); }
+function loadProfile(){ try{ const s=store.get("ficha"); if(s){ PF=migrate(Object.assign({},JSON.parse(s))); PF=Object.assign(EMPTY(),PF); PF.v=3; IS_EXAMPLE=false; deriveLv(); return; } }catch(e){} if(/[?&]overlay=1\b/.test(location.search)){ PF=EMPTY(); IS_EXAMPLE=false; deriveLv(); return; }   /* no overlay a ficha começa vazia (o exemplo Oleran é só do site) */
+  PF=OLERAN(); IS_EXAMPLE=true; deriveLv(); }
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._h);
   if(window.gsap&&!RM) gsap.fromTo(t,{y:16,opacity:0},{y:0,opacity:1,duration:.3,ease:"back.out(2)"}); toast._h=setTimeout(()=>{ if(window.gsap&&!RM) gsap.to(t,{opacity:0,y:10,duration:.25,onComplete:()=>t.hidden=true}); else t.hidden=true; },1800); }
 function saveProfile(quieto){ IS_EXAMPLE=false; deriveLv(); store.set("ficha",JSON.stringify(PF)); if(typeof ponteEmpurrar==="function") ponteEmpurrar(); if(!quieto){ $("pfStatus").textContent="Ficha salva neste navegador."; toast("Ficha guardada no livro"); coinBurst(); } renderWho(); recompute(); }   /* quieto: ficha que chegou do programa/jogo, não uma edição da pessoa (sem aviso nem moedinhas) */
