@@ -266,7 +266,7 @@ def main():
                 if len(row["w"]) > 1: row["w2"] = row["w"][1]
                 row["w"] = row["w"][0]
             bs.append((n, k, row, b))
-        bs.sort(key=lambda x: -x[0]); bs = bs[:60]
+        bs.sort(key=lambda x: -x[0])      # todas as builds com amostra mínima (MINB lutas), da mais usada para a menos usada
         chaves = {k for _, k, _, _ in bs}; lista = []
         for n, k, row, b in bs:
             ctr = []; fr = []
@@ -312,7 +312,7 @@ def main():
                 ms.append(row)
             comps.append({"id": f"{c}{t}:C:{key}", "ws": key.split("+"), "n": n, "v": C_["v"], "d": C_["d"], "wr": round(100 * C_["v"] / n, 1), "ip": round(sum(m["ip"] for m in ms) / len(ms)), "m": ms})
         comps.sort(key=lambda x: (-x["n"], -x["wr"])); comps = comps[:40]
-        out["conteudos"][f"{c}:{t}"] = {"eventos": A.get("ev", 0), "lutas": A["n"], "armas": armas, "comps": comps, "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
+        out["conteudos"][f"{c}:{t}"] = {"eventos": A.get("ev", 0), "lutas": A["n"], "armas": armas, "comps": comps, "nb": len(bs), "builds": [r for _, _, r, _ in bs], "jogadores": jogs}
     # função (tank, healer, support, range, melee) de cada arma que aparece, para o filtro por função da aba
     _ws = set()
     for v in out["conteudos"].values():
