@@ -335,7 +335,7 @@ async function crowdMerge(url,j){
     for(const c of rows){
       const k=c.item_id+"|"+c.city+"|"+c.quality; let x=idx.get(k);
       if(!x){ x={item_id:c.item_id,city:c.city,quality:c.quality,sell_price_min:0,sell_price_min_date:"0001-01-01T00:00:00",sell_price_max:0,sell_price_max_date:"0001-01-01T00:00:00",buy_price_min:0,buy_price_min_date:"0001-01-01T00:00:00",buy_price_max:0,buy_price_max_date:"0001-01-01T00:00:00"}; out.push(x); idx.set(k,x); }
-      if(c.sell_min&&c.sell_min_at&&Date.parse(c.sell_min_at)>ms(x.sell_price_min_date)){ x.sell_price_min=c.sell_min; x.sell_price_min_date=iso(c.sell_min_at); x.sell_amt=c.sell_amt; x._src="app"; CROWD.hits++; }
+      if(c.city!=="Black Market"&&c.sell_min&&c.sell_min_at&&Date.parse(c.sell_min_at)>ms(x.sell_price_min_date)){   /* Mercado Negro só tem pedido de compra: o preço de venda da página não vale */ x.sell_price_min=c.sell_min; x.sell_price_min_date=iso(c.sell_min_at); x.sell_amt=c.sell_amt; x._src="app"; CROWD.hits++; }
       if(c.buy_max&&c.buy_max_at&&Date.parse(c.buy_max_at)>ms(x.buy_price_max_date)){ x.buy_price_max=c.buy_max; x.buy_price_max_date=iso(c.buy_max_at); x.buy_amt=c.buy_amt; x._src="app"; CROWD.hits++; }
     }
     return out;
