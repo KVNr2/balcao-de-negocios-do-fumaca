@@ -173,7 +173,7 @@ async function renderBM(partial){
   const shown=ok.slice(0,100);
   if(BM_GEN!==DATA.geradoEm){ BM_BASE=BM_CUR; BM_CUR={}; BM_GEN=DATA.geradoEm; }
   tb.textContent=""; const hr=tb.createTHead().insertRow();
-  (bmMode==="flip"?["Peça","Tier","Qualidade","O MN paga (bruto)","Preço médio","Mais barato em","Preço lá","Lucro %","Lucro por peça","O MN compra por dia"]:["Peça","Tier","Qualidade","O MN paga (bruto)","Preço médio","Custo para fabricar","Lucro %","Lucro por peça","Cidade com bônus","O MN compra por dia"]).concat([""]).forEach(h=>{ const th=el("th",{text:h}), pc=h==="Lucro %", vl=h==="Lucro por peça";
+  (bmMode==="flip"?["Peça","Tier","Qualidade","Pedido de compra atual (bruto)","Preço médio","Mais barato em","Preço lá","Lucro %","Lucro por peça","O MN compra por dia"]:["Peça","Tier","Qualidade","Pedido de compra atual (bruto)","Preço médio","Custo para fabricar","Lucro %","Lucro por peça","Cidade com bônus","O MN compra por dia"]).concat([""]).forEach(h=>{ const th=el("th",{text:h,...(h.startsWith("Pedido de compra")?{title:"O maior pedido de compra do Mercado Negro visto agora para esta peça e qualidade (ou melhor), antes da taxa de venda. Vem de jogadores com o Albion Overlay coletando preços e, na falta deles, da API pública. Pedido com mais de 72 horas não aparece."}:{})}), pc=h==="Lucro %", vl=h==="Lucro por peça";
     if(pc||vl){ th.className="bm-sort"; th.tabIndex=0; th.setAttribute("role","button"); const on=pc===(bmSort==="pct"); th.setAttribute("aria-sort",on?"descending":"none"); th.append(on?" ▼":""); th.title=pc?"Ordenar primeiro pela porcentagem de lucro (e depois pelo valor)":"Ordenar primeiro pelo valor do lucro (e depois pela porcentagem)";
       const go=()=>{ bmSort=pc?"pct":"val"; renderBM(); }; th.addEventListener("click",go); th.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); go(); } }); }
     hr.append(th); });
@@ -250,7 +250,7 @@ function bmPanel(m){
   if(crafting) right.append(card("cost","Custos detalhados (−)",[["Matérias primas",fmt(m.res)],[`Retorno de recursos (${Math.round(m.rr*100)}%)`,"−"+fmt(m.res*m.rr)],...(m.art>0?[["Artefato",fmt(m.art)]]:[]),["Taxa da estação",fmt(m.fee)]],["Custo para fabricar",fmt(m.cost)]));
   else if(flipping) right.append(card("cost","Custos detalhados (−)",[[`Compra em ${m.buy.c}`,fmt(m.buyC)]],["Custo da compra",fmt(m.buyC)]));
   const lucro=bmMode==="flip"?m.flip:m.craft;
-  const lines=[["O MN paga",fmt(bruto)],[`Taxa de venda (${tax}%${st.prem?" Premium":""})`,"−"+fmt(taxV)],["Líquido da venda",fmt(m.net)]];
+  const lines=[["Pedido de compra atual",fmt(bruto)],[`Taxa de venda (${tax}%${st.prem?" Premium":""})`,"−"+fmt(taxV)],["Líquido da venda",fmt(m.net)]];
   if(crafting&&bmMode!=="flip") lines.push(["Cidade com bônus",m.city],["Foco gasto",m.focus?fmt(m.fc):"desligado"]); if(m.focus&&m.fc>0) lines.push([`Receitas que o foco cobre (${fmt(focBud())}/dia)`,fmt(Math.floor(focBud()/m.fc))]);
   if(vv!=null&&vv>=0) lines.push(["O MN compra por dia (7 dias)",volTxt(vv)]);
   { const rc=card(lucro!=null&&lucro<0?"res neg":"res",lucro!=null&&lucro<0?"Resultado (−)":"Resultado (+)",lines,[bmMode==="flip"?"Lucro revendendo":"Lucro fabricando",lucro==null?"—":sgn(lucro)]); right.append(rc); }
