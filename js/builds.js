@@ -197,7 +197,7 @@ async function bldFetch(ids,city){
       BLD_P[k]={p7:n7?v7/n7:0,p30:n30?v30/n30:0}; }
     for(const id of part) BLD_F[`${id}|${city}`]=Date.now(); }
 }
-/* pedidos de venda ativos agora (menor preço de venda) por qualidade na cidade: Albion Data, ou o do AlbionSpecs quando for mais novo */
+/* pedidos de venda ativos agora (menor preço de venda) por qualidade na cidade: Albion Data, ou o do Albion Overlay quando for mais novo */
 const BLD_LV={};
 async function bldLive(ids,city){
   const loc=encodeURIComponent(city), todo=[...new Set(ids)]; const parts=[]; for(let i=0;i<todo.length;i+=API_CHUNK) parts.push(todo.slice(i,i+API_CHUNK));
@@ -246,7 +246,7 @@ function costPanel(b,get,ui){
     const pr=id=>{ const l=bldLiveP(id,BLD_CITY,1); if(l) return l.p; const r=bldPrice(id,BLD_CITY,1,7)||bldPrice(id,BLD_CITY,1,30); return r?r.p:null; };
     let tot=0, miss=0, old=0, est7=0; const tip=[], names=[], qch=[];
     for(const {g,x} of sel){ const nm=itemNome(g.code);
-      if(x){ tot+=x.p; if(x.d===30) old++; if(x.d===7) est7++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} (${x.d===0?(x.app?"pedido de venda atual, via AlbionSpecs":"pedido de venda atual"):"estimativa de "+x.d+" dias"})`+(x.q!==g.q?` — sem ${x.d===0?"pedido de venda":"preço"} em ${QNAME[g.q]}, usei ${QNAME[x.q]}`:"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q]); }
+      if(x){ tot+=x.p; if(x.d===30) old++; if(x.d===7) est7++; tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} (${x.d===0?(x.app?"pedido de venda atual, via Albion Overlay":"pedido de venda atual"):"estimativa de "+x.d+" dias"})`+(x.q!==g.q?` — sem ${x.d===0?"pedido de venda":"preço"} em ${QNAME[g.q]}, usei ${QNAME[x.q]}`:"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q]); }
       else { miss++; names.push(nm); tip.push(`${nm}: sem vendas em ${BLD_CITY} nos últimos 30 dias`); } }
     for(const id of cons){ const p=pr(id), ii=idInfo(id), cx=cosInfo(id), nm=(cx&&cx.n)||itemNome(ii.c); if(p) tot+=p; else { miss++; names.push(nm); } tip.push(`${nm}: ${p?fmt(p):"sem preço"}`); }
     out.classList.remove("load"); out.textContent=""; out.title=`${fmt(tot)} de prata no total\n`+tip.join("\n");

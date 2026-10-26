@@ -9,3 +9,8 @@
 .av-tyi.ho{border-color:#a77bd6}.av-tyi.tunnel{border-color:#b98a55}.av-tyi.royal{background:#1d4ea8}.av-tyi.red{background:#c4161c}.av-tyi.black{background:#000;border-color:#6b6b6b}
 .av-nm{flex-wrap:nowrap}.av-nm .av-ics{flex-wrap:wrap}
 .av-tyi.black,.av-tyi.royal,.av-tyi.red{background:none;border:0;border-radius:50%}.av-tyi.black img,.av-tyi.royal img,.av-tyi.red img{width:34px;height:34px}
+/* Albion Overlay: explicação na aba Minha ficha */
+.ovbox kbd,.primeira kbd{font:600 12px var(--f-mono,ui-monospace,monospace);padding:1px 7px;border-radius:6px;border:1px solid var(--line);background:rgba(0,0,0,.35)}
+.ovlist{margin:8px 0 8px 1.1em;padding:0;display:grid;gap:7px}
+.ovbox .btnrow{margin-top:12px}
+body.em-overlay .ovbox{display:none}

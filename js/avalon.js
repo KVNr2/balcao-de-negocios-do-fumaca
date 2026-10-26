@@ -153,7 +153,7 @@ async function renderAv(){
   avSavedUI();
 }
 
-/* overlay do AlbionSpecs: o cartão do site para o mapa em que o jogador está agora (o overlay chama avMapaAtual(id) em ?overlay=1&atual=1) */
+/* Albion Overlay: o cartão do site para o mapa em que o jogador está agora (o overlay chama avMapaAtual(id) em ?overlay=1&atual=1) */
 async function avMapaAtual(id){
   const host=document.getElementById("avAtual"); if(!host) return false;
   if(!AV.data){ try{ AV.data=await need("avalon"); }catch(e){ return false; } AV.byId={}; for(const m of AV.data){ m._n=avNorm(m.n); AV.byId[m.i]=m; } }

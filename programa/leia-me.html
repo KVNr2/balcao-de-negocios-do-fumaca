@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AlbionSpecs: como baixar e usar</title>
+<title>Albion Overlay: como baixar e usar</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
@@ -52,46 +52,81 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:30px}
     <a class="back" href="../#p-ficha">← Voltar ao site</a>
   </header>
 
-  <h1>AlbionSpecs</h1>
-  <p class="lead">Um programa pequeno para Windows que traz os níveis do seu Destiny Board para a Minha ficha do site, sem você digitar nada.</p>
+  <h1>Albion Overlay</h1>
+  <p class="lead">Um programa pequeno e gratuito para Windows que mostra este site por cima do Albion, traz os níveis do seu Destiny Board para a Minha ficha e coleta os preços do mercado enquanto você joga.</p>
 
   <section class="card">
-    <h2>O que vai ser baixado</h2>
-    <dl>
-      <dt>Arquivo</dt><dd><code>AlbionSpecs.exe</code>, um único arquivo</dd>
-      <dt>Tamanho</dt><dd>cerca de 7 MB</dd>
-      <dt>Versão</dt><dd id="ver">carregando…</dd>
-      <dt>Sistema</dt><dd>Windows 10 ou 11</dd>
-      <dt>Origem</dt><dd>este mesmo site (<code id="orig"></code>), nenhum outro endereço</dd>
-      <dt>Custo</dt><dd>grátis, sem cadastro e sem instalador</dd>
-      <dt>Impressão digital<br>(SHA-256)</dt><dd><code id="sha">carregando…</code></dd>
-    </dl>
-    <a class="btn" href="AlbionSpecs.exe" download="AlbionSpecs.exe">Baixar AlbionSpecs.exe</a>
-    <p class="aviso ok">Para conferir que o arquivo é o mesmo que está aqui, abra o PowerShell na pasta do download e rode <code>Get-FileHash AlbionSpecs.exe</code>. O número tem que ser igual ao de cima.</p>
-  </section>
-
-  <section class="card">
-    <h2>Passo a passo</h2>
+    <h2>O que ele faz</h2>
     <ol class="passos">
-      <li><b>Baixe e abra o arquivo</b><span>Dê dois cliques no <code>AlbionSpecs.exe</code>. Só na primeira vez. Depois disso você pode apagar o arquivo baixado.</span></li>
-      <li><b>Se o Windows avisar "editor desconhecido"</b><span>É normal: o programa ainda não tem assinatura paga. Clique em <i>Mais informações</i> e depois em <i>Executar assim mesmo</i>.</span></li>
-      <li><b>Volte ao site e clique em Sincronizar</b><span>Na página <i>Minha ficha</i>. O Windows vai pedir permissão de <b>Administrador</b>; aceite.</span></li>
-      <li><b>Entre no seu personagem no Albion</b><span>A leitura acontece quando o personagem entra no jogo. Se o jogo já estiver aberto, saia do personagem e entre de novo.</span></li>
-      <li><b>Pronto</b><span>O site volta para a mesma aba com a ficha preenchida. Nas próximas vezes é só clicar em Sincronizar e entrar no personagem.</span></li>
+      <li><b>Overlay por cima do jogo</b><span>Aperte <code>F8</code> e o site abre numa janela sobre o Albion, com todas as abas. Aperte de novo e ela some. Cada aba pode ter um atalho próprio (em Ajustes).</span></li>
+      <li><b>Sincroniza a sua ficha</b><span>Quando o personagem entra no jogo, o programa lê o Destiny Board (maestria e spec) e preenche a Minha ficha sozinho. A ficha é a mesma no site e no overlay; edite onde preferir.</span></li>
+      <li><b>Coleta preços do mercado</b><span>Enquanto você olha o mercado no jogo, ele envia ao banco do site só o que aparece na tela (item, cidade, qualidade, preço e quantidade). Todo o grupo se beneficia de preços mais novos.</span></li>
+      <li><b>Mostra o mapa de Avalon em que você está</b><span>O cartão do mapa atual aparece no overlay, igual ao da aba Avalon.</span></li>
     </ol>
   </section>
 
   <section class="card">
-    <h2>Perguntas comuns</h2>
-    <details><summary>O programa fica aberto? Ele coleta preços?</summary><p>Sim: na primeira abertura ele fica na bandeja do Windows (ao lado do relógio) e, enquanto você olha o mercado no jogo, envia ao site só os preços mais recentes (item, cidade, qualidade, preço e quantidade; nada do personagem). Clique com o botão direito no ícone para ligar/desligar a coleta, iniciar com o Windows ou sair.</p></details>
-    <details><summary>Preciso fazer isso toda vez?</summary><p>Não. O download e a primeira abertura são uma vez só. Depois, basta o botão Sincronizar. O programa se atualiza sozinho quando houver versão nova.</p></details>
-    <details><summary>Onde fica a minha ficha?</summary><p>Salva só no seu navegador. Cada amigo usa o próprio programa e a própria ficha; uma não aparece na outra.</p></details>
-    <details><summary>Não aconteceu nada ao clicar em Sincronizar</summary><p>Confira se você abriu o <code>AlbionSpecs.exe</code> pelo menos uma vez e se aceitou o pedido de Administrador do Windows. Depois clique em Sincronizar de novo e entre no personagem.</p></details>
-    <details><summary>O antivírus reclamou</summary><p>Programas novos e sem assinatura paga às vezes recebem esse aviso. Compare o SHA-256 acima com o do seu arquivo; se for igual, ele é o arquivo deste site.</p></details>
-    <details><summary>Como desinstalar?</summary><p>Feche o programa, apague a pasta <code>%LOCALAPPDATA%\FichaAlbion</code> e, se quiser, limpe os dados do site no navegador.</p></details>
+    <h2>O que vai ser baixado</h2>
+    <dl>
+      <dt>Arquivo</dt><dd><code>AlbionOverlay.exe</code>, um único arquivo</dd>
+      <dt>Tamanho</dt><dd>cerca de 7 MB</dd>
+      <dt>Versão</dt><dd id="ver">carregando…</dd>
+      <dt>Sistema</dt><dd>Windows 10 ou 11 (precisa do Chrome, Edge, Brave, Vivaldi ou Opera; o Edge já vem no Windows)</dd>
+      <dt>Origem</dt><dd>este mesmo site (<code id="orig"></code>), nenhum outro endereço</dd>
+      <dt>Custo</dt><dd>grátis, sem cadastro e sem instalador</dd>
+      <dt>Impressão digital<br>(SHA-256)</dt><dd><code id="sha">carregando…</code></dd>
+    </dl>
+    <a class="btn" href="AlbionOverlay.exe" download="AlbionOverlay.exe">Baixar AlbionOverlay.exe</a>
+    <p class="aviso ok">Para conferir que o arquivo é o mesmo que está aqui, abra o PowerShell na pasta do download e rode <code>Get-FileHash AlbionOverlay.exe</code>. O número tem que ser igual ao de cima.</p>
   </section>
 
-  <footer>Feito para o grupo. Albion Online é da Sandbox Interactive, sem ligação com este site.</footer>
+  <section class="card">
+    <h2>Passo a passo (primeira vez)</h2>
+    <ol class="passos">
+      <li><b>Baixe e abra o arquivo</b><span>Dê dois cliques no <code>AlbionOverlay.exe</code>. Ele se copia para <code>%LOCALAPPDATA%\FichaAlbion</code>, liga o botão Sincronizar do site e abre o overlay. Depois disso você pode apagar o arquivo baixado.</span></li>
+      <li><b>Se o Windows avisar "editor desconhecido"</b><span>É normal: o programa ainda não tem assinatura paga. Clique em <i>Mais informações</i> e depois em <i>Executar assim mesmo</i>.</span></li>
+      <li><b>Aceite o pedido de Administrador</b><span>O Windows pergunta ao abrir o overlay. A permissão é necessária para ouvir a rede do jogo, do mesmo jeito que o Albion Data Client faz. Sem ela o programa não lê a ficha nem os preços.</span></li>
+      <li><b>Entre no seu personagem no Albion</b><span>A leitura da ficha acontece quando o personagem entra no jogo. Se o jogo já estiver aberto, saia para a seleção de personagem e entre de novo.</span></li>
+      <li><b>Pronto</b><span>A ficha aparece na aba Minha ficha do overlay e do site. Nas próximas vezes é só abrir o programa (ou clicar em Sincronizar no site) e entrar no personagem.</span></li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2>Como usar no dia a dia</h2>
+    <ol class="passos">
+      <li><b><code>F8</code> mostra ou esconde</b><span>Você pode trocar o atalho em Ajustes. Para aparecer por cima do Albion, deixe o jogo em <i>Janela</i> ou <i>Janela sem bordas</i>: em tela cheia exclusiva o Windows não deixa nada por cima.</span></li>
+      <li><b>Mover e fechar</b><span>Arraste a janela pela alça no meio da barra de cima. O <b>X</b> pergunta se o programa continua na bandeja (ao lado do relógio) ou se encerra de vez; marque "Lembrar minha escolha" para não perguntar de novo.</span></li>
+      <li><b>Bandeja do Windows</b><span>Clique com o botão direito no ícone para mostrar ou esconder o overlay, abrir os Ajustes, ligar ou desligar a coleta de preços, iniciar com o Windows e sair.</span></li>
+      <li><b>Favoritos</b><span>Nas abas de ofícios e mercados, a estrela marca o que você mais usa e o filtro <i>Só favoritos</i> mostra apenas eles. Vale no site e no overlay.</span></li>
+      <li><b>Atualizações</b><span>O programa se atualiza sozinho quando o site publica uma versão nova; não precisa baixar de novo.</span></li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2>O que ele lê e o que ele envia</h2>
+    <dl>
+      <dt>Lê</dt><dd>O tráfego de rede local do Albion (o mesmo que o Albion Data Client lê) para achar os níveis do Destiny Board e os preços do mercado.</dd>
+      <dt>Envia</dt><dd>Só os preços do mercado que apareceram na sua tela: item, cidade, qualidade, preço e quantidade. Sem nome de personagem. Dá para desligar em Ajustes ou na bandeja.</dd>
+      <dt>Não envia</dt><dd>A sua ficha. Ela fica só no seu PC e no seu navegador.</dd>
+      <dt>Não faz</dt><dd>Não altera o jogo, não aperta teclas por você, não lê senhas e não mexe em outros arquivos.</dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>Perguntas comuns</h2>
+    <details><summary>Eu já uso o AlbionSpecs. O que muda?</summary><p>Nada para você fazer. Na próxima vez que clicar em Sincronizar ou em Coletar preços no site, o programa se atualiza e passa a se chamar Albion Overlay, sem baixar de novo. Se você usava "iniciar com o Windows" na coleta de preços, essa opção é mantida.</p></details>
+    <details><summary>Ele coleta preços sempre?</summary><p>Sim, enquanto estiver aberto: ao abrir o mercado no jogo, ele envia os preços que aparecem. Para parar, desligue "Coletar preços" nos Ajustes do overlay ou no menu da bandeja.</p></details>
+    <details><summary>O que é "Iniciar com o Windows"?</summary><p>Uma opção (em Ajustes e na bandeja) que abre o programa sozinho na bandeja quando você liga o PC, sem mostrar a janela. Aperte o atalho para abrir o overlay. É criada uma tarefa agendada com o nome AlbionOverlay, para o Windows não pedir permissão de Administrador a cada boot.</p></details>
+    <details><summary>Preciso fazer o download toda vez?</summary><p>Não. O download e a primeira abertura são uma vez só. Depois, basta o botão Sincronizar do site ou o ícone da bandeja.</p></details>
+    <details><summary>Onde fica a minha ficha?</summary><p>Salva só no seu PC. O site e o overlay usam a mesma. Cada amigo usa o próprio programa e a própria ficha; uma não aparece na outra.</p></details>
+    <details><summary>Não aconteceu nada ao clicar em Sincronizar</summary><p>Confira se você abriu o <code>AlbionOverlay.exe</code> pelo menos uma vez e se aceitou o pedido de Administrador do Windows. Se o seu navegador bloqueia acesso ao PC local (Brave), permita para este site. Depois clique em Sincronizar de novo e entre no personagem.</p></details>
+    <details><summary>O overlay não aparece por cima do jogo</summary><p>Deixe o Albion em modo Janela ou Janela sem bordas. Em tela cheia exclusiva nenhum overlay aparece. Em Ajustes, confira se "Sempre por cima do jogo" está ligado.</p></details>
+    <details><summary>O meu navegador padrão é o Firefox</summary><p>O overlay precisa de um navegador baseado em Chromium para abrir a janela sem barra de endereço. Se o padrão do Windows for o Firefox, o programa usa o Edge (que já vem no Windows) ou o Chrome. O Firefox continua sendo o navegador do site normalmente.</p></details>
+    <details><summary>O antivírus reclamou</summary><p>Programas novos e sem assinatura paga às vezes recebem esse aviso. Compare o SHA-256 acima com o do seu arquivo; se for igual, ele é o arquivo deste site.</p></details>
+    <details><summary>Como desinstalar?</summary><p>Em Ajustes, desligue "Iniciar com o Windows". Feche o programa pelo X (escolhendo fechar) ou pelo menu da bandeja, apague a pasta <code>%LOCALAPPDATA%\FichaAlbion</code> e, se quiser, limpe os dados do site no navegador. Para remover também o botão Sincronizar, apague a chave <code>HKEY_CURRENT_USER\Software\Classes\albion-ficha</code> no Editor do Registro.</p></details>
+  </section>
+
+  <footer>Feito para o grupo. Albion Online é da Sandbox Interactive, sem ligação com este site. O Albion Overlay não é um produto oficial.</footer>
 </div>
 <script>
 document.getElementById("orig").textContent=location.host;

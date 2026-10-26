@@ -308,7 +308,7 @@ const API_CHUNK=120;   // itens por pedido (a API aceitou 160 sem problema)
 const API_BUDGET=70, apiStamps=[];
 async function apiPace(){ for(;;){ const now=Date.now(); while(apiStamps.length&&now-apiStamps[0]>60e3) apiStamps.shift(); if(apiStamps.length<API_BUDGET){ apiStamps.push(now); return; } await new Promise(f=>setTimeout(f,Math.max(250,60e3-(now-apiStamps[0])+50))); } }
 const apiResetMs=txt=>{ const m=/resets at (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/.exec(txt||""); if(!m) return 0; const t=Date.parse(m[1]+"T"+m[2]+"Z")-Date.now(); return Math.min(65e3,Math.max(1e3,t+1000)); };
-/* Preços coletados pelo AlbionSpecs (tabela market_latest no Supabase, mesmo formato do Albion Data).
+/* Preços coletados pelo Albion Overlay (tabela market_latest no Supabase, mesmo formato do Albion Data).
    Para cada item/cidade/qualidade vale o valor mais recente entre o Albion Data e o nosso. */
 const CROWD_MEM=new Map(); let CROWD_OFF=false; const CROWD={hits:0};
 async function crowdMerge(url,j){
@@ -701,7 +701,7 @@ const AF_OS = (()=>{ const ua=navigator.userAgent||"", uad=navigator.userAgentDa
 if(AF_OS!=="windows"){ document.body.classList.add("sem-sync"); const cel=["android","ios","mobile"].includes(AF_OS);
   $("pfSemTit").textContent=cel?"Sincronizar ainda não funciona no celular":"Sincronizar só funciona no Windows";
   $("pfSemTxt").textContent=cel?"Por enquanto não há suporte para sincronizar a ficha pelo celular. Nesse aparelho você digita tudo manualmente: abra cada seção abaixo (Combate, Craft, Coleta, Refino, Árvore da fazenda e da cozinha, Caçada) e preencha os níveis do seu Destiny Board. A ficha fica salva neste navegador.":"O programa de sincronia é feito para Windows. Neste sistema você digita os níveis manualmente: abra cada seção abaixo e preencha os do seu Destiny Board. A ficha fica salva neste navegador.";
-  $("pfSemSync").hidden=false; }
+  $("pfSemSync").hidden=false; $("pfOverlay").hidden=true; }
 $("pfAlbion").href="albion-ficha://iniciar?voltar="+encodeURIComponent(location.origin+location.pathname);
 async function lerFichaDoAlbion(txt){ txt=decodeURIComponent(txt);
   if(txt.startsWith("gz.")){ const bin=Uint8Array.from(atob(txt.slice(3).replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
@@ -721,7 +721,7 @@ async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.has
     for(const k of ["cozinha","alquimia"]) if(novo[k]&&novo[k].s&&Object.keys(novo[k].s).length&&PF[k]) delete PF[k].all; if(nomeAntes&&!(o.nome&&String(o.nome).trim())) PF.nome=nomeAntes; else if(o.nome) PF.nome=String(o.nome).trim().slice(0,40); saveProfile(); renderProfile(); renderWho(); $("pfStatus").textContent=outra?`Ficha de ${nomeNovo} aplicada. Ela substituiu a ficha de ${nomeAntes}, porque são personagens diferentes.`:"Ficha do Albion aplicada (o que você já tinha preenchido foi mantido)."; } }
 /* Navegação interna: ao clicar em Sincronizar, esta mesma aba vai para a página de andamento do programa (127.0.0.1, só no seu PC)
    e volta sozinha para cá já com a ficha. Nada de aba nova. */
-/* Ponte com o programa AlbionSpecs (overlay): site e overlay usam a MESMA ficha. O programa guarda a ficha em
+/* Ponte com o Albion Overlay (o programa): site e overlay usam a MESMA ficha. O programa guarda a ficha em
    http://127.0.0.1:47832/ficha (só neste PC). O site puxa quando há novidade (seq maior) e empurra quando você edita. */
 const PONTE="http://127.0.0.1:47832/ficha";
 let ponteSeq=0, ponteLig=false, ponteEco="", ponteInit=false;   /* ponteInit: só empurra depois de ter puxado a ficha do programa uma vez (uma ficha vazia do site nunca apaga a do jogo) */ try{ ponteSeq=+localStorage.getItem("ponteSeq")||0; }catch(e){}
@@ -740,36 +740,37 @@ function ponteEmpurrar(){ clearTimeout(pontePush); pontePush=setTimeout(async()=
 /* Sincronizar: o programa abre o overlay na aba Minha ficha; aqui só esperamos a ficha chegar pela ponte */
 let irSync=false;
 async function irParaSincronia(){ if(irSync) return; irSync=true; const st=$("pfStatus"), t0=Date.now();
-  st.textContent="Abrindo o overlay do AlbionSpecs… se o Windows perguntar, permita e aceite o aviso de Administrador. Se o Albion já estiver aberto, saia para a seleção de personagem e entre de novo.";
+  st.textContent="Abrindo o Albion Overlay… se o Windows perguntar, permita e aceite o aviso de Administrador. Se o Albion já estiver aberto, saia para a seleção de personagem e entre de novo.";
   const seq0=ponteSeq;
   while(Date.now()-t0<300000){ await new Promise(r=>setTimeout(r,2000)); await pontePuxar();
     if(ponteSeq>seq0){ st.textContent="Ficha lida do jogo e aplicada."; irSync=false; return; }
-    if(Date.now()-t0>20000&&!ponteLig) st.textContent="Não consegui falar com o programa. Confira se o AlbionSpecs está aberto (ícone na bandeja) e, se o seu navegador bloqueia acesso ao PC local (Brave), permita para este site."; }
+    if(Date.now()-t0>20000&&!ponteLig) st.textContent="Não consegui falar com o programa. Confira se o Albion Overlay está aberto (ícone na bandeja) e, se o seu navegador bloqueia acesso ao PC local (Brave), permita para este site."; }
   st.textContent="Tempo esgotado: a ficha não chegou. Relogue no personagem e clique em Sincronizar de novo."; irSync=false; }
 pontePuxar(); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) pontePuxar(); }); window.addEventListener("focus",pontePuxar); setInterval(()=>{ if(!document.hidden) pontePuxar(); },15000);
 /* primeira vez neste navegador: baixa o programa e explica tudo na própria página (o protocolo albion-ficha:// só existe depois de abrir o programa uma vez) */
 const afOk = () => { try{ return localStorage.getItem("afProg")==="1"; }catch(e){ return false; } };
 const afSet = () => { try{ localStorage.setItem("afProg","1"); }catch(e){} };
-function afBaixar(){ const a=el("a",{href:"programa/AlbionSpecs.exe",download:"AlbionSpecs.exe"}); document.body.append(a); a.click(); a.remove(); }
+function afBaixar(){ const a=el("a",{href:"programa/AlbionOverlay.exe",download:"AlbionOverlay.exe"}); document.body.append(a); a.click(); a.remove(); }
 let afInfo=false;
 function afMostrarPrimeira(){ $("pfPrimeira").hidden=false; $("pfPrimeira").scrollIntoView({behavior:RM?"auto":"smooth",block:"center"});
   if(!afInfo){ afInfo=true; fetch("programa/versao.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{ $("pfSha").textContent=j.sha256||"indisponível"; $("pfVer").textContent=j.versao||"?"; }).catch(()=>{ $("pfSha").textContent="indisponível agora"; $("pfVer").textContent="?"; }); } }
 $("pfAlbion").addEventListener("click",ev=>{
   if(afOk()){ setTimeout(irParaSincronia,1200); return; }
   ev.preventDefault(); afMostrarPrimeira(); afBaixar();
-  $("pfStatus").textContent="Baixando o AlbionSpecs.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Sincronizar de novo."; });
-/* "Coletar preços": abre o programa só no modo de coleta (bandeja), sem ler a ficha e sem abrir aba */
+  $("pfStatus").textContent="Baixando o AlbionOverlay.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Sincronizar."; });
+/* "Coletar preços": abre o Albion Overlay (na aba Ajustes, onde fica o botão da coleta); a coleta liga sozinha e roda enquanto o programa estiver aberto */
 $("mkBtn").addEventListener("click",()=>{
-  if(!afOk()){ afMostrarPrimeira(); afBaixar(); $("pfStatus").textContent="Baixando o AlbionSpecs.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Coletar preços."; return; }
+  if(!afOk()){ afMostrarPrimeira(); afBaixar(); $("pfStatus").textContent="Baixando o AlbionOverlay.exe… siga os passos acima. Depois de abrir o programa uma vez, ele já coleta os preços sozinho enquanto estiver aberto."; return; }
   const a=el("a",{href:"albion-ficha://mercado",style:"display:none"}); document.body.append(a); a.click(); setTimeout(()=>a.remove(),2000);
-  toast("Abrindo o AlbionSpecs na bandeja do Windows… se o Windows pedir, aceite o aviso de Administrador."); });
-/* Página aberta DENTRO do overlay do AlbionSpecs (?overlay=1) ou com o programa já rodando: nada para baixar nem instalar.
+  toast("Abrindo o Albion Overlay… se o Windows pedir, aceite o aviso de Administrador. Ele coleta os preços enquanto estiver aberto."); });
+/* Página aberta DENTRO do Albion Overlay (?overlay=1) ou com o programa já rodando: nada para baixar nem instalar.
    Dentro do overlay a sincronia e a coleta de preços ficam nos botões do próprio overlay. */
 const EM_OVERLAY=/[?&]overlay=1\b/.test(location.search);
 if(EM_OVERLAY){ document.body.classList.add("em-overlay"); afSet();
-  $("pfAlbion").hidden=true; $("mkBtn").hidden=true; $("pfPrimeira").hidden=true;
-  $("pfSteps").innerHTML="<li><b>Você está no overlay do AlbionSpecs.</b> Não precisa baixar nem instalar nada.</li><li>Para ler a ficha do jogo, use o botão <b>Sincronizar agora</b> no topo desta aba do overlay. Se o Albion já estiver aberto, saia para a seleção de personagem e entre de novo.</li><li>A ficha daqui e a do site no navegador são a mesma: edite onde preferir.</li>";
-  $("pfDica").textContent="A coleta de preços do mercado fica em Configurações, no overlay."; }
+  $("pfAlbion").hidden=true; $("mkBtn").hidden=true; $("pfPrimeira").hidden=true; $("pfOverlay").hidden=true;
+  $("pfSteps").innerHTML="<li><b>Você está no Albion Overlay.</b> Não precisa baixar nem instalar nada.</li><li>Para ler a ficha do jogo, use o botão <b>Sincronizar agora</b> no topo desta aba do overlay. Se o Albion já estiver aberto, saia para a seleção de personagem e entre de novo.</li><li>A ficha daqui e a do site no navegador são a mesma: edite onde preferir.</li>";
+  $("pfDica").textContent="A coleta de preços do mercado fica em Ajustes, no overlay."; }
+$("pfBaixar").addEventListener("click",()=>{ afMostrarPrimeira(); afBaixar(); $("pfStatus").textContent="Baixando o AlbionOverlay.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Sincronizar."; });
 $("pfJaTenho").addEventListener("click",()=>{ afSet(); $("pfPrimeira").hidden=true; location.href=$("pfAlbion").href; setTimeout(irParaSincronia,1200); });
 $("pfFechaPrim").addEventListener("click",()=>{ $("pfPrimeira").hidden=true; });
 aplicarFichaDoAlbion(); window.addEventListener("hashchange",aplicarFichaDoAlbion);

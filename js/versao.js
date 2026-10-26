@@ -3,8 +3,8 @@ const fmtDH = d => d.toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2
 function haQuanto(d){ const s=Math.max(0,(Date.now()-d.getTime())/1000); if(s<90) return "agora mesmo"; const m=Math.round(s/60); if(m<60) return `há ${m} min`; const h=Math.round(m/60); if(h<36) return `há ${h} h`; return `há ${Math.round(h/24)} dias`; }
 let VTOK=0;
 window.addEventListener("popstate",()=>{ const p=$("p-versao"); if(p&&!p.hidden){ renderVersao(); const y=history.state&&history.state.y; if(y!=null&&!location.hash.startsWith("#versao/atualizacoes")) setTimeout(()=>window.scrollTo({top:y}),60); else window.scrollTo({top:0}); } });
-/* categorias da lista completa: Site, AlbionSpecs (o programa) e Rotinas (atualizações automáticas dos dados) */
-const V_CATS=[["site","Site"],["programa","AlbionSpecs"],["rotinas","Rotinas"]];
+/* categorias da lista completa: Site, Albion Overlay (o programa) e Rotinas (atualizações automáticas dos dados) */
+const V_CATS=[["site","Site"],["programa","Albion Overlay"],["rotinas","Rotinas"]];
 const V_ROTINAS=[["PvP","data/pvp.json","a cada 6 horas","Builds, armas e jogadores do PvP, a partir das mortes guardadas pelo coletor."],
   ["Coletor de mortes","","a cada 6 minutos","Lê o feed oficial de mortes do Albion, recupera o histórico dos jogadores já vistos e guarda as lutas pequenas dos últimos 30 dias."],
   ["ZvZ","data/zvz.json","uma vez por dia","Funções e armas das maiores lutas recentes (200 jogadores ou mais)."],
@@ -12,7 +12,7 @@ const V_ROTINAS=[["PvP","data/pvp.json","a cada 6 horas","Builds, armas e jogado
   ["Composições (Top Comps)","data/comps.json","a cada 6 horas","As composições de grupo mais usadas."]];
 function vIr(cat){ history.replaceState({...(history.state||{}),y:window.scrollY},""); history.pushState({vsub:1},"","#versao/atualizacoes"+(cat?"/"+cat:"")); renderVersao(); window.scrollTo({top:0}); }
 function vVoltar(){ if(history.state&&history.state.vsub) history.back(); else { history.replaceState(null,"","#versao"); renderVersao(); } }
-function vCard(x){ const c=el("div",{class:"v-nov-i"}), h=el("div",{class:"v-nov-h"}); h.append(el("b",{text:x.titulo}),el("span",{class:"v-tag "+(x.programa?"prog":"site"),text:x.programa?"AlbionSpecs":"Site"}),el("small",{class:"muted",text:fmtDH(new Date(x.t))})); c.append(h);
+function vCard(x){ const c=el("div",{class:"v-nov-i"}), h=el("div",{class:"v-nov-h"}); h.append(el("b",{text:x.titulo}),el("span",{class:"v-tag "+(x.programa?"prog":"site"),text:x.programa?"Albion Overlay":"Site"}),el("small",{class:"muted",text:fmtDH(new Date(x.t))})); c.append(h);
   const ul=el("ul",{class:"v-list"}); (x.itens||[]).forEach(t=>ul.append(el("li",{text:t}))); c.append(ul); return c; }
 async function renderLista(box,tok){
   const m=/^#versao\/atualizacoes(?:\/(site|programa|rotinas))?/.exec(location.hash), cat=(m&&m[1])||"site";
@@ -29,7 +29,7 @@ async function renderLista(box,tok){
   let todas=[]; try{ todas=((await fetch("novidades.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json())).itens||[]).slice().sort((a,b)=>b.t.localeCompare(a.t)); }catch(e){ w.append(el("p",{class:"muted",text:"Não consegui ler a lista agora."})); return; }
   if(tok!==VTOK) return;
   const sel=todas.filter(x=>cat==="programa"?!!x.programa:!x.programa);
-  w.before(el("p",{class:"muted small",text:`${sel.length} ${sel.length===1?"atualização":"atualizações"} ${cat==="programa"?"do programa AlbionSpecs":"do site"}.`}));
+  w.before(el("p",{class:"muted small",text:`${sel.length} ${sel.length===1?"atualização":"atualizações"} ${cat==="programa"?"do programa Albion Overlay":"do site"}.`}));
   sel.forEach(x=>w.append(vCard(x)));
 }
 async function renderVersao(){
@@ -56,9 +56,9 @@ async function renderVersao(){
     const cur=(t,n=150)=>{ const p=t.indexOf(". "); if(p>20&&p<n) return t.slice(0,p+1); return t.length>n?t.slice(0,n-1).trimEnd()+"…":t; };
     lista.slice(0,4).forEach(x=>{ const li=el("li"); li.append(el("b",{text:x.titulo+": "}),document.createTextNode(cur((x.itens||[])[0]||""))); resumo.append(li); });
   }catch(e){} })();
-  /* programa AlbionSpecs (.exe): a versão é publicada à parte do site; atualizar o programa não exige recarregar a página */
+  /* programa Albion Overlay (.exe): a versão é publicada à parte do site; atualizar o programa não exige recarregar a página */
   const prog=el("div",{class:"v-hero v-prog"}); box.append(prog);
-  prog.append(el("small",{class:"v-k",text:"Programa AlbionSpecs"}));
+  prog.append(el("small",{class:"v-k",text:"Programa Albion Overlay"}));
   (async()=>{ try{
     const pj=await fetch("programa/versao.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json());
     prog.append(el("div",{class:"v-code",text:"v"+(pj.versao||"?")}));
@@ -67,7 +67,7 @@ async function renderVersao(){
     if(tok!==VTOK) return;
     if(nota){ const dt=new Date(nota.t); pt.append(el("b",{text:fmtDH(dt)}), el("span",{text:`horário de Brasília · ${haQuanto(dt)}`})); const ul=el("ul",{class:"v-list"}); (nota.itens||[]).forEach(t=>ul.append(el("li",{text:t}))); prog.append(ul); }
     else try{ const c=(await fetch("https://api.github.com/repos/KVNr2/balcao-de-negocios-do-fumaca/commits?path=programa/versao.json&per_page=1",{headers:{Accept:"application/vnd.github+json"}}).then(r=>r.json()))[0];
-      const dt=new Date(c.commit.committer.date); pt.append(el("b",{text:fmtDH(dt)}), el("span",{text:`horário de Brasília · ${haQuanto(dt)} · ${c.commit.message.split("\n")[0].replace(/^AlbionSpecs\s*[\d.]+:\s*/,"")}`})); }catch(e){}
+      const dt=new Date(c.commit.committer.date); pt.append(el("b",{text:fmtDH(dt)}), el("span",{text:`horário de Brasília · ${haQuanto(dt)} · ${c.commit.message.split("\n")[0].replace(/^(?:AlbionSpecs|Albion Overlay)\s*[\d.]+:\s*/,"")}`})); }catch(e){}
     prog.append(el("div",{class:"v-st ok"},el("span",{class:"v-dot"}),el("span",{text:"O programa se atualiza sozinho ao abrir; não precisa recarregar o site."})));
   }catch(e){ prog.append(el("p",{class:"muted",text:"Não consegui ler a versão do programa agora."})); } })();
   /* commits mais novos que esta versão: o commit que gerou a versão é o último que mexeu em versao.json; o que veio depois ainda não entrou no ar */
