@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="5fca345e">
+<html lang="pt-BR" data-v="77e7540d">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=5fca345e">
-<link rel="stylesheet" href="css/vip.css?v=5fca345e">
-<link rel="stylesheet" href="css/avicons.css?v=5fca345e">
-<link rel="stylesheet" href="css/souk.css?v=5fca345e">
+<link rel="stylesheet" href="css/balcao.css?v=77e7540d">
+<link rel="stylesheet" href="css/vip.css?v=77e7540d">
+<link rel="stylesheet" href="css/avicons.css?v=77e7540d">
+<link rel="stylesheet" href="css/souk.css?v=77e7540d">
 </head>
 <body>
 <div class="wrap app">
@@ -144,7 +144,7 @@ html.em-atual .av-card{margin:0}
     <div class="block">
       <section class="primeira ovbox" id="pfOverlay" aria-label="O que é o Albion Overlay">
         <h3>Albion Overlay: o programa que liga o site ao seu jogo</h3>
-        <p>O <b>Albion Overlay</b> é um programa gratuito para <b>Windows</b>. Ele abre este site em uma janela por cima do Albion (atalho <kbd>F8</kbd>) e faz duas coisas que o navegador sozinho não consegue:</p>
+        <p>O <b>Albion Overlay</b> é um programa gratuito para <b>Windows</b>. Ele abre este site em uma janela por cima do Albion (atalho <kbd data-atalho>F8</kbd>) e faz duas coisas que o navegador sozinho não consegue:</p>
         <ul class="ovlist">
           <li><b>Sincronizar a ficha.</b> Quando o personagem entra no jogo, ele lê o seu Destiny Board (maestria e spec) e preenche esta página sem você digitar nada. A ficha é a mesma no site e no overlay.</li>
           <li><b>Coletar preços.</b> Enquanto você olha o mercado no jogo, ele envia ao nosso banco só os preços que aparecem na tela (item, cidade, qualidade, preço e quantidade). Assim todos do grupo veem preços mais novos. Nada do personagem vai junto, e dá para desligar nos Ajustes do overlay.</li>
@@ -191,7 +191,7 @@ html.em-atual .av-card{margin:0}
           <li><b>Aceite o pedido de Administrador.</b> Ele é necessário para ouvir a rede do jogo, do mesmo jeito que o Albion Data Client faz. Sem isso o programa não consegue ler a ficha nem os preços.</li>
           <li><b>Volte aqui e clique em Sincronizar.</b> O overlay abre na aba Minha ficha e espera o personagem entrar no jogo.</li>
           <li><b>Entre no personagem.</b> A leitura acontece no login; se o jogo já estiver aberto, deslogue e logue de novo.</li>
-          <li><b>Use o <kbd>F8</kbd></b> para mostrar ou esconder o overlay. Ao fechar a janela (X) ele pergunta se deve continuar na bandeja do Windows (ao lado do relógio) ou encerrar.</li>
+          <li><b>Use o <kbd data-atalho>F8</kbd></b> para mostrar ou esconder o overlay. Ao fechar a janela (X) ele pergunta se deve continuar na bandeja do Windows (ao lado do relógio) ou encerrar.</li>
         </ol>
         <p class="tiny"><b>O que ele faz:</b> ouve só o tráfego local do Albion para ler o Destiny Board e os preços do mercado, e mostra este site numa janela. <b>O que ele não faz:</b> não altera o jogo, não aperta teclas por você, não lê senhas e não mexe em outros arquivos. A <b>ficha fica só no seu PC</b> e neste navegador, nada dela vai para a internet. Os <b>preços</b> são a única coisa enviada (item, cidade, qualidade, preço e quantidade), sem nome de personagem; dá para desligar em Ajustes.</p>
         <p class="tiny muted">Quer conferir? Impressão digital (SHA-256) do arquivo: <code id="pfSha">carregando…</code> (versão <span id="pfVer">…</span>). No PowerShell: <code>Get-FileHash AlbionOverlay.exe</code>. <a href="programa/leia-me.html">Como funciona</a>.</p>
@@ -742,22 +742,22 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=5fca345e"></script>
-<script src="js/base.js?v=5fca345e"></script>
-<script src="js/fx.js?v=5fca345e"></script>
-<script src="js/biz.js?v=5fca345e"></script>
-<script src="js/builds.js?v=5fca345e"></script>
-<script src="js/nossas.js?v=5fca345e"></script>
-<script src="js/ip.js?v=5fca345e"></script>
-<script src="js/zvz.js?v=5fca345e"></script>
-<script src="js/pvp.js?v=5fca345e"></script>
-<script src="js/novos.js?v=5fca345e"></script>
-<script src="js/guia.js?v=5fca345e"></script>
-<script src="js/ui.js?v=5fca345e"></script>
-<script src="js/avalon.js?v=5fca345e"></script>
-<script src="js/oficina.js?v=5fca345e"></script>
-<script src="js/versao.js?v=5fca345e"></script>
-<script src="js/fav.js?v=5fca345e"></script>
-<script src="js/main.js?v=5fca345e"></script>
+<script src="js/icons.js?v=77e7540d"></script>
+<script src="js/base.js?v=77e7540d"></script>
+<script src="js/fx.js?v=77e7540d"></script>
+<script src="js/biz.js?v=77e7540d"></script>
+<script src="js/builds.js?v=77e7540d"></script>
+<script src="js/nossas.js?v=77e7540d"></script>
+<script src="js/ip.js?v=77e7540d"></script>
+<script src="js/zvz.js?v=77e7540d"></script>
+<script src="js/pvp.js?v=77e7540d"></script>
+<script src="js/novos.js?v=77e7540d"></script>
+<script src="js/guia.js?v=77e7540d"></script>
+<script src="js/ui.js?v=77e7540d"></script>
+<script src="js/avalon.js?v=77e7540d"></script>
+<script src="js/oficina.js?v=77e7540d"></script>
+<script src="js/versao.js?v=77e7540d"></script>
+<script src="js/fav.js?v=77e7540d"></script>
+<script src="js/main.js?v=77e7540d"></script>
 </body>
 </html>
