@@ -1,11 +1,11 @@
-"""Candidatas a Ancient Lands, sem rótulo: mortes do feed com grupo de 4–7 ou 15–20 jogadores (os tamanhos que os portais geram),
+"""Candidatas a Ancient Lands, sem rótulo: mortes do feed com grupo de 1–3 (portal pequeno), 5–7 (médio) ou 15–20 (grande) (os tamanhos que os portais geram),
 sem cara de ZvZ e sem maioria de armas típicas de gank. Só servem de material de teste; não entram nas builds do site.
 Saída: DIR/ancient/cand-AAAA-MM-DD.jsonl.gz {id,t,x,g,n,p:[classe,confiança],k:1 se já está no acervo}. Teto por dia e guarda de 7 dias (expurgar.py)."""
 import gzip, json, os, re
 import pvp_comum as C
 MAX_DIA = 8000
-TAM = set(range(4, 8)) | set(range(15, 21))   # só existem em Ancient Lands (e gank/ZvZ): guarda todas, até POR_CICLO_G por ciclo
-PEQ = {1, 2, 3}                                 # portal pequeno (solo, 2-3 × 2-3): igual a Mists, Hellgate 2v2, Depths e Corrompidas, então só as que o classificador NÃO reconheceu
+TAM = set(range(5, 8)) | set(range(15, 21))   # portal médio (5 a 7) e grande (15 a 20); só existem em Ancient Lands (e gank/ZvZ): guarda todas, até POR_CICLO_G por ciclo
+PEQ = {1, 2, 3}                                 # portal pequeno (1 a 3) (solo, 2-3 × 2-3): igual a Mists, Hellgate 2v2, Depths e Corrompidas, então só as que o classificador NÃO reconheceu
 POR_CICLO_G = 80; POR_CICLO_P = 9   # P vale por tamanho (1, 2 e 3)               # teto por ciclo (as de menor confiança primeiro), para o dia inteiro ficar coberto
 # armas típicas de gank (garras, patas de urso, adagas duplas, foices, cajado do equilíbrio, besta), tiradas das builds de gank da comunidade
 GANK = {"2H_CLAWPAIR", "2H_DUALAXE_KEEPER", "2H_DAGGERPAIR", "2H_DUALSICKLE_UNDEAD", "2H_QUARTERSTAFF_AVALON", "2H_CROSSBOW"}
