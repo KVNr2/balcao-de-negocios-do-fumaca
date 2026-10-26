@@ -4,7 +4,7 @@ let PVP = null, pvC = "hg2", pvV = "build", pvT = 0, pvSort = "wilson", pvOpen =
 const PV_ROLES = [["tank","Tanks"],["healer","Curandeiros"],["support","Suportes"],["range","Ranged"],["melee","Melee"]];
 const pvRole = w => (PVP&&PVP.roles&&PVP.roles[w])||"";
 const pvRoleNome = r => (PV_ROLES.find(x=>x[0]===r)||[0,r])[1];
-const PV_CONT = [["hg","Hellgate"],["corrompida","Corrompidas"],["solo","Brumas (solo)"],["depths","Depths"]];
+const PV_CONT = [["hg","Hellgate"],["corrompida","Corrompidas"],["solo","Brumas (solo)"],["depths","Depths"],["al","Terras Antigas (AL)"]];
 const pvGr = k => (k==="hg2"||k==="hg5")?"hg":k, pvChs = k => k==="hg"?["hg2","hg5"]:[k];
 const PV_TAM = t => t===1?"Solo":`Grupo de ${t}`;
 const pvWilson = (v,n) => { if(!n) return 0; const z=1.64, p=v/n, d=1+z*z/n; return (p+z*z/(2*n)-z*Math.sqrt((p*(1-p)+z*z/(4*n))/n))/d; };
