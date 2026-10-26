@@ -731,7 +731,7 @@ async function pontePuxar(){ try{
       ponteSeq=j.seq; try{ localStorage.setItem("ponteSeq",String(ponteSeq)); }catch(e){}
       ponteEco=j.code; location.hash="#ficha="+encodeURIComponent(j.code); }   /* reaproveita o caminho que já aplica a ficha do jogo */
     else if(j.seq>ponteSeq){ ponteSeq=j.seq; try{ localStorage.setItem("ponteSeq",String(ponteSeq)); }catch(e){} }
-    return true; }catch(e){ ponteLig=false; return false; } }
+    if(typeof afSet==="function") afSet(); return true; }catch(e){ ponteLig=false; return false; } }
 let pontePush=0;
 function ponteEmpurrar(){ clearTimeout(pontePush); pontePush=setTimeout(async()=>{ try{
     const code=fichaCode(); if(code===ponteEco) return;
@@ -763,6 +763,13 @@ $("mkBtn").addEventListener("click",()=>{
   if(!afOk()){ afMostrarPrimeira(); afBaixar(); $("pfStatus").textContent="Baixando o AlbionSpecs.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Coletar preços."; return; }
   const a=el("a",{href:"albion-ficha://mercado",style:"display:none"}); document.body.append(a); a.click(); setTimeout(()=>a.remove(),2000);
   toast("Abrindo o AlbionSpecs na bandeja do Windows… se o Windows pedir, aceite o aviso de Administrador."); });
+/* Página aberta DENTRO do overlay do AlbionSpecs (?overlay=1) ou com o programa já rodando: nada para baixar nem instalar.
+   Dentro do overlay a sincronia e a coleta de preços ficam nos botões do próprio overlay. */
+const EM_OVERLAY=/[?&]overlay=1\b/.test(location.search);
+if(EM_OVERLAY){ document.body.classList.add("em-overlay"); afSet();
+  $("pfAlbion").hidden=true; $("mkBtn").hidden=true; $("pfPrimeira").hidden=true;
+  $("pfSteps").innerHTML="<li><b>Você está no overlay do AlbionSpecs.</b> Não precisa baixar nem instalar nada.</li><li>Para ler a ficha do jogo, use o botão <b>Sincronizar agora</b> no topo desta aba do overlay. Se o Albion já estiver aberto, saia para a seleção de personagem e entre de novo.</li><li>A ficha daqui e a do site no navegador são a mesma: edite onde preferir.</li>";
+  $("pfDica").textContent="A coleta de preços do mercado fica em Configurações, no overlay."; }
 $("pfJaTenho").addEventListener("click",()=>{ afSet(); $("pfPrimeira").hidden=true; location.href=$("pfAlbion").href; setTimeout(irParaSincronia,1200); });
 $("pfFechaPrim").addEventListener("click",()=>{ $("pfPrimeira").hidden=true; });
 aplicarFichaDoAlbion(); window.addEventListener("hashchange",aplicarFichaDoAlbion);
