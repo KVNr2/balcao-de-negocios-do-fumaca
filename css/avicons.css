@@ -8,3 +8,4 @@
 .av-tyi img{width:26px;height:26px;object-fit:contain}.av-tyi svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .av-tyi.ho{border-color:#a77bd6}.av-tyi.tunnel{border-color:#b98a55}.av-tyi.royal{background:#1d4ea8}.av-tyi.red{background:#c4161c}.av-tyi.black{background:#000;border-color:#6b6b6b}
 .av-nm{flex-wrap:nowrap}.av-nm .av-ics{flex-wrap:wrap}
+.av-tyi.black,.av-tyi.royal,.av-tyi.red{background:none;border:0;border-radius:50%}.av-tyi.black img,.av-tyi.royal img,.av-tyi.red img{width:34px;height:34px}
