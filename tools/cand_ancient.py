@@ -24,6 +24,15 @@ def serve(e, pr, kk=False):
     if pr.get("zvz", 0) >= 0.7 or provavel_gank(e): return False
     if g in TAM: return True
     return g in PEQ and not kk
+def completo(e, x):
+    """com item de dragão, IP na faixa de Ancient Lands e fama: guarda quem matou, a vítima, quem ajudou e os colegas de grupo (peças, IP, guilda), para montar as composições dos portais pequeno e médio e cruzar mortes do mesmo grupo"""
+    try:
+        if C.exatos_al(e["Victim"]) <= 0 or not (len(x) > 8 and x[8] > 0): return None
+        m = max(e["Killer"].get("AverageItemPower") or 0, e["Victim"].get("AverageItemPower") or 0)
+        if not C.AL_IP[0] <= m <= C.AL_IP[1]: return None
+        r = C.empacotar(e, "cand")
+        return {"k": r["k"], "v": r["v"], "p": r["p"], "s": r["s"]}
+    except Exception: return None
 def guardar(d, itens):
     """itens: lista de (evento, previsão {classe:prob}, no_acervo:bool)"""
     pasta = os.path.join(d, "ancient"); os.makedirs(pasta, exist_ok=True); dias = {}; novos = 0
@@ -46,7 +55,10 @@ def guardar(d, itens):
         except Exception: continue
         c = max(pr, key=pr.get)
         dias[dia][e["EventId"]] = {"id": e["EventId"], "t": e["TimeStamp"][:19] + "Z", "x": [float(v) for v in x], "g": len(e.get("GroupMembers") or []),
-                                   "n": e.get("numberOfParticipants"), "p": [c, round(pr[c], 2)], "k": 1 if kk else 0, "dx": C.exatos_al(e["Victim"])}; novos += 1
+                                   "n": e.get("numberOfParticipants"), "p": [c, round(pr[c], 2)], "k": 1 if kk else 0, "dx": C.exatos_al(e["Victim"])}
+        ev = completo(e, x)
+        if ev: dias[dia][e["EventId"]]["ev"] = ev
+        novos += 1
     for dia, rs in dias.items():
         with gzip.open(os.path.join(pasta, f"cand-{dia}.jsonl.gz"), "wt", encoding="utf-8") as o:
             for r in sorted(rs.values(), key=lambda r: r["t"]): o.write(json.dumps(r, separators=(",", ":")) + "\n")
