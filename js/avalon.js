@@ -44,12 +44,21 @@ function avInfo(m){ const o=[]; const add=(cls,txt,n,tip)=>{ if(n>0) o.push({cls
   if(m.cb) o.push({cls:"blue",txt:"Baú azul",chest:1,tip:"Tem baú azul (raro)"}); if(m.cg) o.push({cls:"green",txt:"Baú verde",chest:1,tip:"Tem baú verde (comum)"});
   return o; }
 const avTag=(x,big)=>el("span",{class:"av-it "+x.cls+(big?" big":""),title:x.tip},el("span",{class:"av-itn",text:x.txt}),...(x.chest?[]:[el("b",{text:"×"+x.n})]));
+/* ícones pequenos ao lado do nome do mapa (tipo, Brecilien, baús, dungeons), no estilo dos filtros do albionmaps */
+const AV_SVG={ho:'<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/>',royal:'<path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z"/>',black:'<path d="M12 3a8 8 0 0 0-5 14v3h10v-3a8 8 0 0 0-5-14z"/><circle cx="9.3" cy="11.5" r="1.3"/><circle cx="14.7" cy="11.5" r="1.3"/>',tunnel:'<path d="M4 20v-8a8 8 0 0 1 16 0v8"/><path d="M9 20v-5a3 3 0 0 1 6 0v5"/>',mist:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>',chest:'<rect x="4" y="10" width="16" height="9" rx="1"/><path d="M4 10a8 5 0 0 1 16 0"/><path d="M12 13v3"/>',dg:'<path d="M12 3l8 9-8 9-8-9z"/>'};
+function avIcon(kind,cls,tip,n){ const s=el("span",{class:"av-ic "+cls,title:tip,role:"img","aria-label":tip}); s.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true">${AV_SVG[kind]}</svg>`; if(n>0) s.append(el("b",{text:String(n)})); return s; }
+function avIcons(m){ const w=el("span",{class:"av-ics"}); const c=avTyCls(m.y), g=AV_TYPE_G(m.y);
+  w.append(avIcon(c==="red"?"royal":g.toLowerCase(),c,avTypeTxt(m.y)));
+  if(m.mi) w.append(avIcon("mist","mist","Tem portal para a Brecilien"));
+  if(m.cb) w.append(avIcon("chest","blue","Tem baú azul (raro)")); if(m.cg) w.append(avIcon("chest","green","Tem baú verde (comum)"));
+  const dg=avDg(m); if(dg>0) w.append(avIcon("dg","dg",`${dg} dungeon${dg>1?"s":""} (solo ${m.s}, grupo ${m.g}, raid ${m.e})`,dg));
+  return w; }
 function avZoom(m,pic){
   const old=document.getElementById("avZoom"); if(old) old.remove();
   const ov=el("div",{id:"avZoom",class:"av-zoom",role:"dialog","aria-modal":"true","aria-label":`Mapa ${m.n}`});
   const box=el("div",{class:"av-zbox"}), top=el("div",{class:"av-ztop"});
   const x=el("button",{type:"button",class:"av-zx","aria-label":"Fechar",text:"×"});
-  top.append(el("b",{text:m.n}),el("span",{class:"tag t"+m.t,text:`T${m.t}`}),el("span",{class:"av-ty "+avTyCls(m.y),text:avTypeTxt(m.y)}),x);
+  top.append(el("b",{text:m.n}),avIcons(m),el("span",{class:"tag t"+m.t,text:`T${m.t}`}),el("span",{class:"av-ty "+avTyCls(m.y),text:avTypeTxt(m.y)}),x);
   const body=el("div",{class:"av-zbody"});
   const L=el("section",{class:"av-zl"}); L.append(el("h4",{text:"Recursos no mapa"}));
   for(const k of Object.keys(AV_RES)){ const n=avRes(m,k); if(!n) continue; const mt=Math.max(...Object.keys(m.r[k]).map(Number)); const row=el("div",{class:"av-zr"}); const hd=el("div",{class:"av-zrh"}); const ic=fullImg(`T${mt}_${k}`,"av-ri"); hd.append(ic||el("i",{class:"av-rd r-"+AV_RES[k][1]}),el("span",{class:"av-rn",text:AV_RES[k][0]}),el("b",{class:"av-rq",title:"Quantidade no mapa",text:`×${n}`})); row.append(hd);
@@ -67,7 +76,7 @@ function avZoom(m,pic){
 }
 function avCard(m){
   const saved=AV.saved.some(x=>x.i===m.i), card=el("article",{class:"av-card"+(saved?" on":"")});
-  const hd=el("div",{class:"av-hd"}); hd.append(el("b",{class:"av-n",text:m.n}));
+  const hd=el("div",{class:"av-hd"}); hd.append(el("span",{class:"av-nm"},el("b",{class:"av-n",text:m.n}),avIcons(m)));
   const star=el("button",{type:"button",class:"av-star","aria-pressed":String(saved),title:saved?"Tirar da rota":"Salvar na rota (até 6)","aria-label":saved?"Tirar da rota":"Salvar na rota",text:saved?"★":"☆"});
   star.addEventListener("click",()=>avToggle(m.i)); hd.append(star); card.append(hd);
   const tg=el("div",{class:"av-tags"}); tg.append(el("span",{class:"tag t"+m.t,text:`T${m.t}`}),el("span",{class:"av-ty "+avTyCls(m.y),title:AV_Y_PT[m.y]||m.y,text:avTypeTxt(m.y)}));
