@@ -724,9 +724,9 @@ async function aplicarFichaDoAlbion(){ const m=/^#ficha=(.+)$/.exec(location.has
 /* Ponte com o programa AlbionSpecs (overlay): site e overlay usam a MESMA ficha. O programa guarda a ficha em
    http://127.0.0.1:47832/ficha (só neste PC). O site puxa quando há novidade (seq maior) e empurra quando você edita. */
 const PONTE="http://127.0.0.1:47832/ficha";
-let ponteSeq=0, ponteLig=false, ponteEco=""; try{ ponteSeq=+localStorage.getItem("ponteSeq")||0; }catch(e){}
+let ponteSeq=0, ponteLig=false, ponteEco="", ponteInit=false;   /* ponteInit: só empurra depois de ter puxado a ficha do programa uma vez (uma ficha vazia do site nunca apaga a do jogo) */ try{ ponteSeq=+localStorage.getItem("ponteSeq")||0; }catch(e){}
 async function pontePuxar(){ try{
-    const r=await fetch(PONTE,{cache:"no-store"}); if(!r.ok) return false; const j=await r.json(); ponteLig=true;
+    const r=await fetch(PONTE,{cache:"no-store"}); if(!r.ok) return false; const j=await r.json(); ponteLig=true; ponteInit=true;
     if(j.code && j.seq>ponteSeq && j.code!==ponteEco && j.code!==fichaCode()){
       ponteSeq=j.seq; try{ localStorage.setItem("ponteSeq",String(ponteSeq)); }catch(e){}
       ponteEco=j.code; location.hash="#ficha="+encodeURIComponent(j.code); }   /* reaproveita o caminho que já aplica a ficha do jogo */
@@ -734,7 +734,7 @@ async function pontePuxar(){ try{
     if(typeof afSet==="function") afSet(); return true; }catch(e){ ponteLig=false; return false; } }
 let pontePush=0;
 function ponteEmpurrar(){ clearTimeout(pontePush); pontePush=setTimeout(async()=>{ try{
-    const code=fichaCode(); if(code===ponteEco) return;
+    if(!ponteInit) return; const code=fichaCode(); if(code===ponteEco) return;
     const r=await fetch(PONTE,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({code})}); if(!r.ok) return;
     const j=await r.json(); ponteEco=code; ponteSeq=Math.max(ponteSeq,j.seq||0); try{ localStorage.setItem("ponteSeq",String(ponteSeq)); }catch(e){} }catch(e){} },1500); }
 /* Sincronizar: o programa abre o overlay na aba Minha ficha; aqui só esperamos a ficha chegar pela ponte */
