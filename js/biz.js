@@ -149,10 +149,12 @@ function setupBM(){
   { const fbx=$("bmFocBox"); if(fbx&&!fbx.firstChild){ fbx.append(focBudUI(renderBM,"O foco só aumenta o retorno de recursos ao fabricar. Cada linha mostra quantas receitas o foco do dia cobre.")); } const fx=()=>{ if(fbx) fbx.hidden=!$("bmFocus").checked||bmMode==="flip"; }; $("bmFocus").addEventListener("change",fx); fx(); }
   $("bmFocus").addEventListener("change",renderBM); $("bmAtivo").addEventListener("change",()=>{ store.set("bmAtivo",$("bmAtivo").checked?"1":"0"); renderBM(); });
 }
+/* faixa de status acima da tabela: com "busy" mostra o girador e a barra de progresso (frac de 0 a 1) */
+function bmBusy(on,frac){ const s=$("bmStatus"); if(!s) return; s.classList.toggle("busy",!!on); if(on) s.style.setProperty("--p",Math.round(Math.max(.06,Math.min(1,frac==null?.06:frac))*100)+"%"); }
 async function renderBM(partial){
   const tok=partial?BM_TOK:++BM_TOK;
   { const fbx=$("bmFocBox"); if(fbx){ fbx.hidden=!$("bmFocus").checked||bmMode==="flip"; FOC_UIS.forEach(u=>u._sync()); } }
-  if(!BM){ $("bmNote").textContent="Abrindo o livro do Mercado Negro…"; try{ BM=await need("bm"); }catch(e){ $("bmNote").textContent="Não consegui abrir os dados do Mercado Negro."; return; } }
+  if(!BM){ bmBusy(true); $("bmNote").textContent="Abrindo o livro do Mercado Negro…"; try{ BM=await need("bm"); }catch(e){ bmBusy(false); $("bmNote").textContent="Não consegui abrir os dados do Mercado Negro."; return; } }
   setupBM(); if(!$("bmAtivo").dataset.init){ $("bmAtivo").dataset.init="1"; try{ $("bmAtivo").checked=store.get("bmAtivo")==="1"; }catch(e){} }
   const FAVON=!!(window.FAV&&FAV.on("mercado")), favs=FAVON?FAV.list("mercado"):[], favSet=new Set(favs.map(f=>f.k));
   const tb=$("bmTable"), note=$("bmNote"), T=FAVON?0:bmTierSel, keys=FAVON?[...new Set(favs.map(f=>f.c&&f.c.key).filter(k=>k&&BM[k]))]:bmSelKeys(), groups=bmSelGroups(keys);
@@ -162,10 +164,11 @@ async function renderBM(partial){
   if(!partial&&falta.length){   // busca um tipo por vez e mostra o que já chegou (a API limita pedidos por minuto)
     if(falta.length===useG.length) tb.textContent="";
     for(let i=0;i<falta.length;i++){ const g=falta[i], gn=(BM_GROUPS.find(x=>x[0]===g)||[0,g])[1];
+      bmBusy(true,(i+.4)/falta.length);
       note.textContent=falta.length>1?`Consultando as ordens do Mercado Negro: ${gn.toLowerCase()} (${i+1} de ${falta.length})${i?"; mostrando o que já chegou":""}…`:"Consultando as ordens do Mercado Negro…";
       if(i+1<falta.length) ensureBM(falta[i+1],T).catch(()=>{});   // adianta só o próximo (a API limita pedidos por minuto)
       const ok=await ensureBM(g,T); if(tok!==BM_TOK) return;
-      if(!ok){ note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; }
+      if(!ok){ bmBusy(false); note.textContent="Não consegui consultar o Mercado Negro agora. Tente de novo em um minuto."; return; }
       if(i<falta.length-1){ await renderBM(true); if(tok!==BM_TOK) return; } }
   }
   const rows=[]; for(const k of keys){ if(!useSet.has(BM[k][1])) continue; for(let t=2;t<=8;t++){ if(T&&t!==T) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++){ if(!FAVON&&BMF.ench>=0&&e!==BMF.ench) continue; for(let q=1;q<=5;q++){ if(!FAVON&&bmQualSel&&q!==bmQualSel) continue; if(FAVON&&!favSet.has(bmId(k,t,e)+"|"+q)) continue; if(!bmHas(bmId(k,t,e),q)) continue; if(!FAVON&&$("bmAtivo").checked&&(bmRec(bmId(k,t,e),q)["Black Market"][2]||0)>BM_ATIVO_H) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } } } }
@@ -203,7 +206,7 @@ async function renderBM(partial){
     : !rows.length ? `Nenhuma ordem do Mercado Negro para ${gname.toLowerCase()}${qtxt} nos últimos 3 dias.${more?` Foram consultados ${useG.length} de ${groups.length} tipos: use "Consultar mais".`:""}`
     : `${rows.length} ordens de ${gname.toLowerCase()}${qtxt}; ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${more?` Foram consultados ${useG.length} de ${groups.length} tipos (as suas armas primeiro): use "Consultar mais" para os outros.`:""}${ok.length>100?` Mostrando as 100 de maior lucro de ${fmt(ok.length)} registros: não são todos.`:(bmSort==="val"?" Ordenado pelo valor do lucro e, se empatar, pela porcentagem.":" Ordenado pela porcentagem de lucro e, se empatar, pelo valor.")} Clique numa linha para ver a conta e o histórico.`;
   if(FAVON) note.textContent=rows.length?`Só os seus favoritos (${rows.length} ordens do Mercado Negro): os filtros de seleção não valem aqui. ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}. Clique numa linha para ver a conta e o histórico.`:(favs.length?"Nenhuma ordem do Mercado Negro para os seus favoritos nos últimos 3 dias.":"Nenhum favorito aqui ainda: marque a estrela de uma linha.");
-  { let mb=$("bmMore"); if(!mb){ mb=el("button",{type:"button",id:"bmMore",class:"btn mn-craft"}); $("bmWrap").after(mb); mb.addEventListener("click",()=>{ BMF.lim=(BMF.lim||(bmTierSel?8:4))+(bmTierSel?8:4); renderBM(); }); } mb.hidden=!more; mb.textContent=`Consultar mais tipos (${useG.length} de ${groups.length})`; }
+  { const mb=$("bmMore"); if(!partial) bmBusy(false); if(mb){ mb.hidden=!more; mb.textContent=`Consultar mais tipos (${useG.length} de ${groups.length})`; if(!mb.dataset.on){ mb.dataset.on="1"; mb.addEventListener("click",()=>{ BMF.lim=(BMF.lim||(bmTierSel?8:4))+(bmTierSel?8:4); renderBM(); }); } } }
   if(window.gsap&&!RM) gsap.from(tb.querySelectorAll(".bm-row"),{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
   hbar($("bmWrap")); bmVolumes(shown);
 }
