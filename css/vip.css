@@ -815,12 +815,6 @@ dialog.mu-dlg{width:min(760px,96vw)}
 .links a:hover,.links a:focus-visible{transform:translateY(-2px);border-color:var(--saffron)}
 .links a::after{content:"↗";position:absolute;top:12px;right:14px;font:700 16px var(--f-body);color:var(--saffron)}
 
-/* ===== Custo da build: tabela mais larga, preços em vermelho (é custo), total em destaque ===== */
-#p-custo .cols{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
-#bcTable td.num{color:#ef6a62;font:700 18px var(--f-body)}
-#bcTable tr.total td{font-weight:700}
-#bcTable tr.total td.num{font-size:24px;color:#fff}
-#bcTable td{white-space:normal}
 .chart .row,.chart .axis{grid-template-columns:minmax(200px,290px) minmax(0,1fr) 150px}
 .chart .axis{padding:0 16px}
 .chart .row .val{white-space:nowrap;text-align:right}

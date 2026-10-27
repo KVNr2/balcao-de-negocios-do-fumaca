@@ -575,7 +575,7 @@ function nm(en){ if(LANG==="en"||!GEAR||!en) return en; return expandAlts(en).ma
 const nmKey = (k,en) => LANG==="pt"&&GEAR&&GEAR.p[k] ? GEAR.p[k] : en;
 const nmFood = f => (LANG==="en"||!f) ? f : FOOD_PT.reduce((s,[rx,pt])=>s.replace(rx,pt),f);
 function setLang(l){ LANG=l; store.set("lang",l); document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===l)));
-  renderBuilds(); renderRecs(); renderSpecs(); ["p-mercado","p-encantar","p-custo","p-matchup"].forEach(id=>{ if(!$(id).hidden) ({"p-mercado":renderBM,"p-encantar":renderEN,"p-custo":renderBC,"p-matchup":renderMU})[id](); }); }
+  renderBuilds(); renderRecs(); renderSpecs(); ["p-mercado","p-encantar","p-matchup"].forEach(id=>{ if(!$(id).hidden) ({"p-mercado":renderBM,"p-encantar":renderEN,"p-matchup":renderMU})[id](); }); }
 
 /* ================= profile editor ================= */
 function segRow(label, val, labels, onSet){ const row=el("div",{class:"lv"}); row.append(el("span",{class:"lbl",text:label})); const seg=el("div",{class:"seg sm",role:"group","aria-label":label});

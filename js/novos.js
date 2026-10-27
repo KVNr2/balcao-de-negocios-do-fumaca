@@ -1,156 +1,25 @@
-/* ================= custo da build ================= */
+/* ================= dados das peças (lista de equipamentos e cidades de compra) ================= */
 let GEAR = null;                    // data/gear.json: n: nome em inglês → chave, s: chave → h|a|s|c|o|w, e: chave → runas por encantamento
 const SHOP_LOCS = [...CITIES,"Caerleon","Brecilien"];
 const GEAR_ALIAS = {"1H Dagger":"Dagger","1H Spear":"Spear","Great Axe":"Greataxe"};
-const SLOT_PT = {w:"Arma",o:"Mão secundária",h:"Cabeça",a:"Peito",s:"Pés",c:"Capa",f:"Comida",p:"Poção"};
-const SLOT_ORDER = ["w","o","h","a","s","c","f","p"];
-const FOOD_MAP = [[/eel stew/i,"T8_MEAL_STEW_FISH"],[/puremist|snapper/i,"T7_MEAL_ROAST_FISH"],[/beef sandwich/i,"T8_MEAL_SANDWICH"],[/beef stew/i,"T8_MEAL_STEW"],[/omelet/i,"T7_MEAL_OMELETTE"],[/pork/i,"T7_MEAL_ROAST"],[/\bstew\b/i,"T8_MEAL_STEW"]];
-const POT_MAP = [[/cura/i,"T6_POTION_HEAL"],[/gigantify/i,"T7_POTION_REVIVE"],[/veneno/i,"T8_POTION_COOLDOWN"],[/invisib/i,"T8_POTION_CLEANSE"],[/resist/i,"T7_POTION_STONESKIN"]];
-const CONS_PT = {T8_MEAL_STEW_FISH:"Deadwater Eel Stew",T7_MEAL_ROAST_FISH:"Roasted Puremist Snapper",T8_MEAL_SANDWICH:"Beef Sandwich",T8_MEAL_STEW:"Beef Stew",T7_MEAL_OMELETTE:"Pork Omelette",T7_MEAL_ROAST:"Roast Pork",T6_POTION_HEAL:"Poção de cura maior",T7_POTION_REVIVE:"Poção de Gigantify maior",T8_POTION_COOLDOWN:"Poção de veneno maior",T8_POTION_CLEANSE:"Poção de invisibilidade",T7_POTION_STONESKIN:"Poção de resistência maior"};
-const CONTENT_PT = {brumas:"Brumas",corrompidas:"Corrompidas",barato:"Abadias, set barato",pve:"PvE"};
-let bcSel = {}, bcLast = "", bcKeepQ = false;
-let BC_Q = {a:1,p:{}}; try{ const q=JSON.parse(store.get("bcQ")||"null"); if(q&&q.a) BC_Q={a:+q.a||1,p:q.p||{}}; }catch(e){}
-const saveBCQ = () => store.set("bcQ",JSON.stringify(BC_Q));
-let BC_CUSTOM = {}; try{ BC_CUSTOM=JSON.parse(store.get("bcCustom")||"{}"); }catch(e){}
-const CONS_KEYS = {f:["T8_MEAL_STEW_FISH","T7_MEAL_ROAST_FISH","T8_MEAL_STEW","T8_MEAL_SANDWICH","T7_MEAL_OMELETTE","T7_MEAL_ROAST"],p:["T6_POTION_HEAL","T7_POTION_REVIVE","T8_POTION_COOLDOWN","T7_POTION_STONESKIN","T8_POTION_CLEANSE"]};
-let GEAR_EN = null; const enOf = k => { if(!GEAR_EN){ GEAR_EN={}; for(const [nm_,k_] of Object.entries(GEAR.n)) GEAR_EN[k_]=GEAR_EN[k_]||nm_; } return GEAR_EN[k]||CONS_PT[k]||k; };
-function slotOptions(s){ if(s==="f"||s==="p") return CONS_KEYS[s].map(k=>({key:k,label:nmKey(k,CONS_PT[k])}));
-  return Object.keys(GEAR.s).filter(k=>GEAR.s[k]===s).map(k=>({key:k,label:nmKey(k,enOf(k))})).sort((a,b)=>a.label.localeCompare(b.label,"pt-BR")); }
-function saveCustom(){ store.set("bcCustom",JSON.stringify(BC_CUSTOM)); }
 function gearKey(name){ let n=(name||"").trim().replace(/^Elder's /,""); n=GEAR_ALIAS[n]||n; return GEAR.n[n]||null; }
-function buildSlots(b){
-  const slots={}; const add=(slot,key,label)=>{ (slots[slot]||(slots[slot]=[])); if(!slots[slot].some(x=>x.key===key)) slots[slot].push({key,label}); };
-  const wk=gearKey(b.w); if(wk) add(GEAR.s[wk]||"w",wk,b.w);
-  for(const g of b.g||[]){ const alts=g.split(/\s+ou\s+/); const last=alts[alts.length-1].trim().split(" ").pop();
-    for(let a of alts){ a=a.trim(); if(!/\s/.test(a)&&alts.length>1) a=`${a} ${last}`; const k=gearKey(a); if(k) add(GEAR.s[k],k,a.replace(/^Elder's /,"")); } }
-  const fm=FOOD_MAP.find(([rx])=>rx.test(b.f||"")); if(fm) add("f",fm[1],CONS_PT[fm[1]]);
-  const pm=POT_MAP.find(([rx])=>rx.test(b.f||"")); if(pm) add("p",pm[1],CONS_PT[pm[1]]);
-  if(slots.w&&/^2H_/.test(slots.w[0].key)) delete slots.o;
-  return slots;
-}
-/* fontes além da lista antiga: builds do AlbionOnlineGrind ("g:id") e builds do ZvZ ("z:arma:n") */
-let BC_GB=null, BC_ZV=null;
-async function bcLoadSources(){
-  if(!BC_GB){ try{ BC_GB=await need("builds-grind"); }catch(e){ BC_GB={builds:[],conteudos:[]}; } }
-  if(!BC_ZV){ try{ BC_ZV=await need("zvz"); }catch(e){ BC_ZV={armas:{}}; } }
-}
-const bcCode = id => String(id||"").replace(/^T\d_/,"").replace(/@\d$/,"");
-function bcSlotsFor(value){
-  if(/^\d+$/.test(value)){ const b=BUILDS[+value]; return b?{slots:buildSlots(b),title:nm(b.w),src:b.src}:null; }
-  const slots={}; const add=(slot,key,label)=>{ (slots[slot]||(slots[slot]=[])); if(key&&!slots[slot].some(x=>x.key===key)) slots[slot].push({key,label}); };
-  if(value.startsWith("g:")||value.startsWith("n:")){ const b=(value[0]==="n"?(window.NB_ALL||[]):(BC_GB.builds||[])).find(x=>x.id===value.slice(2)); if(!b) return null;
-    add("w",bcCode(b.w),codeName(bcCode(b.w)));
-    if(b.w2) add("w",bcCode(b.w2),codeName(bcCode(b.w2)));
-    for(const sl of ["h","a","s","c","o"]) for(const id of b[sl]||[]){ const c=bcCode(id); add(sl,c,codeName(c)); }
-    for(const sl of ["p","f"]) for(const id of b[sl]||[]){ const k=String(id).replace(/@\d$/,""); add(sl,k,KB_CONS_PT[bcCode(k)]||codeName(bcCode(k))); }
-    if(slots.w&&/^2H_/.test(slots.w[0].key)) delete slots.o;
-    return {slots,title:b.t||codeName(bcCode(b.w))}; }
-  if(value.startsWith("z:")){ const [,w,i]=value.split(":"); const v=((BC_ZV.armas[w]||{}).variantes||[])[+i]; if(!v) return null;
-    add("w",w,codeName(w));
-    for(const [k,sl] of [["cabeca","h"],["peito","a"],["botas","s"],["capa","c"],["off","o"]]) if(v[k]) add(sl,v[k].c,codeName(v[k].c));
-    for(const [k,sl] of [["pocao","p"],["comida","f"]]) if(v[k]) add(sl,`T${v[k].t}_${v[k].c}`,KB_CONS_PT[v[k].c]||codeName(v[k].c));
-    if(/^2H_/.test(w)) delete slots.o;
-    return {slots,title:`${codeName(w)} (ZvZ, ${v.n} jogadores)`}; }
-  return null;
-}
-/* tier equivalente: T8 = 8.0, 7.1, 6.2, 5.3 e 4.4. Em empate de preço vale a ordem 4.4 primeiro, depois do maior tier para o menor */
-function bcEquivs(sum){ const out=[]; const push=(t,e)=>{ if(t>=4&&t<=8&&e>=0&&e<=4) out.push([t,e]); }; push(sum-4,4); for(let e=0;e<=3;e++) push(sum-e,e); return out; }
 const priceIn = (id,city) => { const r=BMP[id]&&BMP[id][city]; return r&&r[0]>0?r[0]:null; };
 function cheapest(id){ let best=null; for(const c of SHOP_LOCS){ const p=priceIn(id,c); if(p&&(!best||p<best.p)) best={p,c}; } return best; }
-let BC_COSQ=false;
-function setupBC(){
-  /* só na primeira vez: o renderBC chama o setupBC, então pedir um renderBC novo a cada chamada fazia os dois se chamarem sem parar e a página travava */
-  if(!BC_COSQ){ BC_COSQ=true; cosLoad().then(()=>{ try{ renderBC(); }catch(e){} }); }
-  const sel=$("bcBuild"); const rk=`${BUILDS.length}|${LANG}|${(window.NB_ALL||[]).length}|${((BC_GB||{}).builds||[]).length}|${Object.keys((BC_ZV||{}).armas||{}).length}`; if(sel.dataset.ready===rk) return; sel.textContent=""; sel.dataset.ready=rk;
-  const mine=new Set(LINES.filter(([k])=>wl(k)>=2).map(([k])=>k));
-  const own=el("optgroup",{label:"Seu set"}); own.append(el("option",{value:"custom",text:"Montar peça por peça"})); sel.append(own);
-  for(const c of ["brumas","corrompidas","barato","pve"]){ const og=el("optgroup",{label:CONTENT_PT[c]});
-    BUILDS.map((b,i)=>[b,i]).filter(([b])=>b.c===c&&gearKey(b.w)).sort((x,y)=>(mine.has(y[0].l)-mine.has(x[0].l))||((y[0].pop||0)-(x[0].pop||0))).forEach(([b,i])=>og.append(el("option",{value:String(i),text:`${nm(b.w)}${mine.has(b.l)?" (sua linha)":""}`})));
-    if(og.children.length) sel.append(og); }
-  if(BC_ZV&&BC_ZV.armas){ const og=el("optgroup",{label:"Builds do ZvZ (lutas recentes)"});
-    Object.entries(BC_ZV.armas).filter(([,a])=>(a.variantes||[]).length).sort((x,y)=>(y[1].mortes||0)-(x[1].mortes||0)).forEach(([w,a])=>a.variantes.forEach((v,i)=>og.append(el("option",{value:`z:${w}:${i}`,text:`${codeName(w)} · ${v.n} ${v.n===1?"jogador":"jogadores"}`}))));
-    if(og.children.length) sel.append(og); }
-  if((window.NB_ALL||[]).length){ const og=el("optgroup",{label:"Nossas builds"}); NB_ALL.forEach(b=>og.append(el("option",{value:`n:${b.id}`,text:b.t}))); sel.append(og); }
-  if(BC_GB&&BC_GB.builds){ for(const c of BC_GB.conteudos||[]){ const og=el("optgroup",{label:`Grind · ${c.nome}`});
-    BC_GB.builds.filter(b=>b.k===c.k).sort((x,y)=>(y.pop||0)-(x.pop||0)).forEach(b=>og.append(el("option",{value:`g:${b.id}`,text:`${b.t} (${b.pop} votos)`})));
-    if(og.children.length) sel.append(og); } }
-  const saved=store.get("bcBuild"); if(saved&&sel.querySelector(`option[value="${saved}"]`)) sel.value=saved; else { const first=sel.querySelector('option:not([value="custom"])'); if(first) sel.value=first.value; }
-  for(const [id,def,tipo] of [["bcFT","8","t"],["bcFE","0","e"],["bcPT","8","t"],["bcPE","0","e"]]){ const x=$(id); if(!x.options.length){ if(tipo==="t") for(let t=1;t<=8;t++) x.append(el("option",{value:String(t),text:`T${t}`})); else [0,1,2,3].forEach(e=>x.append(el("option",{value:String(e),text:`.${e}`}))); x.value=store.get(id)||def; } }
-  if(!$("bcCity").options.length){ const c=$("bcCity"); c.append(el("option",{value:"auto",text:"Melhor cidade (tudo numa viagem)"}),el("option",{value:"multi",text:"Cada peça na mais barata"})); SHOP_LOCS.forEach(x=>c.append(el("option",{value:x,text:`Tudo em ${x}`}))); c.value=store.get("bcCity")||"auto"; if(!c.value) c.value="auto";
-    const q=$("bcQual"); for(let i=1;i<=5;i++) q.append(el("option",{value:String(i),text:QNAME[i]})); q.value=String(BC_Q.a||1); }
-  if(!$("bcCons").dataset.ok){ $("bcCons").dataset.ok="1"; $("bcCons").value=store.get("bcCons")||"off"; }
-  const tier=$("bcTier"), ench=$("bcEnch"); if(!tier.options.length){ [4,5,6,7,8].forEach(t=>tier.append(el("option",{value:String(t),text:`T${t}`}))); tier.value=store.get("bcTier")||"6"; ench.append(el("option",{value:"eq",text:"Equivalente (o mais barato)"})); [0,1,2,3,4].forEach(e=>ench.append(el("option",{value:String(e),text:`.${e}`}))); ench.value=store.get("bcEnch")||"eq"; }
-}
-async function renderBC(){
-  const note=$("bcNote"), tb=$("bcTable");
-  if(!GEAR){ note.textContent="Abrindo a lista de peças…"; try{ GEAR=await need("gear"); }catch(e){ note.textContent="Não consegui abrir a lista de peças."; return; } }
-  await bcLoadSources(); setupBC(); const sel=$("bcBuild"); if(!sel.value) return;
-  const custom=sel.value==="custom", eq=$("bcEnch").value==="eq", t=+$("bcTier").value, e=eq?0:+$("bcEnch").value; store.set("bcBuild",sel.value); store.set("bcTier",String(t)); store.set("bcEnch",eq?"eq":String(e));
-  const info=custom?null:bcSlotsFor(sel.value); if(!custom&&!info){ note.textContent="Não achei esta build."; return; }
-  const cons=$("bcCons").value; store.set("bcCons",cons); const cv={f:[+$("bcFT").value,+$("bcFE").value],p:[+$("bcPT").value,+$("bcPE").value]}; for(const id of ["bcFT","bcFE","bcPT","bcPE"]) store.set(id,$(id).value);
-  document.querySelectorAll(".bcConsX").forEach(x=>x.hidden=cons!=="custom");
-  const equivs=eq?bcEquivs(t):[[t,e]];
-  let slots; if(custom){ slots={}; for(const s of SLOT_ORDER){ if(s==="o"&&BC_CUSTOM.w&&/^2H_/.test(BC_CUSTOM.w)) continue; slots[s]=BC_CUSTOM[s]?[{key:BC_CUSTOM[s],label:enOf(BC_CUSTOM[s])}]:[]; } } else slots=info.slots;
-  const GS=["w","o","h","a","s","c"], isG=x=>GS.includes(x), isC=x=>x==="f"||x==="p";
-  const stateKey=()=>[$("bcBuild").value,$("bcTier").value,$("bcEnch").value,$("bcCons").value,$("bcFT").value,$("bcFE").value,$("bcPT").value,$("bcPE").value,$("bcCity").value,JSON.stringify(BC_Q)].join("|"); const key=stateKey();
-  $("bcCopy").hidden=custom;
-  if(bcLast!==sel.value){ bcSel={}; if(!bcKeepQ) BC_Q.p={}; bcKeepQ=false; bcLast=sel.value; $("bcQual").value=String(BC_Q.a||1); }
-  const qOf=x=>isG(x)?(BC_Q.p[x]||BC_Q.a||1):1;
-  const idOfSlot=(slot,k,tt=t,ee=e)=>isC(slot)?(cons==="custom"?`T${cv[slot][0]}_${bcCode(k)}`+(cv[slot][1]?`@${cv[slot][1]}`:""):k):`T${tt}_${k}`+(ee?`@${ee}`:"");
-  const picks={}; for(const x of SLOT_ORDER){ const l=slots[x]; if(l&&l.length&&!(isC(x)&&cons==="off")) picks[x]=l.find(c=>c.key===bcSel[x])||l[0]; }
-  const ids=[]; for(const x in picks) for(const [tt,ee] of equivs) ids.push(idOfSlot(x,picks[x].key,tt,ee));
-  const anyQ=Object.keys(picks).some(x=>qOf(x)>1);
-  note.textContent="Procurando as peças nas cidades…"; tb.textContent="";
-  try{ await bmFetch([...new Set(ids)],SHOP_LOCS,anyQ); }catch(err){ note.textContent="Não consegui consultar os preços agora."; return; }
-  if(stateKey()!==key) return;
-  /* menor preço de uma peça na qualidade pedida, entre as versões equivalentes (T8 = 8.0, 7.1, 6.2, 5.3, 4.4), numa cidade ou em todas */
-  const priceQ=(id,c,q)=>{ const r=bmRec(id,q)[c]; return r&&r[0]>0?r[0]:null; };
-  const bestFor=(x,q,only)=>{ let best=null; for(const [tt,ee] of equivs){ const id=idOfSlot(x,picks[x].key,tt,ee); for(const c of (only?[only]:SHOP_LOCS)){ const pr=priceQ(id,c,q); if(pr&&(!best||pr<best.p)) best={p:pr,c,tt,ee,id}; } } return best; };
-  const gearList=GS.filter(x=>picks[x]);
-  const cityRows=SHOP_LOCS.map(c=>{ let sum=0, miss=0; for(const x of gearList){ const bf=bestFor(x,qOf(x),c); if(bf) sum+=bf.p; else miss++; } return {c,sum,miss}; }).sort((x,y)=>(x.miss-y.miss)||(x.sum-y.sum));
-  const cityMode=$("bcCity").value; store.set("bcCity",cityMode);
-  const useCity=cityMode==="multi"?null:cityMode==="auto"?(cityRows[0]&&cityRows[0].miss<gearList.length?cityRows[0].c:null):cityMode;
-  let multiTot=0, multiMiss=0; for(const x of gearList){ const bf=bestFor(x,qOf(x),null); if(bf) multiTot+=bf.p; else multiMiss++; }
-  const tl=eq?`T${t} equivalente`:`T${t}.${e}`; $("bcTitle").textContent=(custom?`Seu set em ${tl}`:`${info.title} em ${tl}`)+(useCity?`, comprando em ${useCity}`:"");
-  const hr=tb.createTHead().insertRow(); ["Parte","Peça","Qualidade","Preço","Onde","Versão"].forEach(h=>hr.append(el("th",{text:h})));
-  const body=tb.createTBody(); let total=0, missing=0, consTot=0, outras=0;
-  for(const x of SLOT_ORDER){ const list=slots[x]; if(!list) continue; if(isC(x)&&cons==="off") continue;
-    const tr=body.insertRow(); tr.insertCell().textContent=SLOT_PT[x]; let c1;
-    if(custom){ c1=tr.insertCell(); const opts=slotOptions(x);
-      const ss=el("select",{"aria-label":`Escolher ${SLOT_PT[x].toLowerCase()}`}); ss.append(el("option",{value:"",text:"escolha…"})); opts.forEach(o=>ss.append(el("option",{value:o.key,text:o.label}))); ss.value=BC_CUSTOM[x]||"";
-      ss.addEventListener("change",()=>{ if(ss.value) BC_CUSTOM[x]=ss.value; else delete BC_CUSTOM[x]; saveCustom(); renderBC(); }); c1.append(ss);
-      if(!list.length){ for(let i=0;i<4;i++) tr.insertCell(); continue; } }
-    const pick=picks[x], q=qOf(x); let ch=bestFor(x,q,useCity), fora=false; if(!ch&&useCity&&isC(x)){ ch=bestFor(x,q,null); fora=!!ch; }
-    if(!custom){ c1=tr.insertCell(); if(list.length>1){ const ss=el("select",{"aria-label":`Escolher ${SLOT_PT[x].toLowerCase()}`}); list.forEach(c=>ss.append(el("option",{value:c.key,text:nmKey(c.key,c.label)}))); ss.value=pick.key; ss.addEventListener("change",()=>{ bcSel[x]=ss.value; renderBC(); }); c1.append(ss); } else c1.textContent=nmKey(pick.key,pick.label); }
-    { const iid=ch?ch.id:idOfSlot(x,pick.key); const w=el("span",{class:"cell-ic"}), tx=el("span",{class:"cell-tx"}); while(c1.firstChild) tx.append(c1.firstChild); const im=iconImg(iid,36,q); im.classList.add("t"); w.append(im,tx); c1.append(w); }
-    const cq=tr.insertCell(); if(isG(x)){ const qs=el("select",{class:"bc-q","aria-label":`Qualidade: ${SLOT_PT[x].toLowerCase()}`}); for(let i=1;i<=5;i++) qs.append(el("option",{value:String(i),text:QNAME[i]})); qs.value=String(q);
-      qs.addEventListener("change",()=>{ BC_Q.p[x]=+qs.value; saveBCQ(); renderBC(); }); cq.append(qs); } else cq.textContent="—";
-    const c2=tr.insertCell(); c2.className="num"; c2.textContent=ch?fmt(ch.p):"—";
-    const c3=tr.insertCell(); c3.textContent=ch?ch.c:(useCity?`sem anúncio em ${useCity}`:"sem anúncio"); if(fora||(ch&&useCity&&ch.c!==useCity)){ c3.className="loss"; c3.title="Sem anúncio na cidade escolhida: preço de outra cidade"; }
-    const c4=tr.insertCell(); c4.className="small muted"; c4.textContent=isC(x)?"por unidade":(ch&&eq?`T${ch.tt}.${ch.ee}`:`T${t}.${e}`);
-    if(isC(x)){ if(ch) consTot+=ch.p; } else if(ch){ total+=ch.p; if(useCity&&ch.c!==useCity) outras++; } else missing++; }
-  const tr=body.insertRow(); tr.className="total"; tr.insertCell().textContent="Set"; tr.insertCell().textContent=missing?`${missing} peça${missing>1?"s":""} sem anúncio${useCity?` em ${useCity}`:""}`:useCity?`tudo em ${useCity}`:"cada peça onde é mais barata";
-  tr.insertCell(); const tc=tr.insertCell(); tc.className="num"; tc.textContent=fmt(total); tr.insertCell().textContent=useCity||"várias cidades"; tr.insertCell().textContent=consTot?`+ ${fmt(consTot)} de comida e poção`:"";
-  const box=$("bcWhere"); box.textContent="";
-  const semNada=!gearList.length||cityRows.every(r=>r.miss===gearList.length);
-  if(semNada) box.append(el("p",{class:"muted small",text:!gearList.length?"Escolha as peças para ver onde comprar.":"Nenhuma peça tem anúncio agora nessa qualidade, então não dá para indicar cidade."}));
-  else { cityRows.slice(0,3).forEach((r,i)=>box.append(recItem(`${i===0?"Melhor cidade: ":""}${r.c}`,[r.miss===gearList.length?"Nenhuma peça anunciada":`${fmt(r.sum)} pelas ${gearList.length-r.miss} peças que tem lá`,r.miss?`Faltam ${r.miss}: compre ${r.miss>1?"essas":"essa"} em outra cidade`:`O set inteiro numa viagem só${multiMiss?"":`; ${r.sum>multiTot?`${fmtS(r.sum-multiTot)} a mais que caçar peça por peça`:"o mesmo que caçar peça por peça"}`}`])));
-    if(!multiMiss&&gearList.length>1) box.append(recItem("Caçando peça por peça",[`${fmt(multiTot)} no total, cada peça na cidade mais barata`,"Mais viagens e mais risco, mas é o menor preço possível"])); }
-  const bmIdx=missing===0&&total>0?el("li",{},el("strong",{text:"Quanto dá para perder"}),el("span",{text:`Com 1 milhão de pratas, este set morre ${Math.floor(1e6/total)} vezes antes de acabar o dinheiro.`})):null; if(bmIdx) box.append(bmIdx);
-  const qtxt=BC_Q.a>1||Object.keys(BC_Q.p).length?"na qualidade escolhida de cada peça":"em qualidade normal";
-  note.textContent=`Menor preço de venda anunciado ${qtxt}, nas cidades reais, Caerleon e Brecilien, anúncios de até 3 dias. ${useCity?`Todas as peças são buscadas em ${useCity}. `:"Cada peça vem da cidade onde sai mais barata. "}Comida e poção estão por unidade. ${cons==="off"?"Comida e poção não entram na conta. ":""}${eq?`No modo equivalente, cada peça usa a versão mais barata ${useCity?"nessa cidade ":""}entre ${equivs.map(x=>x.join(".")).join(", ")} (mesmo IP); se o preço empatar, vale a ordem 4.4 e depois do maior tier para o menor. `:""}${custom?"O seu set fica salvo neste navegador.":info.src==="pesquisa"?"Esta build é de pesquisa, sem conferência.":""}`;
-  if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.03,clearProps:"opacity,transform"});
-}
+/* tier equivalente: T8 = 8.0, 7.1, 6.2, 5.3 e 4.4. Em empate de preço vale a ordem 4.4 primeiro, depois do maior tier para o menor */
+function bcEquivs(sum){ const out=[]; const push=(t,e)=>{ if(t>=4&&t<=8&&e>=0&&e<=4) out.push([t,e]); }; push(sum-4,4); for(let e=0;e<=3;e++) push(sum-e,e); return out; }
 
 /* ================= encantar ================= */
 const EN_MAT = {1:["RUNE","Runa"],2:["SOUL","Alma"],3:["RELIC","Relíquia"]};
 const EN_LOADED = new Set(); let enTierSel=0;
-async function ensureEnch(g){
-  if(EN_LOADED.has(g)) return true;
-  const ok=await ensureBM(g); if(!ok) return false;
-  const ids=[]; for(const k of bmKeys(g)) for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) ids.push(bmId(k,t,e));
-  const mats=[]; for(let t=4;t<=8;t++) for(const e of [1,2,3]) mats.push(`T${t}_${EN_MAT[e][0]}`);
-  try{ await bmFetch(ids,SHOP_LOCS); await fetchIds(mats,DATA.itens,SHOP_LOCS); EN_LOADED.add(g); return true; }catch(e){ return false; }
+/* only: um tier só (obrigatório em "Todas as mercadorias", senão seriam milhares de peças); 0 = os tiers 4 a 8 do grupo */
+const enLoaded=(g,only)=>EN_LOADED.has(g)||(only>0&&EN_LOADED.has(`${g}#${only}`));
+async function ensureEnch(g,only=0){
+  if(enLoaded(g,only)) return true;
+  const ok=await ensureBM(g,only); if(!ok) return false;
+  const tiers=only?[only]:[4,5,6,7,8];
+  const ids=[]; for(const k of bmKeys(g)) for(const t of tiers) for(let e=0;e<=4;e++) ids.push(bmId(k,t,e));
+  const mats=[]; for(const t of tiers) for(const e of [1,2,3]) mats.push(`T${t}_${EN_MAT[e][0]}`);
+  try{ await bmFetch(ids,SHOP_LOCS); await fetchIds(mats,DATA.itens,SHOP_LOCS); EN_LOADED.add(only?`${g}#${only}`:g); return true; }catch(e){ return false; }
 }
 function cheapestCity(id){ const c=cheapest(id); return c; }
 function enModel(key,t,e){
@@ -189,7 +58,8 @@ function enPanel(m){
 function setupEN(){
   const sel=$("enGroup"); if(sel.options.length) return;
   const src=$("bmGroup"); if(!src.options.length) setupBM();
-  for(const og of src.children) sel.append(og.cloneNode(true)); sel.value=store.get("enGroup")||src.value;
+  { const og=el("optgroup",{label:"Todos"}); og.append(el("option",{value:"*",text:"Todas as mercadorias (escolha um tier)"})); sel.append(og); }
+  for(const og of src.children) sel.append(og.cloneNode(true)); sel.value=store.get("enGroup")||src.value; if(!sel.value) sel.value=src.value;
   const ts=$("enTier"); ["Todos",4,5,6,7,8].forEach((t,i)=>ts.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String((i?t:0)===enTierSel),text:i?`T${t}`:t})));
   ts.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ts.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); enTierSel=+b.dataset.t; renderEN(); });
   sel.addEventListener("change",()=>{ store.set("enGroup",sel.value); renderEN(); });
@@ -200,7 +70,8 @@ async function renderEN(){
   setupEN(); const FAVON=!!(window.FAV&&FAV.on("encantar")); const g=$("enGroup").value, t=FAVON?0:enTierSel;
   const favG=FAVON?[...new Set(FAV.list("encantar").map(f=>f.c&&f.c.g).filter(Boolean))]:[];
   if(FAVON){ for(const gg of favG){ if(!EN_LOADED.has(gg)){ tb.textContent=""; note.textContent="Consultando os favoritos…"; const ok=await ensureEnch(gg); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } } } }
-  else if(!EN_LOADED.has(g)){ tb.textContent=""; note.textContent="Consultando peças, runas, almas e relíquias…"; const ok=await ensureEnch(g); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("enGroup").value!==g) return; }
+  else if(g==="*"&&!t){ tb.textContent=""; note.textContent="Para comparar todas as mercadorias, escolha um tier (T4 a T8) acima. Sem tier seriam milhares de peças para consultar."; return; }
+  else if(!enLoaded(g,t)){ tb.textContent=""; note.textContent="Consultando peças, runas, almas e relíquias…"; const ok=await ensureEnch(g,t); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("enGroup").value!==g) return; }
   const rows=[]; if(FAVON){ const keep=new Set(FAV.list("encantar").map(f=>f.k)); for(const gg of favG) for(const k of bmKeys(gg)) for(const tt of [4,5,6,7,8]) for(const e of [1,2,3]){ if(!keep.has(`${k}|${tt}|${e}`)) continue; const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); } }
   else for(const k of bmKeys(g)) for(const tt of (t?[t]:[4,5,6,7,8])) for(const e of [1,2,3]){ const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); }
   rows.sort((a,b)=>((b.save??-1e15)-(a.save??-1e15)));
@@ -312,14 +183,3 @@ async function renderFZ(){
 document.querySelectorAll("[data-fz]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-fz]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); fzKind=b.dataset.fz; renderFZ(); }));
 $("fzFocus").addEventListener("change",renderFZ);
 $("fzPlots").addEventListener("input",()=>{ if(FARM&&FZ_LOADED) renderFZ(); });
-["bcBuild","bcTier","bcEnch","bcCons","bcFT","bcFE","bcPT","bcPE","bcCity"].forEach(id=>$(id).addEventListener("change",renderBC));
-$("bcQual").addEventListener("change",()=>{ BC_Q={a:+$("bcQual").value||1,p:{}}; saveBCQ(); renderBC(); });
-$("bcCopy").addEventListener("click",()=>{ const sel=$("bcBuild"); if(sel.value==="custom") return; const r=bcSlotsFor(sel.value); if(!r) return; const slots=r.slots; BC_CUSTOM={}; for(const s in slots){ const pick=slots[s].find(c=>c.key===bcSel[s])||slots[s][0]; if(pick) BC_CUSTOM[s]=pick.key; } saveCustom(); sel.value="custom"; renderBC(); });
-
-/* ir para o Custo da build já com a build e o tier escolhidos (usado pelos botões das abas Builds e Build ZvZ) */
-function bcIr(value,tier,qs){
-  if(qs){ BC_Q={a:qs.a||1,p:{...(qs.p||{})}}; saveBCQ(); bcKeepQ=true; if($("bcQual").options.length) $("bcQual").value=String(BC_Q.a); }
-  store.set("bcBuild",value); store.set("bcTier",String(tier)); store.set("bcEnch","eq");
-  const sel=$("bcBuild"); sel.dataset.ready=""; if($("bcTier").options.length){ $("bcTier").value=String(tier); $("bcEnch").value="eq"; }
-  bcLast=""; showTab("t-custo");
-}
