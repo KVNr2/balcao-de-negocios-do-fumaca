@@ -13,11 +13,11 @@
     out.textContent=`Pedidos registrados: ${API_LOG.length}\nÚltimo minuto: ${a1.length} · últimos 5 min: ${a5.length}  (medido: 100 por 60 s; oficial: 300/5 min)\nRespostas 429 (limite): ${n429}${ult?`\nÚltimo 429: ${new Date(ult.t).toLocaleTimeString()} — ${ult.resp}`:""}\nTempo de resposta (ms): mediana ${pct(ms,.5)} · p90 ${pct(ms,.9)} · máx ${ms.length?Math.max(...ms):0}\nEspera interna antes de enviar (ms): mediana ${pct(esp,.5)} · máx ${esp.length?Math.max(...esp):0}\nItens por pedido (média): ${API_LOG.length?Math.round(API_LOG.reduce((s,x)=>s+x.itens,0)/API_LOG.length):0}`;
   }
   /* teste: pedidos com itens diferentes (sem cache), em ritmo crescente; para no primeiro 429 */
-  async function teste(){
+  async function teste(passos=[30,60,90,120,150],DUR=40e3){
     if(testando) return; testando=true; parar=false; TLOG=[]; tst.textContent="Iniciando…";
     let ids=[]; try{ const c=await need("catalog"); ids=c.i.map(r=>r[0]); }catch(e){ ids=["T4_BAG","T5_BAG","T6_BAG","T7_BAG","T8_BAG"]; }
     let k=0; const nextUrl=()=>{ const lote=[]; for(let i=0;i<20;i++) lote.push(ids[(k*20+i)%ids.length]); k++; return `${HOST}/api/v2/stats/prices/${lote.join(",")}.json?locations=Caerleon&qualities=1&_d=${Date.now()}${k}`; };
-    const passos=[30,60,90,120,150]; const DUR=40e3; let parouEm=null;
+    let parouEm=null;
     for(const rate of passos){
       if(parar||parouEm) break; const gap=60e3/rate, ini=Date.now(); let env=0, ok=0, lim=0, outro=0, lat=[];
       while(Date.now()-ini<DUR&&!parar&&!parouEm){
@@ -30,11 +30,11 @@
       tst.textContent+=`\n→ ${rate}/min por ${DUR/1000}s: enviados ${env}, ok ${ok}, 429 ${lim}, outros ${outro}, latência mediana ${pct(lat,.5)} ms`;
       TLOG.push({resumo:true,rate,env,ok,lim,outro,lat:pct(lat,.5)});
     }
-    tst.textContent+=parouEm?`\nA API passou a recusar com ${parouEm.rate} pedidos/min (depois de ${parouEm.env} pedidos neste passo). Resposta: ${parouEm.tx}`:(parar?"\nTeste interrompido.":"\nNenhum 429 até 150/min.");
+    tst.textContent+=parouEm?`\nA API passou a recusar com ${parouEm.rate} pedidos/min (depois de ${parouEm.env} pedidos neste passo). Resposta: ${parouEm.tx}`:(parar?"\nTeste interrompido.":"\nNenhum 429 no teste.");
     testando=false;
   }
   function baixar(){ const txt=JSON.stringify({gerado:new Date().toISOString(),ua:navigator.userAgent,pedidosDoSite:API_LOG,teste:TLOG},null,1); const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"})); a.download="diagnostico-api.json"; a.click(); }
   const h=document.createElement("b"); h.textContent="Diagnóstico da API"; box.append(h,document.createElement("br"),
-    mk("Rodar teste de limite (~3 min)",teste),mk("Parar",()=>{ parar=true; }),mk("Baixar registro",baixar),mk("Fechar",()=>box.remove()),out,tst);
+    mk("Rodar teste de limite (~3 min)",teste),mk("Teste sustentado: 7 min a 85/min",()=>teste([85],420e3)),mk("Parar",()=>{ parar=true; }),mk("Baixar registro",baixar),mk("Fechar",()=>box.remove()),out,tst);
   document.body.append(box); resumo(); setInterval(resumo,1000);
 })();
