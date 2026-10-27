@@ -422,6 +422,13 @@
    "itens": [
     "Respeita o limite medido da API (85 por minuto e 250 por 5 minutos), com contador compartilhado entre os quadros e espera exata depois de um aviso de limite."
    ]
+  },
+  {
+   "t": "2026-10-27T04:55:00Z",
+   "titulo": "Botão Coletar preços removido",
+   "itens": [
+    "O botão \"Coletar preços\" saiu do topo do site: a coleta já roda sozinha enquanto o Albion Overlay está aberto."
+   ]
   }
  ]
 }

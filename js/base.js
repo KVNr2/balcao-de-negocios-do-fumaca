@@ -796,11 +796,6 @@ $("pfAlbion").addEventListener("click",ev=>{
   if(afOk()){ setTimeout(irParaSincronia,1200); return; }
   ev.preventDefault(); afMostrarPrimeira(); afBaixar();
   $("pfStatus").textContent="Baixando o AlbionOverlay.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Sincronizar."; });
-/* "Coletar preços": abre o Albion Overlay (na aba Ajustes, onde fica o botão da coleta); a coleta liga sozinha e roda enquanto o programa estiver aberto */
-$("mkBtn").addEventListener("click",()=>{
-  if(!afOk()){ afMostrarPrimeira(); afBaixar(); $("pfStatus").textContent="Baixando o AlbionOverlay.exe… siga os passos acima. Depois de abrir o programa uma vez, ele já coleta os preços sozinho enquanto estiver aberto."; return; }
-  const a=el("a",{href:"albion-ficha://mercado",style:"display:none"}); document.body.append(a); a.click(); setTimeout(()=>a.remove(),2000);
-  toast("Abrindo o Albion Overlay… se o Windows pedir, aceite o aviso de Administrador. Ele coleta os preços enquanto estiver aberto."); });
 /* Página aberta DENTRO do Albion Overlay (?overlay=1) ou com o programa já rodando: nada para baixar nem instalar.
    Dentro do overlay a sincronia e a coleta de preços ficam nos botões do próprio overlay. */
 const EM_OVERLAY=/[?&]overlay=1\b/.test(location.search);
@@ -822,7 +817,7 @@ if(EM_OVERLAY){ (function(){
   addEventListener("resize",ask); document.addEventListener("click",()=>setTimeout(ask,80)); ask();
 })(); }
 if(EM_OVERLAY){ document.body.classList.add("em-overlay"); afSet();
-  $("pfAlbion").hidden=true; $("mkBtn").hidden=true; $("pfPrimeira").hidden=true; $("pfOverlay").hidden=true;
+  $("pfAlbion").hidden=true; $("pfPrimeira").hidden=true; $("pfOverlay").hidden=true;
   $("pfSteps").innerHTML="<li><b>Você está no Albion Overlay.</b> Não precisa baixar nem instalar nada.</li><li>Para ler a ficha do jogo, use o botão <b>Sincronizar agora</b> no topo desta aba do overlay. Se o Albion já estiver aberto, saia para a seleção de personagem e entre de novo.</li><li>A ficha daqui e a do site no navegador são a mesma: edite onde preferir.</li>";
   $("pfDica").textContent="A coleta de preços do mercado fica em Ajustes, no overlay."; }
 $("pfBaixar").addEventListener("click",()=>{ afMostrarPrimeira(); afBaixar(); $("pfStatus").textContent="Baixando o AlbionOverlay.exe… siga os passos acima. Depois de abrir o programa uma vez, volte aqui e clique em Sincronizar."; });
