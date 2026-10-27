@@ -61,7 +61,7 @@ async function warmBM(force){
   try{
     if(!BM) BM=await need("bm"); if(!$("bmGroup")||!$("bmFocus")) return;
     const g=(()=>{ try{ const sg=store.get("bmGroup"); return sg&&sg!=="*"?sg:bmGroupDefault(); }catch(e){ return bmGroupDefault(); } })();
-    const wait=async()=>{ for(;;){ const now=Date.now(), n=apiStamps.filter(t=>now-t<60e3).length; if(n<=45) return; await sleep(3000); } };
+    const wait=async()=>{ for(;;){ const l=apiLoad(); if(!l.block&&l.m1<=API_MIN-25&&l.m5<API_5MIN-40) return; await sleep(2000); } };
     const was=FORCE; if(force) FORCE=true;
     try{
       if(g==="*"){ for(const t of [8,7,6,5,4,3,2]){ if(run!==WARM_RUN) return; await wait(); await ensureBM("*",t); } }
