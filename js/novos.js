@@ -57,8 +57,10 @@ function bcSlotsFor(value){
 function bcEquivs(sum){ const out=[]; const push=(t,e)=>{ if(t>=4&&t<=8&&e>=0&&e<=4) out.push([t,e]); }; push(sum-4,4); for(let e=0;e<=3;e++) push(sum-e,e); return out; }
 const priceIn = (id,city) => { const r=BMP[id]&&BMP[id][city]; return r&&r[0]>0?r[0]:null; };
 function cheapest(id){ let best=null; for(const c of SHOP_LOCS){ const p=priceIn(id,c); if(p&&(!best||p<best.p)) best={p,c}; } return best; }
+let BC_COSQ=false;
 function setupBC(){
-  cosLoad().then(()=>{ try{ renderBC(); }catch(e){} });
+  /* só na primeira vez: o renderBC chama o setupBC, então pedir um renderBC novo a cada chamada fazia os dois se chamarem sem parar e a página travava */
+  if(!BC_COSQ){ BC_COSQ=true; cosLoad().then(()=>{ try{ renderBC(); }catch(e){} }); }
   const sel=$("bcBuild"); const rk=`${BUILDS.length}|${LANG}|${(window.NB_ALL||[]).length}|${((BC_GB||{}).builds||[]).length}|${Object.keys((BC_ZV||{}).armas||{}).length}`; if(sel.dataset.ready===rk) return; sel.textContent=""; sel.dataset.ready=rk;
   const mine=new Set(LINES.filter(([k])=>wl(k)>=2).map(([k])=>k));
   const own=el("optgroup",{label:"Seu set"}); own.append(el("option",{value:"custom",text:"Montar peça por peça"})); sel.append(own);

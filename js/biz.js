@@ -6,6 +6,8 @@ const BM_GROUPS = [...LINES.map(([k,n])=>[k,n]),["a_placa","Armaduras de placa"]
 const BMP = {};                     // id: {cidade: [venda, compra, idade em horas da compra, idade da venda]}
 const BMQ = {};                     // qualidades 2 a 5, mesmo formato do BMP: id: {qualidade: {cidade: [venda, compra, idade da compra, idade da venda]}} (a qualidade 1 fica no BMP)
 const BM_VOL = {};                  // id: {qualidade: peças que o Mercado Negro comprou por dia (média dos últimos 7 dias)}, ou -1 se a consulta falhou
+/* dicas dos cabeçalhos da tabela (a coluna fica curta; o que ela é e de onde vem está aqui) */
+const BM_HT={"Pedido":"Pedido de compra atual do Mercado Negro para esta peça (qualidade indicada ou melhor), antes da taxa de venda. Vem de jogadores com o Albion Overlay coletando preços e, na falta deles, da API pública. Pedido com mais de 72 horas não aparece.","Média 7 dias":"Média do que o Mercado Negro pagou pela peça, ponderada pelas peças vendidas nos últimos 7 dias","Custo":"Custo de fabricar a peça: matéria-prima (já com o retorno de recursos), artefato e taxa da bancada","Bônus em":"Cidade que dá bônus de retorno de recursos para fabricar esta peça","Compras por dia":"Quantas peças o Mercado Negro comprou por dia, em média, nos últimos 7 dias"};
 const BM_LOADED = new Set(), BM_TS = {}, BM_REF = {}; let BM_TOK=0, bmMode="craft", bmTierSel=0, bmQualSel=0, bmSel=null, PLANKS_LOADED=false;
 const ageH = d => d&&!d.startsWith("0001") ? (Date.now()-Date.parse(d+"Z"))/3600e3 : Infinity;
 /* allQ: traz as qualidades 1 a 5 (a 1 vai para o BMP, as outras para o BMQ); sem allQ só a qualidade 1, como as outras páginas usam */
@@ -173,7 +175,7 @@ async function renderBM(partial){
   const shown=ok.slice(0,100);
   if(BM_GEN!==DATA.geradoEm){ BM_BASE=BM_CUR; BM_CUR={}; BM_GEN=DATA.geradoEm; }
   tb.textContent=""; const hr=tb.createTHead().insertRow();
-  (bmMode==="flip"?["Peça","Tier","Qualidade","Pedido de compra atual (bruto)","Preço médio","Mais barato em","Preço lá","Lucro %","Lucro por peça","O MN compra por dia"]:["Peça","Tier","Qualidade","Pedido de compra atual (bruto)","Preço médio","Custo para fabricar","Lucro %","Lucro por peça","Cidade com bônus","O MN compra por dia"]).concat([""]).forEach(h=>{ const th=el("th",{text:h,...(h.startsWith("Pedido de compra")?{title:"O maior pedido de compra do Mercado Negro visto agora para esta peça e qualidade (ou melhor), antes da taxa de venda. Vem de jogadores com o Albion Overlay coletando preços e, na falta deles, da API pública. Pedido com mais de 72 horas não aparece."}:{})}), pc=h==="Lucro %", vl=h==="Lucro por peça";
+  (bmMode==="flip"?["Peça","Tier","Qualidade","Pedido","Média 7 dias","Mais barato em","Preço lá","Lucro %","Lucro por peça","Compras por dia"]:["Peça","Tier","Qualidade","Pedido","Média 7 dias","Custo","Lucro %","Lucro por peça","Bônus em","Compras por dia"]).concat([""]).forEach(h=>{ const th=el("th",{text:h,...(BM_HT[h]?{title:BM_HT[h]}:{})}), pc=h==="Lucro %", vl=h==="Lucro por peça";
     if(pc||vl){ th.className="bm-sort"; th.tabIndex=0; th.setAttribute("role","button"); const on=pc===(bmSort==="pct"); th.setAttribute("aria-sort",on?"descending":"none"); th.append(on?" ▼":""); th.title=pc?"Ordenar primeiro pela porcentagem de lucro (e depois pelo valor)":"Ordenar primeiro pelo valor do lucro (e depois pela porcentagem)";
       const go=()=>{ bmSort=pc?"pct":"val"; renderBM(); }; th.addEventListener("click",go); th.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); go(); } }); }
     hr.append(th); });
@@ -252,7 +254,7 @@ function bmPanel(m){
   const lucro=bmMode==="flip"?m.flip:m.craft;
   const lines=[["Pedido de compra atual",fmt(bruto)],[`Taxa de venda (${tax}%${st.prem?" Premium":""})`,"−"+fmt(taxV)],["Líquido da venda",fmt(m.net)]];
   if(crafting&&bmMode!=="flip") lines.push(["Cidade com bônus",m.city],["Foco gasto",m.focus?fmt(m.fc):"desligado"]); if(m.focus&&m.fc>0) lines.push([`Receitas que o foco cobre (${fmt(focBud())}/dia)`,fmt(Math.floor(focBud()/m.fc))]);
-  if(vv!=null&&vv>=0) lines.push(["O MN compra por dia (7 dias)",volTxt(vv)]);
+  if(vv!=null&&vv>=0) lines.push(["Compras por dia (7 dias)",volTxt(vv)]);
   { const rc=card(lucro!=null&&lucro<0?"res neg":"res",lucro!=null&&lucro<0?"Resultado (−)":"Resultado (+)",lines,[bmMode==="flip"?"Lucro revendendo":"Lucro fabricando",lucro==null?"—":sgn(lucro)]); right.append(rc); }
   d.append(left,right); drawHistory(svg,hn,m.id,"Black Market",m.q,true); return d;
 }

@@ -768,6 +768,23 @@ $("mkBtn").addEventListener("click",()=>{
 /* Página aberta DENTRO do Albion Overlay (?overlay=1) ou com o programa já rodando: nada para baixar nem instalar.
    Dentro do overlay a sincronia e a coleta de preços ficam nos botões do próprio overlay. */
 const EM_OVERLAY=/[?&]overlay=1\b/.test(location.search);
+/* Só no overlay: as listas largas (tabelas e cartões com rolagem para o lado) se ajustam à largura da janela com um zoom pequeno,
+   até FIT_MIN; abaixo disso fica a rolagem. O site normal não passa por aqui. */
+if(EM_OVERLAY){ (function(){
+  const FIT_MIN=.66; let raf=0;
+  const wide=e=>{ const o=getComputedStyle(e).overflowX; return (o==="auto"||o==="scroll")&&e.clientWidth>0; };
+  function fit(){ raf=0;
+    const panel=[...document.querySelectorAll("section.panel")].find(p=>!p.hidden); if(!panel) return;
+    for(const e of panel.querySelectorAll(".tbl,.bm2,.of-list,.of2-main,[data-fit]")){
+      if(!wide(e)) continue;
+      e.style.zoom=""; if(e.scrollWidth<=e.clientWidth+1){ continue; }
+      let z=Math.max(FIT_MIN,Math.floor(e.clientWidth/e.scrollWidth*100)/100);
+      for(let i=0;i<8;i++){ e.style.zoom=String(z); if(e.scrollWidth<=e.clientWidth+1||z<=FIT_MIN) break; z=Math.max(FIT_MIN,Math.round((z-.02)*100)/100); }
+    } }
+  const ask=()=>{ if(!raf) raf=requestAnimationFrame(fit); };
+  new MutationObserver(ask).observe(document.querySelector("main")||document.body,{childList:true,subtree:true});
+  addEventListener("resize",ask); document.addEventListener("click",()=>setTimeout(ask,80)); ask();
+})(); }
 if(EM_OVERLAY){ document.body.classList.add("em-overlay"); afSet();
   $("pfAlbion").hidden=true; $("mkBtn").hidden=true; $("pfPrimeira").hidden=true; $("pfOverlay").hidden=true;
   $("pfSteps").innerHTML="<li><b>Você está no Albion Overlay.</b> Não precisa baixar nem instalar nada.</li><li>Para ler a ficha do jogo, use o botão <b>Sincronizar agora</b> no topo desta aba do overlay. Se o Albion já estiver aberto, saia para a seleção de personagem e entre de novo.</li><li>A ficha daqui e a do site no navegador são a mesma: edite onde preferir.</li>";
