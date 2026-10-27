@@ -13,7 +13,7 @@ const EN_MAT = {1:["RUNE","Runa"],2:["SOUL","Alma"],3:["RELIC","Relíquia"]};
 const EN_LOADED = new Set(); let enTierSel=0;
 /* only: um tier só (obrigatório em "Todas as mercadorias", senão seriam milhares de peças); 0 = os tiers 4 a 8 do grupo */
 const enLoaded=(g,only)=>EN_LOADED.has(g)||(only>0&&EN_LOADED.has(`${g}#${only}`));
-async function ensureEnch(g,only=0,cancel=null,quiet=false){
+async function ensureEnch(g,only=0,cancel=null,quiet=false,step=null){
   if(enLoaded(g,only)) return true;
   const note=$("enNote");
   if(g==="*"){   // todas as mercadorias: um tipo por vez, com pausa e barra (senão seriam milhares de peças de uma vez)
@@ -23,7 +23,8 @@ async function ensureEnch(g,only=0,cancel=null,quiet=false){
         if(i){ await lpSpace(); if(cancel&&cancel()){ lpHide(note); return true; } }
         lpShow(note,i,gs.length,`Consultando peças e materiais: ${nomeG(gs[i])}`);
         if(!await ensureEnch(gs[i],only,null,true)){ lpHide(note); return false; }
-        lpShow(note,i+1,gs.length,`Consultando peças e materiais: ${nomeG(gs[i])}`); }
+        lpShow(note,i+1,gs.length,`Consultando peças e materiais: ${nomeG(gs[i])}`);
+        if(step&&i<gs.length-1){ await step(); if(cancel&&cancel()){ lpHide(note); return true; } } }
       EN_LOADED.add(`*#${only}`); lpHide(note); return true;
     }catch(e){ lpHide(note); return false; }
   }
@@ -73,20 +74,21 @@ function enPanel(m){
 function setupEN(){
   const sel=$("enGroup"); if(sel.options.length) return;
   const src=$("bmGroup"); if(!src.options.length) setupBM();
-  { const og=el("optgroup",{label:"Todos"}); og.append(el("option",{value:"*",text:"Todas as mercadorias (escolha um tier)"})); sel.append(og); }
-  for(const og of src.children) sel.append(og.cloneNode(true)); sel.value=store.get("enGroup")||src.value; if(!sel.value) sel.value=src.value;
+  { const og=el("optgroup",{label:"Todos"}); og.append(el("option",{value:"*",text:"Todas as mercadorias"})); sel.append(og); }
+  for(const og of src.children) sel.append(og.cloneNode(true)); sel.value="*";
   const ts=$("enTier"); ["Todos",4,5,6,7,8].forEach((t,i)=>ts.append(el("button",{type:"button","data-t":String(i?t:0),"aria-pressed":String((i?t:0)===enTierSel),text:i?`T${t}`:t})));
   ts.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ts.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); enTierSel=+b.dataset.t; renderEN(); });
   sel.addEventListener("change",()=>{ store.set("enGroup",sel.value); renderEN(); });
 }
-async function renderEN(){
+let EN_TOK=0;
+async function renderEN(partial=false){
   const note=$("enNote"), tb=$("enTable");
   if(!BM||!GEAR){ note.textContent="Abrindo os dados das peças…"; try{ [BM,GEAR]=await Promise.all([BM||need("bm"),GEAR||need("gear")]); }catch(e){ note.textContent="Não consegui abrir os dados das peças."; return; } }
   setupEN(); const FAVON=!!(window.FAV&&FAV.on("encantar")); const g=$("enGroup").value, t=FAVON?0:enTierSel;
   const favG=FAVON?[...new Set(FAV.list("encantar").map(f=>f.c&&f.c.g).filter(Boolean))]:[];
   if(FAVON){ for(const gg of favG){ if(!EN_LOADED.has(gg)){ tb.textContent=""; note.textContent="Consultando os favoritos…"; const ok=await ensureEnch(gg); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } } } }
-  else if(g==="*"&&!t){ tb.textContent=""; note.textContent="Para comparar todas as mercadorias, escolha um tier (T4 a T8) acima. Sem tier seriam milhares de peças para consultar."; return; }
-  else if(!enLoaded(g,t)){ tb.textContent=""; note.textContent="Consultando peças, runas, almas e relíquias…"; const ok=await ensureEnch(g,t,()=>$("enGroup").value!==g||enTierSel!==t); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("enGroup").value!==g||enTierSel!==t) return; }
+  else if(!partial&&!enLoaded(g,t)){ tb.textContent=""; const my=++EN_TOK, gone=()=>my!==EN_TOK||$("enGroup").value!==g||enTierSel!==t; const ok=await ensureEnch(g,t,gone,false,()=>renderEN(true)); if(gone()) return; if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } }
+  if(!partial) EN_TOK++;
   const rows=[]; if(FAVON){ const keep=new Set(FAV.list("encantar").map(f=>f.k)); for(const gg of favG) for(const k of bmKeys(gg)) for(const tt of [4,5,6,7,8]) for(const e of [1,2,3]){ if(!keep.has(`${k}|${tt}|${e}`)) continue; const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); } }
   else for(const k of bmKeys(g)) for(const tt of (t?[t]:[4,5,6,7,8])) for(const e of [1,2,3]){ const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); }
   rows.sort((a,b)=>((b.save??-1e15)-(a.save??-1e15)));
@@ -112,7 +114,7 @@ const HERBS = /AGARIC|COMFREY|BURDOCK|TEASEL|FOXGLOVE|MULLEIN|YARROW/;
 function ensureFZ(){
   if(FZ_LOADED) return Promise.resolve(true); if(FZ_LOADING) return FZ_LOADING;
   const ids=new Set(["T1_WORM"]); FARM.p.forEach(r=>{ ids.add(r[0]); ids.add(r[1]); }); FARM.b.forEach(r=>{ ids.add(r[0]); ids.add(r[1]); if(r[7]) ids.add(r[7]); }); FARM.pr.forEach(r=>{ ids.add(r[1]); if(r[5]) ids.add(r[5]); });
-  FZ_LOADING=fetchIds([...ids],DATA.itens,SHOP_LOCS).then(()=>{FZ_LOADED=true; return true;}).catch(()=>false).finally(()=>{FZ_LOADING=null;});
+  FZ_LOADING=fetchPaced([...ids],DATA.itens,SHOP_LOCS,"fzNote","Consultando sementes, colheitas e animais").then(()=>{FZ_LOADED=true; return true;}).catch(()=>false).finally(()=>{FZ_LOADING=null;});
   return FZ_LOADING;
 }
 const fzName = id => (FARM.n[id]||id).replace(/^Sementes de /,"");

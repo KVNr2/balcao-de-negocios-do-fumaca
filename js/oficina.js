@@ -383,14 +383,14 @@ function setupMk(){
   const order=["crafting","weapons","armors","head","shoes","offhands","capes","consumables","farming","gathering","mounts","bags","artefacts","furniture","other","vanity"];
   sel.append(el("option",{value:"",text:"Todas"})); for(const c of order) if(CATALOG.c[c]) sel.append(el("option",{value:c,text:CATALOG.c[c]}));
   { const sv=store.get("mkCat2"); sel.value=sv==null?"":sv; if(sel.value!==(sv==null?"":sv)) sel.value=""; } MK.cat=sel.value; MK.sub="";
-  const fillSel=(id,opts,val,key)=>{ const x=$(id); opts.forEach(([v,t])=>x.append(el("option",{value:String(v),text:t}))); x.value=String(val); x.addEventListener("change",()=>{ MK[key]=id==="mkCity"?x.value:+x.value; MK.limit=180; renderMk(); }); };
+  const fillSel=(id,opts,val,key)=>{ const x=$(id); opts.forEach(([v,t])=>x.append(el("option",{value:String(v),text:t}))); x.value=String(val); x.addEventListener("change",()=>{ MK[key]=id==="mkCity"?x.value:+x.value; renderMk(); }); };
   fillSel("mkTier",[[0,"Todos"],...[1,2,3,4,5,6,7,8].map(t=>[t,`T${t}`])],MK.tier,"tier");
   fillSel("mkEnch",[[-1,"Todos"],...[0,1,2,3,4].map(e=>[e,`.${e}`])],MK.ench,"ench");
   fillSel("mkQual",[1,2,3,4,5].map(q=>[q,QNAME[q]]),MK.qual,"qual");
   fillSel("mkCity",[["","Todas as cidades"],...SHOP_LOCS.map(c=>[c,c])],"","city");
-  sel.addEventListener("change",()=>{ MK.limit=180; MK.cat=sel.value; MK.sub=""; store.set("mkCat2",sel.value); fillSubs(); renderMk(); });
-  $("mkSub").addEventListener("change",()=>{ MK.limit=180; MK.sub=$("mkSub").value; renderMk(); });
-  let tmr=null; $("mkFind").addEventListener("input",()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ MK.limit=180; MK.q=$("mkFind").value.trim().toLowerCase(); renderMk(); },250); });
+  sel.addEventListener("change",()=>{ MK.cat=sel.value; MK.sub=""; store.set("mkCat2",sel.value); fillSubs(); renderMk(); });
+  $("mkSub").addEventListener("change",()=>{ MK.sub=$("mkSub").value; renderMk(); });
+  let tmr=null; $("mkFind").addEventListener("input",()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ MK.q=$("mkFind").value.trim().toLowerCase(); renderMk(); },250); });
   $("mkOnly").addEventListener("change",()=>{ MK.only=$("mkOnly").checked; renderMk(); });
   fillSubs();
 }
@@ -400,7 +400,7 @@ function extremes(id,q=1){ const r=(q>1?(PQ[q]||{}):DATA.itens)[mkKey(id)]||{}; 
   for(const [c,v] of Object.entries(r)){ if(v[0]>0){ if(!out.smax||v[0]>out.smax.p) out.smax={p:v[0],c,t:v[2]}; if(!out.smin||v[0]<out.smin.p) out.smin={p:v[0],c,t:v[2]}; }
     if(v[1]>0){ if(!out.bmax||v[1]>out.bmax.p) out.bmax={p:v[1],c,t:v[3]}; if(!out.bmin||v[1]<out.bmin.p) out.bmin={p:v[1],c,t:v[3]}; } } return out; }
 const MK_SEEN = new Set(); let MK_TOK=0;
-async function renderMk(){
+async function renderMk(partial=false){
   const note=$("mkNote"), tb=$("mkTable");
   if(!CATALOG){ note.textContent="Abrindo o catálogo de itens do jogo…"; try{ CATALOG=await need("catalog"); }catch(e){ note.textContent="Não consegui abrir o catálogo."; return; } }
   setupMk();
@@ -414,20 +414,21 @@ async function renderMk(){
   else base.sort((a,b)=>subName(a[2]).localeCompare(subName(b[2]),"pt-BR")||mkName(a).localeCompare(mkName(b),"pt-BR")||(a[3]-b[3]));
   const list=[]; for(const r of base){ const es = (FAVON||MK.ench<0) ? (r[4]||isLevelRes(r)?[0,1,2,3,4]:[0]) : (MK.ench===0||r[4]||isLevelRes(r)?[MK.ench]:[]); for(const e of es) list.push({r,e,id:mkId(r,e)}); }
   if(FAVON){ const keep=new Set(FAV.list("mk").map(f=>f.k)); const kept=list.filter(x=>keep.has(x.id)); list.length=0; list.push(...kept); }
-  const total=list.length, slice=FAVON?list.slice():list.slice(0,MK.limit);
+  const total=list.length, slice=list.slice(), SHOWN=300;
   const mq=MK.qual, seen=id=>mq>1?`${mq}|${id}`:id;
   const want=slice.map(x=>x.id).filter(id=>!MK_SEEN.has(seen(id)));
-  const tok=++MK_TOK;
-  if(want.length){ tb.textContent=""; const lotes=[]; for(let i=0;i<want.length;i+=60) lotes.push(want.slice(i,i+60));
-    const txt=`Consultando ${want.length} itens em todas as cidades${mq>1?`, qualidade ${QNAME[mq].toLowerCase()}`:""}`;
+  const tok=partial?MK_TOK:++MK_TOK;
+  if(want.length&&!partial){ tb.textContent=""; const lotes=[]; for(let i=0;i<want.length;i+=100) lotes.push(want.slice(i,i+100));
+    const txt=`Consultando ${fmt(want.length)} itens em todas as cidades${mq>1?`, qualidade ${QNAME[mq].toLowerCase()}`:""}`;
     try{ for(let i=0;i<lotes.length;i++){
-        if(i){ await lpSpace(); if(tok!==MK_TOK) { return; } }
+        if(i){ await lpSpace(); if(tok!==MK_TOK) return; }
         lpShow(note,i,lotes.length,txt,"lotes");
         await fetchIds(lotes[i],mq>1?PQ[mq]:DATA.itens,SHOP_LOCS,mq); lotes[i].forEach(id=>MK_SEEN.add(seen(id)));
-        lpShow(note,i+1,lotes.length,txt,"lotes"); }
+        lpShow(note,i+1,lotes.length,txt,"lotes");
+        if(i<lotes.length-1){ await renderMk(true); if(tok!==MK_TOK) return; } }
       lpHide(note); }catch(e){ lpHide(note); if(tok===MK_TOK) note.textContent="Não consegui consultar os preços agora."; return; }
     if(tok!==MK_TOK||MK.qual!==mq) return; }
-  const spr=x=>x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0; const rows=slice.map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>FAVON||!MK.only||x.x.smin||x.x.bmax).sort((a,b)=>spr(b)-spr(a));
+  const spr=x=>x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0; let rows=slice.filter(x=>MK_SEEN.has(seen(x.id))||FAVON).map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>FAVON||!MK.only||x.x.smin||x.x.bmax).sort((a,b)=>spr(b)-spr(a)); const achados=rows.length; if(!FAVON&&rows.length>SHOWN) rows=rows.slice(0,SHOWN);
   const cities=MK.city?[MK.city]:SHOP_LOCS;
   tb.textContent=""; const hr=tb.createTHead().insertRow(); hr.append(el("th",{text:"Item"}));
   cities.forEach(c=>{ const th=el("th",{}); th.append(el("span",{class:"dot",style:`background:${CITY_COLOR[c]||"#999"}`}),c); hr.append(th); });
@@ -444,9 +445,9 @@ async function renderMk(){
     const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean); const tu=tr.insertCell(); tu.className="num"; tu.append(ts.length?(ageSpan(Math.max(...ts))||"—"):"—");
     const ac=tr.insertCell(); const bt=el("button",{type:"button",class:"btn mn-craft",text:"Detalhe"}); ac.append(bt);
     const op=()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`,mq); tr.addEventListener("click",op); tr.addEventListener("keydown",ev=>{ if(ev.key==="Enter"&&ev.target===tr) op(); }); }
-  const shownN=rows.length, more=total>slice.length;
-  note.textContent = !total ? "Nenhum item com esse filtro." : `${fmt(shownN)} ${shownN===1?"registro exibido":"registros exibidos"} de ${fmt(total)} ${search?`com "${q}"`:MK.cat?`em ${CATALOG.c[MK.cat]}${MK.sub?` · ${subName(MK.sub)}`:""}`:"em todas as categorias"}${more?`: não são todos. Foram consultados os ${fmt(slice.length)} primeiros do catálogo e a lista está ordenada pela maior diferença entre cidades, então pode haver diferenças maiores nos que não foram consultados`:", ordenados pela maior diferença entre cidades"}. ${rows.length<slice.length?`${slice.length-rows.length} sem anúncio nos últimos 3 dias ficaram de fora. `:""}${mq>1?`Qualidade ${QNAME[mq].toLowerCase()}: só entram itens com anúncio nessa qualidade (recursos e comida só existem na Normal). `:""}Linha verde: tem diferença para lucrar; amarela: diferença zero. Na linha, o menor preço fica em verde e o maior em âmbar. Clique num item para ver as ofertas e o histórico.`;
-  { let mb=$("mkMore"); if(!mb){ mb=el("button",{type:"button",id:"mkMore",class:"btn mn-craft"}); tb.parentNode.after(mb); mb.addEventListener("click",()=>{ MK.limit+=180; renderMk(); }); } mb.hidden=!more; mb.textContent=`Consultar mais 180 (${fmt(slice.length)} de ${fmt(total)})`; }
+  const shownN=rows.length, cortado=achados>shownN, naoVistos=slice.filter(x=>!MK_SEEN.has(seen(x.id))).length;
+  const mm=$("mkMore"); if(mm) mm.hidden=true;
+  note.textContent = !total ? "Nenhum item com esse filtro." : `${fmt(shownN)} ${shownN===1?"registro exibido":"registros exibidos"} de ${fmt(total)} ${search?`com "${q}"`:MK.cat?`em ${CATALOG.c[MK.cat]}${MK.sub?` · ${subName(MK.sub)}`:""}`:"em todas as categorias"}, ordenados pela maior diferença entre cidades${cortado?` (as ${fmt(shownN)} maiores de ${fmt(achados)} com anúncio)`:""}. ${partial&&naoVistos?`Ainda consultando: faltam ${fmt(naoVistos)} itens. `:achados<slice.length&&!FAVON?`${fmt(slice.length-achados)} sem anúncio nos últimos 3 dias ficaram de fora. `:""}${mq>1?`Qualidade ${QNAME[mq].toLowerCase()}: só entram itens com anúncio nessa qualidade (recursos e comida só existem na Normal). `:""}Linha verde: tem diferença para lucrar; amarela: diferença zero. Na linha, o menor preço fica em verde e o maior em âmbar. Clique num item para ver as ofertas e o histórico.`;
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.2,stagger:.006,clearProps:"opacity,transform"});
   const wr=tb.parentNode; wr.id="mkWrap"; hbar(wr);
 }

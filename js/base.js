@@ -318,6 +318,12 @@ function lpEl(anchor){ if(!anchor) return null; let b=anchor._lp; if(b&&b.isConn
 function lpShow(anchor,done,total,txt,unit="tipos"){ const b=lpEl(anchor); if(!b) return; b.hidden=false; const det=total>1, pc=det?Math.round(Math.min(1,done/total)*100):100;
   b.classList.toggle("det",det); b.querySelector("i").style.width=pc+"%"; b.querySelector("b").textContent=txt||"Consultando preços…"; b.querySelector(".bm-prog-pct").textContent=det?`${done} de ${total} ${unit} · ${pc}%`:""; b.setAttribute("aria-valuenow",String(pc)); b.setAttribute("aria-label",txt||"Consultando preços"); }
 function lpHide(anchor){ if(anchor&&anchor._lp) anchor._lp.hidden=true; }
+/* consulta uma lista grande de itens em lotes espaçados, com a barra de carregamento ancorada no elemento de id anchorId */
+async function fetchPaced(ids,itens,locs,anchorId,txt,q){
+  const a=anchorId&&document.getElementById(anchorId), lotes=[]; for(let i=0;i<ids.length;i+=100) lotes.push(ids.slice(i,i+100));
+  try{ for(let i=0;i<lotes.length;i++){ if(i) await lpSpace(); if(a&&lotes.length>1) lpShow(a,i,lotes.length,txt,"lotes"); else if(a) lpShow(a,0,0,txt);
+      await fetchIds(lotes[i],itens,locs,q); if(a&&lotes.length>1) lpShow(a,i+1,lotes.length,txt,"lotes"); } }
+  finally{ if(a) lpHide(a); } }
 async function lpSpace(){ await lpSleep(1500); for(;;){ const now=Date.now(); if(apiStamps.filter(t=>now-t<60e3).length<=40) return; await lpSleep(2500); } }
 /* Preços coletados pelo Albion Overlay (tabela market_latest no Supabase, mesmo formato do Albion Data).
    Para cada item/cidade/qualidade vale o valor mais recente entre o Albion Data e o nosso. */
@@ -844,7 +850,7 @@ function ensureCook(){
   if(COOK_LOADED) return Promise.resolve(true);
   if(COOK_LOADING) return COOK_LOADING;
   const ids=[...new Set([...Object.keys(COOK.r), ...Object.keys(COOK.n)])].filter(i=>!i.startsWith("QUESTITEM"));
-  COOK_LOADING=fetchIds(ids,DATA.itens,COOK_LOCS).then(()=>{COOK_LOADED=true; return true;}).catch(()=>false).finally(()=>{COOK_LOADING=null;});
+  COOK_LOADING=fetchPaced(ids,DATA.itens,COOK_LOCS,"ckNote","Consultando os ingredientes e pratos").then(()=>{COOK_LOADED=true; return true;}).catch(()=>false).finally(()=>{COOK_LOADING=null;});
   return COOK_LOADING;
 }
 function cookModel(id){
