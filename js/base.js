@@ -305,9 +305,18 @@ const apiSlot=()=>apiBusy<API_MAX?(apiBusy++,Promise.resolve()):new Promise(f=>a
 const apiFree=()=>{ const n=apiQ.shift(); if(n) n(); else apiBusy--; };
 /* a API aceita 100 pedidos por minuto: o site se limita a 70 (janela deslizante) e, se mesmo assim receber 429,
    espera até a hora que a própria API informa ("resets at ...") e tenta de novo */
+/* o limite de endereço da API é 4096 caracteres: junta o máximo de itens por pedido (até 200) sem passar de 3800 */
+function apiChunks(ids,extra=60){ const out=[]; let cur=[], len=extra+80; for(const id of ids){ if(cur.length&&(cur.length>=200||len+id.length+1>3800)){ out.push(cur); cur=[]; len=extra+80; } cur.push(id); len+=id.length+1; } if(cur.length) out.push(cur); return out; }
 const API_CHUNK=120;   // itens por pedido (a API aceitou 160 sem problema)
-const API_BUDGET=70, apiStamps=[];
-async function apiPace(){ for(;;){ const now=Date.now(); while(apiStamps.length&&now-apiStamps[0]>60e3) apiStamps.shift(); if(apiStamps.length<API_BUDGET){ apiStamps.push(now); return; } await new Promise(f=>setTimeout(f,Math.max(250,60e3-(now-apiStamps[0])+50))); } }
+/* A API oficial aceita 180 pedidos por minuto e 300 a cada 5 minutos (uns 60 por minuto de forma contínua). Usamos até 150 por minuto e 270 por 5 minutos
+   (margem de 10 a 17%): no começo dá rajada rápida, depois cai para o ritmo contínuo. Um 429 trava todos os pedidos até o horário que a API informar. */
+const API_MIN=150, API_5MIN=270, apiStamps=[]; let apiBlockedUntil=0;
+async function apiPace(){ for(;;){ const now=Date.now(); while(apiStamps.length&&now-apiStamps[0]>300e3) apiStamps.shift();
+    const m1=apiStamps.filter(t=>now-t<60e3).length; let w=0;
+    if(now<apiBlockedUntil) w=apiBlockedUntil-now;
+    else if(apiStamps.length>=API_5MIN) w=300e3-(now-apiStamps[0])+50;
+    else if(m1>=API_MIN) w=60e3-(now-apiStamps.filter(t=>now-t<60e3)[0])+50;
+    if(w<=0){ apiStamps.push(now); return; } await new Promise(f=>setTimeout(f,Math.max(250,Math.min(w,30e3)))); } }
 const apiResetMs=txt=>{ const m=/resets at (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/.exec(txt||""); if(!m) return 0; const t=Date.parse(m[1]+"T"+m[2]+"Z")-Date.now(); return Math.min(65e3,Math.max(1e3,t+1000)); };
 /* Barra de carregamento visual (aparece acima da lista) e pausa entre as etapas, para as consultas grandes não sobrecarregarem a API.
    anchor: o elemento antes do qual a barra aparece; total de 0 ou 1 = sem contagem (barra animada) */
@@ -320,11 +329,12 @@ function lpShow(anchor,done,total,txt,unit="tipos"){ const b=lpEl(anchor); if(!b
 function lpHide(anchor){ if(anchor&&anchor._lp) anchor._lp.hidden=true; }
 /* consulta uma lista grande de itens em lotes espaçados, com a barra de carregamento ancorada no elemento de id anchorId */
 async function fetchPaced(ids,itens,locs,anchorId,txt,q){
-  const a=anchorId&&document.getElementById(anchorId), lotes=[]; for(let i=0;i<ids.length;i+=100) lotes.push(ids.slice(i,i+100));
+  const a=anchorId&&document.getElementById(anchorId), lotes=[]; for(let i=0;i<ids.length;i+=200) lotes.push(ids.slice(i,i+200));
   try{ for(let i=0;i<lotes.length;i++){ if(i) await lpSpace(); if(a&&lotes.length>1) lpShow(a,i,lotes.length,txt,"lotes"); else if(a) lpShow(a,0,0,txt);
       await fetchIds(lotes[i],itens,locs,q); if(a&&lotes.length>1) lpShow(a,i+1,lotes.length,txt,"lotes"); } }
   finally{ if(a) lpHide(a); } }
-async function lpSpace(){ await lpSleep(1500); for(;;){ const now=Date.now(); if(apiStamps.filter(t=>now-t<60e3).length<=40) return; await lpSleep(2500); } }
+/* pausa entre lotes: curta enquanto há folga na cota da API; deixa uma reserva para o que o usuário clicar no meio */
+async function lpSpace(){ await lpSleep(300); for(;;){ const now=Date.now(); if(now>=apiBlockedUntil&&apiStamps.filter(t=>now-t<60e3).length<API_MIN-30&&apiStamps.filter(t=>now-t<300e3).length<API_5MIN-40) return; await lpSleep(1000); } }
 /* Preços coletados pelo Albion Overlay (tabela market_latest no Supabase, mesmo formato do Albion Data).
    Para cada item/cidade/qualidade vale o valor mais recente entre o Albion Data e o nosso. */
 const CROWD_MEM=new Map(); let CROWD_OFF=false; const CROWD={hits:0};
@@ -361,13 +371,16 @@ async function apiJSON(url,ttlMin=10){
   const j=await apiJSON0(url,ttlMin);
   return url.includes("/stats/prices/")?crowdMerge(url,j):j;
 }
+/* registro de cada pedido à API (para o diagnóstico: abra o site com ?diag=1) */
+const API_LOG=[]; function apiLog(url,status,ini,fim,pedido,txt){ API_LOG.push({t:ini||pedido,esperou:Math.max(0,(ini||pedido)-pedido),ms:fim-(ini||pedido),status,itens:((/prices\/([^?]*)\.json/.exec(url)||[])[1]||"").split(",").filter(Boolean).length,url:url.length,resp:(txt||"").slice(0,200)}); if(API_LOG.length>3000) API_LOG.splice(0,500); }
 async function apiJSON0(url,ttlMin=10){
   if(!FORCE){ const c=cacheGet(url,ttlMin); if(c){ apiJSON.oldest=Math.min(apiJSON.oldest||Infinity,c.t); return c.j; } }
   let r;
   for(let n=0;;n++){
-    await apiSlot(); try{ await apiPace(); r=await fetch(url); } finally{ apiFree(); }
+    await apiSlot(); const t0=Date.now(); let t1=0; try{ await apiPace(); t1=Date.now(); r=await fetch(url); } catch(e){ apiLog(url,0,t1||t0,Date.now(),t0,"erro de rede: "+(e&&e.message)); throw e; } finally{ apiFree(); }
+    apiLog(url,r.status,t1,Date.now(),t0,r.status===429?await r.clone().text().catch(()=>""):"");
     if(r.ok||n>=3||!(r.status===429||r.status>=500)) break;
-    const txt=r.status===429?await r.text().catch(()=>""):""; const w=r.status===429?(apiResetMs(txt)||1500*Math.pow(2,n)):1500*Math.pow(2,n);
+    const txt=r.status===429?await r.text().catch(()=>""):""; const w=r.status===429?(apiResetMs(txt)||1500*Math.pow(2,n)):1500*Math.pow(2,n); if(r.status===429) apiBlockedUntil=Math.max(apiBlockedUntil,Date.now()+w);
     await new Promise(f=>setTimeout(f,w));
   }
   if(!r.ok) throw new Error("API respondeu "+r.status); const j=await r.json(); cachePut(url,j); return j;
@@ -390,7 +403,7 @@ function dropOutliers(target,keys){
 }
 async function fetchIds(ids, target, locs=CITIES, q=1){
   const loc=locs.join(",").replace(/ /g,"%20");
-  const parts=[]; for(let i=0;i<ids.length;i+=API_CHUNK) parts.push(ids.slice(i,i+API_CHUNK));
+  const parts=apiChunks(ids,loc.length+q.toString().length);
   const res=await Promise.all(parts.map(p=>apiJSON(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=${q}`)));   // pedaços em paralelo
   for(const j of res){
     for(const x of j){

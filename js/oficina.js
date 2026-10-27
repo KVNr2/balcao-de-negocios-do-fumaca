@@ -418,7 +418,7 @@ async function renderMk(partial=false){
   const mq=MK.qual, seen=id=>mq>1?`${mq}|${id}`:id;
   const want=slice.map(x=>x.id).filter(id=>!MK_SEEN.has(seen(id)));
   const tok=partial?MK_TOK:++MK_TOK;
-  if(want.length&&!partial){ tb.textContent=""; const lotes=[]; for(let i=0;i<want.length;i+=100) lotes.push(want.slice(i,i+100));
+  if(want.length&&!partial){ tb.textContent=""; const lotes=[]; for(let i=0;i<want.length;i+=200) lotes.push(want.slice(i,i+200));
     const txt=`Consultando ${fmt(want.length)} itens em todas as cidades${mq>1?`, qualidade ${QNAME[mq].toLowerCase()}`:""}`;
     try{ for(let i=0;i<lotes.length;i++){
         if(i){ await lpSpace(); if(tok!==MK_TOK) return; }
