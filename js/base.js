@@ -308,9 +308,9 @@ const apiFree=()=>{ const n=apiQ.shift(); if(n) n(); else apiBusy--; };
 /* o limite de endereço da API é 4096 caracteres: junta o máximo de itens por pedido (até 200) sem passar de 3800 */
 function apiChunks(ids,extra=60){ const out=[]; let cur=[], len=extra+80; for(const id of ids){ if(cur.length&&(cur.length>=200||len+id.length+1>3800)){ out.push(cur); cur=[]; len=extra+80; } cur.push(id); len+=id.length+1; } if(cur.length) out.push(cur); return out; }
 const API_CHUNK=120;   // itens por pedido (a API aceitou 160 sem problema)
-/* A API oficial aceita 180 pedidos por minuto e 300 a cada 5 minutos (uns 60 por minuto de forma contínua). Usamos até 150 por minuto e 270 por 5 minutos
-   (margem de 10 a 17%): no começo dá rajada rápida, depois cai para o ritmo contínuo. Um 429 trava todos os pedidos até o horário que a API informar. */
-const API_MIN=150, API_5MIN=270, apiStamps=[]; let apiBlockedUntil=0;
+/* Medido no teste de 27/10: a API recusa (429, "apiv2/1m") acima de 100 pedidos por 60 s, e a documentação fala em 300 por 5 minutos. Usamos até 85 por minuto
+   e 250 por 5 minutos: rajada rápida no começo, depois ritmo contínuo. Um 429 trava todos os pedidos até o horário que a API informar. */
+const API_MIN=85, API_5MIN=250, apiStamps=[]; let apiBlockedUntil=0;
 async function apiPace(){ for(;;){ const now=Date.now(); while(apiStamps.length&&now-apiStamps[0]>300e3) apiStamps.shift();
     const m1=apiStamps.filter(t=>now-t<60e3).length; let w=0;
     if(now<apiBlockedUntil) w=apiBlockedUntil-now;
@@ -334,7 +334,7 @@ async function fetchPaced(ids,itens,locs,anchorId,txt,q){
       await fetchIds(lotes[i],itens,locs,q); if(a&&lotes.length>1) lpShow(a,i+1,lotes.length,txt,"lotes"); } }
   finally{ if(a) lpHide(a); } }
 /* pausa entre lotes: curta enquanto há folga na cota da API; deixa uma reserva para o que o usuário clicar no meio */
-async function lpSpace(){ await lpSleep(300); for(;;){ const now=Date.now(); if(now>=apiBlockedUntil&&apiStamps.filter(t=>now-t<60e3).length<API_MIN-30&&apiStamps.filter(t=>now-t<300e3).length<API_5MIN-40) return; await lpSleep(1000); } }
+async function lpSpace(){ await lpSleep(300); for(;;){ const now=Date.now(); if(now>=apiBlockedUntil&&apiStamps.filter(t=>now-t<60e3).length<API_MIN-15&&apiStamps.filter(t=>now-t<300e3).length<API_5MIN-25) return; await lpSleep(1000); } }
 /* Preços coletados pelo Albion Overlay (tabela market_latest no Supabase, mesmo formato do Albion Data).
    Para cada item/cidade/qualidade vale o valor mais recente entre o Albion Data e o nosso. */
 const CROWD_MEM=new Map(); let CROWD_OFF=false; const CROWD={hits:0};

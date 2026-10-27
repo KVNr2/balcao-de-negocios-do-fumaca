@@ -10,7 +10,7 @@
     const now=Date.now(), w=m=>API_LOG.filter(x=>now-x.t<m*60e3), a1=w(1), a5=w(5);
     const n429=API_LOG.filter(x=>x.status===429).length, ms=API_LOG.filter(x=>x.status===200).map(x=>x.ms), esp=API_LOG.map(x=>x.esperou);
     const ult=API_LOG.filter(x=>x.status===429).slice(-1)[0];
-    out.textContent=`Pedidos registrados: ${API_LOG.length}\nÚltimo minuto: ${a1.length} · últimos 5 min: ${a5.length}  (limite oficial: 180/min e 300/5 min)\nRespostas 429 (limite): ${n429}${ult?`\nÚltimo 429: ${new Date(ult.t).toLocaleTimeString()} — ${ult.resp}`:""}\nTempo de resposta (ms): mediana ${pct(ms,.5)} · p90 ${pct(ms,.9)} · máx ${ms.length?Math.max(...ms):0}\nEspera interna antes de enviar (ms): mediana ${pct(esp,.5)} · máx ${esp.length?Math.max(...esp):0}\nItens por pedido (média): ${API_LOG.length?Math.round(API_LOG.reduce((s,x)=>s+x.itens,0)/API_LOG.length):0}`;
+    out.textContent=`Pedidos registrados: ${API_LOG.length}\nÚltimo minuto: ${a1.length} · últimos 5 min: ${a5.length}  (medido: 100 por 60 s; oficial: 300/5 min)\nRespostas 429 (limite): ${n429}${ult?`\nÚltimo 429: ${new Date(ult.t).toLocaleTimeString()} — ${ult.resp}`:""}\nTempo de resposta (ms): mediana ${pct(ms,.5)} · p90 ${pct(ms,.9)} · máx ${ms.length?Math.max(...ms):0}\nEspera interna antes de enviar (ms): mediana ${pct(esp,.5)} · máx ${esp.length?Math.max(...esp):0}\nItens por pedido (média): ${API_LOG.length?Math.round(API_LOG.reduce((s,x)=>s+x.itens,0)/API_LOG.length):0}`;
   }
   /* teste: pedidos com itens diferentes (sem cache), em ritmo crescente; para no primeiro 429 */
   async function teste(){
