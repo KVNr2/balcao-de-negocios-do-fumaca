@@ -109,3 +109,5 @@ $("muDlg").addEventListener("click",ev=>{ if(ev.target===$("muDlg")) $("muClose"
   new MutationObserver(()=>{ clearTimeout(run._t); run._t=setTimeout(run,200); }).observe(document.querySelector("main")||document.body,{childList:true,subtree:true});
 })();
 iniciarLimpar();
+
+try{ if(/[?&]diag=1/.test(location.search)){ const sc=document.createElement("script"); sc.src="js/diag.js?v="+(document.documentElement.dataset.v||Date.now()); document.body.append(sc); } }catch(e){}
