@@ -133,7 +133,8 @@ function setupBM(){
   for(const [k,n] of BM_GROUPS){ const o=el("option",{value:k,text:n}); (k.startsWith("a_")||k==="mao"?og3:mine.has(k)?og1:og2).append(o); }
   [og1,og2,og3].forEach(g=>{ if(g.children.length) sel.append(g); }); { const sg=store.get("bmGroup"); sel.value=(sg&&sg!=="*"&&BM_GROUPS.some(x=>x[0]===sg)||LINES.some(x=>x[0]===sg))?sg:bmGroupDefault(); if(!sel.value) sel.value=bmGroupDefault(); }
   /* filtros iguais aos da aba Mercado: busca, categoria, tipo, tier, encantamento e qualidade */
-  try{ const sv=JSON.parse(store.get("bmF")||"null"); if(sv){ BMF.cat=sv.cat||""; BMF.sub=sv.sub||""; BMF.ench=sv.ench==null?-1:+sv.ench; bmTierSel=+sv.tier||0; bmQualSel=+sv.qual||0; } else { BMF.cat="weapons"; BMF.sub=sel.value; } }catch(e){ BMF.cat="weapons"; BMF.sub=sel.value; }
+  /* a aba sempre abre em Todas as categorias e tipos; só tier, encantamento e qualidade são lembrados */
+  BMF.cat=""; BMF.sub=""; try{ const sv=JSON.parse(store.get("bmF")||"null"); if(sv){ BMF.ench=sv.ench==null?-1:+sv.ench; bmTierSel=+sv.tier||0; bmQualSel=+sv.qual||0; } }catch(e){}
   const bmSave=()=>{ try{ store.set("bmF",JSON.stringify({cat:BMF.cat,sub:BMF.sub,ench:BMF.ench,tier:bmTierSel,qual:bmQualSel})); }catch(e){} };
   const fill=(id,opts,val,fn)=>{ const x=$(id); opts.forEach(([v,t])=>x.append(el("option",{value:String(v),text:t}))); x.value=String(val); x.addEventListener("change",()=>{ fn(x.value); bmSave(); BMF.lim=0; bmSel=null; renderBM(); }); };
   fill("bmCat",[["","Todas"],...BM_CATS],BMF.cat,v=>{ BMF.cat=v; BMF.sub=""; bmFillSub(); });

@@ -254,7 +254,7 @@ async function renderOf(){
   const FAVON=!!(window.FAV&&FAV.on(OF.mode==="refine"?"refine":"craft"));
   const isG=!FAVON&&cat.startsWith("g:"), agg=!FAVON&&cat.startsWith("g:*");
   $("ofPrem").checked=!!st.prem; $("ofDaily").checked=st.daily>0;
-  if(agg&&!OF.tier){ tb.textContent=""; $("ofCount").textContent="—"; note.textContent="Para comparar todos os itens do grupo, escolha um tier (T4 a T8) no painel à esquerda. O encantamento pode ficar em Todos."; return; }
+  if(agg&&!OF.tier){ tb.textContent=""; $("ofCount").textContent="—"; note.textContent="Para comparar todos os itens do grupo, escolha um tier (de T2 a T8) no campo Tier, no painel à esquerda. O encantamento pode ficar em Todos."; return; }
   const sellKey=ofSig(), tierKey=OF.tier, enchKey=OF.ench, qKey=OF2.qual;
   const stale=()=>$("ofCat").value!==cat||ofSig()!==sellKey||OF.tier!==tierKey||OF.ench!==enchKey||OF2.qual!==qKey;
   let items;
