@@ -1568,16 +1568,18 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 .pv-tc-t small{color:var(--smoke);font-variant-numeric:tabular-nums}.pv-tc-w{font-weight:700}.pv-tc-w.up{color:#7fcf8c}.pv-tc-w.dn{color:#e08a7f}
 @media(max-width:560px){.pv-bt-row{grid-template-columns:54px minmax(0,1fr);gap:6px}.pv-bt-g{grid-template-columns:1fr;padding:8px 8px 8px 0}.pv-tier.big{width:36px;height:36px}}
 
-/* ===== Mercado Negro: faixa de status acima da tabela (o que está carregando) e botão Consultar mais no topo ===== */
-.bm-status{position:relative;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0 8px;padding:12px 16px;border:1px solid var(--line-soft);border-radius:12px;background:var(--night-2);overflow:hidden}
-.bm-status p{margin:0;flex:1 1 320px;color:var(--smoke);line-height:1.45}
-.bm-status #bmMore{margin-left:auto;padding:9px 16px;font-size:13.5px;background:var(--saffron);color:var(--saffron-ink);border-color:var(--saffron)}
-.bm-status #bmMore:hover{filter:brightness(1.08)}
-.bm-spin{display:none;flex:none;width:18px;height:18px;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:var(--saffron);animation:bmspin .8s linear infinite}
-.bm-status::after{content:"";position:absolute;left:0;bottom:0;height:3px;width:var(--p,6%);background:var(--saffron);opacity:0;transition:width .5s ease,opacity .2s}
-.bm-status.busy{border-color:var(--saffron);box-shadow:0 0 0 1px rgba(232,163,23,.25) inset}
-.bm-status.busy .bm-spin{display:block}
-.bm-status.busy p{color:var(--parch);font-weight:600}
-.bm-status.busy::after{opacity:1}
+/* ===== Mercado Negro: barra de carregamento acima da lista e faixa de resumo ===== */
+.bm-prog{margin:14px 0 8px;padding:14px 18px 16px;border:1px solid var(--saffron);border-radius:12px;background:linear-gradient(180deg,rgba(232,171,69,.10),rgba(232,171,69,.04))}
+.bm-prog[hidden]{display:none}
+.bm-prog-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.bm-prog-top b{flex:1 1 280px;color:var(--parch);font:600 15.5px var(--f-body)}
+.bm-prog-top #bmProgPct{color:var(--saffron);font:700 14.5px var(--f-body);font-variant-numeric:tabular-nums;white-space:nowrap}
+.bm-spin{flex:none;width:20px;height:20px;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:var(--saffron);animation:bmspin .8s linear infinite}
+.bm-prog-track{height:16px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid var(--line-soft);overflow:hidden}
+.bm-prog-track i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#c98a1e,var(--saffron),#f7d08a);background-size:200% 100%;transition:width .6s ease;animation:bmshine 1.6s linear infinite}
+.bm-prog:not(.det) .bm-prog-track i{width:100%!important;animation:bmshine 1.2s linear infinite;opacity:.55}
+.bm-status{margin:6px 0 8px}
+.bm-status p{margin:0;color:var(--smoke);line-height:1.45}
 @keyframes bmspin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.bm-spin{animation-duration:2.4s}.bm-status::after{transition:none}}
+@keyframes bmshine{from{background-position:200% 0}to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.bm-spin,.bm-prog-track i{animation:none}.bm-prog-track i{transition:none}}
