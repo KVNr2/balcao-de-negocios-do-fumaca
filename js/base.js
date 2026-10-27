@@ -309,6 +309,16 @@ const API_CHUNK=120;   // itens por pedido (a API aceitou 160 sem problema)
 const API_BUDGET=70, apiStamps=[];
 async function apiPace(){ for(;;){ const now=Date.now(); while(apiStamps.length&&now-apiStamps[0]>60e3) apiStamps.shift(); if(apiStamps.length<API_BUDGET){ apiStamps.push(now); return; } await new Promise(f=>setTimeout(f,Math.max(250,60e3-(now-apiStamps[0])+50))); } }
 const apiResetMs=txt=>{ const m=/resets at (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/.exec(txt||""); if(!m) return 0; const t=Date.parse(m[1]+"T"+m[2]+"Z")-Date.now(); return Math.min(65e3,Math.max(1e3,t+1000)); };
+/* Barra de carregamento visual (aparece acima da lista) e pausa entre as etapas, para as consultas grandes não sobrecarregarem a API.
+   anchor: o elemento antes do qual a barra aparece; total de 0 ou 1 = sem contagem (barra animada) */
+const lpSleep=ms=>new Promise(f=>setTimeout(f,ms));
+function lpEl(anchor){ if(!anchor) return null; let b=anchor._lp; if(b&&b.isConnected) return b;
+  b=document.createElement("div"); b.className="bm-prog"; b.hidden=true; b.setAttribute("role","progressbar"); b.setAttribute("aria-valuemin","0"); b.setAttribute("aria-valuemax","100");
+  b.innerHTML='<div class="bm-prog-top"><span class="bm-spin" aria-hidden="true"></span><b></b><span class="bm-prog-pct"></span></div><div class="bm-prog-track"><i></i></div>'; anchor.before(b); anchor._lp=b; return b; }
+function lpShow(anchor,done,total,txt,unit="tipos"){ const b=lpEl(anchor); if(!b) return; b.hidden=false; const det=total>1, pc=det?Math.round(Math.min(1,done/total)*100):100;
+  b.classList.toggle("det",det); b.querySelector("i").style.width=pc+"%"; b.querySelector("b").textContent=txt||"Consultando preços…"; b.querySelector(".bm-prog-pct").textContent=det?`${done} de ${total} ${unit} · ${pc}%`:""; b.setAttribute("aria-valuenow",String(pc)); b.setAttribute("aria-label",txt||"Consultando preços"); }
+function lpHide(anchor){ if(anchor&&anchor._lp) anchor._lp.hidden=true; }
+async function lpSpace(){ await lpSleep(1500); for(;;){ const now=Date.now(); if(apiStamps.filter(t=>now-t<60e3).length<=40) return; await lpSleep(2500); } }
 /* Preços coletados pelo Albion Overlay (tabela market_latest no Supabase, mesmo formato do Albion Data).
    Para cada item/cidade/qualidade vale o valor mais recente entre o Albion Data e o nosso. */
 const CROWD_MEM=new Map(); let CROWD_OFF=false; const CROWD={hits:0};

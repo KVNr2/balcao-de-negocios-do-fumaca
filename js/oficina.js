@@ -46,26 +46,30 @@ function ofItems(cat){
   return out;
 }
 /* receitas por grupo: busca só os tiers e encantamentos do filtro; com "Mercado Negro" como destino, busca também as ordens de compra de lá */
-async function ensureOfG(cat,note){
+async function ensureOfG(cat,note,cancel){
   const tiers=OF.tier?[OF.tier]:[4,5,6,7,8], enchs=OF.ench>=0?[OF.ench]:[0,1,2,3,4], bm=sellBM(), groups=ofGroups(cat);
-  let feitos=0; const total=groups.length;
+  const jobs=[];
+  for(const gg of groups){
+    const ids=[], idsBM=[], extra=new Set(), mats=new Set();
+    for(const k of bmKeys(gg)) for(const t of tiers){ let usado=false; for(const e of enchs){
+      if(t<4&&(e>0||BM[k][4])) continue;
+      const kk=`${k}|${t}|${e}`; const idg=bmId(k,t,e);
+      if(!OF.loaded.has("p|"+kk)){ ids.push(idg); usado=true; for(const [,c] of BM[k][3].matchAll(/([MPLC])(\d+)/g)) mats.add(apiLv(t,BM_RES[c],e)); }
+      if(bm&&!OF.loaded.has("b|"+kk)) idsBM.push(idg); }
+      if(usado&&BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
+    if(ids.length||idsBM.length) jobs.push({gg,ids,idsBM,mats,extra}); }
+  const total=jobs.length, nomeG=g=>(BM_GROUPS.find(x=>x[0]===g)||[0,g])[1].toLowerCase();
   try{
-    for(const gg of groups){
-      const ids=[], idsBM=[], extra=new Set(), mats=new Set();
-      for(const k of bmKeys(gg)) for(const t of tiers){ let usado=false; for(const e of enchs){
-        if(t<4&&(e>0||BM[k][4])) continue;
-        const kk=`${k}|${t}|${e}`; const idg=bmId(k,t,e);
-        if(!OF.loaded.has("p|"+kk)){ ids.push(idg); usado=true; for(const [,c] of BM[k][3].matchAll(/([MPLC])(\d+)/g)) mats.add(apiLv(t,BM_RES[c],e)); }
-        if(bm&&!OF.loaded.has("b|"+kk)) idsBM.push(idg); }
-        if(usado&&BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
-      if(ids.length||idsBM.length){ if(note) note.textContent=`Consultando preços (${feitos+1} de ${total} grupos)…`;
-        if(ids.length){ await fetchIds(ids,DATA.itens,SHOP_LOCS); await fetchIds([...mats,...extra],DATA.itens,SHOP_LOCS); }
-        if(idsBM.length) await fetchIds(idsBM,DATA.itens,["Black Market"]);
-        for(const id of ids){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id); OF.loaded.add(`p|${m[2]}|${m[1]}|${m[3]||0}`); }
-        for(const id of idsBM){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id); OF.loaded.add(`b|${m[2]}|${m[1]}|${m[3]||0}`); } }
-      feitos++; }
-    return true;
-  }catch(e){ return false; }
+    for(let i=0;i<total;i++){ const {gg,ids,idsBM,mats,extra}=jobs[i];
+      if(i){ await lpSpace(); if(cancel&&cancel()){ lpHide(note); return true; } }
+      lpShow(note,i,total,total>1?`Consultando preços: ${nomeG(gg)}`:"Consultando receitas e preços…","grupos");
+      if(ids.length){ await fetchIds(ids,DATA.itens,SHOP_LOCS); await fetchIds([...mats,...extra],DATA.itens,SHOP_LOCS); }
+      if(idsBM.length) await fetchIds(idsBM,DATA.itens,["Black Market"]);
+      for(const id of ids){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id); OF.loaded.add(`p|${m[2]}|${m[1]}|${m[3]||0}`); }
+      for(const id of idsBM){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id); OF.loaded.add(`b|${m[2]}|${m[1]}|${m[3]||0}`); }
+      lpShow(note,i+1,total,total>1?`Consultando preços: ${nomeG(gg)}`:"Consultando receitas e preços…","grupos"); }
+    lpHide(note); return true;
+  }catch(e){ lpHide(note); return false; }
 }
 async function ensureOf(cat){
   if(cat.startsWith("refine")) cat="refine";
@@ -259,8 +263,8 @@ async function renderOf(){
   const stale=()=>$("ofCat").value!==cat||ofSig()!==sellKey||OF.tier!==tierKey||OF.ench!==enchKey||OF2.qual!==qKey;
   let items;
   if(FAVON){ tb.textContent=""; note.textContent="Consultando os favoritos…"; items=await ofFavItems(); if(items===null){ note.textContent="Não consegui consultar os preços agora."; return; } if(stale()) return; }
-  else if(isG){ tb.textContent=""; note.textContent="Consultando receitas e preços…"; const ok=await ensureOfG(cat,note); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if(stale()) return; }
-  else if(!OF.loaded.has(cat.startsWith("refine")?"refine":cat)){ tb.textContent=""; note.textContent="Consultando receitas e preços…"; const ok=await ensureOf(cat); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("ofCat").value!==cat) return; }
+  else if(isG){ tb.textContent=""; note.textContent="Consultando receitas e preços…"; const ok=await ensureOfG(cat,note,stale); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if(stale()) return; }
+  else if(!OF.loaded.has(cat.startsWith("refine")?"refine":cat)){ tb.textContent=""; note.textContent="Consultando receitas e preços…"; lpShow(note,0,0,"Consultando receitas e preços…"); const ok=await ensureOf(cat); lpHide(note); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("ofCat").value!==cat) return; }
   if(!FAVON) items=ofItems(cat).filter(it=>(!OF.tier||it.t===OF.tier)&&(OF.ench<0||it.e===OF.ench)&&(!OF.q||it.name.toLowerCase().includes(OF.q)));
   $("ofCount").textContent=fmt(items.length);
   if(OF2.qual>1&&isG){ note.textContent=`Consultando preços de venda em qualidade ${QNAME[OF2.qual].toLowerCase()}…`; if(!await ensureOfQ(items)){ note.textContent="Não consegui consultar a qualidade agora."; return; } if(stale()) return; }
@@ -395,7 +399,7 @@ function fillSubs(){ const ss=$("mkSub"); ss.textContent=""; ss.append(el("optio
 function extremes(id,q=1){ const r=(q>1?(PQ[q]||{}):DATA.itens)[mkKey(id)]||{}; const out={smax:null,smin:null,bmax:null,bmin:null};
   for(const [c,v] of Object.entries(r)){ if(v[0]>0){ if(!out.smax||v[0]>out.smax.p) out.smax={p:v[0],c,t:v[2]}; if(!out.smin||v[0]<out.smin.p) out.smin={p:v[0],c,t:v[2]}; }
     if(v[1]>0){ if(!out.bmax||v[1]>out.bmax.p) out.bmax={p:v[1],c,t:v[3]}; if(!out.bmin||v[1]<out.bmin.p) out.bmin={p:v[1],c,t:v[3]}; } } return out; }
-const MK_SEEN = new Set();
+const MK_SEEN = new Set(); let MK_TOK=0;
 async function renderMk(){
   const note=$("mkNote"), tb=$("mkTable");
   if(!CATALOG){ note.textContent="Abrindo o catálogo de itens do jogo…"; try{ CATALOG=await need("catalog"); }catch(e){ note.textContent="Não consegui abrir o catálogo."; return; } }
@@ -413,9 +417,16 @@ async function renderMk(){
   const total=list.length, slice=FAVON?list.slice():list.slice(0,MK.limit);
   const mq=MK.qual, seen=id=>mq>1?`${mq}|${id}`:id;
   const want=slice.map(x=>x.id).filter(id=>!MK_SEEN.has(seen(id)));
-  if(want.length){ note.textContent=`Consultando ${want.length} itens em todas as cidades${mq>1?`, qualidade ${QNAME[mq].toLowerCase()}`:""}…`; tb.textContent="";
-    try{ await fetchIds(want,mq>1?PQ[mq]:DATA.itens,SHOP_LOCS,mq); want.forEach(id=>MK_SEEN.add(seen(id))); }catch(e){ note.textContent="Não consegui consultar os preços agora."; return; }
-    if(MK.qual!==mq) return; }
+  const tok=++MK_TOK;
+  if(want.length){ tb.textContent=""; const lotes=[]; for(let i=0;i<want.length;i+=60) lotes.push(want.slice(i,i+60));
+    const txt=`Consultando ${want.length} itens em todas as cidades${mq>1?`, qualidade ${QNAME[mq].toLowerCase()}`:""}`;
+    try{ for(let i=0;i<lotes.length;i++){
+        if(i){ await lpSpace(); if(tok!==MK_TOK) { return; } }
+        lpShow(note,i,lotes.length,txt,"lotes");
+        await fetchIds(lotes[i],mq>1?PQ[mq]:DATA.itens,SHOP_LOCS,mq); lotes[i].forEach(id=>MK_SEEN.add(seen(id)));
+        lpShow(note,i+1,lotes.length,txt,"lotes"); }
+      lpHide(note); }catch(e){ lpHide(note); if(tok===MK_TOK) note.textContent="Não consegui consultar os preços agora."; return; }
+    if(tok!==MK_TOK||MK.qual!==mq) return; }
   const spr=x=>x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0; const rows=slice.map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>FAVON||!MK.only||x.x.smin||x.x.bmax).sort((a,b)=>spr(b)-spr(a));
   const cities=MK.city?[MK.city]:SHOP_LOCS;
   tb.textContent=""; const hr=tb.createTHead().insertRow(); hr.append(el("th",{text:"Item"}));
