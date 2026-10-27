@@ -331,6 +331,97 @@
    "itens": [
     "As métricas mostraram que o limite de 12 s por pedido estava cortando respostas boas que levam de 8 a 12 s. O limite subiu para 25 s. O ritmo de pedidos por segundo continua o mesmo."
    ]
+  },
+  {
+   "t": "2026-10-26T21:30:00Z",
+   "titulo": "PvP: Terras Antigas (AL) e total real de builds",
+   "itens": [
+    "O conteúdo Terras Antigas (AL) passou a ser reconhecido pela regra de itens de dragão, IP e fama, e os nomes dos conteúdos ficaram padronizados em português.",
+    "Os botões mostram o total real de builds e a lista completa.",
+    "A coleta das candidatas a AL guarda o evento completo (matador, vítima, assistentes e grupo), para montar composições e conferir mortes."
+   ]
+  },
+  {
+   "t": "2026-10-26T23:20:00Z",
+   "titulo": "Mercado Negro: só o pedido de compra atual",
+   "itens": [
+    "O valor do Mercado Negro passou a ser o pedido de compra atual, e não o preço comum de venda da página (o Mercado Negro só compra).",
+    "Cabeçalho, dica, texto da aba e guia explicam isso."
+   ]
+  },
+  {
+   "t": "2026-10-27T02:30:00Z",
+   "titulo": "Aba Custo removida; Craft e Encantar ajustados",
+   "itens": [
+    "A aba Custo foi removida: o valor da build já aparece nas outras abas.",
+    "Encantar ganhou \"Todas as mercadorias\" e abre nela, consultando um tipo por vez.",
+    "A frase do Craft sobre comparar todos os itens do grupo foi corrigida (T2 a T8)."
+   ]
+  },
+  {
+   "t": "2026-10-27T02:50:00Z",
+   "titulo": "Mercado Negro: colunas, Todas e Cidade de compra",
+   "itens": [
+    "Colunas com nomes mais curtos e dicas; \"Vendas por dia\" no lugar de \"compra por dia\".",
+    "A aba abre com Categoria e Tipo em Todas e não mostra mais as armas por spec.",
+    "Novo filtro \"Cidade de compra\", que vale para comprar a peça (revender) ou os materiais (fabricar)."
+   ]
+  },
+  {
+   "t": "2026-10-27T03:10:00Z",
+   "titulo": "Overlay: listas ajustadas à janela",
+   "itens": [
+    "No Albion Overlay, as listas diminuem de tamanho para caber na janela, sem cortar o conteúdo e, quando dá, sem barra de rolagem."
+   ]
+  },
+  {
+   "t": "2026-10-27T03:20:00Z",
+   "titulo": "Barra de carregamento nas consultas pesadas",
+   "itens": [
+    "Mercado Negro, Mercado, Encantar, Craft, Refino, Cozinha, Fazenda e Trabalhadores mostram uma barra de carregamento visual quando consultam muitos itens.",
+    "O \"Consultar mais\" saiu: tudo é consultado em lotes espaçados, e as linhas aparecem conforme chegam."
+   ]
+  },
+  {
+   "t": "2026-10-27T03:55:00Z",
+   "titulo": "Ritmo da API medido e painel de diagnóstico",
+   "itens": [
+    "Medido: a API recusa acima de 100 pedidos por minuto e 300 a cada 5 minutos. O site usa no máximo 85 por minuto e 250 por 5 minutos, com pedidos de até 200 itens.",
+    "Abas e quadros do overlay dividem o mesmo contador; depois de um aviso de limite, o site espera até o reinício exato da janela.",
+    "Abrindo o site com ?diag=1 aparece um painel com o registro dos pedidos e um teste de limite."
+   ]
+  },
+  {
+   "t": "2026-10-26T10:17:00Z",
+   "titulo": "Albion Overlay 2.0.1",
+   "programa": "2.0.1",
+   "itens": [
+    "A ficha começa vazia, sem o exemplo."
+   ]
+  },
+  {
+   "t": "2026-10-27T03:03:00Z",
+   "titulo": "Albion Overlay 2.0.2",
+   "programa": "2.0.2",
+   "itens": [
+    "Passa a coletar só as ordens de compra do Mercado Negro (equipamento T2 a T8), sem o preço de venda."
+   ]
+  },
+  {
+   "t": "2026-10-27T03:32:00Z",
+   "titulo": "Albion Overlay 2.0.3",
+   "programa": "2.0.3",
+   "itens": [
+    "Traz o site com o ritmo novo da API e o carregamento com barra."
+   ]
+  },
+  {
+   "t": "2026-10-27T04:06:00Z",
+   "titulo": "Albion Overlay 2.0.4",
+   "programa": "2.0.4",
+   "itens": [
+    "Respeita o limite medido da API (85 por minuto e 250 por 5 minutos), com contador compartilhado entre os quadros e espera exata depois de um aviso de limite."
+   ]
   }
  ]
 }
