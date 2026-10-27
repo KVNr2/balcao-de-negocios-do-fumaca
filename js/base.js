@@ -310,14 +310,21 @@ function apiChunks(ids,extra=60){ const out=[]; let cur=[], len=extra+80; for(co
 const API_CHUNK=120;   // itens por pedido (a API aceitou 160 sem problema)
 /* Medido no teste de 27/10: a API recusa (429, "apiv2/1m") acima de 100 pedidos por 60 s, e a documentação fala em 300 por 5 minutos. Usamos até 85 por minuto
    e 250 por 5 minutos: rajada rápida no começo, depois ritmo contínuo. Um 429 trava todos os pedidos até o horário que a API informar. */
-const API_MIN=85, API_5MIN=250, apiStamps=[]; let apiBlockedUntil=0;
-async function apiPace(){ for(;;){ const now=Date.now(); while(apiStamps.length&&now-apiStamps[0]>300e3) apiStamps.shift();
-    const m1=apiStamps.filter(t=>now-t<60e3).length; let w=0;
-    if(now<apiBlockedUntil) w=apiBlockedUntil-now;
-    else if(apiStamps.length>=API_5MIN) w=300e3-(now-apiStamps[0])+50;
-    else if(m1>=API_MIN) w=60e3-(now-apiStamps.filter(t=>now-t<60e3)[0])+50;
-    if(w<=0){ apiStamps.push(now); return; } await new Promise(f=>setTimeout(f,Math.max(250,Math.min(w,30e3)))); } }
-const apiResetMs=txt=>{ const m=/resets at (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/.exec(txt||""); if(!m) return 0; const t=Date.parse(m[1]+"T"+m[2]+"Z")-Date.now(); return Math.min(65e3,Math.max(1e3,t+1000)); };
+const API_MIN=85, API_5MIN=250;
+/* A API conta por janela de relógio (reinicia em :00 do minuto e a cada 5 minutos) e por endereço de internet. Medido em 27/10: 100 por minuto e 300 por 5 minutos.
+   Todas as páginas do mesmo endereço (abas do site, quadros do overlay) dividem este contador pelo localStorage; o que vem de outro navegador não dá para ver,
+   por isso a margem (85 e 250) e a espera exata depois de um 429. */
+let _apiMem=[], _apiBlockMem=0;
+function apiRead(){ try{ const a=JSON.parse(localStorage.getItem("apiStamps")||"[]"), b=+localStorage.getItem("apiBlock")||0; const now=Date.now(); return {st:a.filter(t=>now-t<300e3),block:Math.max(b,_apiBlockMem)}; }catch(e){ const now=Date.now(); _apiMem=_apiMem.filter(t=>now-t<300e3); return {st:_apiMem,block:_apiBlockMem}; } }
+function apiWrite(st){ _apiMem=st; try{ localStorage.setItem("apiStamps",JSON.stringify(st)); }catch(e){} }
+function apiBlock(until){ _apiBlockMem=Math.max(_apiBlockMem,until); try{ localStorage.setItem("apiBlock",String(Math.max(+localStorage.getItem("apiBlock")||0,until))); }catch(e){} }
+function apiLoad(){ const {st,block}=apiRead(), now=Date.now(); return {m1:st.filter(t=>now-t<60e3).length,m5:st.length,block:block>now?block-now:0}; }
+async function apiPace(){ for(;;){ const {st,block}=apiRead(), now=Date.now(); const m1=st.filter(t=>now-t<60e3); let w=0;
+    if(block>now) w=block-now;
+    else if(st.length>=API_5MIN) w=300e3-(now-st[0])+50;
+    else if(m1.length>=API_MIN) w=60e3-(now-m1[0])+50;
+    if(w<=0){ st.push(now); apiWrite(st); return; } await new Promise(f=>setTimeout(f,Math.max(250,Math.min(w,30e3)))); } }
+const apiResetMs=txt=>{ const m=/resets at (\d{4}-\d\d-\d\d) (\d\d:\d\d:\d\d)/.exec(txt||""); if(!m) return 0; const t=Date.parse(m[1]+"T"+m[2]+"Z")-Date.now(); return Math.min(310e3,Math.max(1e3,t+1500)); };
 /* Barra de carregamento visual (aparece acima da lista) e pausa entre as etapas, para as consultas grandes não sobrecarregarem a API.
    anchor: o elemento antes do qual a barra aparece; total de 0 ou 1 = sem contagem (barra animada) */
 const lpSleep=ms=>new Promise(f=>setTimeout(f,ms));
@@ -334,7 +341,7 @@ async function fetchPaced(ids,itens,locs,anchorId,txt,q){
       await fetchIds(lotes[i],itens,locs,q); if(a&&lotes.length>1) lpShow(a,i+1,lotes.length,txt,"lotes"); } }
   finally{ if(a) lpHide(a); } }
 /* pausa entre lotes: curta enquanto há folga na cota da API; deixa uma reserva para o que o usuário clicar no meio */
-async function lpSpace(){ await lpSleep(300); for(;;){ const now=Date.now(); if(now>=apiBlockedUntil&&apiStamps.filter(t=>now-t<60e3).length<API_MIN-15&&apiStamps.filter(t=>now-t<300e3).length<API_5MIN-25) return; await lpSleep(1000); } }
+async function lpSpace(){ await lpSleep(300); for(;;){ const l=apiLoad(); if(!l.block&&l.m1<API_MIN-15&&l.m5<API_5MIN-25) return; await lpSleep(1000); } }
 /* Preços coletados pelo Albion Overlay (tabela market_latest no Supabase, mesmo formato do Albion Data).
    Para cada item/cidade/qualidade vale o valor mais recente entre o Albion Data e o nosso. */
 const CROWD_MEM=new Map(); let CROWD_OFF=false; const CROWD={hits:0};
@@ -380,7 +387,7 @@ async function apiJSON0(url,ttlMin=10){
     await apiSlot(); const t0=Date.now(); let t1=0; try{ await apiPace(); t1=Date.now(); r=await fetch(url); } catch(e){ apiLog(url,0,t1||t0,Date.now(),t0,"erro de rede: "+(e&&e.message)); throw e; } finally{ apiFree(); }
     apiLog(url,r.status,t1,Date.now(),t0,r.status===429?await r.clone().text().catch(()=>""):"");
     if(r.ok||n>=3||!(r.status===429||r.status>=500)) break;
-    const txt=r.status===429?await r.text().catch(()=>""):""; const w=r.status===429?(apiResetMs(txt)||1500*Math.pow(2,n)):1500*Math.pow(2,n); if(r.status===429) apiBlockedUntil=Math.max(apiBlockedUntil,Date.now()+w);
+    const txt=r.status===429?await r.text().catch(()=>""):""; const w=r.status===429?(apiResetMs(txt)||1500*Math.pow(2,n)):1500*Math.pow(2,n); if(r.status===429) apiBlock(Date.now()+w);
     await new Promise(f=>setTimeout(f,w));
   }
   if(!r.ok) throw new Error("API respondeu "+r.status); const j=await r.json(); cachePut(url,j); return j;
