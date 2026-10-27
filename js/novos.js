@@ -13,13 +13,28 @@ const EN_MAT = {1:["RUNE","Runa"],2:["SOUL","Alma"],3:["RELIC","Relíquia"]};
 const EN_LOADED = new Set(); let enTierSel=0;
 /* only: um tier só (obrigatório em "Todas as mercadorias", senão seriam milhares de peças); 0 = os tiers 4 a 8 do grupo */
 const enLoaded=(g,only)=>EN_LOADED.has(g)||(only>0&&EN_LOADED.has(`${g}#${only}`));
-async function ensureEnch(g,only=0){
+async function ensureEnch(g,only=0,cancel=null,quiet=false){
   if(enLoaded(g,only)) return true;
-  const ok=await ensureBM(g,only); if(!ok) return false;
-  const tiers=only?[only]:[4,5,6,7,8];
-  const ids=[]; for(const k of bmKeys(g)) for(const t of tiers) for(let e=0;e<=4;e++) ids.push(bmId(k,t,e));
-  const mats=[]; for(const t of tiers) for(const e of [1,2,3]) mats.push(`T${t}_${EN_MAT[e][0]}`);
-  try{ await bmFetch(ids,SHOP_LOCS); await fetchIds(mats,DATA.itens,SHOP_LOCS); EN_LOADED.add(only?`${g}#${only}`:g); return true; }catch(e){ return false; }
+  const note=$("enNote");
+  if(g==="*"){   // todas as mercadorias: um tipo por vez, com pausa e barra (senão seriam milhares de peças de uma vez)
+    const gs=bmSelGroups(bmKeys("*")), nomeG=x=>(BM_GROUPS.find(y=>y[0]===x)||[0,x])[1].toLowerCase();
+    try{
+      for(let i=0;i<gs.length;i++){
+        if(i){ await lpSpace(); if(cancel&&cancel()){ lpHide(note); return true; } }
+        lpShow(note,i,gs.length,`Consultando peças e materiais: ${nomeG(gs[i])}`);
+        if(!await ensureEnch(gs[i],only,null,true)){ lpHide(note); return false; }
+        lpShow(note,i+1,gs.length,`Consultando peças e materiais: ${nomeG(gs[i])}`); }
+      EN_LOADED.add(`*#${only}`); lpHide(note); return true;
+    }catch(e){ lpHide(note); return false; }
+  }
+  if(!quiet) lpShow(note,0,0,"Consultando peças, runas, almas e relíquias…");
+  try{
+    const ok=await ensureBM(g,only); if(!ok) return false;
+    const tiers=only?[only]:[4,5,6,7,8];
+    const ids=[]; for(const k of bmKeys(g)) for(const t of tiers) for(let e=0;e<=4;e++) ids.push(bmId(k,t,e));
+    const mats=[]; for(const t of tiers) for(const e of [1,2,3]) mats.push(`T${t}_${EN_MAT[e][0]}`);
+    try{ await bmFetch(ids,SHOP_LOCS); await fetchIds(mats,DATA.itens,SHOP_LOCS); EN_LOADED.add(only?`${g}#${only}`:g); return true; }catch(e){ return false; }
+  } finally{ if(!quiet) lpHide(note); }
 }
 function cheapestCity(id){ const c=cheapest(id); return c; }
 function enModel(key,t,e){
@@ -71,7 +86,7 @@ async function renderEN(){
   const favG=FAVON?[...new Set(FAV.list("encantar").map(f=>f.c&&f.c.g).filter(Boolean))]:[];
   if(FAVON){ for(const gg of favG){ if(!EN_LOADED.has(gg)){ tb.textContent=""; note.textContent="Consultando os favoritos…"; const ok=await ensureEnch(gg); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } } } }
   else if(g==="*"&&!t){ tb.textContent=""; note.textContent="Para comparar todas as mercadorias, escolha um tier (T4 a T8) acima. Sem tier seriam milhares de peças para consultar."; return; }
-  else if(!enLoaded(g,t)){ tb.textContent=""; note.textContent="Consultando peças, runas, almas e relíquias…"; const ok=await ensureEnch(g,t); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("enGroup").value!==g) return; }
+  else if(!enLoaded(g,t)){ tb.textContent=""; note.textContent="Consultando peças, runas, almas e relíquias…"; const ok=await ensureEnch(g,t,()=>$("enGroup").value!==g||enTierSel!==t); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("enGroup").value!==g||enTierSel!==t) return; }
   const rows=[]; if(FAVON){ const keep=new Set(FAV.list("encantar").map(f=>f.k)); for(const gg of favG) for(const k of bmKeys(gg)) for(const tt of [4,5,6,7,8]) for(const e of [1,2,3]){ if(!keep.has(`${k}|${tt}|${e}`)) continue; const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); } }
   else for(const k of bmKeys(g)) for(const tt of (t?[t]:[4,5,6,7,8])) for(const e of [1,2,3]){ const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); }
   rows.sort((a,b)=>((b.save??-1e15)-(a.save??-1e15)));

@@ -1573,7 +1573,7 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 .bm-prog[hidden]{display:none}
 .bm-prog-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
 .bm-prog-top b{flex:1 1 280px;color:var(--parch);font:600 15.5px var(--f-body)}
-.bm-prog-top #bmProgPct{color:var(--saffron);font:700 14.5px var(--f-body);font-variant-numeric:tabular-nums;white-space:nowrap}
+.bm-prog-top .bm-prog-pct{color:var(--saffron);font:700 14.5px var(--f-body);font-variant-numeric:tabular-nums;white-space:nowrap}
 .bm-spin{flex:none;width:20px;height:20px;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:var(--saffron);animation:bmspin .8s linear infinite}
 .bm-prog-track{height:16px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid var(--line-soft);overflow:hidden}
 .bm-prog-track i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#c98a1e,var(--saffron),#f7d08a);background-size:200% 100%;transition:width .6s ease;animation:bmshine 1.6s linear infinite}
