@@ -190,7 +190,7 @@ const BLD_P={}, BLD_F={};
 async function bldFetch(ids,city){
   const todo=[...new Set(ids)].filter(id=>FORCE||!BLD_F[`${id}|${city}`]||Date.now()-BLD_F[`${id}|${city}`]>6*36e5);   // "Atualizar preços" (FORCE) busca de novo mesmo dentro das 6 h
   const loc=encodeURIComponent(city), t7=Date.now()-7*864e5, t30=Date.now()-30*864e5;
-  for(let i=0;i<todo.length;i+=20){ const part=todo.slice(i,i+20);
+  for(let i=0;i<todo.length;i+=20){ if(i) await lpSpace(); const part=todo.slice(i,i+20);
     const j=await apiJSON(`${HOST}/api/v2/stats/history/${part.join(",")}.json?locations=${loc}&time-scale=24`,360);
     for(const x of j){ const k=`${x.item_id}|${city}|${+x.quality||1}`; let n7=0,v7=0,n30=0,v30=0;
       for(const d of (x.data||[])){ const t=Date.parse(d.timestamp+"Z"), n=d.item_count||0; if(!(d.avg_price>0)||!n) continue; if(t>=t30){ n30+=n; v30+=d.avg_price*n; } if(t>=t7){ n7+=n; v7+=d.avg_price*n; } }
