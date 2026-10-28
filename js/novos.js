@@ -118,7 +118,7 @@ function ensureFZ(){
   return FZ_LOADING;
 }
 const fzName = id => (FARM.n[id]||id).replace(/^Sementes de /,"");
-function cheapestCrop(){ let best=null; for(const r of FARM.p){ if(HERBS.test(r[0])) continue; const p=typical(r[1],0); if(p&&(!best||p.p<best.p)) best={id:r[1],p:p.p}; } return best; }
+function cheapestCrop(){ let best=null; for(const r of FARM.p){ if(HERBS.test(r[0])) continue; const p=fzBuy(r[1],"food"); if(p&&(!best||p.p<best.p)) best={id:r[1],p:p.p}; } return best; }
 /* foco: 1.000 por semente regada ou por vez que alimenta o filhote, sem spec; a spec de cada planta e animal reduz.
    o valor que o jogo mostra pode ser digitado na linha e fica guardado */
 let FZ_OBS={}; try{ FZ_OBS=JSON.parse(store.get("fzObs")||"{}"); }catch(e){}
@@ -126,27 +126,51 @@ let FZ_OBS={}; try{ FZ_OBS=JSON.parse(store.get("fzObs")||"{}"); }catch(e){}
 const fzFCE = id => itemFCE(id.replace(/^T\d_/,""));
 const fzFocus = id => FZ_OBS[id]>0 ? FZ_OBS[id] : Math.max(1,Math.round(1000*Math.pow(0.5,fzFCE(id)/10000)));
 const fzHasSpec = () => ["z:plantas","z:ervas","z:animais"].some(k=>spMax((PF.sp||{})[k])>0);
+/* de onde vêm sementes, filhotes, ração e ingredientes: comprar na hora, ordem de compra, produzir na ilha ou já ter.
+   SRC.seed e SRC.food valem na fazenda; SRC.ck, SRC.ckO (por ingrediente), SRC.ckM (valor manual) e SRC.ckN (fornadas) na cozinha */
+let SRC={}; try{ SRC=JSON.parse(store.get("srcMat")||"{}")||{}; }catch(e){}
+const srcSave=()=>{ try{ store.set("srcMat",JSON.stringify(SRC)); }catch(e){} };
+function fzBuy(id,cls,npc){
+  const m=SRC[cls]||"inst";
+  if(m==="tenho") return {p:0,n:9,src:"tenho"};
+  if(m==="planto"){ const u=farmUnit(id); if(u) return u; }
+  const o=m==="ordem"?typical(id,1):null, i=o||typical(id,0);
+  if(i) return {p:i.p,n:i.n,src:o?"ordem":"inst"};
+  return npc?{p:npc,n:9,src:"npc"}:null;
+}
+/* custo de produzir 1 unidade na ilha, sem regar: semente que não volta dividida pela colheita;
+   leite e ovos pela ração do dia dividida pelo que o animal dá. null se não sai da fazenda ou faltam dados */
+function farmUnit(id){
+  if(!FARM||!FZ_LOADED) return null;
+  const r=FARM.p.find(r=>r[1]===id);
+  if(r){ const [seed,,,chance,,,npc,avg]=r; const s=fzBuy(seed,"seed",npc); if(!s) return null; const y=avg*(st.prem?2:1); return y>0?{p:Math.max(0,s.p*(1-Math.min(chance,2)))/y,n:9,src:"planto"}:null; }
+  const q=FARM.pr.find(r=>r[1]===id);
+  if(q){ const [,,,avg,nut,fav]=q; if(!fav||!avg) return null; const f=SRC.food==="planto"?(FARM.p.some(r=>r[1]===fav)?farmUnit(fav):null):null, fb=f||fzBuy(fav,"food"); if(!fb) return null; return {p:Math.ceil(nut/96)*fb.p/avg,n:9,src:"planto"}; }
+  return null;
+}
+const isFarmItem=id=>!!FARM&&(FARM.p.some(r=>r[1]===id)||FARM.pr.some(r=>r[1]===id));
+const SRC_TAG={ordem:" (ordem)",tenho:" (já tem)",planto:" (da ilha)",npc:" (NPC)"};
 function plantModel(r){
-  const [seed,crop,t,chance,bonus,,npc,avg]=r; const ps=typical(seed,0), pc=typical(crop,0), pw=typical("T1_WORM",0);
-  if(!pc) return null; const sp=ps?ps.p:npc;
+  const [seed,crop,t,chance,bonus,,npc,avg]=r; const ps=fzBuy(seed,"seed",npc), pc=typical(crop,0), pw=typical("T1_WORM",0);
+  if(!pc||!ps) return null; const sp=ps.p;
   const yieldN=avg*(st.prem?2:1), back0=Math.min(chance,2), back1=Math.min(chance+bonus,2);
   const base=yieldN*pc.p*(1-taxOf())+(pw?0.1*pw.p:0)-sp;
   const fc=fzFocus(seed), gain=(back1-back0)*sp;
-  return {seed,crop,t,sp,seedMkt:!!ps,yieldN,back0,back1,cp:pc.p,p0:base+back0*sp,p1:base+back1*sp,fc,spf:gain/fc,thin:pc.n<2};
+  return {seed,crop,t,sp,sSrc:ps.src,seedMkt:ps.src!=="npc",yieldN,back0,back1,cp:pc.p,p0:base+back0*sp,p1:base+back1*sp,fc,spf:gain/fc,thin:pc.n<2};
 }
 function animalRaise(r){
   const [baby,grown,t,hours,off,bonus,nut,fav,cat,npc,cycles]=r; if(cat!=="plants") return null;
-  const pb=typical(baby,0), pg=typical(grown,0); if(!pg) return null; const bp=pb?pb.p:npc; if(!bp) return null;
-  let food=null; if(fav){ const f=typical(fav,0); if(f) food={id:fav,n:Math.ceil(nut/96),p:f.p}; }
-  if(!food){ const c=cheapestCrop(); if(c) food={id:c.id,n:Math.ceil(nut/48),p:c.p}; }
+  const pb=fzBuy(baby,"seed",npc), pg=typical(grown,0); if(!pg||!pb) return null; const bp=pb.p;
+  let food=null; if(fav){ const f=fzBuy(fav,"food"); if(f) food={id:fav,n:Math.ceil(nut/96),p:f.p,src:f.src}; }
+  if(!food){ const c=cheapestCrop(); if(c) food={id:c.id,n:Math.ceil(nut/48),p:c.p,src:SRC.food||"inst"}; }
   if(!food) return null; const n=cycles||1, o0=Math.min(off,1), o1=Math.min(off+bonus*n,1);
   const base=pg.p*(1-taxOf())-bp-food.n*food.p, h=st.prem?hours/2:hours, days=Math.max(1,h/24);
   const fc1=fzFocus(baby), fc=fc1*n;
-  return {baby,grown,t,hours:h,bp,gp:pg.p,food,o0,o1,n,fc1,fc,p0:base+o0*bp,p1:base+o1*bp,days,spf:(o1-o0)*bp/fc,thin:pg.n<2};
+  return {baby,grown,t,hours:h,bp,bSrc:pb.src,gp:pg.p,food,o0,o1,n,fc1,fc,p0:base+o0*bp,p1:base+o1*bp,days,spf:(o1-o0)*bp/fc,thin:pg.n<2};
 }
 function producerModel(r){
   const [grown,item,t,avg,nut,fav]=r; const pi=typical(item,0); if(!pi) return null;
-  let food=null; if(fav){ const f=typical(fav,0); if(f) food={id:fav,n:Math.ceil(nut/96),p:f.p}; }
+  let food=null; if(fav){ const f=fzBuy(fav,"food"); if(f) food={id:fav,n:Math.ceil(nut/96),p:f.p,src:f.src}; }
   if(!food) return null; return {grown,item,t,avg,ip:pi.p,food,profit:avg*pi.p*(1-taxOf())-food.n*food.p,thin:pi.n<2};
 }
 function focusInput(id,val){
@@ -168,7 +192,7 @@ async function renderFZ(){
   const tb=$("fzTable"), note=$("fzNote"), bar=$("fzFil");
   if(!FARM){ note.textContent="Abrindo os dados da fazenda…"; try{ FARM=await need("farm"); }catch(e){ note.textContent="Não consegui abrir os dados da fazenda."; return; } }
   if(!FZ_LOADED){ tb.textContent=""; note.textContent="Consultando sementes, colheitas e animais…"; const ok=await ensureFZ(); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } }
-  const focus=$("fzFocus").checked, plots=Math.max(1,Math.min(60,+$("fzPlots").value||1));
+  const focus=$("fzFocus").checked, plots=Math.max(1,Math.min(999,+$("fzPlots").value||1));
   $("fzSpecTxt").textContent = fzHasSpec() ? "O foco usa as specs de fazenda da sua ficha." : "Sem spec de fazenda na ficha: a conta usa o foco cheio. Preencha em Minha ficha, seção Fazenda.";
   const FAVON=!!(window.FAV&&FAV.on("fazenda")), rer=()=>renderFZ();
   /* modelos de cada lista, antes de desenhar, para buscar as vendas por dia de uma vez */
@@ -189,25 +213,25 @@ async function renderFZ(){
     let cols;
     if(kind==="crop"||kind==="herb") cols=[{h:"Planta",k:"name",s:nm(m=>m.crop)},{h:"Semente",k:"cost",s:m=>m.sp,first:-1,t:"Ordenar pelo preço da semente (primeiro clique: a mais barata)"},{h:"Colheita",k:"sale",s:m=>m.cp,t:"Ordenar pelo preço da colheita"},{h:"Sementes de volta"},{h:"Lucro por semente",k:"profit",s:fzP},{h:`Por dia em ${plots} lote${plots>1?"s":""}`},{h:"Foco por semente"},{h:"Prata por foco",k:"spf",s:m=>m.spf},vs];
     else if(kind==="prod") cols=[{h:"Animal",k:"name",s:nm(m=>m.grown)},{h:"Produz por dia",k:"sale",s:m=>m.ip,t:"Ordenar pelo preço do produto"},{h:"Ração por dia",k:"cost",s:m=>m.food.n*m.food.p,first:-1,t:"Ordenar pelo custo da ração (primeiro clique: a mais barata)"},{h:"Lucro por animal por dia",k:"profit",s:m=>m.profit},{h:`Com ${plots} ${plots>1?"animais":"animal"}`},vs];
-    else cols=[{h:"Animal",k:"name",s:nm(m=>m.grown)},{h:"Filhote",k:"cost",s:m=>m.bp,first:-1,t:"Ordenar pelo preço do filhote (primeiro clique: o mais barato)"},{h:"Ração até crescer"},{h:"Adulto vende por",k:"sale",s:m=>m.gp},{h:"Filhote de volta"},{h:"Lucro por animal",k:"profit",s:fzP},{h:"Por dia",k:"day",s:m=>fzP(m)/m.days},{h:"Foco por alimentação"},{h:"Prata por foco",k:"spf",s:m=>m.spf},vs];
+    else cols=[{h:"Animal",k:"name",s:nm(m=>m.grown)},{h:"Filhote",k:"cost",s:m=>m.bp,first:-1,t:"Ordenar pelo preço do filhote (primeiro clique: o mais barato)"},{h:"Ração até crescer"},{h:"Adulto vende por",k:"sale",s:m=>m.gp},{h:"Filhote de volta"},{h:"Lucro por animal",k:"profit",s:fzP},{h:"Por dia",k:"day",s:m=>fzP(m)/m.days},{h:"Foco por alimentação"},{h:"Prata por foco",k:"spf",s:m=>m.spf},{h:`Com ${plots} ${plots>1?"animais":"animal"}`,k:"tot",s:m=>fzP(m)*plots},vs];
     lfHead(hr,key,cols,def,rer);
     let list=M[kind].filter(m=>keep(kind==="crop"||kind==="herb"?m.crop:m.grown));
     if(!FAVON){ const n=list.length; list=lfFilter(key,list,fzFil(kind)); nOut+=n-list.length; }
     list=lfSort(key,list,cols,def);
     if(kind==="crop"||kind==="herb"){
       for(const m of list){ const tr=body.insertRow(), p=focus?m.p1:m.p0; tr.dataset.fav=kind+"|"+m.crop;
-        cell(tr,withIcon(m.crop,`${fzName(m.crop)} T${m.t}`)); cell(tr,withIcon(m.seed,`${fmt(m.sp)}${m.seedMkt?"":" (NPC)"}`),"num"); cell(tr,`${dec(m.yieldN)} × ${fmt(m.cp)}`,"num");
+        cell(tr,withIcon(m.crop,`${fzName(m.crop)} T${m.t}`)); cell(tr,withIcon(m.seed,m.sSrc==="tenho"?"já tem":`${fmt(m.sp)}${SRC_TAG[m.sSrc]||""}`),"num"); cell(tr,`${dec(m.yieldN)} × ${fmt(m.cp)}`,"num");
         cell(tr,`${Math.round((focus?m.back1:m.back0)*100)}%`,"num"); cell(tr,sgn(p),gl(p)); cell(tr,sgn(p*9*plots),gl(p));
         cell(tr,focusInput(m.seed,m.fc),"num"); cell(tr,dec(m.spf),"num"); lfVolCell(tr,m.crop); }
       if(!FAVON) note.textContent=`Lote de 9 sementes, colhido a cada 22 horas. Colheita média de ${st.prem?"9 por semente (Premium dobra)":"4,5 por semente (sem Premium)"}, pela tabela do jogo, com a chance de 10% de minhoca. Regar gasta foco por semente e aumenta a chance de a semente voltar; ${focus?"a tabela já está com rega.":"marque a caixa para ver com rega."} Prata por foco é quanto cada ponto de foco devolve em sementes. Semente sem anúncio entra pelo preço do NPC. Lucro % é sobre o preço da semente.`;
     } else if(kind==="prod"){
-      for(const m of list){ const tr=body.insertRow(); tr.dataset.fav=kind+"|"+m.grown; cell(tr,withIcon(m.grown,`${fzName(m.grown)} T${m.t}`)); cell(tr,withIcon(m.item,`${dec(m.avg)} × ${fzName(m.item)} a ${fmt(m.ip)}`),"num"); cell(tr,withIcon(m.food.id,`${m.food.n} × ${fzName(m.food.id)} a ${fmt(m.food.p)}`),"num"); cell(tr,sgn(m.profit),gl(m.profit)); cell(tr,sgn(m.profit*plots),gl(m.profit)); lfVolCell(tr,m.item); }
+      for(const m of list){ const tr=body.insertRow(); tr.dataset.fav=kind+"|"+m.grown; cell(tr,withIcon(m.grown,`${fzName(m.grown)} T${m.t}`)); cell(tr,withIcon(m.item,`${dec(m.avg)} × ${fzName(m.item)} a ${fmt(m.ip)}`),"num"); cell(tr,withIcon(m.food.id,`${m.food.n} × ${fzName(m.food.id)} ${m.food.src==="tenho"?"(já tem)":"a "+fmt(m.food.p)+(SRC_TAG[m.food.src]||"")}`),"num"); cell(tr,sgn(m.profit),gl(m.profit)); cell(tr,sgn(m.profit*plots),gl(m.profit)); lfVolCell(tr,m.item); }
       if(!FAVON) note.textContent="Animal adulto alimentado com a planta favorita (vale o dobro de nutrição), coletado uma vez por dia. Média de 9 produtos (7 a 11) pela tabela do jogo. O adulto não gasta foco. Lucro % é sobre o custo da ração; vendas por dia são do produto (leite, ovo, lã).";
     } else {
       for(const m of list){ const tr=body.insertRow(), p=focus?m.p1:m.p0; tr.dataset.fav=kind+"|"+m.grown;
-        cell(tr,withIcon(m.grown,`${fzName(m.grown)} T${m.t}`)); cell(tr,withIcon(m.baby,fmt(m.bp)),"num"); cell(tr,withIcon(m.food.id,`${m.food.n} × ${fzName(m.food.id)}`),"num"); cell(tr,fmt(m.gp),"num");
+        cell(tr,withIcon(m.grown,`${fzName(m.grown)} T${m.t}`)); cell(tr,withIcon(m.baby,m.bSrc==="tenho"?"já tem":fmt(m.bp)+(SRC_TAG[m.bSrc]||"")),"num"); cell(tr,withIcon(m.food.id,`${m.food.n} × ${fzName(m.food.id)}${m.food.src==="tenho"?" (já tem)":m.food.src==="planto"?" (da ilha)":""}`),"num"); cell(tr,fmt(m.gp),"num");
         cell(tr,`${Math.round((focus?m.o1:m.o0)*100)}%`,"num"); cell(tr,sgn(p),gl(p)); cell(tr,`${sgn(p/m.days)} em ${dec(m.days)} dia${m.days>=2?"s":""}`,gl(p));
-        const fcell=cell(tr,focusInput(m.baby,m.fc1),"num"); if(m.n>1) fcell.append(el("span",{class:"age",text:` × ${m.n} vezes`})); cell(tr,dec(m.spf),"num"); lfVolCell(tr,m.grown); }
+        const fcell=cell(tr,focusInput(m.baby,m.fc1),"num"); if(m.n>1) fcell.append(el("span",{class:"age",text:` × ${m.n} vezes`})); cell(tr,dec(m.spf),"num"); cell(tr,sgn(p*plots),gl(p)); lfVolCell(tr,m.grown); }
       if(!FAVON) note.textContent=`Do filhote ao adulto, alimentado com a planta favorita ou a mais barata. ${st.prem?"Com Premium o crescimento leva metade do tempo.":"Sem Premium o crescimento leva o dobro do tempo."} Alimentar com foco gasta foco a cada vez (montarias aceitam várias vezes durante o crescimento) e aumenta a chance de vir um filhote novo ao pegar o adulto${focus?"; a tabela já está com foco":""}. Lucro vendendo o adulto no mercado; Lucro % é sobre filhote mais ração.`;
     }
     return cols.length;
@@ -216,7 +240,7 @@ async function renderFZ(){
     if(!body.rows.length){ const td=body.insertRow().insertCell(); td.colSpan=nc; td.className="muted"; td.textContent="Nada passa pelos filtros. Afrouxe um deles ou clique em Limpar filtros."; } }
   else { tb.deleteTHead(); const NM={crop:"Plantações",herb:"Ervas",prod:"Leite e ovos",raise:"Criação"}; let nF=0;
     for(const k of ["crop","herb","prod","raise"]){ const fav=new Set(FAV.list("fazenda").map(f=>f.k).filter(x=>x.startsWith(k+"|")).map(x=>x.slice(k.length+1))); if(!fav.size) continue;
-      const sec=body.insertRow(); sec.className="fzsec"; const sc=sec.insertCell(); sc.colSpan=10; sc.textContent=NM[k];
+      const sec=body.insertRow(); sec.className="fzsec"; const sc=sec.insertCell(); sc.colSpan=11; sc.textContent=NM[k];
       const h=body.insertRow(); h.className="fzh"; const before=body.rows.length; draw(k,h,id=>fav.has(id)); nF+=body.rows.length-before;
       if(body.rows.length===before){ h.remove(); sec.remove(); } }
     note.textContent=nF?"Só os seus favoritos, de todas as listas da fazenda (os filtros de lista não valem aqui, mas dá para ordenar clicando no cabeçalho). Preços e Premium valem como no resto do site.":"Nenhum favorito na fazenda ainda: marque a estrela de uma linha."; }
@@ -224,4 +248,6 @@ async function renderFZ(){
 }
 document.querySelectorAll("[data-fz]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-fz]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); fzKind=b.dataset.fz; renderFZ(); }));
 $("fzFocus").addEventListener("change",renderFZ);
+document.querySelectorAll("[data-src]").forEach(b=>{ const [cls,v]=b.dataset.src.split(":"); b.setAttribute("aria-pressed",String((SRC[cls]||"inst")===v));
+  b.addEventListener("click",()=>{ SRC[cls]=v; srcSave(); document.querySelectorAll(`[data-src^="${cls}:"]`).forEach(x=>x.setAttribute("aria-pressed",String(x===b))); if(cls==="ck") renderCook(); else if(FARM&&FZ_LOADED) renderFZ(); }); });
 $("fzPlots").addEventListener("input",()=>{ if(FARM&&FZ_LOADED) renderFZ(); });

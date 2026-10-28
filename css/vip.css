@@ -1670,3 +1670,15 @@ body.bag-on .bag-fab{right:calc(min(440px,100vw) + 18px)}
 .lf-ct{align-self:center}
 td.lf-vol{white-space:nowrap}
 #ckTable th::after,#fzTable th::after{content:none!important}
+
+/* de onde vêm os materiais (Cozinha e Fazenda) */
+.src-ctl{align-items:flex-end;gap:10px 22px}
+.src-g{display:flex;flex-direction:column;gap:5px}
+.src-ctl .seg button{padding:7px 12px;font-size:13.5px}
+.ck-src{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 10px;align-items:center;margin:10px 0 4px}
+.ck-src select{min-height:32px;font-size:13.5px}
+.ck-src input{width:110px;min-height:32px;font-size:13.5px}
+.ck-src .muted{font-size:12.5px}
+.ck-bag{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:13px}
+.ck-srcw{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ck-srcw select{max-width:220px}
+.src-ctl{margin-top:10px}
