@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T17:30:00Z",
+   "titulo": "Albion Overlay 2.0.6",
+   "programa": "2.0.6",
+   "itens": [
+    "Ícone novo: um escudo de Albion com o toldo listrado, o lampião e a fumaça do Balcão do Fumaça. Aparece no arquivo, na bandeja, no botão da barra de tarefas, na miniatura e no Menu Iniciar.",
+    "O programa agora aparece em Configurações > Aplicativos (com Desinstalar) e ganha um atalho no Menu Iniciar. Se você apagar o atalho, o item \"Criar atalho no Menu Iniciar\" do ícone da bandeja cria de novo. Em cada atualização, a versão e o ícone se renovam sozinhos.",
+    "O ícone da bandeja passa a ficar visível ao lado do relógio (no Windows 11 o programa confere e refaz essa configuração, que o Explorer desfazia).",
+    "As perguntas e avisos do instalador e do desinstalador usam o visual do site em vez da caixa cinza do Windows."
+   ]
+  },
+  {
    "t": "2026-10-28T16:40:00Z",
    "titulo": "Lotes na ilha: o máximo que dá para produzir",
    "itens": [
