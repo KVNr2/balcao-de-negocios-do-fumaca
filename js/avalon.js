@@ -3,7 +3,7 @@ const AV_RES={ORE:["Minério","ore"],FIBER:["Fibra","fiber"],WOOD:["Madeira","wo
 const AV_TYPE_G=g=>/^HIDEOUT/.test(g)?"HO":/^ROYAL/.test(g)?"ROYAL":/^BLACK/.test(g)?"BLACK":"TUNNEL";
 const AV_G_PT={HO:"Hideout",ROYAL:"Royal (azul)",BLACK:"Black",TUNNEL:"Tunnel"};
 const AV_Y_PT={ROYAL:"Royal",ROYAL_RED:"Royal",BLACK_LOW:"Low Black",BLACK_MEDIUM:"Medium Black",BLACK_HIGH:"High Black",LOW:"Low Tunnel",MEDIUM:"Medium Tunnel",HIGH:"High Tunnel",DEEP:"Deep Tunnel",DEEP_RAID:"Deep Tunnel (raid)",HIDEOUT:"Hideout",HIDEOUT_DEEP:"Deep Hideout"};
-const AV_EXTRA={blue:["Baú azul",m=>m.cb>0],green:["Baú verde",m=>m.cg>0],solo:["Dungeon solo",m=>m.s>0],group:["Dungeon de grupo",m=>m.g>0],raid:["Raid",m=>m.e>0],mist:["Portal da Brecilien",m=>m.mi>0]};
+const AV_EXTRA={blue:["Baú azul",m=>m.cb>0],green:["Baú verde",m=>m.cg>0],gold:["Baú dourado",m=>m.cy>0],solo:["Dungeon solo",m=>m.s>0],group:["Dungeon de grupo",m=>m.g>0],raid:["Raid",m=>m.e>0],mist:["Portal da Brecilien",m=>m.mi>0]};
 const AV_TZ=[["local","Do meu navegador"],["UTC","UTC"],["America/Sao_Paulo","São Paulo"],["America/New_York","Nova York"],["Europe/London","Londres"],["Europe/Berlin","Berlim"],["Asia/Tokyo","Tóquio"]];
 const AV={data:null,q:"",tier:0,type:"",sort:"nome",res:new Set(),extra:new Set(),shown:60,saved:[],hist:[],inited:false};
 const avNorm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
@@ -21,12 +21,23 @@ function avMatch(m){
   return true;
 }
 const AV_MC={o:"#c98b4a",w:"#b07a46",f:"#7fc16b",h:"#d9b78e",s:"#a9a9b4"}, AV_MN={o:"Minério",w:"Madeira",f:"Fibra",h:"Couro",s:"Pedra",D:"Dungeon solo",G:"Dungeon de grupo",E:"Raid",P:"Portal",B:"Portal da Brecilien"};
+/* terreno desenhado por código a partir dos arquivos do jogo (ao-bin-dumps): estradas, rios, penhascos e chão. As fotos têm prioridade; o terreno desenhado só entra se as fotos não abrirem. */
+async function avLoadVis(){
+  if(AV.img!==undefined) return;
+  try{ const r=await fetch(`imagens/avalon/index.json?v=${VER}`); AV.img=r.ok?await r.json():null; }catch(e){ AV.img=null; }
+  if(AV.img) return;
+  try{ const r=await fetch(`data/terreno-avalon.json?v=${VER}`); AV.ter=r.ok?await r.json():null; }catch(e){ AV.ter=null; }
+}
 /* minimapa desenhado com as posições do jogo: círculos = recursos, losango = dungeon solo, quadrado = grupo, estrela = raid, anel = portal */
 function avMini(m){
   const NS="http://www.w3.org/2000/svg", [bx,by,W,H]=m.b||[0,0,1,1], vh=Math.max(40,Math.round(100*H/W)); const sv=document.createElementNS(NS,"svg"); sv.setAttribute("viewBox",`0 0 100 ${vh}`); sv.setAttribute("class","av-mini"); sv.setAttribute("role","img"); sv.setAttribute("aria-label",`Minimapa de ${m.n}`);
   const add=(tag,at,tx)=>{ const e=document.createElementNS(NS,tag); for(const k in at) e.setAttribute(k,at[k]); if(tx){ const t=document.createElementNS(NS,"title"); t.textContent=tx; e.append(t); } sv.append(e); return e; };
   add("rect",{x:0,y:0,width:100,height:vh,rx:4,class:"av-mbg"});
-  for(let g=1;g<4;g++){ add("line",{x1:g*25,y1:0,x2:g*25,y2:vh,class:"av-mg"}); add("line",{x1:0,y1:vh*g/4,x2:100,y2:vh*g/4,class:"av-mg"}); }
+  const tr=AV.ter&&AV.ter[m.i];
+  if(tr){ const g=document.createElementNS(NS,"g"); g.setAttribute("transform",`scale(${10*100/W} ${10*vh/H})`); g.setAttribute("class","av-ter");
+    for(const [k,c] of [["g","tg"],["c","tc"],["w","tw"],["r","tr"]]) if(tr[k]){ const p=document.createElementNS(NS,"path"); p.setAttribute("d",tr[k]); p.setAttribute("class",c); g.append(p); }
+    sv.append(g); }
+  else for(let g=1;g<4;g++){ add("line",{x1:g*25,y1:0,x2:g*25,y2:vh,class:"av-mg"}); add("line",{x1:0,y1:vh*g/4,x2:100,y2:vh*g/4,class:"av-mg"}); }
   for(const [k,x,y] of m.m||[]){ const X=(x-bx)/W*100, Y=(y-by)/H*vh; if(!(X>=0&&X<=100&&Y>=0&&Y<=vh)) continue; const tt=AV_MN[k];
     if(AV_MC[k]) add("circle",{cx:X,cy:Y,r:3,fill:AV_MC[k],class:"av-md"},tt);
     else if(k==="D") add("rect",{x:X-2.6,y:Y-2.6,width:5.2,height:5.2,transform:`rotate(45 ${X} ${Y})`,class:"av-mdg solo"},tt);
@@ -40,16 +51,16 @@ const avTypeTxt=y=>AV_Y_PT[y]||y;
 /* dungeons e portais do mapa, como tags coloridas (mesmas cores do minimapa) */
 function avInfo(m){ const o=[]; const add=(cls,txt,n,tip)=>{ if(n>0) o.push({cls,txt,n,tip}); };
   add("solo","Dungeon solo",m.s,"Dungeons de 1 jogador"); add("grp","Dungeon de grupo",m.g,"Dungeons de grupo"); add("raid","Raid",m.e,"Raids");
-  add("ptl","Portais",m.p+(m.ho||0)+(m.mi||0),"Portais para outros mapas"); add("ho","Hideout",m.ho||0,"Portais de hideout"); add("mist","Brecilien",m.mi||0,"Portal para a Brecilien");
-  if(m.cb) o.push({cls:"blue",txt:"Baú azul",chest:1,tip:"Tem baú azul (raro)"}); if(m.cg) o.push({cls:"green",txt:"Baú verde",chest:1,tip:"Tem baú verde (comum)"});
+  add("ho","Hideout",m.ho||0,"Portais de hideout"); add("mist","Brecilien",m.mi||0,"Portal para a Brecilien");
+  add("blue","Baú azul",m.cb,"Baús azuis (raros), segundo o Albion Roads"); add("green","Baú verde",m.cg,"Baús verdes (comuns), segundo o Albion Roads"); add("gold","Baú dourado",m.cy,"Baús dourados (lendários), segundo o Albion Roads");
   return o; }
-const avTag=(x,big)=>el("span",{class:"av-it "+x.cls+(big?" big":""),title:x.tip},el("span",{class:"av-itn",text:x.txt}),...(x.chest?[]:[el("b",{text:"×"+x.n})]));
+const avTag=(x,big)=>el("span",{class:"av-it "+x.cls+(big?" big":""),title:x.tip},el("span",{class:"av-itn",text:x.txt}),el("b",{text:"×"+x.n}));
 /* ícones pequenos ao lado do nome do mapa (tipo, Brecilien, baús, dungeons), no estilo dos filtros do albionmaps */
 const AV_SVG={ho:'<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/>',royal:'<path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z"/>',black:'<path d="M12 3a8 8 0 0 0-5 14v3h10v-3a8 8 0 0 0-5-14z"/><circle cx="9.3" cy="11.5" r="1.3"/><circle cx="14.7" cy="11.5" r="1.3"/>',tunnel:'<path d="M4 20v-8a8 8 0 0 1 16 0v8"/><path d="M9 20v-5a3 3 0 0 1 6 0v5"/>',mist:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>',chest:'<rect x="4" y="10" width="16" height="9" rx="1"/><path d="M4 10a8 5 0 0 1 16 0"/><path d="M12 13v3"/>',dg:'<path d="M12 3l8 9-8 9-8-9z"/>'};
 function avIcon(kind,cls,tip,n){ const s=el("span",{class:"av-ic "+cls,title:tip,role:"img","aria-label":tip}); s.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true">${AV_SVG[kind]}</svg>`; if(n>0) s.append(el("b",{text:String(n)})); return s; }
 function avIcons(m){ const w=el("span",{class:"av-ics"});
   if(m.mi) w.append(avIcon("mist","mist","Tem portal para a Brecilien"));
-  if(m.cb) w.append(avIcon("chest","blue","Tem baú azul (raro)")); if(m.cg) w.append(avIcon("chest","green","Tem baú verde (comum)"));
+  if(m.cb) w.append(avIcon("chest","blue","Baús azuis (raros)",m.cb)); if(m.cg) w.append(avIcon("chest","green","Baús verdes (comuns)",m.cg)); if(m.cy) w.append(avIcon("chest","gold","Baús dourados (lendários)",m.cy));
   const dg=avDg(m); if(dg>0) w.append(avIcon("dg","dg",`${dg} dungeon${dg>1?"s":""} (solo ${m.s}, grupo ${m.g}, raid ${m.e})`,dg));
   return w; }
 /* ícone grande do tipo do mapa, à esquerda do nome (imagens do jogo para HO e Tunnel) */
@@ -67,7 +78,7 @@ function avZoom(m,pic){
   for(const k of Object.keys(AV_RES)){ const n=avRes(m,k); if(!n) continue; const mt=Math.max(...Object.keys(m.r[k]).map(Number)); const row=el("div",{class:"av-zr"}); const hd=el("div",{class:"av-zrh"}); const ic=fullImg(`T${mt}_${k}`,"av-ri"); hd.append(ic||el("i",{class:"av-rd r-"+AV_RES[k][1]}),el("span",{class:"av-rn",text:AV_RES[k][0]}),el("b",{class:"av-rq",title:"Quantidade no mapa",text:`×${n}`})); row.append(hd);
     const tt=el("div",{class:"av-zt"}); Object.keys(m.r[k]).map(Number).sort((a,b)=>a-b).forEach(t=>tt.append(el("span",{class:"av-zc",title:`Tier ${t}`},el("small",{text:`T${t}`}),el("b",{text:`×${m.r[k][t]}`})))); row.append(tt); L.append(row); }
   if(!L.querySelector(".av-zr")) L.append(el("p",{class:"muted small",text:"Sem recursos"}));
-  const R=el("section",{class:"av-zrt"}); R.append(el("h4",{text:"Dungeons e portais"}));
+  const R=el("section",{class:"av-zrt"}); R.append(el("h4",{text:"Dungeons"}));
   const inf=avInfo(m); const dg=el("div",{class:"av-zg"}); inf.forEach(i=>dg.append(avTag(i,true))); if(!m.s&&!m.g&&!m.e) dg.prepend(el("span",{class:"av-it none big",text:"Sem dungeons"})); R.append(dg);
   const meta=el("dl",{class:"av-zm"}); const kv=(k,v)=>{ meta.append(el("dt",{text:k}),el("dd",{text:v})); }; kv("Tipo",AV_Y_PT[m.y]||m.y); kv("Tier",`T${m.t}`); if(AV.saved.some(z=>z.i===m.i)) kv("Na rota","Sim ★"); R.append(meta);
   const mid=el("div",{class:"av-zmid"}); mid.append(pic?el("img",{class:"av-zimg",src:`imagens/avalon/${pic}`,alt:`Mapa ${m.n}`}):avMini(m));
@@ -143,7 +154,7 @@ function avInit(){
 }
 async function renderAv(){
   if(!AV.data){ $("avCount").textContent="Abrindo os mapas…"; try{ AV.data=await need("avalon"); }catch(e){ $("avCount").textContent="Não consegui abrir os mapas."; return; } AV.byId={}; for(const m of AV.data){ m._n=avNorm(m.n); AV.byId[m.i]=m; } }
-  if(AV.img===undefined){ try{ const r=await fetch(`imagens/avalon/index.json?v=${VER}`); AV.img=r.ok?await r.json():null; }catch(e){ AV.img=null; } if($("avLeg")) $("avLeg").hidden=!!AV.img; }
+  await avLoadVis(); if($("avLeg")) $("avLeg").hidden=!!AV.img;
   if(!AV.inited) avInit();
   let l=AV.data.filter(avMatch); const so=AV.sort;
   l.sort((a,b)=>((so==="rec"?avResTot(b)-avResTot(a):so==="dg"?avDg(b)-avDg(a):so==="tier"?b.t-a.t:0)||a.n.localeCompare(b.n,"pt")));
@@ -157,7 +168,7 @@ async function renderAv(){
 async function avMapaAtual(id){
   const host=document.getElementById("avAtual"); if(!host) return false;
   if(!AV.data){ try{ AV.data=await need("avalon"); }catch(e){ return false; } AV.byId={}; for(const m of AV.data){ m._n=avNorm(m.n); AV.byId[m.i]=m; } }
-  if(AV.img===undefined){ try{ const r=await fetch(`imagens/avalon/index.json?v=${VER}`); AV.img=r.ok?await r.json():null; }catch(e){ AV.img=null; } }
+  await avLoadVis();
   if(!AV.inited) AV.saved=avRead("avSaved",[]).filter(x=>x&&x.i);
   host.textContent=""; const m=AV.byId&&AV.byId[id]; if(!m) return false;
   host.append(avCard(m)); return true;
