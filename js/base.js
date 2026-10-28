@@ -894,6 +894,18 @@ function ganhoTop(box,list,val,txt,none){
   box.className="ganho-top"; box.append(el("span",{class:"gt-l",text:"O que mais rende"}),el("b",{class:"gt-v",text:"+"+fmt(Math.round(v))}),el("span",{class:"gt-t",text:txt(best)}));
 }
 const ckN=()=>Math.max(1,Math.min(99999,Math.round(+((SRC||{}).ckN)||1)));
+/* lotes da ilha (o mesmo número da Ilha e fazenda): quantos lotes uma fornada ocupa com o que você produz na ilha,
+   e quantas fornadas cabem nos seus lotes a cada colheita (plantas a cada 22 h, leite e ovos por dia, 9 animais por pasto) */
+const ilhaL=()=>Math.max(0,Math.round(+((SRC||{}).lotes)||0));
+function ckLotsPerBatch(m){
+  if(!FARM||!FZ_LOADED||!m||!m.parts) return 0; const rr=rrr(0.15,true,st.daily), pm=st.prem?2:1; let lots=0;
+  for(const x of m.parts){ if(!x.p||x.p.src!=="planto") continue; const units=x.c*(1-rr);
+    const r=FARM.p.find(r=>r[1]===x.iid); if(r){ lots+=units/(9*r[7]*pm); continue; }
+    const q=FARM.pr.find(r=>r[1]===x.iid); if(q){ const an=units/q[3]; lots+=an/9; const pr=producerModel(q);
+      if(SRC.food==="planto"&&pr){ const fr=FARM.p.find(z=>z[1]===pr.food.id); if(fr) lots+=an*pr.food.n/(9*fr[7]*pm*24/22); } } }
+  return lots;
+}
+function ckNFor(m){ if(SRC.ckAuto&&ilhaL()>0){ const l=ckLotsPerBatch(m); if(l>0) return Math.floor(ilhaL()/l+1e-9); } return ckN(); }
 const ckMode=iid=>((SRC.ckO||{})[iid])||SRC.ck||"inst";
 function ckBuy(iid){
   const m=ckMode(iid);
@@ -918,14 +930,14 @@ function cookModel(id){
   return {id,name,kind,q,cost,fee,net,item,parts,p1,p0,pct:bc>0?p1/bc:0,fc,spf:(p1-p0)/fc,day:p1*Math.floor(10000/fc),thin,tier:+id[1]};
 }
 const CK_FIL=[
-  {k:"minP",lab:"Lucro mínimo (no total)",step:1000,get:m=>m.p1*ckN()},
+  {k:"minP",lab:"Lucro mínimo (no total)",step:1000,get:m=>m.p1*ckNFor(m)},
   {k:"minPct",lab:"Lucro % mínimo",step:1,get:m=>m.pct*100},
   {k:"minSpf",lab:"Prata por foco, no mínimo",step:1,get:m=>m.spf},
   {k:"minVol",lab:"Vende por dia, no mínimo",step:1,min:0,get:m=>lfVol(m.id)} ];
 const CK_COLS=[
   {h:"Item",k:"name",s:m=>m.name},
   {h:"Fornada"},
-  {h:"Você ganha",k:"profit",s:m=>m.miss?null:m.p1,t:"Ordenar pela prata que sobra no bolso, já descontados ingredientes, taxas e retorno"},
+  {h:"Você ganha",k:"profit",s:m=>m.miss?null:m.p1*ckNFor(m),t:"Ordenar pela prata que sobra no bolso, já descontados ingredientes, taxas e retorno"},
   {h:"Lucro %",k:"pct",s:m=>m.miss?null:m.pct,t:"Ordenar pelo lucro sobre o custo da fornada"},
   {h:"Por ponto de foco",k:"spf",s:m=>m.miss?null:m.spf},
   {h:"Venda típica",k:"sale",s:m=>m.miss?null:m.item.p},
@@ -939,19 +951,23 @@ async function renderCook(){
   if(!COOK_LOADED){ const td=body.insertRow().insertCell(); td.colSpan=NC; td.textContent="Buscando preços dos ingredientes…"; await ensureCook(); if(!COOK_LOADED){ td.textContent="Não consegui buscar os preços agora. Tente atualizar."; return; } return renderCook(); }
   lfBar(bar,"ck",CK_FIL,rer);
   if(ckNeedsFarm()){ try{ if(!FARM) FARM=await need("farm"); await ensureFZ(); }catch(e){} }
-  const N=ckN(); { const th=tb.tHead.rows[0].cells[2]; const b=th&&th.querySelector(".lf-hs"); if(b&&N>1) b.firstChild.textContent=`Você ganha em ${fmt(N)} fornadas`; }
+  { const l=$("ckLotes"); if(l&&document.activeElement!==l) l.value=SRC.lotes>0?String(SRC.lotes):""; }
+  const N=ckN(), AUTO=!!(SRC.ckAuto&&ilhaL()>0); { const th=tb.tHead.rows[0].cells[2]; const b=th&&th.querySelector(".lf-hs"); if(b&&AUTO) b.firstChild.textContent=`Você ganha com ${fmt(ilhaL())} lotes`; else if(b&&N>1) b.firstChild.textContent=`Você ganha em ${fmt(N)} fornadas`; }
   const only=$("ckBuilds").checked, FAVON=!!(window.FAV&&FAV.on("cozinha"));
   let rows=Object.keys(COOK.r).filter(id=>FAVON?FAV.has("cozinha",id):(COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id)))).map(cookModel).filter(Boolean);
   const st0=lfState("ck",def), needVol=st0.k==="vol"||lfNum(lfGet("ck").minVol);
   await lfEnsureVol(rows.map(m=>m.id),needVol,tb,note);
   const nAll=rows.length; rows=lfSort("ck",lfFilter("ck",rows,CK_FIL),CK_COLS,def); lfCount(bar,"ck",CK_FIL,nAll-rows.length);
-  ganhoTop($("ckSum"),rows.filter(m=>!m.miss),m=>m.p1*N,m=>`${m.name}: você ganha ${fmt(Math.round(m.p1*N))} de prata em ${N>1?fmt(N)+" fornadas":"uma fornada"} (${fmt(m.q*N)} ${m.kind==="f"?"porções":"poções"}, ${fmt(m.fc*N)} de foco). Já descontados ingredientes, taxa da estação e taxas de venda.`,"Com os preços de agora, nada desta lista dá lucro.");
+  ganhoTop($("ckSum"),rows.filter(m=>!m.miss),m=>m.p1*ckNFor(m),m=>{ const n=ckNFor(m); return `${m.name}: você ganha ${fmt(Math.round(m.p1*n))} de prata em ${n>1?fmt(n)+" fornadas":"uma fornada"}${AUTO&&ckLotsPerBatch(m)>0?`, o máximo que os seus ${fmt(ilhaL())} lotes dão por colheita`:""} (${fmt(m.q*n)} ${m.kind==="f"?"porções":"poções"}, ${fmt(m.fc*n)} de foco). Já descontados ingredientes, taxa da estação e taxas de venda.`; },"Com os preços de agora, nada desta lista dá lucro.");
   if(!rows.length){ const td=body.insertRow().insertCell(); td.colSpan=NC; td.className="muted"; td.textContent=nAll?"Nada passa pelos filtros. Afrouxe um deles ou clique em Limpar filtros.":"Nada para mostrar aqui."; }
   for(const m of rows){ const tr=body.insertRow(); tr.dataset.fav=m.id; tr.tabIndex=0; tr.className="clickrow";
     const a=tr.insertCell(); const an=el("span"); an.append(m.name); if(BUILD_FOOD.includes(m.id)) an.append(" ",el("span",{class:"spec",text:"build"})); a.append(withIcon(m.id,an));
     tr.insertCell().textContent=`${m.q} ${m.kind==="f"?(m.q>1?"porções":"porção"):(m.q>1?"poções":"poção")}`;
     if(m.miss){ const td=tr.insertCell(); td.colSpan=4; td.className="muted"; td.textContent=`Sem preço: ${m.miss}`; lfVolCell(tr,m.id); tr.insertCell(); continue; }
-    const c=tr.insertCell(); c.className="num gv-cell "+(m.p1>=0?"gain":"loss"); c.append(el("b",{class:"gv",text:sgn(m.p1*N)}),el("small",{class:"gv-sub",text:(m.p1<0?"prejuízo: ":"")+(N>1?`${sgn(m.p1)} por fornada`:"por fornada, com foco")+` · ${fmt(m.fc*N)} de foco`}));
+    const Nm=ckNFor(m), lpb=ilhaL()>0?ckLotsPerBatch(m):0;
+    const c=tr.insertCell(); c.className="num gv-cell "+(m.p1>=0?"gain":"loss");
+    if(AUTO&&lpb>0&&Nm<1){ c.className="num gv-cell muted"; c.append(el("b",{class:"gv",text:"—"}),el("small",{class:"gv-sub",text:`1 fornada ocupa ${dec(lpb)} lotes: mais que os seus ${fmt(ilhaL())}`})); }
+    else c.append(el("b",{class:"gv",text:sgn(m.p1*Nm)}),el("small",{class:"gv-sub",text:(m.p1<0?"prejuízo: ":"")+(AUTO&&lpb>0?`${fmt(Nm)} fornadas com seus lotes · ${sgn(m.p1)} cada`:Nm>1?`${sgn(m.p1)} por fornada`:"por fornada, com foco")+` · ${fmt(m.fc*Nm)} de foco`+(!AUTO&&lpb>0?` · seus lotes dão ${fmt(Math.floor(ilhaL()/lpb+1e-9))}`:"")}));
     const p=tr.insertCell(); p.className="num "+(m.p1>=0?"gain":"loss"); p.textContent=dec(m.pct*100)+"%";
     const d=tr.insertCell(); d.className="num"; d.textContent=dec(m.spf);
     const e=tr.insertCell(); e.className="num"; e.textContent=fmt(m.item.p);
@@ -997,7 +1013,7 @@ function ckFarmPlan(m,N){
 }
 /* detalhe da receita: mesmo desenho do Mercado Negro (compras em vermelho, venda e lucro em verde), para N fornadas */
 function cookPanel(m){
-  const N=ckN(), d=el("div",{class:"of-xp"}), left=el("div",{class:"of-xl"}), right=el("div",{class:"of-xs"}), city=COOK_CITY[m.kind];
+  const N=ckNFor(m)||ckN(), d=el("div",{class:"of-xp"}), left=el("div",{class:"of-xl"}), right=el("div",{class:"of-xs"}), city=COOK_CITY[m.kind];
   left.append(el("h4",{class:"of-xh",text:`${m.name} em ${city}${N>1?`, ${fmt(N)} fornadas`:""}`}));
   const hd=el("div",{class:"of-xr of-xhd"}); ["Stats","Item","Valor","Tempo","Cidade","Qtd"].forEach(x=>hd.append(el("span",{text:x}))); left.append(hd);
   const row=(kind,lab,id,nm,sub,val,qty,where)=>{ const r=el("div",{class:"of-xr "+kind}); r.append(el("span",{class:"of-pill "+kind,text:lab}));

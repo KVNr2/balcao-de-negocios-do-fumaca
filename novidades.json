@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T16:40:00Z",
+   "titulo": "Lotes na ilha: o máximo que dá para produzir",
+   "itens": [
+    "Novo campo Lotes na ilha, o mesmo na Cozinha e na Ilha e fazenda. Cada lote é uma fazenda de 9 sementes, um pasto de 9 animais ou um canil de 4 montarias raras.",
+    "Na Cozinha, as receitas com ingrediente produzido na ilha mostram quantas fornadas os seus lotes dão por colheita. Marcando Fornadas pelo máximo dos lotes, cada receita já faz a conta com esse máximo, e a lista mostra o que mais rende com os lotes que você tem.",
+    "Em Leite e ovos e Criação, os lotes viram pastos de 9 animais (canis de 4 para as montarias raras). Com a ração Planto na ilha, o site separa os lotes de ração e acha quantos pastos cabem junto com ela."
+   ]
+  },
+  {
    "t": "2026-10-28T16:17:00Z",
    "titulo": "PvP: tier list mais justa (confrontos contra o campo e conta cautelosa)",
    "itens": [
