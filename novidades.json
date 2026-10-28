@@ -1,6 +1,13 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T20:44:00Z",
+   "titulo": "Plano do dia: opções explicadas",
+   "itens": [
+    "A parte O que fabricar com o foco cheio ganhou uma explicação do que ela faz e uma frase curta embaixo de cada opção (foco, prazo, parte das vendas, spec e o que fabricar), para quem abre a página pela primeira vez."
+   ]
+  },
+  {
    "t": "2026-10-28T20:24:00Z",
    "titulo": "Plano do dia: o que fabricar com o foco cheio",
    "itens": [

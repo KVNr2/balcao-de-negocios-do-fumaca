@@ -128,7 +128,7 @@ async function renderPlanoProd(run){
   const box=$("plProd"); if(!box) return;
   { const f=$("ppFoc"), d=$("ppDias"); if(f&&document.activeElement!==f) f.value=String(PP.foc); if(d&&document.activeElement!==d) d.value=String(PP.dias); const pt=$("ppParte"), sp=$("ppSpec"); if(pt&&document.activeElement!==pt) pt.value=String(PP.parte); if(sp) sp.checked=!!PP.spec;
     document.querySelectorAll("[data-pp]").forEach(b=>b.setAttribute("aria-pressed",String(PP.tipo===b.dataset.pp))); }
-  if(!run){ if(!box.dataset.done){ box.textContent=""; box.append(el("p",{class:"muted",text:"Clique em Montar sugestão. Na primeira vez o site consulta o preço de todos os equipamentos, o que leva perto de um minuto."})); } return; }
+  if(!run){ if(!box.dataset.done){ box.textContent=""; box.append(el("p",{class:"muted",text:"Ajuste as opções e clique em Montar sugestão. Na primeira vez o site consulta o preço de todos os equipamentos, o que leva perto de um minuto; depois fica mais rápido."})); } return; }
   if(PP_BUSY) return; PP_BUSY=true; box.textContent=""; const note=el("p",{class:"small muted"}); box.append(note);
   try{
     if(!BM) BM=await need("bm");
