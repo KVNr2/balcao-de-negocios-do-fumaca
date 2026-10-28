@@ -1601,3 +1601,4 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 .of-fil input{width:150px;min-height:34px;padding:5px 9px;font-size:14px}
 .of-fclr{align-self:center;font-size:13px}
 #ofFCount{align-self:center}
+@media (max-width:1100px){ .of-fil input{width:118px} .of-filw{gap:6px 10px} }
