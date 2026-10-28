@@ -895,25 +895,47 @@ function cookModel(id){
   const fee=q*nut*0.1125*feeVal()/100, net=q*item.p*(1-taxOf());
   const r1=rrr(0.15,true,st.daily), r0=rrr(0.15,false,st.daily);
   const p1=net-cost*(1-r1)-fee, p0=net-cost*(1-r0)-fee, fc=Math.max(1,Math.round(fo*Math.pow(0.5,cookFCE(kind,id)/10000)));
-  return {id,name,kind,q,cost,fee,net,item,parts,p1,p0,fc,spf:(p1-p0)/fc,day:p1*Math.floor(10000/fc),thin,tier:+id[1]};
+  const bc=cost*(1-r1)+fee;
+  return {id,name,kind,q,cost,fee,net,item,parts,p1,p0,pct:bc>0?p1/bc:0,fc,spf:(p1-p0)/fc,day:p1*Math.floor(10000/fc),thin,tier:+id[1]};
 }
+const CK_FIL=[
+  {k:"minP",lab:"Lucro mínimo por fornada",step:1000,get:m=>m.p1},
+  {k:"minPct",lab:"Lucro % mínimo",step:1,get:m=>m.pct*100},
+  {k:"minSpf",lab:"Prata por foco, no mínimo",step:1,get:m=>m.spf},
+  {k:"minVol",lab:"Vende por dia, no mínimo",step:1,min:0,get:m=>lfVol(m.id)} ];
+const CK_COLS=[
+  {h:"Item",k:"name",s:m=>m.name},
+  {h:"Fornada"},
+  {h:"Lucro com foco",k:"profit",s:m=>m.miss?null:m.p1},
+  {h:"Lucro %",k:"pct",s:m=>m.miss?null:m.pct,t:"Ordenar pelo lucro sobre o custo da fornada"},
+  {h:"Por ponto de foco",k:"spf",s:m=>m.miss?null:m.spf},
+  {h:"Venda típica",k:"sale",s:m=>m.miss?null:m.item.p},
+  {h:"Vende por dia",k:"vol",s:m=>lfVol(m.id),t:"Ordenar pelas unidades vendidas por dia (7 dias, somando as cidades)"},
+  {h:""} ];
 async function renderCook(){
-  const tb=$("ckTable"); tb.textContent="";
-  const hr=tb.createTHead().insertRow(); ["Item","Fornada","Lucro com foco","Por ponto de foco","Venda típica",""].forEach(h=>hr.append(el("th",{text:h})));
+  const tb=$("ckTable"), note=$("ckNote"), bar=$("ckFil"), NC=CK_COLS.length; tb.textContent="";
+  const rer=()=>renderCook(), def={k:"profit",dir:1};
+  lfHead(tb.createTHead().insertRow(),"ck",CK_COLS,def,rer);
   const body=tb.createTBody();
-  if(!COOK_LOADED){ const td=body.insertRow().insertCell(); td.colSpan=6; td.textContent="Buscando preços dos ingredientes…"; await ensureCook(); if(!COOK_LOADED){ td.textContent="Não consegui buscar os preços agora. Tente atualizar."; return; } return renderCook(); }
+  if(!COOK_LOADED){ const td=body.insertRow().insertCell(); td.colSpan=NC; td.textContent="Buscando preços dos ingredientes…"; await ensureCook(); if(!COOK_LOADED){ td.textContent="Não consegui buscar os preços agora. Tente atualizar."; return; } return renderCook(); }
+  lfBar(bar,"ck",CK_FIL,rer);
   const only=$("ckBuilds").checked, FAVON=!!(window.FAV&&FAV.on("cozinha"));
-  const rows=Object.keys(COOK.r).filter(id=>FAVON?FAV.has("cozinha",id):(COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id)))).map(cookModel).filter(Boolean)
-    .sort((a,b)=>((b.p1??-1e12)-(a.p1??-1e12)));
+  let rows=Object.keys(COOK.r).filter(id=>FAVON?FAV.has("cozinha",id):(COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id)))).map(cookModel).filter(Boolean);
+  const st0=lfState("ck",def), needVol=st0.k==="vol"||lfNum(lfGet("ck").minVol);
+  await lfEnsureVol(rows.map(m=>m.id),needVol,tb,note);
+  const nAll=rows.length; rows=lfSort("ck",lfFilter("ck",rows,CK_FIL),CK_COLS,def); lfCount(bar,"ck",CK_FIL,nAll-rows.length);
+  if(!rows.length){ const td=body.insertRow().insertCell(); td.colSpan=NC; td.className="muted"; td.textContent=nAll?"Nada passa pelos filtros. Afrouxe um deles ou clique em Limpar filtros.":"Nada para mostrar aqui."; }
   for(const m of rows){ const tr=body.insertRow(); tr.dataset.fav=m.id; tr.tabIndex=0; tr.className="clickrow";
     const a=tr.insertCell(); const an=el("span"); an.append(m.name); if(BUILD_FOOD.includes(m.id)) an.append(" ",el("span",{class:"spec",text:"build"})); a.append(withIcon(m.id,an));
     tr.insertCell().textContent=`${m.q} ${m.kind==="f"?(m.q>1?"porções":"porção"):(m.q>1?"poções":"poção")}`;
-    if(m.miss){ const td=tr.insertCell(); td.colSpan=3; td.className="muted"; td.textContent=`Sem preço: ${m.miss}`; tr.insertCell(); continue; }
+    if(m.miss){ const td=tr.insertCell(); td.colSpan=4; td.className="muted"; td.textContent=`Sem preço: ${m.miss}`; lfVolCell(tr,m.id); tr.insertCell(); continue; }
     const c=tr.insertCell(); c.className="num "+(m.p1>=0?"gain":"loss"); c.textContent=sgn(m.p1);
+    const p=tr.insertCell(); p.className="num "+(m.p1>=0?"gain":"loss"); p.textContent=dec(m.pct*100)+"%";
     const d=tr.insertCell(); d.className="num"; d.textContent=dec(m.spf);
     const e=tr.insertCell(); e.className="num"; e.textContent=fmt(m.item.p);
+    lfVolCell(tr,m.id);
     const f=tr.insertCell(); f.className="tiny muted"; f.textContent=m.thin?"pouca oferta":"";
-    const dr=document.createElement("tr"); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dc.colSpan=6; dr.append(dc); tr.after(dr); tr.dataset.id=m.id;
+    const dr=document.createElement("tr"); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dc.colSpan=NC; dr.append(dc); tr.after(dr); tr.dataset.id=m.id;
     const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open)); ckSel=open?m.id:null;
       if(open){ dc.textContent=""; try{ dc.append(cookPanel(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes: "+(e&&e.message||e)})); } setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8) dr.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"}); }catch(e){} },60); } };
     tr.setAttribute("aria-expanded","false"); tr.addEventListener("click",toggle); tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } });

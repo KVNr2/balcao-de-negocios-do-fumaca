@@ -1659,3 +1659,14 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 body.bag-on .bag-fab{right:calc(min(440px,100vw) + 18px)}
 @media (max-width:560px){ body.bag-on .bag-fab{display:none} .bag-fab{right:12px;bottom:12px;height:42px} .bag-row{grid-template-columns:1fr} }
 @media print{ .bag-fab,.bag-dr{display:none!important} }
+
+/* cabeçalho ordenável e filtros de Cozinha e alquimia e de Ilha e fazenda (listfil.js) */
+#ckTable th .lf-hs,#fzTable th .lf-hs{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:5px;padding:3px 6px;margin:-3px -6px;cursor:pointer;border-radius:6px;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
+#ckTable th .lf-hs:hover,#fzTable th .lf-hs:hover{color:var(--parch,#efe2c4);background:rgba(239,226,196,.05)}
+#ckTable th .lf-hs.on,#fzTable th .lf-hs.on{color:var(--saffron,#e8ab45)}
+#ckTable th .lf-hs:focus-visible,#fzTable th .lf-hs:focus-visible{outline:2px solid var(--saffron,#e8ab45);outline-offset:1px}
+.lf-hs .of-ar{font-style:normal;font-size:10px;opacity:.55}.lf-hs.on .of-ar{opacity:1}
+#ckFil:empty,#fzFil:empty{display:none}
+.lf-ct{align-self:center}
+td.lf-vol{white-space:nowrap}
+#ckTable th::after,#fzTable th::after{content:none!important}
