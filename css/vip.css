@@ -1588,3 +1588,16 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 .of-bc.wait{opacity:.7}
 .of-bc .of-bcgo{font-size:12px;font-weight:600;padding:0;color:var(--saffron,#e8ab45);text-decoration:underline;text-underline-offset:2px;background:none;border:0;cursor:pointer}
 .of-bc .gain{color:#4cd964}.of-bc .loss{color:#f87171}
+/* lista da oficina: título das colunas ordena; filtros por coluna */
+.of-lh .of-hs{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:5px;padding:4px 14px;cursor:pointer;border-radius:6px;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
+.of-lh .of-hs:first-child,.of-lh .of-hs:last-child{justify-content:flex-start}
+.of-lh .of-hs:hover{color:var(--parch,#efe2c4);background:rgba(239,226,196,.05)}
+.of-lh .of-hs.on{color:var(--saffron,#e8ab45)}
+.of-lh .of-hs:focus-visible{outline:2px solid var(--saffron,#e8ab45);outline-offset:-2px}
+.of-lh .of-ar{font-style:normal;font-size:10px;opacity:.55}.of-lh .of-hs.on .of-ar{opacity:1}
+.of-filw{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 14px;margin:8px 0 4px}
+.of-filw .of-ct{align-self:center}
+.of-fil{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--smoke,#a39382)}
+.of-fil input{width:150px;min-height:34px;padding:5px 9px;font-size:14px}
+.of-fclr{align-self:center;font-size:13px}
+#ofFCount{align-self:center}
