@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="5eac3852">
+<html lang="pt-BR" data-v="c2f468c5">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=5eac3852">
-<link rel="stylesheet" href="css/vip.css?v=5eac3852">
-<link rel="stylesheet" href="css/avicons.css?v=5eac3852">
-<link rel="stylesheet" href="css/souk.css?v=5eac3852">
+<link rel="stylesheet" href="css/balcao.css?v=c2f468c5">
+<link rel="stylesheet" href="css/vip.css?v=c2f468c5">
+<link rel="stylesheet" href="css/avicons.css?v=c2f468c5">
+<link rel="stylesheet" href="css/souk.css?v=c2f468c5">
 </head>
 <body>
 <div class="wrap app">
@@ -339,6 +339,10 @@ html.em-atual .av-card{margin:0}
           <div class="of-card of-sl"><div class="of-slh"><span class="of-ct">Taxa de retorno</span><b class="of-big" id="ofRRv">—</b></div>
             <input type="range" id="ofRRs" min="0" max="70" step="0.1" value="24.8" aria-label="Taxa de retorno de recursos">
             <div class="of-pre" id="ofRRp"><button type="button" data-rr="none" aria-pressed="false" title="Sem bônus de cidade, sem foco"></button><button type="button" data-rr="auto" aria-pressed="true" title="Cidade com bônus, sem foco"></button><button type="button" data-rr="focus" aria-pressed="false" title="Cidade com bônus e foco"></button></div></div>
+          <div class="of-card of-srcard" id="ofSRCard"><span class="of-ct">Materiais refinados</span>
+            <div class="seg sm of-srseg" role="group" aria-label="Materiais refinados" id="ofSR"><button type="button" data-sr="0" aria-pressed="true">Comprar prontos</button><button type="button" data-sr="1" aria-pressed="false">Refinar eu mesmo</button></div>
+            <div class="seg sm of-srseg" role="group" aria-label="Refino com ou sem foco" id="ofSRF" hidden><button type="button" data-f="0" aria-pressed="true">Refino sem foco</button><button type="button" data-f="1" aria-pressed="false">Refino com foco</button></div>
+            <small class="muted" id="ofSRtxt"></small></div>
           <label class="of-sw"><span class="of-swi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg></span><span class="of-swt">Conta Premium</span><input type="checkbox" id="ofPrem"><i class="of-track"></i></label>
           <label class="of-sw"><span class="of-swi on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5L5 19"/><circle cx="7" cy="7" r="2"/><circle cx="17" cy="17" r="2"/></svg></span><span class="of-swt">Taxa de Venda</span><input type="checkbox" id="ofTax" checked><i class="of-track"></i></label>
           <label class="of-sw"><span class="of-swi"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></svg></span><span class="of-swt">Usar Foco</span><input type="checkbox" id="ofFocus"><i class="of-track"></i></label>
@@ -718,22 +722,22 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=5eac3852"></script>
-<script src="js/base.js?v=5eac3852"></script>
-<script src="js/fx.js?v=5eac3852"></script>
-<script src="js/biz.js?v=5eac3852"></script>
-<script src="js/builds.js?v=5eac3852"></script>
-<script src="js/nossas.js?v=5eac3852"></script>
-<script src="js/ip.js?v=5eac3852"></script>
-<script src="js/zvz.js?v=5eac3852"></script>
-<script src="js/pvp.js?v=5eac3852"></script>
-<script src="js/novos.js?v=5eac3852"></script>
-<script src="js/guia.js?v=5eac3852"></script>
-<script src="js/ui.js?v=5eac3852"></script>
-<script src="js/avalon.js?v=5eac3852"></script>
-<script src="js/oficina.js?v=5eac3852"></script>
-<script src="js/versao.js?v=5eac3852"></script>
-<script src="js/fav.js?v=5eac3852"></script>
-<script src="js/main.js?v=5eac3852"></script>
+<script src="js/icons.js?v=c2f468c5"></script>
+<script src="js/base.js?v=c2f468c5"></script>
+<script src="js/fx.js?v=c2f468c5"></script>
+<script src="js/biz.js?v=c2f468c5"></script>
+<script src="js/builds.js?v=c2f468c5"></script>
+<script src="js/nossas.js?v=c2f468c5"></script>
+<script src="js/ip.js?v=c2f468c5"></script>
+<script src="js/zvz.js?v=c2f468c5"></script>
+<script src="js/pvp.js?v=c2f468c5"></script>
+<script src="js/novos.js?v=c2f468c5"></script>
+<script src="js/guia.js?v=c2f468c5"></script>
+<script src="js/ui.js?v=c2f468c5"></script>
+<script src="js/avalon.js?v=c2f468c5"></script>
+<script src="js/oficina.js?v=c2f468c5"></script>
+<script src="js/versao.js?v=c2f468c5"></script>
+<script src="js/fav.js?v=c2f468c5"></script>
+<script src="js/main.js?v=c2f468c5"></script>
 </body>
 </html>
