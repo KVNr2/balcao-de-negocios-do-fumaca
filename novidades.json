@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T23:00:00Z",
+   "titulo": "Albion Overlay 2.0.9: nuvem mais rápida e ficha só quando muda",
+   "programa": "2.0.9",
+   "itens": [
+    "Preços de outros jogadores no site: com uma aba de preços aberta e a janela visível, o site pergunta à nuvem a cada cerca de 20 s só o que mudou (sem mudança o intervalo sobe até 60 s). O que for mais novo que o já mostrado é aplicado e a lista é redesenhada, sem mexer em quem digita. Vale no site e no overlay.",
+    "O programa envia os preços lidos do jogo para a nuvem em cerca de 4 s, em vez de 45 s. O Mercado Negro continua juntando as páginas antes de enviar.",
+    "A ficha só é relida e avisada quando algum nível realmente mudou; trocar de mapa com tudo igual não gera mensagem."
+   ]
+  },
+  {
    "t": "2026-10-28T20:44:00Z",
    "titulo": "Plano do dia: opções explicadas",
    "itens": [
