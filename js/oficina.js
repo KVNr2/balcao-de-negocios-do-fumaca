@@ -122,7 +122,7 @@ function ofModel(it,rrOv){
   else if(pay){ Np=ofN(); N=Math.max(Np,Math.floor(Np/(1-rr)+1e-9)); }
   else { N=Np=ofN(); }
   let mat=0, buyFee=0, miss=0; const parts=[];
-  for(const g of it.ing){ const ovB=OF2.ov["b|"+it.id+"|"+g.id]; const b=(ovB&&pickBuy(g.id,ovB))||pickBuy(g.id); if(!b){ miss++; parts.push({...g,b:null}); continue; }
+  for(const g of it.ing){ const ovB=OF2.ov["b|"+it.id+"|"+g.id]; const b=(ovB&&pickBuy(g.id,ovB))||(selfRefOn()&&!g.art&&refUnit(g.id))||pickBuy(g.id); if(!b){ miss++; parts.push({...g,b:null}); continue; }
     const unit=b.p, total=g.n*N; let need;
     if(g.art) need=total; else if(pay) need=g.n*Np; else need=Math.ceil(total*(1-rr)-1e-9);
     const ret=total-need, base=need*unit, bf=b.mode==="ordem"?base*0.025:0;
@@ -166,6 +166,7 @@ function ofApplyMode(mode){
   if(ref){ $("ofQty").value=String(focBud()); $("ofQty").step="500"; } else $("ofQty").step="1";
   { const qm=$("ofQMode"); if(qm) qm.hidden=ref; const rrc=$("ofRRs").closest(".of-card"); if(rrc) rrc.hidden=ref; const fw=$("ofFocus").closest("label"); if(fw) fw.hidden=ref; if(ref){ const bx=$("ofFocBox"); if(bx) bx.hidden=true; } }
   $("ofFind").placeholder=ref?"Nome do recurso":"Nome do item";
+  { const sc=$("ofSRCard"); if(sc) sc.hidden=ref; }
   if(OF2.footC==null) OF2.footC=$("ofFoot").textContent;
   $("ofFoot").textContent=ref?"Atalhos de retorno: 15,3% (estação sem bônus), 36,7% (cidade com o bônus de refino daquele recurso) e 53,9% (cidade com bônus e foco). Cada unidade refinada usa a quantidade do tier de matéria-prima (T4 usa 2, T5 usa 3, T6 usa 4, T7 e T8 usam 5) mais 1 unidade refinada do tier anterior, com o mesmo encantamento (T4 usa a de T3). O retorno vale para os dois, e é arredondado para cima na compra. Bônus de refino: Thetford minério, Lymhurst fibra, Martlock pelego, Fort Sterling madeira, Bridgewatch pedra. Taxa da estação = valor do item × 0,1125 × taxa ÷ 100. O custo de foco cai pela metade a cada 10.000 de eficiência, que sai das specs de refino da sua ficha. Premium gera 10.000 de foco por dia. O produto refinado não tem qualidade, então só o preço importa. Os controles de Premium, bônus diário e taxa valem para o site todo.":OF2.footC;
   ofFillCats(); OF2.open.clear();
@@ -181,6 +182,7 @@ function setupOf(){
   { const bx=$("ofFocBox"); if(bx&&!bx.firstChild) bx.append(focBudUI(renderOf,"O foco só aumenta o retorno de recursos. Em cada item aberto aparece quantas unidades o foco do dia cobre.")); }
   $("ofFocus").addEventListener("change",()=>{ OF2.rrMan=null; OF.rr=$("ofFocus").checked?"focus":"auto"; renderOf(); });
   $("ofTax").addEventListener("change",()=>{ OF2.tax=$("ofTax").checked; renderOf(); });
+  setupSelfRef();
   $("ofPrem").addEventListener("change",()=>{ document.querySelector(`[data-g="prem"][data-v="${$("ofPrem").checked?1:0}"]`).click(); renderOf(); });
   $("ofDaily").addEventListener("change",()=>{ document.querySelector(`[data-g="daily"][data-v="${$("ofDaily").checked?0.1:0}"]`).click(); renderOf(); });
   $("ofQty").addEventListener("input",()=>{ const v=Math.max(0,Math.floor(+$("ofQty").value)||0); if(OF.mode==="refine"){ focSet(v); FOC_UIS.forEach(u=>u._sync()); } else OF2.qty=v; renderOf(); });
@@ -209,7 +211,7 @@ function ofDetail(m){
   const hd=el("div",{class:"of-xr of-xhd"}); ["Stats","Item","Valor","Tempo","Cidade","Qtd"].forEach(x=>hd.append(el("span",{text:x}))); left.append(hd);
   const row=(kind,id,nmText,pr,locs,onPick,qty,sub,q)=>{
     const r=el("div",{class:"of-xr "+kind});
-    const lab=kind==="sale"?({ordem:"ORDEM VENDA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"VENDA INST"):({ordem:"ORDEM COMPRA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"COMPRA INST");
+    const lab=kind==="sale"?({ordem:"ORDEM VENDA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"VENDA INST"):({ordem:"ORDEM COMPRA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL",refino:"VOCÊ REFINA"}[pr.mode]||"COMPRA INST");
     r.append(el("span",{class:"of-pill "+kind,text:lab}));
     const it_=el("span",{class:"of-xi"}); it_.append(el("i",{class:"of-dot"+(kind==="buy"?" red":"")}),iconImg(nk(id),34,q||1)); const nm=el("span",{class:"of-xn"}); nm.append(el("b",{text:nmText})); if(sub) nm.append(el("small",{text:sub})); it_.append(nm); r.append(it_);
     r.append(el("b",{class:"of-xv",text:fmt(pr.p)}),el("span",{class:"of-xt"},ageSpan(pr.t)||"—"));
@@ -217,8 +219,9 @@ function ofDetail(m){
   const sellLocsFor=()=>(OF.sellC.size?[...new Set([...OF.sellC,...sellLocs()])]:sellLocs()).filter(c=>pickSell(m.it.id,c));
   const redo=()=>renderOf();
   left.append(row("sale",m.it.id,m.it.name,m.sale,sellLocsFor(),c=>{ OF2.ov["s|"+m.it.id]=c; redo(); },m.units,"",OF2.qual>1?OF2.qual:1));
-  for(const g of m.parts){ const locs=SHOP_LOCS.filter(c=>pickBuy(g.id,c));
-    left.append(row("buy",g.id,g.nm,g.b,locs,c=>{ OF2.ov["b|"+m.it.id+"|"+g.id]=c; redo(); },g.need,g.art?`${fmt(g.total)} · artefato não volta`:`${fmt(g.total)} na receita · volta ${fmt(g.ret)}`)); }
+  for(const g of m.parts){ const rf=g.b&&g.b.mode==="refino", locs=rf?[]:SHOP_LOCS.filter(c=>pickBuy(g.id,c));
+    left.append(row("buy",g.id,g.nm,g.b,locs,c=>{ OF2.ov["b|"+m.it.id+"|"+g.id]=c; redo(); },g.need,g.art?`${fmt(g.total)} · artefato não volta`:`${fmt(g.total)} na receita · volta ${fmt(g.ret)}`));
+    if(rf) left.append(refNote(g.b,g.id)); }
   const right=el("div",{class:"of-xs"});
   const card=(cls,title,lines,tot)=>{ const c=el("div",{class:"of-xcard "+cls}); c.append(el("h4",{class:"of-xh",text:title})); for(const [k,v,cc] of lines){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{class:cc||"",text:v})); c.append(l); } if(tot){ const l=el("div",{class:"of-xline of-xtot"}); l.append(el("span",{text:tot[0]}),el("b",{text:tot[1]})); c.append(l); } return c; };
   right.append(card("cost","Custos detalhados (−)",[["Matérias primas",fmt(m.mat)],["Taxa de nutrição",fmt(m.fee)],["Taxa de compra (pedidos)",fmt(m.buyFee)],["Taxa de venda"+(OF2.tax?(st.prem?" (Premium)":""):" (desligada)"),fmt(m.taxV)]],["Custo total real",fmt(m.costReal)]));
@@ -269,6 +272,7 @@ async function renderOf(){
   $("ofCount").textContent=fmt(items.length);
   if(OF2.qual>1&&isG){ note.textContent=`Consultando preços de venda em qualidade ${QNAME[OF2.qual].toLowerCase()}…`; if(!await ensureOfQ(items)){ note.textContent="Não consegui consultar a qualidade agora."; return; } if(stale()) return; }
   if(OF.sellS==='medio'||OF.buyS==='medio'){ note.textContent='Consultando valores médios…'; await ofPrefetchAvg(items); if(stale()) return; }
+  if(selfRefOn()){ note.textContent="Consultando a matéria-prima e os refinados do tier anterior para o refino…"; if(!await ensureRefMats(items)){ note.textContent="Não consegui consultar a matéria-prima agora."; return; } if(stale()) return; }
   OF2.sample=items[0];
   const rows=items.map(it=>ofModel(it)).filter(Boolean); let ok0=rows.filter(m=>!m.miss);
   if(OF.sort==="day"){ note.textContent="Consultando as vendas por dia…"; ok0=ok0.slice().sort((a,b)=>b.profit-a.profit).slice(0,200); await histFetch(ok0.map(m=>nk(m.it.id)+"|"+m.sale.c)); if(stale()) return; }
@@ -298,9 +302,10 @@ async function renderOf(){
   }
   const pos=ok.filter(m=>m.profit>0).length, faltam=rows.length-ok.length, rrs=ok[0]?ok[0].rr:0;
   $("ofAge").textContent=isFinite(oldest)?`Preços coletados há ${fmtAge(newest)}${oldest!==newest?` (mais antigo: ${fmtAge(oldest)})`:""}`:"";
-  note.textContent=ok.length?`${OF.mode==="refine"?`Gastando ${fmt(focBud())} de foco em cada item (retorno ${dec(rrs*100)}% com foco). `:""}${ok.length} itens com preço; ${pos} dão lucro. ${OF.mode==="refine"?"":`Retorno de recursos: ${dec(rrs*100)}%${OF2.rrMan==null&&OF.rr==="auto"?" (cidade com bônus, sem foco)":""}.`}${ok.length>LIM?` Mostrando os ${LIM} primeiros de ${fmt(ok.length)} registros, ordenados por ${({profit:"lucro",pct:"lucro %",focus:"lucro por ponto de foco"})[OF.sort]}: não são todos.`:` Mostrando todos os ${fmt(ok.length)} registros, ordenados por ${({profit:"lucro",pct:"lucro %",focus:"lucro por ponto de foco"})[OF.sort]}.`}${sellBM()?" Mercado Negro: vale a melhor ordem de compra de lá, só com a taxa de venda.":""}${faltam?` ${faltam} sem preço de algum material.`:""} Clique numa linha para ver os materiais e o retorno.`:"Nenhum item com preço suficiente nesse filtro.";
+  note.textContent=ok.length?`${OF.mode==="refine"?`Gastando ${fmt(focBud())} de foco em cada item (retorno ${dec(rrs*100)}% com foco). `:""}${ok.length} itens com preço; ${pos} dão lucro. ${OF.mode==="refine"?"":`Retorno de recursos: ${dec(rrs*100)}%${OF2.rrMan==null&&OF.rr==="auto"?" (cidade com bônus, sem foco)":""}.`}${ok.length>LIM?` Mostrando os ${LIM} primeiros de ${fmt(ok.length)} registros, ordenados por ${({profit:"lucro",pct:"lucro %",focus:"lucro por ponto de foco"})[OF.sort]}: não são todos.`:` Mostrando todos os ${fmt(ok.length)} registros, ordenados por ${({profit:"lucro",pct:"lucro %",focus:"lucro por ponto de foco"})[OF.sort]}.`}${sellBM()?" Mercado Negro: vale a melhor ordem de compra de lá, só com a taxa de venda.":""}${faltam?` ${faltam} sem preço de algum material.`:""}${selfRefOn()?` Barras, tecido, couro e tábuas entram pelo custo de refinar você mesmo (retorno do refino ${dec(rrr(0.40,OF2.selfRefFoc,st.daily)*100)}%).`:""}${OF.mode==="refine"?" Em cada linha aparece o craft que mais rende com esse material.":""} Clique numa linha para ver os materiais e o retorno.`:"Nenhum item com preço suficiente nesse filtro.";
   if(window.gsap&&!RM) gsap.from(body.querySelectorAll(".of-row"),{opacity:0,x:-8,duration:.22,stagger:.01,clearProps:"opacity,transform"});
   hbar(tb.parentNode); fillVolumes(shown);
+  if(OF.mode==="refine") fillBestCrafts(shown,stale);
 }
 const nk = id => id.replace(/_LEVEL(\d)$/,"_LEVEL$1@$1");
 const ofVolN_unused = m => { const h=OF2.hs[nk(m.it.id)+"|"+m.sale.c]; return OF2.qty>0?OF2.qty:Math.max(1,Math.round(h&&h.vol>0?h.vol:1)); };
@@ -309,7 +314,7 @@ function ofBlock(id,q,pr,kind,qty,m,g){
   const w=el("div",{class:"of-blk"}); const tile=el("span",{class:"of-tile"}); tile.append(iconImg(nk(id),48,q)); const bd=el("span",{class:"of-badge",text:fmt(qty)}); tile.append(bd);
   const inf=el("div",{class:"of-bi"}); const red=RED_CITIES.has(pr.c);
   inf.append(el("div",{class:"of-city"},el("i",{class:"of-dot"+(red?" red":"")}),pr.c));
-  const lab=kind==="sale"?({ordem:"ORDEM VENDA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"VENDA INST"):({ordem:"ORDEM COMPRA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"COMPRA INST");
+  const lab=kind==="sale"?({ordem:"ORDEM VENDA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"VENDA INST"):({ordem:"ORDEM COMPRA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL",refino:"VOCÊ REFINA"}[pr.mode]||"COMPRA INST");
   inf.append(el("div",{class:"of-pr"},el("span",{class:"of-pill "+kind,text:lab}),el("b",{text:fmt(pr.p)}),ageSpan(pr.t)||""));
   const hs=el("div",{class:"of-hs"},"VALOR MÉDIO: ",el("b",{class:"hs-avg",text:"…"})," | UND: ",el("b",{class:"hs-vol",text:"…"}));
   w.dataset.hk=nk(id)+"|"+pr.c; inf.append(hs); w.append(tile,inf);
@@ -519,3 +524,94 @@ function hbar(wrap){
   const upd=()=>{ bar.firstChild.style.width=wrap.scrollWidth+"px"; bar.style.width=wrap.clientWidth+"px"; bar.hidden=wrap.scrollWidth<=wrap.clientWidth+2; };
   upd(); setTimeout(upd,300); setTimeout(upd,1200);
 }
+
+/* ================= Craft: refinar os materiais em vez de comprar ================= */
+/* Com "Refinar eu mesmo", cada barra, tecido, couro ou tábua da receita custa o que sai refinar:
+   (matéria-prima do tier × quantidade + 1 refinado do tier anterior) × (1 − retorno do refino) + taxa da estação.
+   O refinado do tier anterior entra pelo mais barato entre comprar pronto e refinar também (em cadeia até o T4; o T3 é comprado). */
+OF2.selfRef=store.get("ofSelfRef")==="1"; OF2.selfRefFoc=store.get("ofSelfRefF")==="1";
+const REF_BY=Object.fromEntries(REF5.map(R=>[R.ref,R]));
+const selfRefOn=()=>OF.mode==="craft"&&OF2.selfRef;
+function refParse(id){ const m=/^T(\d)_([A-Z]+)(?:_LEVEL(\d))?$/.exec(String(id).split("@")[0]); if(!m) return null; const R=REF_BY[m[2]]; return R?{R,t:+m[1],e:+(m[3]||0)}:null; }
+const buyEff=b=>b?b.p*(b.mode==="ordem"?1.025:1):Infinity;
+function refUnit(id){
+  const P=refParse(id); if(!P||P.t<4) return null; const {R,t,e}=P;
+  const raw=pickBuy(idLv(t,R.raw,e)); if(!raw) return null;
+  const prevId=t===4?`T3_${R.ref}`:idLv(t-1,R.ref,e), pb=pickBuy(prevId), pr=t>4?refUnit(prevId):null;
+  const usePr=pr&&pr.p<buyEff(pb), prevP=usePr?pr.p:buyEff(pb); if(!isFinite(prevP)) return null;
+  const rr=rrr(0.40,OF2.selfRefFoc,st.daily), fee=IV(t,e)*0.1125*feeVal()/100;
+  const p=(N[t]*buyEff(raw)+prevP)*(1-rr)+fee;
+  return {p,c:R.city,t:raw.t,mode:"refino",raw,rawId:idLv(t,R.raw,e),n:N[t],prevId,prevP,prevSrc:usePr?"refinado":"comprado",prevC:usePr?R.city:pb.c,rr,fee,R,tier:t,ench:e};
+}
+function refNote(b,id){
+  const R=b.R, rawNm=`${R.rawPT} T${b.tier}.${b.ench}`, prevNm=`${R.refPT} ${b.tier===4?"T3":`T${b.tier-1}.${b.ench}`}`, pronto=pickBuy(id);
+  const p=el("p",{class:"tiny muted of-refn"});
+  p.append(`Refino em ${R.city}: ${b.n}× ${rawNm} a ${fmt(b.raw.p)} (${b.raw.c}) + 1× ${prevNm} a ${fmt(Math.round(b.prevP))} (${b.prevSrc==="refinado"?"você refina também":"compra em "+b.prevC}), retorno ${dec(b.rr*100)}%, taxa da estação ${fmt(Math.round(b.fee))}. Sai ${fmt(Math.round(b.p))} cada.`);
+  if(pronto){ const d=pronto.p-b.p; p.append(` Comprar pronto: ${fmt(pronto.p)} em ${pronto.c} (${d>=0?"refinar economiza "+fmt(Math.round(d)):"comprar sai "+fmt(Math.round(-d))+" mais barato"} por unidade).`); }
+  return p; }
+async function ensureRefMats(items){
+  const ids=new Set();
+  for(const it of items) for(const g of it.ing){ if(g.art) continue; const P=refParse(g.id); if(!P||P.t<4) continue;
+    for(let t=P.t;t>=4;t--){ ids.add(apiLv(t,P.R.raw,P.e)); ids.add(apiLv(t,P.R.ref,P.e)); } ids.add(`T3_${P.R.ref}`); }
+  const need=[...ids].filter(id=>!OF.loaded.has("rm|"+id)); if(!need.length) return true;
+  try{ await fetchIds(need,DATA.itens,SHOP_LOCS); need.forEach(id=>OF.loaded.add("rm|"+id)); return true; }catch(e){ return false; }
+}
+function setupSelfRef(){
+  const sr=$("ofSR"), sf=$("ofSRF"); if(!sr||sr._ok) return; sr._ok=1;
+  const sync=()=>{ sr.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.sr==="1")===OF2.selfRef)));
+    sf.hidden=!OF2.selfRef; sf.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.f==="1")===OF2.selfRefFoc)));
+    $("ofSRtxt").textContent=OF2.selfRef?`Barras, tecido, couro e tábuas pelo custo de refinar na cidade com bônus (retorno ${dec(rrr(0.40,OF2.selfRefFoc,st.daily)*100)}%). A matéria-prima segue a estratégia de compra.`:"Barras, tecido, couro e tábuas comprados prontos no mercado."; };
+  sr.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; OF2.selfRef=b.dataset.sr==="1"; store.set("ofSelfRef",OF2.selfRef?"1":"0"); sync(); renderOf(); });
+  sf.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; OF2.selfRefFoc=b.dataset.f==="1"; store.set("ofSelfRefF",OF2.selfRefFoc?"1":"0"); sync(); renderOf(); });
+  sync(); }
+
+/* ================= Refino: o craft que mais rende com cada material ================= */
+/* Para cada barra, tecido, couro ou tábua da lista, procura entre as armas, armaduras e mãos secundárias do mesmo tier e encantamento
+   a que dá mais lucro por unidade do material, usando o custo de refino da própria linha para esse material e o mercado para o resto.
+   Craft na cidade com bônus, sem foco; venda pela estratégia de venda escolhida. */
+const REF_LETTER={METALBAR:"M",PLANKS:"P",LEATHER:"L",CLOTH:"C"};
+const BC={loaded:new Set(), res:{}};
+async function ensureCraftTE(t,e){
+  const key=t+"|"+e; if(BC.loaded.has(key)) return true;
+  const ids=[], mats=new Set(), extra=new Set();
+  for(const k in BM){ const r=BM[k]; ids.push(bmId(k,t,e)); for(const [,c] of r[3].matchAll(/([MPLC])(\d+)/g)) mats.add(apiLv(t,BM_RES[c],e)); if(r[4]) extra.add(`T${t}_${r[4][0]}`); }
+  try{ await fetchIds(ids,DATA.itens,SHOP_LOCS); await fetchIds([...mats,...extra],DATA.itens,SHOP_LOCS); BC.loaded.add(key); return true; }catch(e){ return false; }
+}
+function bestCraftsFor(ref,t,e,unitCost){
+  const L=REF_LETTER[ref]; if(!L) return [];
+  const rr=rrr(0.15,false,st.daily), out=[];
+  for(const k in BM){ const r=BM[k]; if(!r[3].includes(L)) continue; const id=bmId(k,t,e); const sale=pickSell(id); if(!sale) continue;
+    let mat=0, cnt=0, used=0, ok=true;
+    for(const [,c,n] of r[3].matchAll(/([MPLC])(\d+)/g)){ const nn=+n; cnt+=nn; let u;
+      if(BM_RES[c]===ref){ u=unitCost; used+=nn*(1-rr); } else { const b=pickBuy(idLv(t,BM_RES[c],e)); if(!b){ ok=false; break; } u=buyEff(b); }
+      mat+=nn*u*(1-rr); }
+    if(!ok) continue;
+    if(r[4]){ const b=pickBuy(`T${t}_${r[4][0]}`); if(!b) continue; mat+=r[4][1]*buyEff(b); }
+    const fee=cnt*IV(t,e)*0.1125*feeVal()/100, tax=OF2.tax?((st.prem?0.04:0.08)+(sale.mode==="ordem"?0.025:0)):0;
+    const profit=sale.p*(1-tax)-mat-fee; if(!(used>0)) continue;
+    out.push({k,id,g:r[1],name:nmKey(k,r[0]),t,e,profit,perMat:profit/used,used,sale}); }
+  return out.sort((a,b)=>b.perMat-a.perMat); }
+async function fillBestCrafts(shown,stale){
+  if(!BM) return; const tok=(BC.tok=(BC.tok||0)+1);
+  const rows=(OF2.rows||[]).filter(r=>REF_LETTER[r.m.it.key]);
+  const groups=[]; for(const r of rows){ const k=r.m.it.t+"|"+r.m.it.e; if(!groups.includes(k)) groups.push(k); }
+  for(const r of rows){ const nm=r.tr.querySelector(".inm"); if(nm&&!nm.querySelector(".of-bc")) nm.append(el("span",{class:"of-bc wait",text:"Melhor craft: calculando…"})); }
+  for(const gk of groups){ const [t,e]=gk.split("|").map(Number);
+    if(!await ensureCraftTE(t,e)){ break; } if(BC.tok!==tok||(stale&&stale())) return;
+    for(const r of rows){ if(r.m.it.t!==t||r.m.it.e!==e||!r.tr.isConnected) continue; const m=r.m, unit=m.cost/m.units;
+      const best=bestCraftsFor(m.it.key,t,e,unit); const nm=r.tr.querySelector(".inm"); if(!nm) continue; nm.querySelectorAll(".of-bc").forEach(x=>x.remove());
+      const box=el("span",{class:"of-bc"}); nm.append(box);
+      if(!best.length){ box.append(el("span",{class:"wk-fl",text:"Melhor craft"}),el("small",{text:"sem preço de venda das peças deste tier"})); continue; }
+      const b=best[0], top=best.slice(0,3).map((x,i)=>`${i+1}. ${x.name} T${t}.${e}: ${sgn(Math.round(x.profit))} por peça, ${sgn(Math.round(x.perMat))} por unidade de ${m.it.name.replace(/ T\d\.\d$/,"").toLowerCase()} (vende em ${x.sale.c})`).join("\n");
+      box.title=`Craft na cidade com bônus, sem foco, com o material pelo custo deste refino (${fmt(Math.round(unit))} cada).\n${top}`;
+      const go=el("button",{type:"button",class:"linkbtn of-bcgo",text:`${b.name} T${t}.${e}`}); go.addEventListener("click",ev=>{ ev.stopPropagation(); ofFromRef(b); });
+      box.append(el("span",{class:"wk-fl",text:"Melhor craft"}),go,el("b",{class:b.profit>=0?"gain":"loss",text:` ${sgn(Math.round(b.profit))} por peça`}),el("small",{text:` · ${sgn(Math.round(b.perMat))} por unidade do material`})); } }
+}
+/* abre o item no Craft, com o material refinado por você */
+async function ofFromRef(b){
+  setupOf(); ofApplyMode("craft");
+  const sel=$("ofCat"); sel.value="g:"+b.g; store.set("ofCat",sel.value);
+  OF.tier=b.t; OF.ench=b.e; $("ofTier").value=String(b.t); $("ofEnch").value=String(b.e);
+  OF.q=b.name.toLowerCase(); $("ofFind").value=b.name; OF2.ov={}; OF2.open.clear(); OF2.open.add(b.id);
+  OF2.selfRef=true; store.set("ofSelfRef","1"); { const sr=$("ofSR"); if(sr) sr.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.sr==="1"))); const sf=$("ofSRF"); if(sf) sf.hidden=false; }
+  document.getElementById("t-craft").click(); try{ ofCards(); }catch(e){} renderOf(); }

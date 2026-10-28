@@ -1578,3 +1578,13 @@ button.pv-i:hover,.pv-i[aria-pressed=true]{border-color:var(--saffron)}.pv-i img
 @keyframes bmspin{to{transform:rotate(360deg)}}
 @keyframes bmshine{from{background-position:200% 0}to{background-position:-200% 0}}
 @media(prefers-reduced-motion:reduce){.bm-spin,.bm-prog-track i{animation:none}.bm-prog-track i{transition:none}}
+/* Craft: materiais refinados por você; Refino: melhor craft com o material */
+.of-srcard{display:flex;flex-direction:column;gap:7px}
+.of-srseg{display:flex;width:100%}
+.of-srseg button{flex:1 1 0;white-space:nowrap}
+.of-srcard small{font-size:11.5px;line-height:1.35}
+.of-refn{margin:-2px 0 8px 12px;padding:6px 10px;border-left:2px solid var(--saffron,#e8ab45);background:rgba(232,171,69,.06);border-radius:0 6px 6px 0;line-height:1.45}
+.of-bc{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px;margin-top:3px;font-size:11.5px;color:var(--ink-2,#c9b99a)}
+.of-bc.wait{opacity:.7}
+.of-bc .of-bcgo{font-size:12px;font-weight:600;padding:0;color:var(--saffron,#e8ab45);text-decoration:underline;text-underline-offset:2px;background:none;border:0;cursor:pointer}
+.of-bc .gain{color:#4cd964}.of-bc .loss{color:#f87171}
