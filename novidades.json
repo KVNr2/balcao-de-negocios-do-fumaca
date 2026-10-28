@@ -1,6 +1,35 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T08:00:00Z",
+   "titulo": "Planta dos mapas de Avalon pelos dados do jogo (reserva)",
+   "itens": [
+    "Criei um desenho dos mapas de Avalon a partir dos arquivos do jogo (estradas, rios, paredes e posições de portais, dungeons e recursos). Ele só aparece quando as fotos não carregam.",
+    "As fotos continuam como imagem principal do mapa.",
+    "A aba Avalon deixou de mostrar a quantidade de portais de cada mapa, porque ela muda o tempo todo."
+   ]
+  },
+  {
+   "t": "2026-10-28T07:00:00Z",
+   "titulo": "Baús de Avalon atualizados (Albion Roads)",
+   "itens": [
+    "As quantidades de baús azuis, verdes e dourados de cada mapa de Avalon agora vêm do dataset da comunidade do Albion Roads (os próprios jogadores enviam e eles revisam).",
+    "A aba Avalon mostra a quantidade de cada tipo de baú e tem o filtro novo Baú dourado. Nome do mapa, tier, tipo, recursos e dungeons continuam vindo dos dados do jogo.",
+    "Os baús mudam com o tempo; o Albion Roads é o que o site segue."
+   ]
+  },
+  {
+   "t": "2026-10-28T06:00:00Z",
+   "titulo": "Mercado Negro só com os dados do Supabase",
+   "itens": [
+    "O Mercado Negro (pedidos de compra, preços dos materiais e das cidades) agora lê só do Supabase do site, ou seja, só do que jogadores com o Albion Overlay registraram. Nada vem mais da API pública.",
+    "Só aparecem peças vistas no jogo nos últimos 3 dias. Quanto mais gente usar o Overlay, mais completa fica a lista.",
+    "A coluna Média 7 dias vem do Supabase: ele guarda um resumo diário dos preços registrados e calcula as médias de 7 e 30 dias (média dos pedidos registrados, não das vendas fechadas). No painel da peça aparecem as duas médias e quantos registros entraram.",
+    "Saiu a coluna \"Vendas por dia\" e o gráfico de 30 dias: o Supabase não registra vendas fechadas.",
+    "O Supabase passou a recusar preço acima de 8 vezes a média de 30 dias da própria peça (a trava vale quando a peça já tem pelo menos 5 registros)."
+   ]
+  },
+  {
    "t": "2026-10-28T05:00:00Z",
    "titulo": "Albion Overlay 2.0.5",
    "programa": "2.0.5",

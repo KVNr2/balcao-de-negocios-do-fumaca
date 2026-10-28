@@ -35,7 +35,7 @@ const GUIA = {
     "Comparar o ganho e o risco de cada atividade (corrompidas, brumas, coleta, craft e outras). A barra mostra a faixa de prata por hora; a cor mostra o risco: verde baixo, amarelo médio, vermelho alto.",
     "Use os botões Tudo, Solo, Grupo e Sem risco para ver só o que combina com o seu jeito de jogar. Passe o mouse numa linha para ver mais detalhes. São estimativas de uma tabela da comunidade: servem para comparar, não para prometer."],
   "p-avalon": ["Os mapas das Estradas de Avalon.",
-    "Achar um mapa pelo nome, ver tier, recursos, dungeons e portais, e montar a rota da sua saída com o horário em que cada portal fecha.",
+    "Achar um mapa pelo nome, ver tier, recursos e dungeons, e montar a rota da sua saída com o horário em que cada portal fecha.",
     "Digite o nome (ou parte dele) e filtre por tier, tipo e recurso. A estrela salva o mapa (até 6) na Rota: escolha em quanto tempo o portal fecha e copie o texto para o grupo. As conexões entre mapas mudam toda semana e não existem nos arquivos do jogo, por isso a rota é montada por você."],
   "p-mapas": ["Onde pescar e coletar hoje.",
     "Ver os peixes mais valiosos do dia (pelo preço de agora) e os mapas com mais lagos e recursos para o seu tier.",

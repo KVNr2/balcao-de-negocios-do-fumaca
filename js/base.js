@@ -184,7 +184,7 @@ const craftFocus = (slot,mat,t,e,set=1) => Math.max(1,Math.round(FOCUS_CRAFT[t-4
 const idOf = (t,base,e)=>`T${t}_${base}`+(e?`_LEVEL${e}`:"");
 const gearId = (t,slot,mat,set,e)=>`T${t}_${slot}_${mat}_SET${set}`+(e?`@${e}`:"");
 function median(a){ const s=[...a].sort((x,y)=>x-y); const m=s.length>>1; return s.length%2?s[m]:(s[m-1]+s[m])/2; }
-function typical(id, field){ const r=DATA.itens[id]; if(!r) return null; const pts=Object.entries(r).filter(([c,v])=>v[field]>0).map(([c,v])=>({c,p:v[field],t:v[field+2]||0})); if(!pts.length) return null; return {p:median(pts.map(x=>x.p)), n:pts.length, t:Math.max(...pts.map(x=>x.t))||snapTime()}; }
+function typical(id, field, src=DATA.itens){ const r=src[id]; if(!r) return null; const pts=Object.entries(r).filter(([c,v])=>v[field]>0).map(([c,v])=>({c,p:v[field],t:v[field+2]||0})); if(!pts.length) return null; return {p:median(pts.map(x=>x.p)), n:pts.length, t:Math.max(...pts.map(x=>x.t))||snapTime()}; }
 /* idade dos preços e ícones dos itens */
 const snapTime = () => DATA.geradoEm && !LIVE ? Date.parse(DATA.geradoEm) : 0;
 function fmtAge(t){ if(!t) return ""; const h=(Date.now()-t)/3600e3; return h<1 ? `${Math.max(1,Math.round(h*60))} min` : h<48 ? `${Math.round(h)}h` : `${Math.round(h/24)} dias`; }
@@ -373,6 +373,23 @@ async function crowdMerge(url,j){
     }
     return out;
   }catch(e){ return j; }
+}
+/* Preços só do Supabase (Albion Overlay), sem passar pela API pública: usado pelo Mercado Negro.
+   Devolve as linhas de market_latest (menor venda, maior pedido de compra, médias de 7 e 30 dias) dos itens, cidades e qualidades pedidos. */
+const SB_MEM=new Map();
+async function sbRows(ids,locs,quals=[1]){
+  const cfg=await need("nuvem"); if(!(cfg.url&&cfg.key)) throw new Error("Supabase não configurado");
+  const base=cfg.url.replace(/\/$/,"")+"/rest/v1/market_latest?select=item_id,quality,city,sell_min,sell_min_at,sell_amt,buy_max,buy_max_at,buy_amt,avg7,avg7_n,avg30,avg30_n";
+  const out=[], parts=[]; for(let i=0;i<ids.length;i+=60) parts.push(ids.slice(i,i+60));
+  const hd={apikey:cfg.key,Authorization:"Bearer "+cfg.key};
+  await Promise.all(parts.map(async part=>{
+    const key=part.join(",")+"|"+locs.join(",")+"|"+quals.join(","); const hit=SB_MEM.get(key);
+    if(hit&&Date.now()-hit.t<45e3&&!FORCE){ out.push(...hit.r); return; }
+    const qs=`&item_id=in.(${part.map(encodeURIComponent).join(",")})&city=in.(${locs.map(encodeURIComponent).join(",")})&quality=in.(${quals.join(",")})&order=item_id,city,quality&limit=1000`;
+    const rows=[]; for(let off=0;off<10000;off+=1000){ const r=await fetch(base+qs+"&offset="+off,{headers:hd}); if(!r.ok) throw new Error("Supabase respondeu "+r.status); const j=await r.json(); rows.push(...j); if(j.length<1000) break; }
+    SB_MEM.set(key,{t:Date.now(),r:rows}); out.push(...rows);
+  }));
+  return out;
 }
 async function apiJSON(url,ttlMin=10){
   const j=await apiJSON0(url,ttlMin);
