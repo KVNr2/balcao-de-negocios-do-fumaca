@@ -243,6 +243,10 @@ function ofDetail(m){
     else c.append(el("p",{class:"tiny muted",text:"Faltam preços para comparar."}));
     c.append(el("p",{class:"tiny muted",text:"O foco entra só no retorno de recursos; o custo de foco usa as specs da sua ficha."}));
     right.append(c); }
+  { const bb=el("div",{class:"of-bagrow"}); const mats=m.parts.filter(g=>g.b&&g.need>0);
+    const b1=el("button",{type:"button",class:"btn ghost",text:`Pôr na bag: ${fmt(m.units)} ${m.it.name}`}); b1.addEventListener("click",()=>bagAdd([{id:nk(m.it.id),q:m.units,nm:m.it.name,sell:m.sale.p,sellC:m.sale.c,buy:m.costReal/m.units,buyC:m.it.city}]));
+    const b2=el("button",{type:"button",class:"btn ghost",text:`Pôr na bag: os materiais (${mats.length})`}); b2.addEventListener("click",()=>bagAdd(mats.map(g=>({id:nk(g.b.mode==="refino"?g.b.rawId:g.id),q:g.b.mode==="refino"?Math.ceil(g.need*g.b.n*(1-g.b.rr)):g.need,nm:g.b.mode==="refino"?`${g.b.R.rawPT} T${g.b.tier}.${g.b.ench}`:g.nm,buy:g.b.mode==="refino"?g.b.raw.p:g.b.p,buyC:g.b.mode==="refino"?g.b.raw.c:g.b.c,sell:0,sellC:m.it.city})),"Materiais na bag"));
+    bb.append(b1,b2); left.append(bb); }
   d.append(left,right); return d;
 }
 const ofFB = it => it.bonus===0.40?0.40:0.15;
@@ -312,7 +316,7 @@ async function renderOf(){
     stamp(m.sale.t); m.parts.forEach(g=>stamp(g.b&&g.b.t));
     const c0=el("div",{class:"itemcell"}); tr.append(c0); const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▾"});
     const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:OF.mode==="refine"?`${fmt(m.N)} ${m.N>1?"unidades":"unidade"} com ${fmt(m.fc)} de foco`:m.Np!==m.N?`${fmt(m.Np)} pagas → ${fmt(m.N)} ${m.N>1?"receitas":"receita"} com o retorno`:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}${OF.mode==="refine"?"refina":"faz"} em ${m.it.city}`})); if(OF.mode!=="refine"&&OF.rr==="focus"&&OF2.rrMan==null){ try{ ofSpf(m); }catch(e){} if(m.pF&&m.pF.fc1>0){ const cov=Math.min(m.N,Math.floor(focBud()/m.pF.fc1)), full=cov>=m.N, pc=m.N?Math.round(cov/m.N*100):0, un=OF.mode==="refine"?"unidades":"receitas"; const fm=el("span",{class:"wk-fm"+(full?" full":cov?"":" none"),title:`Cada ${OF.mode==="refine"?"unidade":"receita"} gasta ${fmt(m.pF.fc1)} de foco; com ${fmt(focBud())} por dia o foco cobre ${fmt(cov)} de ${fmt(m.N)}`}); fm.append(el("span",{class:"wk-fl",text:"Foco"}),el("span",{class:"wk-fbar"},el("i",{style:`width:${pc}%`})),el("b",{text:`cobre ${fmt(cov)} de ${fmt(m.N)} ${un}`})); nmb.append(fm); } }
-    head.append(iconImg(m.it.id,52,qIc),nmb,chev); c0.append(head); c0.querySelector("img").classList.add("of-itic");
+    head.append(iconImg(m.it.id,52,qIc),nmb,bagBtn(()=>[{id:nk(m.it.id),q:m.units,nm:m.it.name,sell:m.sale.p,sellC:m.sale.c,buy:m.costReal/m.units,buyC:m.it.city}],"Pôr na bag os itens prontos desta linha"),chev); c0.append(head); c0.querySelector("img").classList.add("of-itic");
     const stat=(cls,v,lab)=>{ const c=el("div",{class:"of-stat "+cls}); tr.append(c); c.append(el("b",{text:v}),el("small",{text:lab})); return c; };
     stat("loss",fmtS(m.costReal),"CUSTO"); stat("sale",fmtS(m.gross),"VENDA");
     const c3=el("div",{class:"of-stat "+(m.profit>=0?"gain":"loss")}); tr.append(c3); c3.append(el("b",{text:(m.profit>=0?"+":"−")+fmtS(Math.abs(m.profit))}),el("span",{class:"of-pct",text:`${m.pct>=0?"+":""}${dec(m.pct*100)}%`}));
@@ -473,7 +477,7 @@ async function renderMk(partial=false){
     { const pts=cities.map(c=>rec[c]&&rec[c][0]).filter(v=>v>0), pm=tr.insertCell(); pm.className="num mk-avg"; pm.textContent=pts.length?fmt(Math.round(median(pts))):"—"; pm.title="Mediana dos preços de venda nas cidades desta linha"+(pts.length?` (${pts.length} ${pts.length===1?"cidade":"cidades"})`:""); if(!pts.length) pm.classList.add("none"); }
     const d=tr.insertCell(); d.className="num bm-profit "+(hot?"gain":tone==="is-warn"?"warn":""); d.textContent=x.x.smax&&x.x.smin?fmt(sp):"—"; if(x.x.smax&&x.x.smin) d.append(el("small",{text:`${sp>=0?"+":""}${dec(spp*100)}%`})); d.title="Maior venda menos menor venda: o espaço para comprar numa cidade e vender em outra";
     const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean); const tu=tr.insertCell(); tu.className="num"; tu.append(ts.length?(ageSpan(Math.max(...ts))||"—"):"—");
-    const ac=tr.insertCell(); const bt=el("button",{type:"button",class:"btn mn-craft",text:"Detalhe"}); ac.append(bt);
+    const ac=tr.insertCell(); const bt=el("button",{type:"button",class:"btn mn-craft",text:"Detalhe"}); ac.append(bt,bagBtn(()=>[{id:x.id,q:1,nm:`${nm_}${x.r[3]?` T${x.r[3]}.${x.e}`:""}`,buy:x.x.smin?x.x.smin.p:0,buyC:x.x.smin?x.x.smin.c:"",sell:x.x.smax?x.x.smax.p:0,sellC:x.x.smax?x.x.smax.c:""}],"Pôr na bag: compra na cidade mais barata, vende na mais cara"));
     const op=()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`,mq); tr.addEventListener("click",op); tr.addEventListener("keydown",ev=>{ if(ev.key==="Enter"&&ev.target===tr) op(); }); }
   const shownN=rows.length, cortado=achados>shownN, naoVistos=slice.filter(x=>!MK_SEEN.has(seen(x.id))).length;
   const mm=$("mkMore"); if(mm) mm.hidden=true;
