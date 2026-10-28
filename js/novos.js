@@ -176,6 +176,17 @@ function producerModel(r){
 /* quantos lotes (fazendas de 9 sementes) plantar para dar conta da ração: colheita a cada 22 h, média do jogo por semente */
 function fzFeedLots(food,perDay){ const r=FARM.p.find(x=>x[1]===food.id); if(!r||!(perDay>0)) return null; const y=r[7]*(st.prem?2:1)*9; return {y,lotes:Math.max(1,Math.ceil(perDay/(y*24/22)))}; }
 const fzFeedTxt=(food,perDay)=>{ const f=fzFeedLots(food,perDay); return f?` Para a ração, plante ${f.lotes} ${f.lotes>1?"lotes":"lote"} de ${fzName(food.id)}${food.fav?" (a favorita)":""}.`:""; };
+/* lotes da ilha para animais: cada pasto tem 9 animais; se a ração é plantada na ilha, parte dos lotes vai para ela.
+   Acha o maior número de pastos que cabe junto com os lotes de ração que eles comem */
+const FZ_COMUNS=/_FARM_(OX|HORSE|CHICKEN|GOAT|GOOSE|SHEEP|PIG|COW)_BABY$/;
+/* pasto comum: 9 animais; canil (montarias raras): 4 */
+const fzSlots=baby=>!baby||FZ_COMUNS.test(baby)?9:4;
+function fzPasture(L,food,perAnimalDay,slots=9){
+  L=Math.max(0,Math.floor(L)); let fl=0;
+  if(SRC.food==="planto"&&food){ const r=FARM.p.find(x=>x[1]===food.id); if(r){ const y=r[7]*(st.prem?2:1)*9; fl=slots*perAnimalDay/(y*24/22); } }
+  let P=Math.floor(L/(1+fl)+1e-9); while(P>0&&P+Math.ceil(P*fl-1e-9)>L) P--; if(L>0&&P<1) P=fl>0?0:1;
+  const F=Math.ceil(P*fl-1e-9); return {P,F,an:P*slots,fl,slots};
+}
 function fzFeedNote(c,food,perDay){
   const f=fzFeedLots(food,perDay); if(!f) return c; const {y,lotes}=f;
   c.append(el("small",{class:"gv-sub fz-feed",text:`${food.fav?"favorita. ":"sem favorita, vai a mais barata. "}Plante ${lotes} ${lotes>1?"lotes":"lote"} de ${fzName(food.id)}: precisa de ${fmt(Math.ceil(perDay))} por dia e cada lote dá uns ${fmt(Math.round(y))} por colheita`}));
@@ -200,7 +211,7 @@ async function renderFZ(){
   const tb=$("fzTable"), note=$("fzNote"), bar=$("fzFil");
   if(!FARM){ note.textContent="Abrindo os dados da fazenda…"; try{ FARM=await need("farm"); }catch(e){ note.textContent="Não consegui abrir os dados da fazenda."; return; } }
   if(!FZ_LOADED){ tb.textContent=""; note.textContent="Consultando sementes, colheitas e animais…"; const ok=await ensureFZ(); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } }
-  const focus=$("fzFocus").checked, plots=Math.max(1,Math.min(999,+$("fzPlots").value||1));
+  const focus=$("fzFocus").checked, plots=Math.max(1,Math.min(999,+$("fzPlots").value||1)); if(SRC.lotes!==plots){ SRC.lotes=plots; srcSave(); };
   $("fzSpecTxt").textContent = fzHasSpec() ? "O foco usa as specs de fazenda da sua ficha." : "Sem spec de fazenda na ficha: a conta usa o foco cheio. Preencha em Minha ficha, seção Fazenda.";
   const FAVON=!!(window.FAV&&FAV.on("fazenda")), rer=()=>renderFZ();
   /* modelos de cada lista, antes de desenhar, para buscar as vendas por dia de uma vez */
@@ -227,6 +238,8 @@ async function renderFZ(){
     if(FZ_OPEN.has(keyId)) toggle();
   };
   const feedShort=(food,perDay)=>{ const f=fzFeedLots(food,perDay); return f?`plante ${f.lotes} ${f.lotes>1?"lotes":"lote"}`:(food.src==="tenho"?"já tem":""); };
+  const pen=(m,n)=>m._ps.slots===4?(n>1?"canis":"canil"):(n>1?"pastos":"pasto");
+  const pasTxt=m=>m._ps.P?`${m._ps.P} ${pen(m,m._ps.P)} (${m._an} animais)${m._ps.F?` + ${m._ps.F} ${m._ps.F>1?"lotes":"lote"} de ração`:""}`:`lotes não dão para 1 ${pen(m,1)} com a ração`;
   const foodTxt=f=>`${f.n} × ${fzName(f.id)}`;
   const foodSrc=f=>f.src==="tenho"?"já tem, custo zero":f.src==="planto"?`plantada na ilha, ${fmt(f.p)} cada`:`${fmt(f.p)} cada${SRC_TAG[f.src]||""}`;
   const draw=(kind,hr,keep)=>{
@@ -234,8 +247,9 @@ async function renderFZ(){
     const nm=id=>m=>fzName(id(m)); const L=n=>`${n} ${n>1?"lotes":"lote"}`, A=n=>`${n} ${n>1?"animais":"animal"}`;
     let cols;
     if(kind==="crop"||kind==="herb") cols=[{h:"Planta",k:"name",s:nm(m=>m.crop)},{h:"Você ganha por colheita",k:"tot",s:m=>fzP(m)*9*plots,t:"Ordenar pela prata que sobra a cada colheita, em todos os seus lotes"},{h:"Semente",k:"cost",s:m=>m.sp,first:-1,t:"Ordenar pelo preço da semente (primeiro clique: a mais barata)"},{h:"Colheita",k:"sale",s:m=>m.cp,t:"Ordenar pelo preço da colheita"},{h:"Lucro por semente",k:"profit",s:fzP},{h:"Prata por foco",k:"spf",s:m=>m.spf},vs];
-    else if(kind==="prod") cols=[{h:"Animal",k:"name",s:nm(m=>m.grown)},{h:"Você ganha por dia",k:"tot",s:m=>m.profit*plots,t:"Ordenar pela prata que sobra por dia com todos os seus animais"},{h:"Produz por dia",k:"sale",s:m=>m.ip,t:"Ordenar pelo preço do produto"},{h:"Ração por dia",k:"cost",s:m=>m.food.n*m.food.p,first:-1,t:"Ordenar pelo custo da ração (primeiro clique: a mais barata)"},{h:"Lucro por animal",k:"profit",s:m=>m.profit},vs];
-    else cols=[{h:"Animal",k:"name",s:nm(m=>m.grown)},{h:"Você ganha",k:"tot",s:m=>fzP(m)*plots,t:"Ordenar pela prata que sobra ao vender os adultos, com todos os seus animais"},{h:"Filhote",k:"cost",s:m=>m.bp,first:-1,t:"Ordenar pelo preço do filhote (primeiro clique: o mais barato)"},{h:"Ração até crescer"},{h:"Adulto vende por",k:"sale",s:m=>m.gp},{h:"Por dia",k:"day",s:m=>fzP(m)/m.days},vs];
+    else if(kind==="prod") cols=[{h:"Animal",k:"name",s:nm(m=>m.grown)},{h:"Você ganha por dia",k:"tot",s:m=>m.profit*m._an,t:"Ordenar pela prata que sobra por dia com todos os seus animais"},{h:"Produz por dia",k:"sale",s:m=>m.ip,t:"Ordenar pelo preço do produto"},{h:"Ração por dia",k:"cost",s:m=>m.food.n*m.food.p,first:-1,t:"Ordenar pelo custo da ração (primeiro clique: a mais barata)"},{h:"Lucro por animal",k:"profit",s:m=>m.profit},vs];
+    else cols=[{h:"Animal",k:"name",s:nm(m=>m.grown)},{h:"Você ganha",k:"tot",s:m=>fzP(m)*m._an,t:"Ordenar pela prata que sobra ao vender os adultos, com todos os seus animais"},{h:"Filhote",k:"cost",s:m=>m.bp,first:-1,t:"Ordenar pelo preço do filhote (primeiro clique: o mais barato)"},{h:"Ração até crescer"},{h:"Adulto vende por",k:"sale",s:m=>m.gp},{h:"Por dia",k:"day",s:m=>fzP(m)/m.days},vs];
+    if(kind==="prod"||kind==="raise") for(const m of M[kind]){ m._ps=fzPasture(plots,m.food,kind==="prod"?m.food.n:m.food.n/m.days,kind==="raise"?fzSlots(m.baby):9); m._an=m._ps.an; }
     lfHead(hr,key,cols,def,rer); const NC=cols.length;
     let list=M[kind].filter(m=>keep(kind==="crop"||kind==="herb"?m.crop:m.grown));
     if(!FAVON){ const n=list.length; list=lfFilter(key,list,fzFil(kind)); nOut+=n-list.length; }
@@ -256,44 +270,44 @@ async function renderFZ(){
         }); }
       if(!FAVON) note.textContent=`Lote de 9 sementes, colhido a cada 22 horas. Colheita média de ${st.prem?"9 por semente (Premium dobra)":"4,5 por semente (sem Premium)"}, pela tabela do jogo, com a chance de 10% de minhoca. Regar gasta foco e aumenta a chance de a semente voltar; ${focus?"a tabela já está com rega.":"marque a caixa para ver com rega."} Clique numa planta para ver sementes que voltam, foco e a conta com e sem regar.`;
     } else if(kind==="prod"){
-      for(const m of list){ const tr=body.insertRow(); tr.dataset.fav=kind+"|"+m.grown; cell(tr,withIcon(m.grown,`${fzName(m.grown)} T${m.t}`)); gcell(tr,m.profit*plots,`por dia, ${A(plots)}`);
+      for(const m of list){ const tr=body.insertRow(); tr.dataset.fav=kind+"|"+m.grown; cell(tr,withIcon(m.grown,`${fzName(m.grown)} T${m.t}`)); gcell(tr,m.profit*m._an,`por dia, ${pasTxt(m)}`);
         cell(tr,withIcon(m.item,`${dec(m.avg)} × ${fmt(m.ip)}`),"num");
-        const fc=cell(tr,withIcon(m.food.id,foodTxt(m.food)),"num"); const fs=feedShort(m.food,m.food.n*plots); if(fs) fc.append(el("small",{class:"gv-sub",text:fs}));
+        const fc=cell(tr,withIcon(m.food.id,foodTxt(m.food)),"num"); const fs=feedShort(m.food,m.food.n*m._an); if(fs) fc.append(el("small",{class:"gv-sub",text:fs}));
         cell(tr,sgn(m.profit),gl(m.profit)); lfVolCell(tr,m.item);
         withDetail(tr,kind+"|"+m.grown,NC,box=>{
           xline(box,"Produz por dia",`${dec(m.avg)} × ${fzName(m.item)} a ${fmt(m.ip)}`);
           xline(box,"Ração",`${foodTxt(m.food)} por dia${m.food.fav?" (a favorita, vale o dobro)":""}, ${foodSrc(m.food)}`);
-          const f=fzFeedLots(m.food,m.food.n*plots); if(f) xline(box,`Ração para ${A(plots)}`,`${fmt(m.food.n*plots)} por dia: plante ${L(f.lotes)} de ${fzName(m.food.id)} (cada lote dá uns ${fmt(Math.round(f.y))} por colheita)`);
+          const f=fzFeedLots(m.food,m.food.n*m._an); if(f) xline(box,`Ração para ${A(m._an)}`,`${fmt(m.food.n*m._an)} por dia: plante ${L(f.lotes)} de ${fzName(m.food.id)} (cada lote dá uns ${fmt(Math.round(f.y))} por colheita)`);
           xline(box,"Lucro por animal por dia",sgn(m.profit),m.profit>=0?"gain":"loss");
           xline(box,"Foco","o adulto não gasta foco");
         }); }
-      if(!FAVON) note.textContent="Animal adulto alimentado com a planta favorita (vale o dobro de nutrição), coletado uma vez por dia. Média de 9 produtos (7 a 11) pela tabela do jogo. Clique num animal para ver a ração e quantos lotes plantar para ela.";
+      if(!FAVON) note.textContent="Animal adulto alimentado com a planta favorita (vale o dobro de nutrição), coletado uma vez por dia. Média de 9 produtos (7 a 11) pela tabela do jogo. Clique num animal para ver a ração e quantos lotes plantar para ela. Cada lote vira um pasto de 9 animais; com a ração Planto na ilha, parte dos lotes fica para ela.";
     } else {
       for(const m of list){ const tr=body.insertRow(), p=focus?m.p1:m.p0; tr.dataset.fav=kind+"|"+m.grown;
-        cell(tr,withIcon(m.grown,`${fzName(m.grown)} T${m.t}`)); gcell(tr,p*plots,`${A(plots)}, ${dec(m.days)} dia${m.days>=2?"s":""}${focus?` · ${fmt(m.fc*plots)} de foco`:""}`);
+        cell(tr,withIcon(m.grown,`${fzName(m.grown)} T${m.t}`)); gcell(tr,p*m._an,`${pasTxt(m)}, ${dec(m.days)} dia${m.days>=2?"s":""}${focus?` · ${fmt(m.fc*m._an)} de foco`:""}`);
         cell(tr,withIcon(m.baby,m.bSrc==="tenho"?"já tem":fmt(m.bp)+(SRC_TAG[m.bSrc]||"")),"num");
-        const fc=cell(tr,withIcon(m.food.id,foodTxt(m.food)),"num"); const fs=feedShort(m.food,m.food.n*plots/m.days); if(fs) fc.append(el("small",{class:"gv-sub",text:fs}));
+        const fc=cell(tr,withIcon(m.food.id,foodTxt(m.food)),"num"); const fs=feedShort(m.food,m.food.n*m._an/m.days); if(fs) fc.append(el("small",{class:"gv-sub",text:fs}));
         cell(tr,fmt(m.gp),"num"); cell(tr,sgn(p/m.days),gl(p)); lfVolCell(tr,m.grown);
         withDetail(tr,kind+"|"+m.grown,NC,box=>{
           xline(box,"Lucro por animal",`${sgn(m.p0)} sem foco · ${sgn(m.p1)} com foco`);
-          xline(box,`Com ${A(plots)}`,`${sgn(m.p0*plots)} sem foco · ${sgn(m.p1*plots)} com foco`);
+          xline(box,`Com ${A(m._an)}`,`${sgn(m.p0*m._an)} sem foco · ${sgn(m.p1*m._an)} com foco`);
           xline(box,"Tempo até adulto",`${dec(m.days)} dia${m.days>=2?"s":""} (${dec(m.hours)} h)`);
           xline(box,"Filhote de volta",`${Math.round(m.o0*100)}% sem foco · ${Math.round(m.o1*100)}% com foco`);
           xline(box,"Ração até crescer",`${foodTxt(m.food)}${m.food.fav?" (a favorita, vale o dobro)":""}, ${foodSrc(m.food)}`);
-          const f=fzFeedLots(m.food,m.food.n*plots/m.days); if(f) xline(box,`Ração para ${A(plots)}`,`${fmt(Math.ceil(m.food.n*plots/m.days))} por dia: plante ${L(f.lotes)} de ${fzName(m.food.id)} (cada lote dá uns ${fmt(Math.round(f.y))} por colheita)`);
+          const f=fzFeedLots(m.food,m.food.n*m._an/m.days); if(f) xline(box,`Ração para ${A(m._an)}`,`${fmt(Math.ceil(m.food.n*m._an/m.days))} por dia: plante ${L(f.lotes)} de ${fzName(m.food.id)} (cada lote dá uns ${fmt(Math.round(f.y))} por colheita)`);
           const fi=el("span",{class:"fz-fi"}); fi.append(focusInput(m.baby,m.fc1),el("small",{class:"muted",text:m.n>1?` × ${m.n} vezes durante o crescimento`:" digite o valor do jogo se for outro"})); xline(box,"Foco por alimentação",fi);
-          xline(box,`Foco para ${A(plots)}`,fmt(m.fc*plots));
+          xline(box,`Foco para ${A(m._an)}`,fmt(m.fc*m._an));
           xline(box,"Prata por ponto de foco",dec(m.spf));
         }); }
-      if(!FAVON) note.textContent=`Do filhote ao adulto, alimentado com a planta favorita ou a mais barata. ${st.prem?"Com Premium o crescimento leva metade do tempo.":"Sem Premium o crescimento leva o dobro do tempo."} Alimentar com foco aumenta a chance de vir um filhote novo ao pegar o adulto${focus?"; a tabela já está com foco":""}. Clique num animal para ver filhote de volta, ração, lotes para plantar e foco.`;
+      if(!FAVON) note.textContent=`Do filhote ao adulto, alimentado com a planta favorita ou a mais barata. ${st.prem?"Com Premium o crescimento leva metade do tempo.":"Sem Premium o crescimento leva o dobro do tempo."} Alimentar com foco aumenta a chance de vir um filhote novo ao pegar o adulto${focus?"; a tabela já está com foco":""}. Clique num animal para ver filhote de volta, ração, lotes para plantar e foco. Cada lote vira um pasto de 9 animais, ou um canil de 4 para as montarias raras; com a ração Planto na ilha, parte dos lotes fica para ela.`;
     }
     return cols.length;
   };
   if(!FAVON){ const nc=draw(fzKind,hr,()=>true); lfCount(bar,"fz:"+fzKind,fzFil(fzKind),nOut);
     const sum=$("fzSum"), shown=lfFilter("fz:"+fzKind,M[fzKind],fzFil(fzKind)), an=n=>`${n} ${n>1?"animais":"animal"}`, nada="Com os preços e as escolhas de agora, nada desta lista dá lucro.";
     if(fzKind==="crop"||fzKind==="herb") ganhoTop(sum,shown,m=>fzP(m)*9*plots,m=>`${fzName(m.crop)}: você ganha ${fmt(Math.round(fzP(m)*9*plots))} de prata a cada colheita (22 h) com ${plots} ${plots>1?"lotes":"lote"} de 9 sementes. Já descontadas as sementes${focus?" (com as que voltam ao regar)":" (com as que voltam)"} e as taxas de venda.`,nada);
-    else if(fzKind==="prod") ganhoTop(sum,shown,m=>m.profit*plots,m=>`${fzName(m.grown)}: você ganha ${fmt(Math.round(m.profit*plots))} de prata por dia com ${an(plots)}, vendendo ${fzName(m.item)}. Já descontadas a ração e as taxas de venda.${fzFeedTxt(m.food,m.food.n*plots)}`,nada);
-    else ganhoTop(sum,shown,m=>fzP(m)*plots,m=>`${fzName(m.grown)}: você ganha ${fmt(Math.round(fzP(m)*plots))} de prata com ${an(plots)}, vendendo os adultos depois de ${dec(m.days)} dia${m.days>=2?"s":""} (${fmt(Math.round(fzP(m)*plots/m.days))} por dia). Já descontados filhotes, ração e taxas de venda.${fzFeedTxt(m.food,m.food.n*plots/m.days)}`,nada);
+    else if(fzKind==="prod") ganhoTop(sum,shown,m=>m.profit*m._an,m=>`${fzName(m.grown)}: você ganha ${fmt(Math.round(m.profit*m._an))} de prata por dia com ${an(m._an)} em ${m._ps.P} ${m._ps.slots===4?(m._ps.P>1?"canis":"canil"):(m._ps.P>1?"pastos":"pasto")}${m._ps.F?` e ${m._ps.F} ${m._ps.F>1?"lotes":"lote"} de ração plantada`:""}, vendendo ${fzName(m.item)}. Já descontadas a ração e as taxas de venda.${fzFeedTxt(m.food,m.food.n*m._an)}`,nada);
+    else ganhoTop(sum,shown,m=>fzP(m)*m._an,m=>`${fzName(m.grown)}: você ganha ${fmt(Math.round(fzP(m)*m._an))} de prata com ${an(m._an)} em ${m._ps.P} ${m._ps.slots===4?(m._ps.P>1?"canis":"canil"):(m._ps.P>1?"pastos":"pasto")}${m._ps.F?` e ${m._ps.F} ${m._ps.F>1?"lotes":"lote"} de ração plantada`:""}, vendendo os adultos depois de ${dec(m.days)} dia${m.days>=2?"s":""} (${fmt(Math.round(fzP(m)*m._an/m.days))} por dia). Já descontados filhotes, ração e taxas de venda.${fzFeedTxt(m.food,m.food.n*m._an/m.days)}`,nada);
     if(!body.rows.length){ const td=body.insertRow().insertCell(); td.colSpan=nc; td.className="muted"; td.textContent="Nada passa pelos filtros. Afrouxe um deles ou clique em Limpar filtros."; } }
   else { const sum=$("fzSum"); if(sum) sum.hidden=true; tb.deleteTHead(); const NM={crop:"Plantações",herb:"Ervas",prod:"Leite e ovos",raise:"Criação"}; let nF=0;
     for(const k of ["crop","herb","prod","raise"]){ const fav=new Set(FAV.list("fazenda").map(f=>f.k).filter(x=>x.startsWith(k+"|")).map(x=>x.slice(k.length+1))); if(!fav.size) continue;
@@ -307,4 +321,5 @@ document.querySelectorAll("[data-fz]").forEach(b=>b.addEventListener("click",()=
 $("fzFocus").addEventListener("change",renderFZ);
 document.querySelectorAll("[data-src]").forEach(b=>{ const [cls,v]=b.dataset.src.split(":"); b.setAttribute("aria-pressed",String((SRC[cls]||"inst")===v));
   b.addEventListener("click",()=>{ SRC[cls]=v; srcSave(); document.querySelectorAll(`[data-src^="${cls}:"]`).forEach(x=>x.setAttribute("aria-pressed",String(x===b))); if(cls==="ck") renderCook(); else if(FARM&&FZ_LOADED) renderFZ(); }); });
+if(SRC.lotes>0) $("fzPlots").value=String(SRC.lotes);
 $("fzPlots").addEventListener("input",()=>{ if(FARM&&FZ_LOADED) renderFZ(); });
