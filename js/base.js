@@ -951,7 +951,7 @@ async function renderCook(){
     const a=tr.insertCell(); const an=el("span"); an.append(m.name); if(BUILD_FOOD.includes(m.id)) an.append(" ",el("span",{class:"spec",text:"build"})); a.append(withIcon(m.id,an));
     tr.insertCell().textContent=`${m.q} ${m.kind==="f"?(m.q>1?"porções":"porção"):(m.q>1?"poções":"poção")}`;
     if(m.miss){ const td=tr.insertCell(); td.colSpan=4; td.className="muted"; td.textContent=`Sem preço: ${m.miss}`; lfVolCell(tr,m.id); tr.insertCell(); continue; }
-    const c=tr.insertCell(); c.className="num gv-cell "+(m.p1>=0?"gain":"loss"); c.append(el("b",{class:"gv",text:sgn(m.p1*N)}),el("small",{class:"gv-sub",text:(m.p1<0?"prejuízo: ":"")+(N>1?`${sgn(m.p1)} por fornada`:"por fornada, com foco")}));
+    const c=tr.insertCell(); c.className="num gv-cell "+(m.p1>=0?"gain":"loss"); c.append(el("b",{class:"gv",text:sgn(m.p1*N)}),el("small",{class:"gv-sub",text:(m.p1<0?"prejuízo: ":"")+(N>1?`${sgn(m.p1)} por fornada`:"por fornada, com foco")+` · ${fmt(m.fc*N)} de foco`}));
     const p=tr.insertCell(); p.className="num "+(m.p1>=0?"gain":"loss"); p.textContent=dec(m.pct*100)+"%";
     const d=tr.insertCell(); d.className="num"; d.textContent=dec(m.spf);
     const e=tr.insertCell(); e.className="num"; e.textContent=fmt(m.item.p);
