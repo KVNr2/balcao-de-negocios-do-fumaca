@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="28d96f93">
+<html lang="pt-BR" data-v="5bd585ef">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=28d96f93">
-<link rel="stylesheet" href="css/vip.css?v=28d96f93">
-<link rel="stylesheet" href="css/avicons.css?v=28d96f93">
-<link rel="stylesheet" href="css/souk.css?v=28d96f93">
+<link rel="stylesheet" href="css/balcao.css?v=5bd585ef">
+<link rel="stylesheet" href="css/vip.css?v=5bd585ef">
+<link rel="stylesheet" href="css/avicons.css?v=5bd585ef">
+<link rel="stylesheet" href="css/souk.css?v=5bd585ef">
 </head>
 <body>
 <div class="wrap app">
@@ -62,6 +62,7 @@ html.em-atual .av-card{margin:0}
       <button role="tab" id="t-encantar" aria-controls="p-encantar" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 9-7 9-7-9z"/><path d="M12 8v8M9 11l3-3 3 3"/></svg><span class="tl">Encantar</span><em class="fl">fl. 5</em></button>
       <button role="tab" id="t-cozinha" aria-controls="p-cozinha" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10h17"/><path d="M5 10l1 6a4 4 0 0 0 4 3.5h4a4 4 0 0 0 4-3.5l1-6"/><path d="M9.5 7c-.6-1 .6-1.8 0-3M14.5 7c-.6-1 .6-1.8 0-3"/></svg><span class="tl">Cozinha e alquimia</span><em class="fl">fl. 6</em></button>
       <button role="tab" id="t-fazenda" aria-controls="p-fazenda" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-9"/><path d="M12 12C12 8 9 6 5 6c0 4 3 6 7 6z"/><path d="M12 14c0-3.5 2.5-5.5 7-5.5 0 3.5-2.5 5.5-7 5.5z"/><path d="M7 21h10"/></svg><span class="tl">Ilha e fazenda</span><em class="fl">fl. 7</em></button>
+      <button role="tab" id="t-pesca" aria-controls="p-pesca" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c3-4 7-5.5 11-5.5 2.5 0 4.5 1.5 6 3.5-1.5 2-3.5 3.5-6 3.5-4 0-8-1.5-11-5.5z" transform="translate(0 2.5)"/><path d="M3 9.5l-1 2.5 1 2.5"/><circle cx="16.5" cy="11.5" r=".8"/></svg><span class="tl">Pesca</span><em class="fl">Peixes</em></button>
       <button role="tab" id="t-trab" aria-controls="p-trab" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5C6.5 6 12.5 3.8 17.5 5.2"/><path d="M14.5 3.5l5 5"/><path d="M16.2 6.8L5.5 19.8"/></svg><span class="tl">Trabalhadores</span><em class="fl">fl. 8</em></button>
       <span class="grp" aria-hidden="true">Mercadorias</span>
       <button role="tab" id="t-mk" aria-controls="p-mk" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16l-1.5-4.5h-13z"/><path d="M5 9v10h14V9"/><path d="M9 19v-6h6v6"/></svg><span class="tl">Mercado</span><em class="fl">fl. 9</em></button>
@@ -436,6 +437,7 @@ html.em-atual .av-card{margin:0}
     <div class="cols">
       <div class="sheet">
         <h2>Onde pescar hoje</h2>
+        <p class="small"><button type="button" class="linkbtn" onclick="showTab('t-pesca')">Ver mapa por mapa, com o valor de cada fisgada, na página Pesca</button></p>
         <div id="mapFish"></div>
       </div>
       <div class="sheet">
@@ -673,6 +675,30 @@ html.em-atual .av-card{margin:0}
   </section>
 
   <!-- ILHA E FAZENDA -->
+  <section class="panel" id="p-pesca" role="tabpanel" aria-labelledby="t-pesca" hidden>
+    <p class="aside">Onde pescar e o que fazer com o peixe. Cada mapa recebe a média de prata por fisgada, pela tabela de sorteio do jogo daquele tier e bioma, e cada peixe vale o melhor entre vender, picar ou cozinhar, com os preços de agora.</p>
+    <div class="row-ctl src-ctl">
+      <label class="f">Tier da sua vara<select id="pcRod" aria-label="Tier da sua vara de pesca"><option value="0">O da minha ficha</option><option value="1">T1</option><option value="2">T2</option><option value="3">T3</option><option value="4">T4</option><option value="5">T5</option><option value="6">T6</option><option value="7">T7</option><option value="8">T8</option></select></label>
+      <div class="src-g"><span class="of-ct">Região</span><div class="seg" role="group" aria-label="Região">
+        <button type="button" data-pc="reg:all">Todas</button><button type="button" data-pc="reg:ROY" title="Zonas azuis, amarelas e vermelhas do continente real">Continente real</button><button type="button" data-pc="reg:OUT" title="Zona Preta: rende mais, mas é PvP total">Zona Preta</button><button type="button" data-pc="reg:AVA" title="Lagos das Estradas de Avalon">Avalon</button></div></div>
+      <div class="src-g"><span class="of-ct">Água</span><div class="seg" role="group" aria-label="Água">
+        <button type="button" data-pc="agua:all">Lago e mar</button><button type="button" data-pc="agua:doce">Lago</button><button type="button" data-pc="agua:mar">Mar</button></div></div>
+    </div>
+    <p class="small muted" id="pcNote"></p>
+    <p class="ganho-top" id="pcSum" hidden></p>
+    <h2 class="pc-h">Onde pescar</h2>
+    <div class="of-filw" id="pcZFil" role="group" aria-label="Filtros dos mapas"></div>
+    <div class="tbl"><table id="pcZTable" class="nosort"></table></div>
+    <h2 class="pc-h">Quanto vale cada peixe</h2>
+    <p class="small muted">Vendendo: o preço típico menos as taxas. Picado: Peixe Picado que sai do peixe (o raro dá 10, 20 ou 30) vezes o preço. No prato: o lucro da receita da Cozinha que leva o peixe, contando o peixe como seu.</p>
+    <div class="of-filw" id="pcFFil" role="group" aria-label="Filtros dos peixes"></div>
+    <div class="tbl"><table id="pcFTable" class="nosort"></table></div>
+    <div class="sheet pc-live">
+      <h2>Cardumes ativos agora</h2>
+      <p>O jogo não publica onde estão os cardumes nem quais pontos estão cheios agora, e nenhum site público tem isso. Na coluna Água aparece quantos pontos de cardume cada mapa tem, que é onde eles podem nascer. Para saber quais estão ativos, o Balcão precisaria que o overlay lesse isso do jogo enquanto você está no mapa.</p>
+    </div>
+  </section>
+
   <section class="panel" id="p-fazenda" role="tabpanel" aria-labelledby="t-fazenda" hidden>
     <p class="aside">Quanto rende cada semente, cada animal produtor e cada criação, com os números dos arquivos do jogo e os preços de agora. O Premium (marcado na página de refino) dobra a colheita e corta pela metade o tempo de crescimento dos animais.</p>
     <div class="row-ctl">
@@ -682,7 +708,7 @@ html.em-atual .av-card{margin:0}
         <button type="button" data-fz="prod" aria-pressed="false">Leite e ovos</button>
         <button type="button" data-fz="raise" aria-pressed="false">Criação</button>
       </div>
-      <label class="f">Lotes ou animais<input type="number" id="fzPlots" min="1" max="999" value="4" style="width:110px"></label>
+      <label class="f" title="Plantações e ervas: cada lote é uma fazenda inteira, com 9 sementes. Leite e ovos e criação: cada animal conta 1.">Lotes (9 sementes) ou animais<input type="number" id="fzPlots" min="1" max="999" value="4" style="width:110px"></label>
       <label class="chk"><input type="checkbox" id="fzFocus"> Regar ou cuidar com foco</label>
       <p class="tiny muted fzspec" id="fzSpecTxt"></p>
     </div>
@@ -747,24 +773,25 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=28d96f93"></script>
-<script src="js/base.js?v=28d96f93"></script>
-<script src="js/fx.js?v=28d96f93"></script>
-<script src="js/biz.js?v=28d96f93"></script>
-<script src="js/builds.js?v=28d96f93"></script>
-<script src="js/nossas.js?v=28d96f93"></script>
-<script src="js/ip.js?v=28d96f93"></script>
-<script src="js/zvz.js?v=28d96f93"></script>
-<script src="js/pvp.js?v=28d96f93"></script>
-<script src="js/novos.js?v=28d96f93"></script>
-<script src="js/guia.js?v=28d96f93"></script>
-<script src="js/ui.js?v=28d96f93"></script>
-<script src="js/avalon.js?v=28d96f93"></script>
-<script src="js/oficina.js?v=28d96f93"></script>
-<script src="js/versao.js?v=28d96f93"></script>
-<script src="js/bag.js?v=28d96f93"></script>
-<script src="js/listfil.js?v=28d96f93"></script>
-<script src="js/fav.js?v=28d96f93"></script>
-<script src="js/main.js?v=28d96f93"></script>
+<script src="js/icons.js?v=5bd585ef"></script>
+<script src="js/base.js?v=5bd585ef"></script>
+<script src="js/fx.js?v=5bd585ef"></script>
+<script src="js/biz.js?v=5bd585ef"></script>
+<script src="js/builds.js?v=5bd585ef"></script>
+<script src="js/nossas.js?v=5bd585ef"></script>
+<script src="js/ip.js?v=5bd585ef"></script>
+<script src="js/zvz.js?v=5bd585ef"></script>
+<script src="js/pvp.js?v=5bd585ef"></script>
+<script src="js/novos.js?v=5bd585ef"></script>
+<script src="js/guia.js?v=5bd585ef"></script>
+<script src="js/ui.js?v=5bd585ef"></script>
+<script src="js/avalon.js?v=5bd585ef"></script>
+<script src="js/oficina.js?v=5bd585ef"></script>
+<script src="js/versao.js?v=5bd585ef"></script>
+<script src="js/bag.js?v=5bd585ef"></script>
+<script src="js/pesca.js?v=x"></script>
+<script src="js/listfil.js?v=5bd585ef"></script>
+<script src="js/fav.js?v=5bd585ef"></script>
+<script src="js/main.js?v=5bd585ef"></script>
 </body>
 </html>
