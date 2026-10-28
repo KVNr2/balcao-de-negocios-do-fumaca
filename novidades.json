@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T20:24:00Z",
+   "titulo": "Plano do dia: o que fabricar com o foco cheio",
+   "itens": [
+    "Nova parte O que fabricar com o foco cheio no Plano do dia. Com 30.000 de foco (dá para mudar), o site escolhe entre equipamentos, comidas e poções o que dá mais lucro por ponto de foco.",
+    "Só entra o que vende no prazo escolhido (3 dias por padrão), contando a sua parte das vendas do mercado (80% por padrão, dá para mudar), para não fabricar o que fica parado.",
+    "Com Só o que tenho spec marcado, ficam de fora os itens sem spec na sua ficha.",
+    "A lista mostra quanto fazer de cada item, o foco, o investimento em materiais, o lucro e em quantos dias vende, com o botão para pôr tudo na bag.",
+    "Craft, Refino e Plano do dia lembram de atualizar a ficha quando ela é a de exemplo ou tem mais de 7 dias, porque as contas de foco usam as suas specs."
+   ]
+  },
+  {
    "t": "2026-10-28T19:40:00Z",
    "titulo": "Albion Overlay 2.0.8: preços em tempo real",
    "programa": "2.0.8",

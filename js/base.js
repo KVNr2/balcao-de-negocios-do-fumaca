@@ -166,7 +166,21 @@ function loadProfile(){ try{ const s=store.get("ficha"); if(s){ PF=migrate(Objec
   PF=OLERAN(); IS_EXAMPLE=true; deriveLv(); }
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._h);
   if(window.gsap&&!RM) gsap.fromTo(t,{y:16,opacity:0},{y:0,opacity:1,duration:.3,ease:"back.out(2)"}); toast._h=setTimeout(()=>{ if(window.gsap&&!RM) gsap.to(t,{opacity:0,y:10,duration:.25,onComplete:()=>t.hidden=true}); else t.hidden=true; },1800); }
-function saveProfile(quieto){ IS_EXAMPLE=false; deriveLv(); store.set("ficha",JSON.stringify(PF)); if(typeof ponteEmpurrar==="function") ponteEmpurrar(); if(!quieto){ $("pfStatus").textContent="Ficha salva neste navegador."; toast("Ficha guardada no livro"); coinBurst(); } renderWho(); recompute(); }   /* quieto: ficha que chegou do programa/jogo, não uma edição da pessoa (sem aviso nem moedinhas) */
+/* lembrete no topo de Craft, Refino e Plano do dia: as contas de foco usam as specs da ficha, então ela precisa estar em dia */
+function fichaLembrete(panelId){
+  const pan=$(panelId); if(!pan) return; let b=pan.querySelector(":scope>.ficha-lemb");
+  let dis=false; try{ dis=sessionStorage.getItem("fichaLemb")==="1"; }catch(e){}
+  const dias=PF&&PF.atualizado?Math.floor((Date.now()-PF.atualizado)/864e5):null;
+  const txt=IS_EXAMPLE?"Os números estão usando a ficha de exemplo. Preencha ou sincronize a sua em Minha ficha para o custo de foco e as sugestões usarem as suas specs."
+    :dias==null?"As contas de foco e as sugestões usam as specs da sua ficha. Sincronize em Minha ficha de vez em quando para os números ficarem certos."
+    :dias>=7?`Sua ficha foi atualizada há ${dias} dias. Se você subiu specs desde então, sincronize em Minha ficha para os números ficarem certos.`:null;
+  if(!txt||dis){ if(b) b.remove(); return; }
+  if(!b){ b=el("div",{class:"ficha-lemb",role:"note"}); const aside=pan.querySelector(":scope>.aside"); if(aside) aside.after(b); else pan.prepend(b); }
+  b.textContent=""; const go=el("button",{type:"button",class:"linkbtn",text:"Abrir Minha ficha"}), ok=el("button",{type:"button",class:"linkbtn",text:"Entendi"});
+  go.addEventListener("click",()=>showTab("t-ficha")); ok.addEventListener("click",()=>{ try{ sessionStorage.setItem("fichaLemb","1"); }catch(e){} b.remove(); });
+  b.append(el("span",{text:txt}),go,ok);
+}
+function saveProfile(quieto){ IS_EXAMPLE=false; deriveLv(); PF.atualizado=Date.now(); store.set("ficha",JSON.stringify(PF)); if(typeof ponteEmpurrar==="function") ponteEmpurrar(); if(!quieto){ $("pfStatus").textContent="Ficha salva neste navegador."; toast("Ficha guardada no livro"); coinBurst(); } renderWho(); recompute(); }   /* quieto: ficha que chegou do programa/jogo, não uma edição da pessoa (sem aviso nem moedinhas) */
 const spMax = g => g ? Math.max(g.m||0,...Object.values(g.s||{}).map(x=>+x||0)) : 0;
 const wl = k => band(Math.max(PF.armas[k]||0, spMax((PF.sp||{})["c:"+k])));
 const armorLv = t => band(PF.armaduras[t]||0);

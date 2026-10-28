@@ -23,7 +23,7 @@ function plOfItem(it){
   const sale=typical(it.id,plField()); if(!sale) return null;
   const rN=rrr(it.bonus,false,st.daily), rF=rrr(it.bonus,true,st.daily), fee=it.fee*feeVal()/100;
   const profitF=it.q*sale.p*plTax()-mat*(1-rF)-art-fee; if(!(profitF>0)) return null;
-  const gain=(rF-rN)*mat; return {id:it.id,name:it.name,city:it.city,q:it.q,fc1,gain,spf:gain/fc1,profitF,thin:sale.n<2};
+  const gain=(rF-rN)*mat; return {id:it.id,name:it.name,city:it.city,q:it.q,t:it.t,e:it.e,fc1,gain,spf:gain/fc1,profitF,thin:sale.n<2,invest:mat*(1-rF)+art+fee,sale:sale.p};
 }
 function plCandidates(){
   const out=[];
@@ -113,6 +113,63 @@ async function renderPlano(){
   { const l=$("plLotes"); if(l&&document.activeElement!==l) l.value=ilhaL()>0?String(ilhaL()):""; }
   const ok=await plEnsure(note); if(!ok){ note.textContent="Não consegui abrir os dados agora. Tente atualizar."; return; }
   note.textContent="Com os preços de agora, as specs da sua ficha e as escolhas de origem dos materiais da Cozinha e da Fazenda.";
-  renderPlanoIlha(); await renderPlanoFoco();
+  renderPlanoIlha(); renderPlanoProd(false); await renderPlanoFoco();
 }
 { const l=$("plLotes"); if(l){ let tm; l.addEventListener("input",()=>{ const v=Math.round(+l.value); SRC.lotes=v>0?v:0; srcSave(); const fp=$("fzPlots"); if(fp&&v>0) fp.value=String(v); clearTimeout(tm); tm=setTimeout(renderPlano,350); }); } }
+
+/* ================= Sugestão de produção com o foco cheio =================
+   Pensa num foco fixo (30.000 por padrão, a reserva cheia) e escolhe o que fabricar, entre equipamentos e consumíveis,
+   pelo lucro com foco por ponto de foco, até o foco acabar. Cada item tem teto no que o mercado vende em N dias
+   (vendas por dia dos últimos 7 dias, somando as cidades), para não fabricar o que fica parado. */
+let PP={foc:30000,dias:3,tipo:"tudo",parte:80,spec:true}; try{ Object.assign(PP,JSON.parse(store.get("plProd")||"{}")); }catch(e){}
+const ppSave=()=>{ try{ store.set("plProd",JSON.stringify(PP)); }catch(e){} };
+let PP_BUSY=false;
+async function renderPlanoProd(run){
+  const box=$("plProd"); if(!box) return;
+  { const f=$("ppFoc"), d=$("ppDias"); if(f&&document.activeElement!==f) f.value=String(PP.foc); if(d&&document.activeElement!==d) d.value=String(PP.dias); const pt=$("ppParte"), sp=$("ppSpec"); if(pt&&document.activeElement!==pt) pt.value=String(PP.parte); if(sp) sp.checked=!!PP.spec;
+    document.querySelectorAll("[data-pp]").forEach(b=>b.setAttribute("aria-pressed",String(PP.tipo===b.dataset.pp))); }
+  if(!run){ if(!box.dataset.done){ box.textContent=""; box.append(el("p",{class:"muted",text:"Clique em Montar sugestão. Na primeira vez o site consulta o preço de todos os equipamentos, o que leva perto de um minuto."})); } return; }
+  if(PP_BUSY) return; PP_BUSY=true; box.textContent=""; const note=el("p",{class:"small muted"}); box.append(note);
+  try{
+    if(!BM) BM=await need("bm");
+    if(PP.tipo!=="cons"){ const sv=[OF.tier,OF.ench]; OF.tier=0; OF.ench=-1; try{ await ensureOfG("g:*tudo",note); } finally{ [OF.tier,OF.ench]=sv; } }
+    if(PP.tipo!=="equip"){ note.textContent="Consultando comidas e poções…"; await ensureCook(); }
+    const cand=[];
+    if(PP.tipo!=="cons"){ const sv=[OF.tier,OF.ench]; OF.tier=0; OF.ench=-1;
+      try{ for(const it of ofItems("g:*tudo")){ const m=plOfItem(it); if(m&&!m.thin&&(!PP.spec||(it.fce||0)>0)) cand.push({...m,name:`${m.name} T${m.t}.${m.e}`,kind:"Fabricar",unit:["peça","peças"]}); } } finally{ [OF.tier,OF.ench]=sv; } }
+    if(PP.tipo!=="equip") for(const id in COOK.r){ const m=cookModel(id); if(!m||m.miss||m.thin||!(m.p1>0)) continue; if(PP.spec&&!(cookFCE(m.kind,id)>0)) continue;
+      cand.push({id,name:m.name,city:COOK_CITY[m.kind],q:m.q,fc1:m.fc,profitF:m.p1,invest:m.cost*(1-rrr(0.15,true,st.daily))+m.fee,sale:m.item.p,kind:m.kind==="f"?"Cozinhar":"Preparar",unit:["fornada","fornadas"]}); }
+    cand.forEach(c=>c.ppf=c.profitF/c.fc1); cand.sort((a,b)=>b.ppf-a.ppf);
+    const top=cand.slice(0,160); note.textContent="Consultando quanto o mercado vende por dia…";
+    await histFetch(top.flatMap(c=>SHOP_LOCS.map(l=>nk(c.id)+"|"+l)));
+    let left=PP.foc; const plan=[];
+    for(const c of top){ if(left<c.fc1) continue; const v=lfVol(c.id); if(!(v>=0.5)) continue;
+      const cap=Math.floor(v*PP.dias*(PP.parte/100)/c.q); if(cap<1) continue;
+      const n=Math.min(cap,Math.floor(left/c.fc1)); if(n<1) continue;
+      left-=n*c.fc1; plan.push({...c,n,foc:n*c.fc1,lucro:n*c.profitF,inv:n*c.invest,dias:n*c.q/(v*PP.parte/100),vol:v});
+      if(left<20||plan.length>=15) break; }
+    box.textContent=""; box.dataset.done="1";
+    if(!plan.length){ box.append(el("p",{class:"muted",text:"Com os preços de agora, nada que dá lucro vende o bastante nesse prazo. Tente mais dias ou atualize os preços."})); return; }
+    const used=PP.foc-left, lucro=plan.reduce((a,x)=>a+x.lucro,0), inv=plan.reduce((a,x)=>a+x.inv,0);
+    const sum=el("p",{class:"ganho-top"}); sum.append(el("span",{class:"gt-l",text:`Com ${fmt(PP.foc)} de foco`}),el("b",{class:"gt-v",text:"+"+fmt(Math.round(lucro))}),el("span",{class:"gt-t",text:`Fabricando o que está abaixo, o lucro soma ${fmt(Math.round(lucro))} de prata, com ${fmt(Math.round(inv))} de investimento em materiais e taxas. Tudo vende em até ${PP.dias} ${PP.dias>1?"dias":"dia"} se você ficar com ${PP.parte}% das vendas do mercado.${PP.spec?" Só entra o que você tem spec na ficha.":""}${left>=20?` Sobram ${fmt(left)} de foco: o resto não venderia nesse prazo.`:""}`})); box.append(sum);
+    const t=el("table",{class:"pl-t"}); const h=t.createTHead().insertRow(); ["","O que fazer","Quanto","Foco","Investimento","Lucro","Lucro por foco","Vende em"].forEach(x=>h.append(el("th",{text:x})));
+    const b=t.createTBody();
+    plan.forEach((x,i)=>{ const r=b.insertRow();
+      r.insertCell().append(el("b",{class:"pl-n",text:String(i+1)}));
+      r.insertCell().append(withIcon(x.id,el("span",{},el("b",{text:`${x.kind} ${x.name}`}),el("small",{class:"gv-sub",text:`em ${x.city} · vende ${fmtU(x.vol)} por dia, a ${fmt(Math.round(x.sale))} cada`}))));
+      const c=(v,cls)=>{ const td=r.insertCell(); td.className="num"+(cls?" "+cls:""); td.textContent=v; };
+      c(`${fmt(x.n)} ${x.n>1?x.unit[1]:x.unit[0]}`); c(fmt(x.foc)); c(fmt(Math.round(x.inv))); c("+"+fmt(Math.round(x.lucro)),"gain"); c(dec(x.ppf)); c(x.dias<1?"menos de 1 dia":`${dec(x.dias)} dias`); });
+    const w=el("div",{class:"tbl"}); w.append(t); box.append(w);
+    if(window.bagBtn){ const bg=el("div",{class:"ck-bag"}); bg.append(bagBtn(()=>plan.map(x=>({id:x.id,q:x.n*x.q,nm:x.name,sell:x.sale})),"Pôr o que sai na bag"),el("span",{text:"Pôr tudo o que sai na bag para ver peso, valor e montaria"})); box.append(bg); }
+    box.append(el("p",{class:"tiny muted",text:"Lucro com foco, na cidade com bônus de cada item, comprando os materiais pelo preço típico e vendendo pelo preço típico (estratégia de venda do site). A ordem é pelo lucro por ponto de foco, porque o foco é o que acaba primeiro. O prazo de venda usa as vendas por dia dos últimos 7 dias, somando as cidades, e conta só a parte das vendas que você escolheu: com o preço mais baixo do anúncio você pega mais; com muita gente vendendo o mesmo item, menos."}));
+  } catch(e){ box.textContent=""; box.append(el("p",{class:"loss",text:"Não consegui montar a sugestão agora: "+(e&&e.message||e)})); }
+  finally{ PP_BUSY=false; }
+}
+{ const pt=$("ppParte"), sp=$("ppSpec");
+  if(pt) pt.addEventListener("change",()=>{ const v=Math.round(+pt.value); PP.parte=v>0?Math.min(100,v):80; ppSave(); });
+  if(sp) sp.addEventListener("change",()=>{ PP.spec=sp.checked; ppSave(); }); }
+{ const f=$("ppFoc"), d=$("ppDias"), go=$("ppGo");
+  if(f) f.addEventListener("change",()=>{ const v=Math.round(+f.value); PP.foc=v>0?Math.min(FOC_MAX,v):30000; ppSave(); });
+  if(d) d.addEventListener("change",()=>{ const v=Math.round(+d.value); PP.dias=v>0?Math.min(30,v):3; ppSave(); });
+  document.querySelectorAll("[data-pp]").forEach(b=>b.addEventListener("click",()=>{ PP.tipo=b.dataset.pp; ppSave(); renderPlanoProd(false); }));
+  if(go) go.addEventListener("click",()=>renderPlanoProd(true)); }
