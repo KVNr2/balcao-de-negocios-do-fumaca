@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="be890e9a">
+<html lang="pt-BR" data-v="e173e747">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=be890e9a">
-<link rel="stylesheet" href="css/vip.css?v=be890e9a">
-<link rel="stylesheet" href="css/avicons.css?v=be890e9a">
-<link rel="stylesheet" href="css/souk.css?v=be890e9a">
+<link rel="stylesheet" href="css/balcao.css?v=e173e747">
+<link rel="stylesheet" href="css/vip.css?v=e173e747">
+<link rel="stylesheet" href="css/avicons.css?v=e173e747">
+<link rel="stylesheet" href="css/souk.css?v=e173e747">
 </head>
 <body>
 <div class="wrap app">
@@ -146,6 +146,16 @@ html.em-atual .av-card{margin:0}
       <label class="f" title="Cada lote é uma fazenda de 9 sementes, um pasto de 9 animais ou um canil de 4 montarias raras. O mesmo número vale na Cozinha e na Ilha e fazenda.">Lotes na ilha<input type="number" id="plLotes" min="0" max="999" placeholder="0" style="width:100px"></label>
     </div>
     <p class="small muted" id="plNote"></p>
+    <h2 class="pc-h">O que fabricar com o foco cheio</h2>
+    <div class="row-ctl src-ctl">
+      <label class="f">Foco<input type="number" id="ppFoc" min="500" max="30000" step="500" style="width:110px"></label>
+      <label class="f" title="Só entra o que o mercado compra nesse prazo, pelo ritmo de vendas dos últimos 7 dias">Vender em até (dias)<input type="number" id="ppDias" min="1" max="30" step="1" style="width:90px"></label>
+      <label class="f" title="Quanto das vendas do mercado você espera pegar. Com o anúncio mais barato você pega mais; com muita gente vendendo o mesmo item, menos.">Sua parte das vendas (%)<input type="number" id="ppParte" min="5" max="100" step="5" style="width:90px"></label>
+      <label class="chk" title="Deixa de fora o que você não tem spec na ficha (por exemplo, roupas de pano para quem só tem spec em placas)"><input type="checkbox" id="ppSpec"> Só o que tenho spec</label>
+      <div class="src-g"><span class="of-ct">O que fabricar</span><div class="seg" role="group" aria-label="O que fabricar"><button type="button" data-pp="tudo">Tudo</button><button type="button" data-pp="equip">Equipamentos</button><button type="button" data-pp="cons">Comidas e poções</button></div></div>
+      <button type="button" class="btn" id="ppGo">Montar sugestão</button>
+    </div>
+    <div id="plProd"></div>
     <h2 class="pc-h">Da ilha até a venda</h2>
     <div id="plIlha"></div>
     <h2 class="pc-h">Onde gastar o foco do dia</h2>
@@ -798,26 +808,26 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=be890e9a"></script>
-<script src="js/base.js?v=be890e9a"></script>
-<script src="js/fx.js?v=be890e9a"></script>
-<script src="js/biz.js?v=be890e9a"></script>
-<script src="js/builds.js?v=be890e9a"></script>
-<script src="js/nossas.js?v=be890e9a"></script>
-<script src="js/ip.js?v=be890e9a"></script>
-<script src="js/zvz.js?v=be890e9a"></script>
-<script src="js/pvp.js?v=be890e9a"></script>
-<script src="js/novos.js?v=be890e9a"></script>
-<script src="js/guia.js?v=be890e9a"></script>
-<script src="js/ui.js?v=be890e9a"></script>
-<script src="js/avalon.js?v=be890e9a"></script>
-<script src="js/oficina.js?v=be890e9a"></script>
-<script src="js/versao.js?v=be890e9a"></script>
-<script src="js/bag.js?v=be890e9a"></script>
+<script src="js/icons.js?v=e173e747"></script>
+<script src="js/base.js?v=e173e747"></script>
+<script src="js/fx.js?v=e173e747"></script>
+<script src="js/biz.js?v=e173e747"></script>
+<script src="js/builds.js?v=e173e747"></script>
+<script src="js/nossas.js?v=e173e747"></script>
+<script src="js/ip.js?v=e173e747"></script>
+<script src="js/zvz.js?v=e173e747"></script>
+<script src="js/pvp.js?v=e173e747"></script>
+<script src="js/novos.js?v=e173e747"></script>
+<script src="js/guia.js?v=e173e747"></script>
+<script src="js/ui.js?v=e173e747"></script>
+<script src="js/avalon.js?v=e173e747"></script>
+<script src="js/oficina.js?v=e173e747"></script>
+<script src="js/versao.js?v=e173e747"></script>
+<script src="js/bag.js?v=e173e747"></script>
 <script src="js/plano.js?v=x"></script>
 <script src="js/pesca.js?v=x"></script>
-<script src="js/listfil.js?v=be890e9a"></script>
-<script src="js/fav.js?v=be890e9a"></script>
-<script src="js/main.js?v=be890e9a"></script>
+<script src="js/listfil.js?v=e173e747"></script>
+<script src="js/fav.js?v=e173e747"></script>
+<script src="js/main.js?v=e173e747"></script>
 </body>
 </html>
