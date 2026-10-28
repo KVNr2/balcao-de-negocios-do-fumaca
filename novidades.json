@@ -1,6 +1,60 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T16:17:00Z",
+   "titulo": "PvP: tier list mais justa (confrontos contra o campo e conta cautelosa)",
+   "itens": [
+    "Os níveis S, A, B e C agora ordenam pelo limite inferior do winrate (a mesma conta que já usávamos para ordenar as builds), então pouca luta não faz um item subir por sorte.",
+    "Nas armas, o winrate mostrado passa a ser o 'contra o campo': cada confronto contra outra arma da lista conta pelo uso daquela arma. Isso corrige o winrate inflado de Hellgate e Profundezas (média de 64% a 68%), que agora fica perto de 50%. Com poucos dados a tela mostra o winrate simples. O winrate simples aparece ao passar o mouse.",
+    "Composições e armas precisam de pelo menos 10 lutas para receber nível, e uma lista precisa de pelo menos 8 itens com dados. Em Hellgate 5v5 há poucas lutas por composição, então ali a lista fica sem nível até haver mais dados.",
+    "Removi uma conta antiga de níveis fixos que não era mais usada."
+   ]
+  },
+  {
+   "t": "2026-10-28T16:11:00Z",
+   "titulo": "Tabelas cabem em telas de 1920 de largura",
+   "itens": [
+    "A Fazenda mostra os detalhes ao clicar na linha, e Craft, Refino e Mercado ficaram mais justos na tela.",
+    "A Cozinha mostra os lotes da ilha e o foco por ingrediente."
+   ]
+  },
+  {
+   "t": "2026-10-28T15:27:00Z",
+   "titulo": "Foco total para a quantidade planejada",
+   "itens": [
+    "Craft, Cozinha e Fazenda passam a usar o foco total para a quantidade que você planejou."
+   ]
+  },
+  {
+   "t": "2026-10-28T15:24:00Z",
+   "titulo": "Nova página Pesca",
+   "itens": [
+    "Mapas por prata por fisgada, valor de cada peixe (vender, picar ou cozinhar) e cardumes.",
+    "A Fazenda ganhou ração e lotes."
+   ]
+  },
+  {
+   "t": "2026-10-28T15:02:00Z",
+   "titulo": "Cozinha e Fazenda: coluna Você ganha em destaque",
+   "itens": [
+    "A coluna 'Você ganha' ficou em destaque e há um resumo do que mais rende."
+   ]
+  },
+  {
+   "t": "2026-10-28T14:43:00Z",
+   "titulo": "Cozinha e Fazenda: de onde vêm os materiais",
+   "itens": [
+    "Cada material mostra de onde vem (na hora, ordem, ilha, já tenho ou manual) e a tela mostra o número de fornadas."
+   ]
+  },
+  {
+   "t": "2026-10-28T14:27:00Z",
+   "titulo": "Cozinha e Fazenda: ordenar pelo cabeçalho e filtrar",
+   "itens": [
+    "Nas tabelas de Cozinha e alquimia e de Ilha e fazenda, o título de cada coluna ordena e há uma linha de filtros (lucro, lucro %, prata por foco e vendas por dia), do mesmo jeito do Craft e do Refino."
+   ]
+  },
+  {
    "t": "2026-10-28T09:00:00Z",
    "titulo": "Mercado Negro: preços das cidades de volta ao Albion Data",
    "itens": [
