@@ -899,7 +899,7 @@ function ckBuy(iid){
   const m=ckMode(iid);
   if(m==="manual"){ const v=(SRC.ckM||{})[iid]; if(v!=null&&v!==""&&+v>=0) return {p:+v,n:9,src:"manual"}; }
   if(m==="tenho") return {p:0,n:9,src:"tenho"};
-  if(m==="planto"){ const u=farmUnit(iid); if(u) return u; }
+  if(m==="planto"){ const u=farmUnit(iid,!!(SRC.ckF||{})[iid]); if(u) return u; }
   const o=m==="ordem"?typical(iid,1):null, i=o||typical(iid,0);
   return i?{p:i.p,n:i.n,src:o?"ordem":"inst"}:null;
 }
@@ -968,6 +968,33 @@ async function renderCook(){
 const CK_PILL={inst:"COMPRA INST",ordem:"ORDEM COMPRA",planto:"DA ILHA",tenho:"JÁ TENHO",manual:"MANUAL"};
 const CK_SUB={inst:"menor anúncio nas cidades",ordem:"ordem de compra, preço típico",planto:"custo de produzir na ilha",tenho:"entra como custo zero",manual:"valor que você digitou"};
 const CK_OPT=[["","Como o geral"],["inst","Compro na hora"],["ordem","Ordem de compra"],["planto","Produzo na ilha"],["tenho","Já tenho"],["manual","Valor manual"]];
+/* o que plantar ou criar na ilha para N fornadas, com foco por ingrediente e onde o foco rende mais */
+function ckFarmPlan(m,N){
+  if(!FARM||!FZ_LOADED) return null;
+  const rr=rrr(0.15,true,st.daily), rows=[], usos=[{nm:`Fabricar ${m.name} com foco`,spf:m.spf,craft:true}];
+  for(const x of m.parts){ if(x.p.src!=="planto") continue;
+    const U=Math.ceil(x.c*N*(1-rr)), nm=COOK.n[x.iid]||x.iid;
+    const r=FARM.p.find(r=>r[1]===x.iid);
+    if(r){ const [seed,,,chance,bonus,,npc,avg]=r, per=9*avg*(st.prem?2:1), lotes=Math.max(1,Math.ceil(U/per)), foc=!!(SRC.ckF||{})[x.iid];
+      const sp=(fzBuy(seed,"seed",npc)||{p:0}).p, fc1=fzFocus(seed), gain=(Math.min(chance+bonus,2)-Math.min(chance,2))*sp, spf=fc1?gain/fc1:0;
+      rows.push({iid:x.iid,nm,U,txt:`${fmt(lotes)} ${lotes>1?"lotes":"lote"} (${fmt(lotes*9)} sementes, uma colheita dá uns ${fmt(Math.round(lotes*per))})`,foc,focTxt:`regar gasta ${fmt(lotes*9*fc1)} de foco`,spf});
+      usos.push({nm:`Regar ${nm}`,spf}); continue; }
+    const q=FARM.pr.find(r=>r[1]===x.iid);
+    if(q){ const pm=producerModel(q), an=Math.max(1,Math.ceil(U/q[3])); const f=pm&&fzFeedLots(pm.food,pm.food.n*an);
+      rows.push({iid:x.iid,nm,U,txt:`${fmt(an)} ${an>1?"animais":"animal"} (${fzName(q[0])}) por 1 dia de coleta${f?`, com ${f.lotes} ${f.lotes>1?"lotes":"lote"} de ${fzName(pm.food.id)} para a ração`:""}`}); }
+  }
+  if(!rows.length) return null;
+  const box=el("div",{class:"ck-farm"}); box.append(el("b",{class:"of-ct",text:`Na ilha para ${fmt(N)} ${N>1?"fornadas":"fornada"}`}));
+  for(const r of rows){
+    const l=el("div",{class:"ck-fl"}); const t=el("div"); t.append(el("b",{text:`${r.nm}: ${fmt(r.U)}`}),el("small",{class:"muted",text:` já contando o retorno`}),el("div",{class:"small",text:r.txt})); l.append(withIcon(r.iid,t));
+    if(r.spf!=null){ const lab=el("label",{class:"chk ck-foc"}), cb=el("input",{type:"checkbox"}); cb.checked=r.foc;
+      cb.addEventListener("click",ev=>ev.stopPropagation()); cb.addEventListener("change",()=>{ SRC.ckF=SRC.ckF||{}; if(cb.checked) SRC.ckF[r.iid]=true; else delete SRC.ckF[r.iid]; srcSave(); renderCook(); });
+      lab.append(cb,` Regar com foco (${r.focTxt}; ${dec(r.spf)} de prata por foco)`); l.append(lab); }
+    box.append(l); }
+  const best=usos.filter(u=>u.spf>0).sort((a,b)=>b.spf-a.spf);
+  if(best.length>1) box.append(el("p",{class:"small ck-fbest",text:`Onde o foco rende mais: ${best.map((u,i)=>`${i?"":"1º "}${u.nm} (${dec(u.spf)} por ponto)`).join(", depois ")}. Se o foco do dia não dá para tudo, gaste primeiro no que vem antes.`}));
+  return box;
+}
 /* detalhe da receita: mesmo desenho do Mercado Negro (compras em vermelho, venda e lucro em verde), para N fornadas */
 function cookPanel(m){
   const N=ckN(), d=el("div",{class:"of-xp"}), left=el("div",{class:"of-xl"}), right=el("div",{class:"of-xs"}), city=COOK_CITY[m.kind];
@@ -990,6 +1017,7 @@ function cookPanel(m){
     box.append(el("span",{text:COOK.n[x.iid]||x.iid}),el("span",{class:"ck-srcw"},sel,man));
   }
   left.append(box);
+  { const fp=ckFarmPlan(m,N); if(fp) left.append(fp); }
   if(window.bagBtn){ const bg=el("div",{class:"ck-bag"}), sc0=bestCity(m.id,st.sell==="instant"?1:0,"max");
     const mats=()=>m.parts.map(x=>({id:x.iid,q:x.c*N,nm:COOK.n[x.iid]||x.iid,buy:x.p.p,buyC:city}));
     const prod=()=>[{id:m.id,q:m.q*N,nm:m.name,sell:m.item.p,sellC:sc0?sc0.c:city}];
