@@ -24,6 +24,7 @@ Site do grupo para fazer prata no Albion Online (servidor Américas).
 - `data/specs.json`: o Destiny Board para a Minha ficha (combate, craft e fazenda; cada grupo com a maestria e os itens). Gerado a partir de catalog.json e farm.json.
 - `data/carga.json`: peso de cada item, velocidade das montarias e faixas de sobrecarga (arquivos do jogo) e carga de montarias, bolsas e tortas (wiki oficial). Usado pela bag (`js/bag.js`).
 - `data/pesca.json`: o que sai por fisgada em cada tier, bioma e água (tabelas de sorteio do jogo), Peixe Picado por peixe e os pontos de pesca, mar e cardumes de cada mapa. Gerado por `tools/gerar_pesca.py` a partir do ao-bin-dumps. Usado pela página Pesca (`js/pesca.js`).
+- `js/plano.js`: página Plano do dia (onde gastar o foco do dia e o que fazer com os lotes da ilha até a venda).
 - `js/listfil.js`: ordenação pelo cabeçalho e linha de filtros de Cozinha e alquimia e de Ilha e fazenda (o mesmo jeito do Craft e do Refino).
 - `data/terreno-avalon.json`: planta de reserva dos 400 mapas de Avalon (estradas, rios, penhascos e chão), gerada dos arquivos do jogo (ao-bin-dumps, `cluster` e `templates`). Só aparece quando as fotos de `imagens/avalon/` não carregam. Os baús de `data/avalon.json` (`cb`, `cg`, `cy`) vêm do dataset do Albion Roads.
 - `data/*.json`: dados fixos tirados dos arquivos do jogo (receitas, mapas, diários, fazenda, peças) e a foto de preços de reserva. Cada um só é baixado quando a página que usa é aberta.

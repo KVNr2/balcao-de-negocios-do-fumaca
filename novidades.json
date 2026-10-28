@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T18:13:00Z",
+   "titulo": "Plano do dia, pesca por hora e telas menores",
+   "itens": [
+    "Página nova Plano do dia. Ela reparte o foco que você tem entre cozinhar, refinar, fabricar e regar, do que mais rende por ponto de foco para o que menos, sem passar do que o mercado vende por dia.",
+    "No Plano do dia, a parte Da ilha até a venda compara vender a colheita, criar animais e cozinhar com o que a ilha dá, para os lotes que você tem, e mostra o passo a passo do que rende mais.",
+    "A Pesca mostra a prata por hora de cada mapa, com o seu ritmo, a vara comum ou avaloniana, a roupa de pescador, as specs da ficha, a comida e a isca. Os bônus vêm dos arquivos do jogo.",
+    "Em telas de 1440 de largura, o Mercado encurta os preços (7,98M) e o Craft e o Refino ficam mais justos, sem rolagem para o lado."
+   ]
+  },
+  {
    "t": "2026-10-28T17:55:00Z",
    "titulo": "Albion Overlay 2.0.7",
    "programa": "2.0.7",

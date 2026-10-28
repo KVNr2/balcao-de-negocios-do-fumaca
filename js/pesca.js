@@ -8,8 +8,22 @@
 let PESCA=null, PESCA_P=null, PC_LOADED=false, pcSel=null;
 const PC_BIO={FR:"FOREST",SW:"SWAMP",MN:"MOUNTAIN",HL:"HIGHLANDS",ST:"STEPPE",AV:"AVALON"};
 const PC_BIO_PT={FOREST:"floresta",SWAMP:"pântano",MOUNTAIN:"montanha",HIGHLANDS:"terras altas",STEPPE:"estepe",AVALON:"Avalon",DRAGON_AREA:"Ancient Lands"};
-const PC_EXTRA=["T1_SEAWEED","T1_FISHSAUCE_LEVEL1","T1_FISHSAUCE_LEVEL2","T1_FISHSAUCE_LEVEL3"];
-let PC={rod:0, reg:"all", agua:"all"}; try{ Object.assign(PC,JSON.parse(store.get("pesca")||"{}")); }catch(e){}
+const PC_EXTRA=["T1_SEAWEED","T1_FISHSAUCE_LEVEL1","T1_FISHSAUCE_LEVEL2","T1_FISHSAUCE_LEVEL3","T1_FISHINGBAIT","T3_FISHINGBAIT","T5_FISHINGBAIT","T3_MEAL_PIE","T5_MEAL_PIE","T7_MEAL_PIE","T3_MEAL_PIE_FISH","T5_MEAL_PIE_FISH","T7_MEAL_PIE_FISH","T1_MEAL_SEAWEEDSALAD"];
+/* bônus de pesca dos arquivos do jogo (spells e Destiny Board): rendimento = chance de vir peixe a mais; velocidade = espera menor pela fisgada */
+const PC_AVA={4:.1,5:.125,6:.15,7:.175,8:.2};                                   // vara avaloniana, por tier
+const PC_GEAR={4:.01,5:.02,6:.03,7:.05,8:.07};                                 // gorro + roupa + botas de pescador, somados
+const PC_FOOD={"":[0,0,""],"T3_MEAL_PIE":[.05,0],"T5_MEAL_PIE":[.1,0],"T7_MEAL_PIE":[.15,0],"T3_MEAL_PIE_FISH":[.05,0],"T5_MEAL_PIE_FISH":[.1,0],"T7_MEAL_PIE_FISH":[.15,0],"T1_MEAL_SEAWEEDSALAD":[0,.1]}; // [rendimento, velocidade], 30 min
+const PC_BAIT={"":0,"T1_FISHINGBAIT":.5,"T3_FISHINGBAIT":1.25,"T5_FISHINGBAIT":2.5};   // velocidade, 10 min
+const PC_WAIT=0.6;   // parte do tempo de cada peixe que é espera pela fisgada (o que a velocidade encurta); o resto é lançar e o minijogo
+function pcHour(){
+  const g=(PF.coleta||{}).pesca||{}, m=+g.m||0, esp=+((g.s||{})[8])||0, rod=pcRod();
+  const spec=0.0015*m+0.0035*esp, food=PC_FOOD[PC.food||""]||[0,0], bait=PC_BAIT[PC.bait||""]||0;
+  const y=spec+(PC.vara==="avalon"?(PC_AVA[rod]||0):0)+(PC_GEAR[+PC.gear]||0)+food[0], sp=spec+bait+food[1];
+  const base=Math.max(10,Math.min(1000,+PC.pace||120)), T=3600/base, t=T*((1-PC_WAIT)+PC_WAIT/(1+sp)), fph=3600/t;
+  const fp=PC.food&&typical(PC.food,0), bp=PC.bait&&typical(PC.bait,0), cost=(fp?2*fp.p:0)+(bp?6*bp.p:0);
+  return {fph,y,sp,spec,cost,base,missFood:!!PC.food&&!fp,missBait:!!PC.bait&&!bp};
+}
+let PC={rod:0, reg:"all", agua:"all", vara:"comum", gear:"0", food:"", bait:"", pace:120}; try{ Object.assign(PC,JSON.parse(store.get("pesca")||"{}")); }catch(e){}
 const pcSave=()=>{ try{ store.set("pesca",JSON.stringify(PC)); }catch(e){} };
 const pcZName=z=>/^\d+$/.test(z.n)?`Mapa ${z.n}`:z.n;
 const pcName=id=>{ const n=PESCA&&PESCA.n[id]; return n?((typeof LANG!=="undefined"&&LANG==="en"?n[1]:n[0])||n[0]):id; };
@@ -85,13 +99,15 @@ const PF_COLS=[
 const PF_FIL=[{k:"minV",lab:"Vale no mínimo",step:100,get:m=>m.best},{k:"minVol",lab:"Vende por dia, no mínimo",step:1,min:0,get:m=>lfVol(m.id)}];
 const PZ_COLS=[
   {h:"Mapa",k:"name",s:z=>z.n},
-  {h:"Prata por fisgada",k:"ev",s:z=>z.best.ev+((z.fw||0)+(z.sw||0))*1e-6,t:"Média de prata por peixe pescado nesse mapa, no melhor uso de cada peixe"},
+  {h:"Prata por hora",k:"hour",s:z=>pcPerHour(z.best.ev)+((z.fw||0)+(z.sw||0))*1e-6,t:"Prata por hora pescando nesse mapa, com o seu ritmo, a sua vara, as specs e a comida"},
+  {h:"Por fisgada",k:"ev",s:z=>z.best.ev,t:"Média de prata por peixe pescado nesse mapa, no melhor uso de cada peixe"},
   {h:"Tier e bioma",k:"tier",s:z=>z.t},
   {h:"Região"},
   {h:"Água",k:"agua",s:z=>(z.fw||0)+(z.oc||0),t:"Ordenar pela quantidade de pontos de pesca"},
   {h:"Raros",k:"rare",s:z=>z.best.rare,t:"Chance de cada fisgada ser um peixe raro"},
   {h:"O que mais rende ali"} ];
-const PZ_FIL=[{k:"minEv",lab:"Prata por fisgada, no mínimo",step:10,get:z=>z.best.ev},{k:"minRare",lab:"Raros %, no mínimo",step:1,get:z=>z.best.rare*100}];
+let PC_H=null; const pcPerHour=ev=>{ const h=PC_H||(PC_H=pcHour()); return h.fph*(1+h.y)*ev-h.cost; };
+const PZ_FIL=[{k:"minHour",lab:"Prata por hora, no mínimo",step:1000,get:z=>pcPerHour(z.best.ev)},{k:"minEv",lab:"Prata por fisgada, no mínimo",step:10,get:z=>z.best.ev},{k:"minRare",lab:"Raros %, no mínimo",step:1,get:z=>z.best.rare*100}];
 
 async function renderPesca(){
   const note=$("pcNote");
@@ -99,21 +115,25 @@ async function renderPesca(){
   for(const k in PC_VAL) delete PC_VAL[k];
   const rod=pcRod(); $("pcRod").value=String(PC.rod||0);
   document.querySelectorAll("[data-pc]").forEach(b=>{ const [k,v]=b.dataset.pc.split(":"); b.setAttribute("aria-pressed",String(PC[k]===v)); });
+  { const H=pcHour(); for(const [id,k] of [["pcGear","gear"],["pcFood","food"],["pcBait","bait"]]){ const e=$(id); if(e) e.value=String(PC[k]||(k==="gear"?"0":"")); } const pp=$("pcPace"); if(pp&&document.activeElement!==pp) pp.value=String(PC.pace||120);
+    const ht=$("pcHourTxt"); if(ht) ht.textContent=`Com isso: ${fmt(Math.round(H.fph))} fisgadas por hora (velocidade +${dec(H.sp*100)}%) e ${dec(H.y*100)}% de chance de peixe a mais. As specs da ficha dão +${dec(H.spec*100)}% nos dois.${H.cost?` Comida e isca custam uns ${fmt(Math.round(H.cost))} por hora.`:""}${H.missFood||H.missBait?" Sem preço para a comida ou a isca escolhida: o custo ficou de fora.":""}`; }
   note.textContent=`Vara T${rod}${PC.rod>0?"":" (da sua ficha)"}: só entram mapas até T${rod}. Valores com os preços de agora e as taxas de venda; o prato conta o foco e a cidade com bônus, como na Cozinha.`;
   renderPcZones(); await renderPcFish();
 }
 
 function renderPcZones(){
-  const tb=$("pcZTable"), bar=$("pcZFil"), rer=()=>renderPcZones(), def={k:"ev",dir:1}; tb.textContent="";
+  PC_H=pcHour(); const H=PC_H;
+  const tb=$("pcZTable"), bar=$("pcZFil"), rer=()=>renderPcZones(), def={k:"hour",dir:1}; tb.textContent="";
   lfHead(tb.createTHead().insertRow(),"pz",PZ_COLS,def,rer); lfBar(bar,"pz",PZ_FIL,rer);
   const all=pcZones(); let list=lfFilter("pz",all,PZ_FIL); lfCount(bar,"pz",PZ_FIL,all.length-list.length); list=lfSort("pz",list,PZ_COLS,def);
   const body=tb.createTBody(), NC=PZ_COLS.length;
-  ganhoTop($("pcSum"),list,z=>z.best.ev,z=>`${pcZName(z)} (${PC_BIO_PT[PC_BIO[z.b]]} T${z.t}, ${pcRegTxt(z)}): cada fisgada no ${z.best.w==="mar"?"mar":"lago"} vale em média ${fmt(Math.round(z.best.ev))} de prata. O que mais pesa é ${pcName(z.best.top.id)}, ${PC_HOW[pcValue(z.best.top.id).how]||"vender"}.`,"Com os preços de agora, nenhum mapa da lista rende.");
+  ganhoTop($("pcSum"),list,z=>pcPerHour(z.best.ev),z=>`${pcZName(z)} (${PC_BIO_PT[PC_BIO[z.b]]} T${z.t}, ${pcRegTxt(z)}): uns ${fmt(Math.round(pcPerHour(z.best.ev)))} de prata por hora no ${z.best.w==="mar"?"mar":"lago"}, com ${fmt(Math.round(H.fph))} fisgadas por hora, ${dec(H.y*100)}% de peixe a mais e ${fmt(Math.round(z.best.ev))} por fisgada${H.cost?`, já tirando ${fmt(Math.round(H.cost))} de comida e isca`:""}. O que mais pesa é ${pcName(z.best.top.id)}, ${PC_HOW[pcValue(z.best.top.id).how]||"vender"}.`,"Com os preços de agora, nenhum mapa da lista rende.");
   if(!list.length){ const td=body.insertRow().insertCell(); td.colSpan=NC; td.className="muted"; td.textContent=all.length?"Nenhum mapa passa pelos filtros.":"Nenhum mapa com água até o tier da sua vara nessa região."; return; }
   for(const z of list.slice(0,150)){
     const tr=body.insertRow(); tr.className="clickrow"; tr.tabIndex=0;
     tr.insertCell().append(el("b",{text:pcZName(z)}));
-    const g=tr.insertCell(); g.className="num gv-cell gain"; g.append(el("b",{class:"gv",text:fmt(Math.round(z.best.ev))}),el("small",{class:"gv-sub",text:`no ${z.best.w==="mar"?"mar":"lago"}${z.doce&&z.mar?`; ${z.best.w==="mar"?"lago":"mar"}: ${fmt(Math.round((z.best.w==="mar"?z.doce:z.mar).ev))}`:""}`}));
+    { const hv=pcPerHour(z.best.ev), hc=tr.insertCell(); hc.className="num gv-cell "+(hv>=0?"gain":"loss"); hc.append(el("b",{class:"gv",text:fmt(Math.round(hv))}),el("small",{class:"gv-sub",text:`${fmt(Math.round(H.fph*(1+H.y)))} peixes por hora`})); }
+    const g=tr.insertCell(); g.className="num gv-cell"; g.append(el("b",{class:"gv",text:fmt(Math.round(z.best.ev))}),el("small",{class:"gv-sub",text:`no ${z.best.w==="mar"?"mar":"lago"}${z.doce&&z.mar?`; ${z.best.w==="mar"?"lago":"mar"}: ${fmt(Math.round((z.best.w==="mar"?z.doce:z.mar).ev))}`:""}`}));
     tr.insertCell().textContent=`T${z.t}, ${PC_BIO_PT[PC_BIO[z.b]]}`;
     const rg=tr.insertCell(); rg.textContent=pcRegTxt(z); if(z.r!=="ROY") rg.className="loss";
     tr.insertCell().textContent=z.r==="AVA"?"lagos dos corredores, variam por estrada":[z.fw?`${z.fw} pontos no lago`:"",z.oc?"mar":"",z.sw?`${z.sw} de cardume`:""].filter(Boolean).join(", ");
@@ -171,4 +191,6 @@ async function renderPcFish(){
 }
 
 document.querySelectorAll("[data-pc]").forEach(b=>b.addEventListener("click",()=>{ const [k,v]=b.dataset.pc.split(":"); PC[k]=v; pcSave(); pcSel=null; renderPesca(); }));
+for(const [id,k] of [["pcGear","gear"],["pcFood","food"],["pcBait","bait"]]){ const e=$(id); if(e) e.addEventListener("change",()=>{ PC[k]=e.value; pcSave(); renderPesca(); }); }
+{ const e=$("pcPace"); if(e){ let tm; e.addEventListener("input",()=>{ const v=Math.round(+e.value); if(v>0){ PC.pace=v; pcSave(); clearTimeout(tm); tm=setTimeout(renderPesca,350); } }); } }
 { const r=$("pcRod"); if(r) r.addEventListener("change",()=>{ const v=+r.value; PC.rod=v>=1&&v<=8?v:0; pcSave(); renderPesca(); }); }
