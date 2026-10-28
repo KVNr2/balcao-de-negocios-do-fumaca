@@ -32,6 +32,7 @@ $("bRefresh").addEventListener("click",async()=>{ const bt=$("bRefresh"); if(bt.
 $("bOnlyMine").addEventListener("change",renderBuilds);
 document.querySelectorAll("[data-ck]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-ck]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); ckKind=b.dataset.ck; ckSel=null; renderCook(); }));
 $("ckBuilds").addEventListener("change",renderCook);
+{ const n=$("ckN"); if(n){ if(SRC.ckN) n.value=String(SRC.ckN); let tm; n.addEventListener("input",()=>{ const v=Math.round(+n.value); SRC.ckN=v>0?v:1; srcSave(); clearTimeout(tm); tm=setTimeout(renderCook,300); }); } }
 ["tier","ench"].forEach(id=>$(id).addEventListener("change",()=>calc(true)));
 ["pRaw","pPrev","pBar","focusCost","focusPool"].forEach(id=>$(id).addEventListener("input",()=>calc(false)));
 $("fee").addEventListener("input",()=>recompute(false));
