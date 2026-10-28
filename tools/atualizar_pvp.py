@@ -43,6 +43,19 @@ def tamanho(c, e):
     if c == "hg5": return 5
     if c in ("corrompida", "solo", "al"): return 1
     return 1 if n <= 1 else 2 if n == 2 else 3
+def campo_ajustado(uso, wx, M=10, MINP=10, COB=0.5):
+    """winrate de cada arma contra o campo (as armas da lista), como o Power Rank do Data Reaper: o confronto contra cada oponente é puxado para 50% (M lutas de peso)
+    e entra pesado pelo uso do oponente. Só vale se os confrontos com pelo menos MINP lutas cobrem COB do uso do campo; senão a arma fica sem campo (None)."""
+    out = {}
+    for a in uso:
+        num = den = 0.0; tot = sum(n for o, n in uso.items() if o != a)
+        for o, f in uso.items():
+            if o == a: continue
+            g, p = wx.get((a, o), 0), wx.get((o, a), 0); n = g + p
+            if n < MINP: continue
+            num += f * (g + M / 2) / (n + M); den += f
+        out[a] = round(100 * num / den, 1) if tot and den >= COB * tot else None
+    return out
 def main():
     arv = C.carregar(); corte = datetime.datetime.utcnow() - datetime.timedelta(days=DIAS)
     sem_f = os.path.join(ROOT, "data", "pvp-sementes.json")
@@ -166,6 +179,14 @@ def main():
             pl["b"][k] += 1; ativos[c][p.get("Id")] += 1; nomes_at[p.get("Id")] = p.get("Name")
         for p in ganhadores: reg(p, True)
         for p in perdedores: reg(p, False)
+        # confrontos arma contra arma (quem estava no lado vencedor contra quem estava no lado perdedor), para o winrate contra o campo
+        wx = A.setdefault("wx", collections.Counter())
+        for pg in ganhadores:
+            kg = chave(pg)
+            if not kg: continue
+            for pp in perdedores:
+                kp = chave(pp)
+                if kp and kp.split("|")[0] != kg.split("|")[0]: wx[(kg.split("|")[0], kp.split("|")[0])] += 1
         for kk in kvs:
             for kz in kperd: A["x"][(kk, kz)][0] += 1      # kk venceu kz
     def segs(e): return datetime.datetime.strptime(e["TimeStamp"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=datetime.timezone.utc).timestamp()
@@ -298,6 +319,8 @@ def main():
         for k, b in A["b"].items():
             w = k.split("|")[0]; a = arm.setdefault(w, [0, 0]); a[0] += b["v"]; a[1] += b["d"]
         armas = sorted(([w, v + d, v, d, round(100 * v / (v + d), 1)] for w, (v, d) in arm.items() if v + d >= 2), key=lambda x: (-x[1], -x[4]))[:40]
+        _campo = campo_ajustado({x[0]: x[1] for x in armas}, A.get("wx", {}))
+        for x in armas: x.append(_campo.get(x[0]))     # 6º campo: winrate contra o campo (ou None)
         comps = []
         for key, C_ in A.get("comp", {}).items():
             n = C_["v"] + C_["d"]
