@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="e8918cd8">
+<html lang="pt-BR" data-v="f0d62866">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=e8918cd8">
-<link rel="stylesheet" href="css/vip.css?v=e8918cd8">
-<link rel="stylesheet" href="css/avicons.css?v=e8918cd8">
-<link rel="stylesheet" href="css/souk.css?v=e8918cd8">
+<link rel="stylesheet" href="css/balcao.css?v=f0d62866">
+<link rel="stylesheet" href="css/vip.css?v=f0d62866">
+<link rel="stylesheet" href="css/avicons.css?v=f0d62866">
+<link rel="stylesheet" href="css/souk.css?v=f0d62866">
 </head>
 <body>
 <div class="wrap app">
@@ -394,7 +394,8 @@ html.em-atual .av-card{margin:0}
       <p class="tiny muted">Dá para mudar ingrediente por ingrediente ao abrir uma receita.</p>
     </div>
     <div class="of-filw" id="ckFil" role="group" aria-label="Filtros da lista"></div>
-    <p class="small muted" id="ckNote">Lucro de uma fornada com foco, na cidade com bônus, comprando os ingredientes pelo preço típico. Clique numa linha para ver os ingredientes e o histórico.</p>
+    <p class="small muted" id="ckNote">Você ganha é a prata que sobra no bolso: a venda menos ingredientes, taxa da estação e taxas de venda, já contando o retorno de recursos com foco na cidade com bônus. Clique numa linha para ver a conta inteira.</p>
+    <p class="ganho-top" id="ckSum" hidden></p>
     <div class="tbl"><table id="ckTable" class="nosort"></table></div>
     <p class="tiny muted">Taxa da estação estimada pela nutrição da comida; poções saem sem taxa na conta. Confira o valor que aparece no jogo.</p>
   </section>
@@ -698,6 +699,7 @@ html.em-atual .av-card{margin:0}
     </div>
     <div class="of-filw" id="fzFil" role="group" aria-label="Filtros da lista"></div>
     <p class="small muted" id="fzNote"></p>
+    <p class="ganho-top" id="fzSum" hidden></p>
     <div class="tbl"><table id="fzTable" class="nosort"></table></div>
   </section>
 
@@ -745,24 +747,24 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=e8918cd8"></script>
-<script src="js/base.js?v=e8918cd8"></script>
-<script src="js/fx.js?v=e8918cd8"></script>
-<script src="js/biz.js?v=e8918cd8"></script>
-<script src="js/builds.js?v=e8918cd8"></script>
-<script src="js/nossas.js?v=e8918cd8"></script>
-<script src="js/ip.js?v=e8918cd8"></script>
-<script src="js/zvz.js?v=e8918cd8"></script>
-<script src="js/pvp.js?v=e8918cd8"></script>
-<script src="js/novos.js?v=e8918cd8"></script>
-<script src="js/guia.js?v=e8918cd8"></script>
-<script src="js/ui.js?v=e8918cd8"></script>
-<script src="js/avalon.js?v=e8918cd8"></script>
-<script src="js/oficina.js?v=e8918cd8"></script>
-<script src="js/versao.js?v=e8918cd8"></script>
-<script src="js/bag.js?v=e8918cd8"></script>
-<script src="js/listfil.js?v=e8918cd8"></script>
-<script src="js/fav.js?v=e8918cd8"></script>
-<script src="js/main.js?v=e8918cd8"></script>
+<script src="js/icons.js?v=f0d62866"></script>
+<script src="js/base.js?v=f0d62866"></script>
+<script src="js/fx.js?v=f0d62866"></script>
+<script src="js/biz.js?v=f0d62866"></script>
+<script src="js/builds.js?v=f0d62866"></script>
+<script src="js/nossas.js?v=f0d62866"></script>
+<script src="js/ip.js?v=f0d62866"></script>
+<script src="js/zvz.js?v=f0d62866"></script>
+<script src="js/pvp.js?v=f0d62866"></script>
+<script src="js/novos.js?v=f0d62866"></script>
+<script src="js/guia.js?v=f0d62866"></script>
+<script src="js/ui.js?v=f0d62866"></script>
+<script src="js/avalon.js?v=f0d62866"></script>
+<script src="js/oficina.js?v=f0d62866"></script>
+<script src="js/versao.js?v=f0d62866"></script>
+<script src="js/bag.js?v=f0d62866"></script>
+<script src="js/listfil.js?v=f0d62866"></script>
+<script src="js/fav.js?v=f0d62866"></script>
+<script src="js/main.js?v=f0d62866"></script>
 </body>
 </html>

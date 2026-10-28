@@ -886,6 +886,13 @@ function ensureCook(){
   return COOK_LOADING;
 }
 /* preço de cada ingrediente conforme de onde ele vem (SRC fica em novos.js) */
+/* linha de resumo acima da tabela: o que mais rende na lista, em prata no bolso */
+function ganhoTop(box,list,val,txt,none){
+  if(!box) return; box.textContent=""; if(!list.length){ box.hidden=true; return; } box.hidden=false;
+  const best=list.reduce((a,b)=>val(b)>val(a)?b:a), v=val(best);
+  if(!(v>0)){ box.className="ganho-top neg"; box.textContent=none; return; }
+  box.className="ganho-top"; box.append(el("span",{class:"gt-l",text:"O que mais rende"}),el("b",{class:"gt-v",text:"+"+fmt(Math.round(v))}),el("span",{class:"gt-t",text:txt(best)}));
+}
 const ckN=()=>Math.max(1,Math.min(99999,Math.round(+((SRC||{}).ckN)||1)));
 const ckMode=iid=>((SRC.ckO||{})[iid])||SRC.ck||"inst";
 function ckBuy(iid){
@@ -918,7 +925,7 @@ const CK_FIL=[
 const CK_COLS=[
   {h:"Item",k:"name",s:m=>m.name},
   {h:"Fornada"},
-  {h:"Lucro com foco",k:"profit",s:m=>m.miss?null:m.p1},
+  {h:"Você ganha",k:"profit",s:m=>m.miss?null:m.p1,t:"Ordenar pela prata que sobra no bolso, já descontados ingredientes, taxas e retorno"},
   {h:"Lucro %",k:"pct",s:m=>m.miss?null:m.pct,t:"Ordenar pelo lucro sobre o custo da fornada"},
   {h:"Por ponto de foco",k:"spf",s:m=>m.miss?null:m.spf},
   {h:"Venda típica",k:"sale",s:m=>m.miss?null:m.item.p},
@@ -932,18 +939,19 @@ async function renderCook(){
   if(!COOK_LOADED){ const td=body.insertRow().insertCell(); td.colSpan=NC; td.textContent="Buscando preços dos ingredientes…"; await ensureCook(); if(!COOK_LOADED){ td.textContent="Não consegui buscar os preços agora. Tente atualizar."; return; } return renderCook(); }
   lfBar(bar,"ck",CK_FIL,rer);
   if(ckNeedsFarm()){ try{ if(!FARM) FARM=await need("farm"); await ensureFZ(); }catch(e){} }
-  const N=ckN(); { const th=tb.tHead.rows[0].cells[2]; const b=th&&th.querySelector(".lf-hs"); if(b&&N>1) b.firstChild.textContent=`Lucro em ${fmt(N)} fornadas`; }
+  const N=ckN(); { const th=tb.tHead.rows[0].cells[2]; const b=th&&th.querySelector(".lf-hs"); if(b&&N>1) b.firstChild.textContent=`Você ganha em ${fmt(N)} fornadas`; }
   const only=$("ckBuilds").checked, FAVON=!!(window.FAV&&FAV.on("cozinha"));
   let rows=Object.keys(COOK.r).filter(id=>FAVON?FAV.has("cozinha",id):(COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id)))).map(cookModel).filter(Boolean);
   const st0=lfState("ck",def), needVol=st0.k==="vol"||lfNum(lfGet("ck").minVol);
   await lfEnsureVol(rows.map(m=>m.id),needVol,tb,note);
   const nAll=rows.length; rows=lfSort("ck",lfFilter("ck",rows,CK_FIL),CK_COLS,def); lfCount(bar,"ck",CK_FIL,nAll-rows.length);
+  ganhoTop($("ckSum"),rows.filter(m=>!m.miss),m=>m.p1*N,m=>`${m.name}: você ganha ${fmt(Math.round(m.p1*N))} de prata em ${N>1?fmt(N)+" fornadas":"uma fornada"} (${fmt(m.q*N)} ${m.kind==="f"?"porções":"poções"}, ${fmt(m.fc*N)} de foco). Já descontados ingredientes, taxa da estação e taxas de venda.`,"Com os preços de agora, nada desta lista dá lucro.");
   if(!rows.length){ const td=body.insertRow().insertCell(); td.colSpan=NC; td.className="muted"; td.textContent=nAll?"Nada passa pelos filtros. Afrouxe um deles ou clique em Limpar filtros.":"Nada para mostrar aqui."; }
   for(const m of rows){ const tr=body.insertRow(); tr.dataset.fav=m.id; tr.tabIndex=0; tr.className="clickrow";
     const a=tr.insertCell(); const an=el("span"); an.append(m.name); if(BUILD_FOOD.includes(m.id)) an.append(" ",el("span",{class:"spec",text:"build"})); a.append(withIcon(m.id,an));
     tr.insertCell().textContent=`${m.q} ${m.kind==="f"?(m.q>1?"porções":"porção"):(m.q>1?"poções":"poção")}`;
     if(m.miss){ const td=tr.insertCell(); td.colSpan=4; td.className="muted"; td.textContent=`Sem preço: ${m.miss}`; lfVolCell(tr,m.id); tr.insertCell(); continue; }
-    const c=tr.insertCell(); c.className="num "+(m.p1>=0?"gain":"loss"); c.textContent=sgn(m.p1*N);
+    const c=tr.insertCell(); c.className="num gv-cell "+(m.p1>=0?"gain":"loss"); c.append(el("b",{class:"gv",text:sgn(m.p1*N)}),el("small",{class:"gv-sub",text:(m.p1<0?"prejuízo: ":"")+(N>1?`${sgn(m.p1)} por fornada`:"por fornada, com foco")}));
     const p=tr.insertCell(); p.className="num "+(m.p1>=0?"gain":"loss"); p.textContent=dec(m.pct*100)+"%";
     const d=tr.insertCell(); d.className="num"; d.textContent=dec(m.spf);
     const e=tr.insertCell(); e.className="num"; e.textContent=fmt(m.item.p);

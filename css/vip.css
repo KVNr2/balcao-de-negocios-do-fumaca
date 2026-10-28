@@ -1682,3 +1682,13 @@ td.lf-vol{white-space:nowrap}
 .ck-bag{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:13px}
 .ck-srcw{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ck-srcw select{max-width:220px}
 .src-ctl{margin-top:10px}
+
+/* quanto de prata você ganha: coluna em destaque e resumo acima da tabela */
+td.gv-cell{line-height:1.2}
+td.gv-cell .gv{display:block;font-size:1.18em;font-weight:700;white-space:nowrap}
+td.gv-cell .gv-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:400;color:var(--smoke,#a39382);white-space:normal;max-width:190px;margin-left:auto}
+.ganho-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin:10px 0 12px;padding:12px 16px;border-radius:10px;background:rgba(84,170,110,.09);border:1px solid rgba(84,170,110,.35)}
+.ganho-top .gt-l{font-size:12px;letter-spacing:.06em;color:var(--smoke,#a39382)}
+.ganho-top .gt-v{font-size:22px;color:var(--gain,#6cc58a);font-variant-numeric:tabular-nums}
+.ganho-top .gt-t{flex-basis:100%;font-size:14px;color:var(--parch-2,#d9c9a8);max-width:80ch}
+.ganho-top.neg{background:rgba(214,90,80,.08);border-color:rgba(214,90,80,.35);color:var(--parch-2,#d9c9a8);font-size:14px}
