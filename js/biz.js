@@ -16,8 +16,22 @@ const BMD={}, BMD_EXTRA=new Set();   // BMD: preços de materiais só do Supabas
 const bmIso=t=>t?new Date(t).toISOString().slice(0,19):"0001-01-01T00:00:00";
 /* Mercado Negro: todos os valores vêm só do Supabase (registrados pelo Albion Overlay), nada da API pública.
    allQ: traz as qualidades 1 a 5 (a 1 vai para o BMP, as outras para o BMQ); sem allQ só a qualidade 1 */
+/* Preços: o Mercado Negro vem só da nossa base (Supabase). Os das cidades e dos materiais vêm do Albion Data, e para cada preço vale o
+   mais recente: se o Albion Data foi coletado depois do nosso, fica o do Albion Data; senão, o do Supabase. As médias vêm sempre do Supabase. */
+async function bmMergedRows(ids,locs,quals){
+  const sbr=(await sbRows(ids,locs,quals)).map(x=>({...x})), cities=locs.filter(c=>c!=="Black Market"); if(!cities.length) return sbr;
+  const loc=cities.join(",").replace(/ /g,"%20"), parts=[]; for(let i=0;i<ids.length;i+=API_CHUNK) parts.push(ids.slice(i,i+API_CHUNK));
+  let ad=[]; try{ ad=(await Promise.all(parts.map(p=>apiJSON0(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=${quals.join(",")}`)))).flat(); }catch(e){ ad=[]; }
+  const idx=new Map(sbr.map(x=>[x.item_id+"|"+x.city+"|"+x.quality,x])), ms=d=>{ if(!d||String(d).startsWith("0001")) return 0; d=String(d); return Date.parse(/(Z|[+-]\d\d:?\d\d)$/.test(d)?d:d+"Z")||0; };
+  for(const a of ad){ if(!a||a.city==="Black Market") continue; const k=a.item_id+"|"+a.city+"|"+a.quality; let x=idx.get(k);
+    if(!x){ x={item_id:a.item_id,quality:+a.quality,city:a.city,sell_min:0,sell_min_at:null,sell_amt:null,buy_max:0,buy_max_at:null,buy_amt:null,avg7:null,avg7_n:0,avg30:null,avg30_n:0}; sbr.push(x); idx.set(k,x); }
+    if(a.sell_price_min>0&&ms(a.sell_price_min_date)>ms(x.sell_min_at)){ x.sell_min=a.sell_price_min; x.sell_min_at=a.sell_price_min_date+"Z"; }
+    if(a.buy_price_max>0&&ms(a.buy_price_max_date)>ms(x.buy_max_at)){ x.buy_max=a.buy_price_max; x.buy_max_at=a.buy_price_max_date+"Z"; }
+  }
+  return sbr;
+}
 async function bmFetch(ids, locs, allQ=false){
-  const rows=await sbRows(ids,locs,allQ?[1,2,3,4,5]:[1]);
+  const rows=await bmMergedRows(ids,locs,allQ?[1,2,3,4,5]:[1]);
   for(const x of rows){
     const qx=+x.quality; if(!(qx>=1&&qx<=5)) continue;
     BM_A[x.item_id+"|"+qx+"|"+x.city]={a7:x.avg7,n7:x.avg7_n||0,a30:x.avg30,n30:x.avg30_n||0};
@@ -27,11 +41,11 @@ async function bmFetch(ids, locs, allQ=false){
     else { const m=BMQ[x.item_id]||(BMQ[x.item_id]={}); (m[qx]||(m[qx]={}))[x.city]=[s,b,ba,sa]; }
   }
 }
-/* preço dos materiais (barras, tábuas, couro, pano, artefatos...) das contas de fabricação, também só do Supabase */
+/* preço dos materiais (barras, tábuas, couro, pano, artefatos...) das contas de fabricação, cidades e materiais: o preço mais recente entre o Albion Data e o Supabase */
 function bmMatIds(){ const ids=new Set(baseIds().filter(i=>!FISH_IDS.includes(i))); for(let t=4;t<=8;t++) for(let e=0;e<=4;e++) ids.add(`T${t}_PLANKS`+(e?`_LEVEL${e}@${e}`:"")); BMD_EXTRA.forEach(i=>ids.add(i)); return [...ids]; }
 async function bmMats(extra){
   (extra||[]).forEach(i=>BMD_EXTRA.add(i));
-  const rows=await sbRows(bmMatIds(),[...CITIES,"Caerleon"],[1]);
+  const rows=await bmMergedRows(bmMatIds(),[...CITIES,"Caerleon"],[1]);
   for(const k of Object.keys(BMD)) delete BMD[k];
   for(const x of rows){
     const sa=ageH(bmIso(x.sell_min_at)), ba=ageH(bmIso(x.buy_max_at));
