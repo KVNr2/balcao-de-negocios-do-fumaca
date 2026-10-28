@@ -345,6 +345,62 @@ async function lpSpace(){ await lpSleep(300); for(;;){ const l=apiLoad(); if(!l.
 /* Preços coletados pelo Albion Overlay (tabela market_latest no Supabase, mesmo formato do Albion Data).
    Para cada item/cidade/qualidade vale o valor mais recente entre o Albion Data e o nosso. */
 const CROWD_MEM=new Map(); let CROWD_OFF=false; const CROWD={hits:0};
+/* ===== Preços em tempo real (Albion Overlay) =====
+   O programa avisa no instante em que um preço chega do jogo (antes de ele ir para a nuvem, o que só acontece depois de 45 s sem página
+   nova). Aqui o valor é aplicado na hora nas listas já carregadas, guardado para as próximas consultas (o mais recente vence o Albion
+   Data e o Supabase) e a aba aberta é redesenhada. Só vale dentro do overlay (?overlay=1): a página-mãe repassa os avisos por postMessage
+   e cada quadro também pede o que já chegou nos últimos 20 min ao abrir. */
+const LIVEP={ovr:new Map(),timer:0,n:0};
+const livepIso=t=>new Date(t).toISOString().slice(0,19), livepMs=d=>d&&!String(d).startsWith("0001")?(Date.parse(/(Z|[+-]\d\d:?\d\d)$/.test(String(d))?d:d+"Z")||0):0;
+function livepAplicar(j){
+  if(!j||!Array.isArray(j.itens)||!j.itens.length) return;
+  const now=Date.now(); let n=0;
+  for(const [k,v] of LIVEP.ovr) if(now-v.t>20*60e3) LIVEP.ovr.delete(k);
+  const toc=new Map();
+  for(const e of j.itens){
+    const q=+e.q, c=e.c, t=+e.t||now, s=+e.s||0, b=+e.b||0; if(!(q>=1&&q<=5)||!c||!e.i||!(s||b)) continue;
+    const key=e.i+"|"+c+"|"+q, old=LIVEP.ovr.get(key); if(old&&old.t>t) continue;
+    LIVEP.ovr.set(key,{s,b,sa:+e.sa||0,ba:+e.ba||0,t}); n++;
+    const k=e.i.includes("_LEVEL")?e.i.split("@")[0]:e.i;
+    /* listas já carregadas: [venda, compra, hora da venda, hora da compra] */
+    const tg=q===1?DATA.itens:PQ[q]; if(tg&&tg[k]){ const a=tg[k][c]||(tg[k][c]=[0,0,0,0]); if(s&&c!=="Black Market"){ a[0]=s; a[2]=t; } if(b){ a[1]=b; a[3]=t; } (toc.get(tg)||toc.set(tg,new Set()).get(tg)).add(k); }
+    if(typeof BMD!=="undefined"&&q===1&&BMD[k]){ const a=BMD[k][c]||(BMD[k][c]=[0,0,0,0]); if(s&&c!=="Black Market"){ a[0]=s; a[2]=t; } if(b){ a[1]=b; a[3]=t; } }
+    /* Mercado Negro e aba Mercado: [venda, compra, idade da compra em horas, idade da venda em horas] */
+    if(typeof BMP!=="undefined"){ const r=q===1?BMP[e.i]:((BMQ[e.i]||{})[q]); if(r){ const a=r[c]||(r[c]=[0,0,Infinity,Infinity]); if(s&&c!=="Black Market"){ a[0]=s; a[3]=0; } if(b){ a[1]=b; a[2]=0; } } }
+  }
+  if(!n) return;
+  for(const [tg,ks] of toc) try{ dropOutliers(tg,ks); }catch(e){}
+  CROWD_MEM.clear(); SB_MEM.clear(); LIVEP.n+=n; livepAgenda();
+}
+function livepApiRows(out,idx,ids,locs,quals){
+  if(!LIVEP.ovr.size) return; const I=new Set(ids), L=locs.length?new Set(locs):null, Q=new Set(quals.map(String));
+  for(const [key,v] of LIVEP.ovr){ const p=key.split("|"), id=p[0], c=p[1], q=p[2]; if(!I.has(id)||(L&&!L.has(c))||!Q.has(q)) continue;
+    let x=idx.get(key); if(!x){ x={item_id:id,city:c,quality:+q,sell_price_min:0,sell_price_min_date:"0001-01-01T00:00:00",sell_price_max:0,sell_price_max_date:"0001-01-01T00:00:00",buy_price_min:0,buy_price_min_date:"0001-01-01T00:00:00",buy_price_max:0,buy_price_max_date:"0001-01-01T00:00:00"}; out.push(x); idx.set(key,x); }
+    if(v.s>0&&c!=="Black Market"&&v.t>livepMs(x.sell_price_min_date)){ x.sell_price_min=v.s; x.sell_price_min_date=livepIso(v.t); x.sell_amt=v.sa; x._src="app"; }
+    if(v.b>0&&v.t>livepMs(x.buy_price_max_date)){ x.buy_price_max=v.b; x.buy_price_max_date=livepIso(v.t); x.buy_amt=v.ba; x._src="app"; } }
+}
+function livepSbRows(out,ids,locs,quals){
+  if(!LIVEP.ovr.size) return; const I=new Set(ids), L=new Set(locs), Q=new Set(quals.map(String)), idx=new Map(out.map((x,i)=>[x.item_id+"|"+x.city+"|"+x.quality,i]));
+  for(const [key,v] of LIVEP.ovr){ const p=key.split("|"), id=p[0], c=p[1], q=p[2]; if(!I.has(id)||!L.has(c)||!Q.has(q)) continue;
+    let i=idx.get(key), x; if(i==null){ x={item_id:id,quality:+q,city:c,sell_min:0,sell_min_at:null,sell_amt:null,buy_max:0,buy_max_at:null,buy_amt:null,avg7:null,avg7_n:0,avg30:null,avg30_n:0}; out.push(x); idx.set(key,out.length-1); } else x=out[i]={...out[i]};
+    const iso=new Date(v.t).toISOString();
+    if(v.s>0&&c!=="Black Market"&&v.t>livepMs(x.sell_min_at)){ x.sell_min=v.s; x.sell_min_at=iso; x.sell_amt=v.sa; }
+    if(v.b>0&&v.t>livepMs(x.buy_max_at)){ x.buy_max=v.b; x.buy_max_at=iso; x.buy_amt=v.ba; } }
+}
+/* redesenha só a aba aberta, no máximo a cada 2,5 s, sem mexer em quem está digitando e mantendo a rolagem */
+function livepAgenda(){ if(LIVEP.timer) return; LIVEP.timer=setTimeout(()=>{ LIVEP.timer=0; livepRedesenha(); },2500); }
+async function livepRedesenha(){
+  const a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)){ livepAgenda(); return; }
+  const y=window.scrollY, vis=id=>{ const p=$("p-"+id); return !!p&&!p.hidden; };
+  try{
+    const hh=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    const w=$("when"); if(w){ w.textContent="preço do jogo, "+hh; $("whenBox").classList.remove("stale","off"); $("whenBox").title="Preço novo lido do jogo às "+hh+" (Albion Overlay), aplicado na hora"; }
+    if(["voce","craft","refino","mercado","fazenda","encantar"].some(vis)) recompute(false);
+    if(vis("cozinha")) await renderCook(); if(vis("mapas")) renderMaps(); if(vis("trab")) await renderWK(); if(vis("mk")) await renderMk();
+    if(typeof BAG!=="undefined"&&BAG.open&&typeof bagRender==="function") bagRender();
+  }catch(e){}
+  requestAnimationFrame(()=>window.scrollTo(0,y)); setTimeout(()=>window.scrollTo(0,y),250);
+}
 async function crowdMerge(url,j){
   if(CROWD_OFF||!Array.isArray(j)) return j;
   try{
@@ -362,7 +418,7 @@ async function crowdMerge(url,j){
       finally{ clearTimeout(tm); }
       CROWD_MEM.set(key,{t:Date.now(),r:rows});
     }
-    if(!rows||!rows.length) return j;
+    if((!rows||!rows.length)&&!LIVEP.ovr.size) return j; rows=rows||[];
     const out=j.map(x=>({...x})), idx=new Map(out.map(x=>[x.item_id+"|"+x.city+"|"+x.quality,x]));
     const iso=t=>new Date(t).toISOString().slice(0,19), ms=d=>d&&!d.startsWith("0001")?Date.parse(d+"Z"):0;
     for(const c of rows){
@@ -371,6 +427,7 @@ async function crowdMerge(url,j){
       if(c.city!=="Black Market"&&c.sell_min&&c.sell_min_at&&Date.parse(c.sell_min_at)>ms(x.sell_price_min_date)){   /* Mercado Negro só tem pedido de compra: o preço de venda da página não vale */ x.sell_price_min=c.sell_min; x.sell_price_min_date=iso(c.sell_min_at); x.sell_amt=c.sell_amt; x._src="app"; CROWD.hits++; }
       if(c.buy_max&&c.buy_max_at&&Date.parse(c.buy_max_at)>ms(x.buy_price_max_date)){ x.buy_price_max=c.buy_max; x.buy_price_max_date=iso(c.buy_max_at); x.buy_amt=c.buy_amt; x._src="app"; CROWD.hits++; }
     }
+    livepApiRows(out,idx,ids,locs,quals);
     return out;
   }catch(e){ return j; }
 }
@@ -389,6 +446,7 @@ async function sbRows(ids,locs,quals=[1]){
     const rows=[]; for(let off=0;off<10000;off+=1000){ const r=await fetch(base+qs+"&offset="+off,{headers:hd}); if(!r.ok) throw new Error("Supabase respondeu "+r.status); const j=await r.json(); rows.push(...j); if(j.length<1000) break; }
     SB_MEM.set(key,{t:Date.now(),r:rows}); out.push(...rows);
   }));
+  livepSbRows(out,ids,locs,quals);
   return out;
 }
 async function apiJSON(url,ttlMin=10){
@@ -816,6 +874,11 @@ $("pfAlbion").addEventListener("click",ev=>{
 /* Página aberta DENTRO do Albion Overlay (?overlay=1) ou com o programa já rodando: nada para baixar nem instalar.
    Dentro do overlay a sincronia e a coleta de preços ficam nos botões do próprio overlay. */
 const EM_OVERLAY=/[?&]overlay=1\b/.test(location.search);
+/* preços em tempo real: avisos da página-mãe do overlay e o que já chegou antes de este quadro abrir */
+if(EM_OVERLAY){
+  window.addEventListener("message",e=>{ const d=e.data&&e.data.avPrecos; if(d&&e.origin===location.origin&&e.source===window.parent) livepAplicar(d); });
+  fetch(location.origin+"/precos?desde=0",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{ if(j) livepAplicar(j); }).catch(()=>{});
+}
 /* Só no overlay: as listas largas (tabelas e cartões com rolagem para o lado) se ajustam à largura da janela com um zoom pequeno,
    até FIT_MIN; abaixo disso fica a rolagem. O site normal não passa por aqui. */
 if(EM_OVERLAY){ (function(){

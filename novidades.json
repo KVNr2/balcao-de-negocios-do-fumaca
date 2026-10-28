@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T19:40:00Z",
+   "titulo": "Albion Overlay 2.0.8: preços em tempo real",
+   "programa": "2.0.8",
+   "itens": [
+    "No overlay, o preço que chega do jogo aparece na hora. Quando você abre o mercado no Albion, o programa avisa o overlay no mesmo instante (sem esperar o envio para a nuvem, que só acontece depois de 45 s sem página nova), a lista da aba aberta é atualizada e o topo mostra \"preço do jogo, hh:mm:ss\".",
+    "O valor recém lido vale por até 20 minutos por cima do Albion Data e da nuvem, nas listas já carregadas (cidades, outras qualidades, Mercado Negro e materiais) e nas próximas consultas. Quadros que abrem depois já recebem o que chegou nesse período.",
+    "Páginas seguintes da lista do jogo só têm preços maiores e não sobem um valor recém lido; a subida só vale em lista completa ou numa busca nova. A tela não é redesenhada enquanto você digita e a rolagem é mantida."
+   ]
+  },
+  {
    "t": "2026-10-28T18:13:00Z",
    "titulo": "Plano do dia, pesca por hora e telas menores",
    "itens": [
