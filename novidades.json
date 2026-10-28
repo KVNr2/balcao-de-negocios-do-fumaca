@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T05:00:00Z",
+   "titulo": "Albion Overlay 2.0.5",
+   "programa": "2.0.5",
+   "itens": [
+    "Novo atalho \"Ler mapa de Avalon sob o mouse\" (configure em Ajustes): passe o mouse no portal da Estrada de Avalon e aperte. O programa lê o nome escrito abaixo de \"Estrada de Avalon para\", corrige erros de leitura comparando com a lista de mapas e abre a aba Avalon já pesquisando por ele.",
+    "A leitura usa o reconhecimento de texto do próprio Windows e só olha a tela no instante em que você aperta o atalho. Em jogo em tela cheia exclusiva a captura pode sair preta; use tela cheia sem bordas.",
+    "Ficha: a troca de mapa não apaga mais a mensagem de uma ficha já lida nem mostra o aviso \"Ficha lida do jogo\" de novo."
+   ]
+  },
+  {
    "t": "2026-10-26T12:00:00Z",
    "titulo": "Albion Overlay 2.0.0",
    "programa": "2.0.0",
