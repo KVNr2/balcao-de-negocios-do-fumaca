@@ -364,27 +364,27 @@ const CROWD_MEM=new Map(); let CROWD_OFF=false; const CROWD={hits:0};
    nova). Aqui o valor é aplicado na hora nas listas já carregadas, guardado para as próximas consultas (o mais recente vence o Albion
    Data e o Supabase) e a aba aberta é redesenhada. Só vale dentro do overlay (?overlay=1): a página-mãe repassa os avisos por postMessage
    e cada quadro também pede o que já chegou nos últimos 20 min ao abrir. */
-const LIVEP={ovr:new Map(),timer:0,n:0};
+const LIVEP={ovr:new Map(),timer:0,n:0,fonte:"jogo"};
 const livepIso=t=>new Date(t).toISOString().slice(0,19), livepMs=d=>d&&!String(d).startsWith("0001")?(Date.parse(/(Z|[+-]\d\d:?\d\d)$/.test(String(d))?d:d+"Z")||0):0;
-function livepAplicar(j){
+function livepAplicar(j,nuvem){
   if(!j||!Array.isArray(j.itens)||!j.itens.length) return;
   const now=Date.now(); let n=0;
   for(const [k,v] of LIVEP.ovr) if(now-v.t>20*60e3) LIVEP.ovr.delete(k);
   const toc=new Map();
   for(const e of j.itens){
     const q=+e.q, c=e.c, t=+e.t||now, s=+e.s||0, b=+e.b||0; if(!(q>=1&&q<=5)||!c||!e.i||!(s||b)) continue;
-    const key=e.i+"|"+c+"|"+q, old=LIVEP.ovr.get(key); if(old&&old.t>t) continue;
+    const key=e.i+"|"+c+"|"+q, old=LIVEP.ovr.get(key); if(old&&(old.t>t||(nuvem&&old.s===s&&old.b===b))) continue;
     LIVEP.ovr.set(key,{s,b,sa:+e.sa||0,ba:+e.ba||0,t}); n++;
     const k=e.i.includes("_LEVEL")?e.i.split("@")[0]:e.i;
     /* listas já carregadas: [venda, compra, hora da venda, hora da compra] */
-    const tg=q===1?DATA.itens:PQ[q]; if(tg&&tg[k]){ const a=tg[k][c]||(tg[k][c]=[0,0,0,0]); if(s&&c!=="Black Market"){ a[0]=s; a[2]=t; } if(b){ a[1]=b; a[3]=t; } (toc.get(tg)||toc.set(tg,new Set()).get(tg)).add(k); }
-    if(typeof BMD!=="undefined"&&q===1&&BMD[k]){ const a=BMD[k][c]||(BMD[k][c]=[0,0,0,0]); if(s&&c!=="Black Market"){ a[0]=s; a[2]=t; } if(b){ a[1]=b; a[3]=t; } }
+    const tg=q===1?DATA.itens:PQ[q]; if(tg&&tg[k]){ const a=tg[k][c]||(tg[k][c]=[0,0,0,0]); if(s&&c!=="Black Market"&&(!nuvem||t>=a[2])){ a[0]=s; a[2]=t; } if(b&&(!nuvem||t>=a[3])){ a[1]=b; a[3]=t; } (toc.get(tg)||toc.set(tg,new Set()).get(tg)).add(k); }
+    if(typeof BMD!=="undefined"&&q===1&&BMD[k]){ const a=BMD[k][c]||(BMD[k][c]=[0,0,0,0]); if(s&&c!=="Black Market"&&(!nuvem||t>=a[2])){ a[0]=s; a[2]=t; } if(b&&(!nuvem||t>=a[3])){ a[1]=b; a[3]=t; } }
     /* Mercado Negro e aba Mercado: [venda, compra, idade da compra em horas, idade da venda em horas] */
-    if(typeof BMP!=="undefined"){ const r=q===1?BMP[e.i]:((BMQ[e.i]||{})[q]); if(r){ const a=r[c]||(r[c]=[0,0,Infinity,Infinity]); if(s&&c!=="Black Market"){ a[0]=s; a[3]=0; } if(b){ a[1]=b; a[2]=0; } } }
+    if(typeof BMP!=="undefined"){ const r=q===1?BMP[e.i]:((BMQ[e.i]||{})[q]); if(r){ const a=r[c]||(r[c]=[0,0,Infinity,Infinity]); if(s&&c!=="Black Market"&&(!nuvem||(Date.now()-t)/36e5<=a[3])){ a[0]=s; a[3]=Math.max(0,(Date.now()-t)/36e5); } if(b&&(!nuvem||(Date.now()-t)/36e5<=a[2])){ a[1]=b; a[2]=Math.max(0,(Date.now()-t)/36e5); } } }
   }
   if(!n) return;
   for(const [tg,ks] of toc) try{ dropOutliers(tg,ks); }catch(e){}
-  CROWD_MEM.clear(); SB_MEM.clear(); LIVEP.n+=n; livepAgenda();
+  CROWD_MEM.clear(); SB_MEM.clear(); LIVEP.n+=n; LIVEP.fonte=nuvem?"nuvem":"jogo"; if(LIVEP.ovr.size>5000){ const o=[...LIVEP.ovr].sort((x,y)=>x[1].t-y[1].t); for(let i=0;i<o.length-4000;i++) LIVEP.ovr.delete(o[i][0]); } livepAgenda();
 }
 function livepApiRows(out,idx,ids,locs,quals){
   if(!LIVEP.ovr.size) return; const I=new Set(ids), L=locs.length?new Set(locs):null, Q=new Set(quals.map(String));
@@ -408,13 +408,44 @@ async function livepRedesenha(){
   const y=window.scrollY, vis=id=>{ const p=$("p-"+id); return !!p&&!p.hidden; };
   try{
     const hh=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-    const w=$("when"); if(w){ w.textContent="preço do jogo, "+hh; $("whenBox").classList.remove("stale","off"); $("whenBox").title="Preço novo lido do jogo às "+hh+" (Albion Overlay), aplicado na hora"; }
+    const w=$("when"); if(w){ const nv=LIVEP.fonte==="nuvem"; w.textContent=(nv?"preço novo, ":"preço do jogo, ")+hh; $("whenBox").classList.remove("stale","off"); $("whenBox").title=nv?"Preço novo de outro jogador chegou à nuvem às "+hh+" (Albion Overlay), conferida a cada poucos segundos":"Preço novo lido do jogo às "+hh+" (Albion Overlay), aplicado na hora"; }
     if(["voce","craft","refino","mercado","fazenda","encantar"].some(vis)) recompute(false);
     if(vis("cozinha")) await renderCook(); if(vis("mapas")) renderMaps(); if(vis("trab")) await renderWK(); if(vis("mk")) await renderMk();
     if(typeof BAG!=="undefined"&&BAG.open&&typeof bagRender==="function") bagRender();
   }catch(e){}
   requestAnimationFrame(()=>window.scrollTo(0,y)); setTimeout(()=>window.scrollTo(0,y),250);
 }
+/* ===== Nuvem em tempo quase real =====
+   A cada ~20 s (jitter) pergunta ao Supabase só "o que mudou desde a última vez" (índices parciais em sell_min_at/buy_max_at), enquanto a aba do navegador
+   está visível e uma aba de preços aberta. Sem mudanças o intervalo cresce até 60 s; com mudanças volta a 20 s. Erro: espera 60 s. */
+const NUVEM={since:0,delay:20e3,timer:0,on:false,busy:false,skew:0};
+function nuvemAbaAberta(){ return ["voce","craft","refino","mercado","fazenda","encantar","cozinha","mapas","trab","mk"].some(id=>{ const p=$("p-"+id); return !!p&&!p.hidden; }); }
+function nuvemAgenda(ms){ clearTimeout(NUVEM.timer); NUVEM.timer=setTimeout(nuvemCiclo,ms); }
+async function nuvemCiclo(){
+  if(NUVEM.busy) return;
+  if(document.hidden||!nuvemAbaAberta()){ nuvemAgenda(5000); return; }
+  NUVEM.busy=true; let prox=NUVEM.delay;
+  try{
+    const cfg=await need("nuvem"); if(!(cfg.url&&cfg.key)){ NUVEM.on=false; return; }
+    if(!NUVEM.since) NUVEM.since=Date.now()-NUVEM.skew-2*60e3; /* since fica no relógio do servidor */
+    const x=new Date(NUVEM.since).toISOString();
+    const qs=`select=item_id,quality,city,sell_min,sell_min_at,sell_amt,buy_max,buy_max_at,buy_amt&or=(sell_min_at.gt.${x},buy_max_at.gt.${x})&limit=500`;
+    const ctl=new AbortController(), tm=setTimeout(()=>ctl.abort(),8000);
+    let r; try{ r=await fetch(cfg.url.replace(/\/$/,"")+"/rest/v1/market_latest?"+qs,{signal:ctl.signal,cache:"no-store",headers:{apikey:cfg.key,Authorization:"Bearer "+cfg.key}}); } finally{ clearTimeout(tm); }
+    if(!r.ok) throw new Error("nuvem "+r.status);
+    const d=Date.parse(r.headers.get("Date")||""); if(d) NUVEM.skew=Date.now()-d;
+    const rows=await r.json(); if(!Array.isArray(rows)) throw new Error("nuvem formato");
+    const itens=[]; let mx=NUVEM.since;
+    for(const c of rows){ const ts=Date.parse(c.sell_min_at)||0, tb=Date.parse(c.buy_max_at)||0, t=Math.max(ts,tb); if(!t) continue; if(t>mx) mx=t;
+      itens.push({i:c.item_id,q:c.quality,c:c.city,s:(ts>NUVEM.since&&c.city!=="Black Market")?c.sell_min:0,sa:c.sell_amt,b:tb>NUVEM.since?c.buy_max:0,ba:c.buy_amt,t:ts>tb&&ts>0?ts:tb||ts}); }
+    NUVEM.since=mx;
+    if(itens.length){ livepAplicar({itens},true); NUVEM.delay=20e3; prox=rows.length>=500?1500:20e3; } else NUVEM.delay=Math.min(60e3,Math.round(NUVEM.delay*1.5));
+    if(itens.length===0) prox=NUVEM.delay;
+  }catch(e){ prox=60e3; }
+  finally{ NUVEM.busy=false; nuvemAgenda(prox+Math.round(Math.random()*3000)); }
+}
+function nuvemIniciar(){ if(NUVEM.on) return; NUVEM.on=true; nuvemAgenda(8000);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&NUVEM.on){ NUVEM.delay=20e3; nuvemAgenda(1500); } }); }
 async function crowdMerge(url,j){
   if(CROWD_OFF||!Array.isArray(j)) return j;
   try{
@@ -888,6 +919,7 @@ $("pfAlbion").addEventListener("click",ev=>{
 /* Página aberta DENTRO do Albion Overlay (?overlay=1) ou com o programa já rodando: nada para baixar nem instalar.
    Dentro do overlay a sincronia e a coleta de preços ficam nos botões do próprio overlay. */
 const EM_OVERLAY=/[?&]overlay=1\b/.test(location.search);
+nuvemIniciar();
 /* preços em tempo real: avisos da página-mãe do overlay e o que já chegou antes de este quadro abrir */
 if(EM_OVERLAY){
   window.addEventListener("message",e=>{ const d=e.data&&e.data.avPrecos; if(d&&e.origin===location.origin&&e.source===window.parent) livepAplicar(d); });
