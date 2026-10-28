@@ -1745,6 +1745,33 @@ td.gv-cell .gv-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:400
 #ckTable th,#fzTable th,#pcZTable th,#pcFTable th,#pcZTable td,#pcFTable td,#fzTable td{white-space:normal}
 #ckTable th .lf-hs,#fzTable th .lf-hs,#pcZTable th .lf-hs,#pcFTable th .lf-hs{display:inline-flex;flex-wrap:wrap}
 @media (max-width:1600px){
-  .oflist .of-row,.of-lh{grid-template-columns:minmax(210px,290px) 92px 92px 118px minmax(0,1fr)}
+  .oflist .of-row,.of-lh{grid-template-columns:minmax(200px,250px) 84px 84px 104px minmax(0,1fr)}
+  .mk2t.mk-narrow th,.mk2t.mk-narrow td{padding-left:4px!important;padding-right:4px!important}
+  .oflist{--ic-row:48px}
+  .oflist .ihead{gap:10px}
+  .oflist .ihead .of-chev{display:none}
   .oflist .of-flow .of-blk{flex-basis:200px}
 }
+/* Mercado em tela estreita */
+.mk2t.mk-narrow tbody tr.mk-row td:first-child{min-width:200px}
+.mk2t.mk-narrow .ic-row{width:52px!important;height:52px!important}
+.mk2t.mk-narrow .mk-pr{padding:3px 7px;font-size:14px;min-width:0}
+.mk2t.mk-narrow td.bm-profit{font-size:15px}
+.mk2t.mk-narrow .inm strong{font-size:14.5px}
+.mk2t.mk-narrow thead th{font-size:10.5px;letter-spacing:.04em}
+.mk2t.mk-narrow .mn-craft{padding:5px 8px}
+/* Plano do dia */
+.pl-t{width:100%;border-collapse:collapse}
+.pl-t th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--smoke,#a39382);text-align:left;padding:6px 10px}
+.pl-t td{padding:9px 10px;border-top:1px solid rgba(239,226,196,.07);vertical-align:middle}
+.pl-t td.num{text-align:right;white-space:nowrap}
+.pl-n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:rgba(232,171,69,.15);color:var(--saffron,#e8ab45);font-size:13px}
+.pl-cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:8px 0 14px}
+.pl-opt{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid rgba(239,226,196,.12);border-radius:10px}
+.pl-opt b{font-size:20px}
+.pl-opt small{color:var(--parch-2,#d9c9a8);font-size:13px}
+.pl-opt.best{border-color:rgba(124,199,154,.55);background:rgba(124,199,154,.07)}
+.pl-steps{margin:6px 0 10px 18px;display:grid;gap:6px}
+.pl-h3{font-size:16px;margin:14px 0 4px}
+#plFocBox .wk-foc{margin:0}
+.pl-t small.gv-sub{display:block;font-size:12px;color:var(--smoke,#a39382);margin:2px 0 0;max-width:none}

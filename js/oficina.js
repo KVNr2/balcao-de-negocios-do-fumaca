@@ -464,6 +464,9 @@ async function renderMk(partial=false){
     if(tok!==MK_TOK||MK.qual!==mq) return; }
   const spr=x=>x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0; let rows=slice.filter(x=>MK_SEEN.has(seen(x.id))||FAVON).map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>FAVON||!MK.only||x.x.smin||x.x.bmax).sort((a,b)=>spr(b)-spr(a)); const achados=rows.length; if(!FAVON&&rows.length>SHOWN) rows=rows.slice(0,SHOWN);
   const cities=MK.city?[MK.city]:SHOP_LOCS;
+  /* tela estreita: preço das cidades encurtado (7,98M, 187,2 mil); o valor inteiro fica no título */
+  const NARROW=matchMedia("(max-width:1600px)").matches&&cities.length>3, fmtC=v=>!NARROW?fmt(v):v>=1e6?(v/1e6).toLocaleString("pt-BR",{maximumFractionDigits:2})+"M":v>=1e4?(v/1e3).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mil":fmt(v);
+  tb.classList.toggle("mk-narrow",NARROW);
   tb.textContent=""; const hr=tb.createTHead().insertRow(); hr.append(el("th",{text:"Item"}));
   cities.forEach(c=>{ const th=el("th",{}); th.append(el("span",{class:"dot",style:`background:${CITY_COLOR[c]||"#999"}`}),c); hr.append(th); });
   ["Preço médio","Diferença","Atualizado",""].forEach(h=>hr.append(el("th",{text:h})));
@@ -473,11 +476,11 @@ async function renderMk(partial=false){
     const c0=tr.insertCell(); c0.className="itemcell"; const hd=el("div",{class:"ihead"}); const ii=iconImg(x.id,76,mq); ii.classList.add("ic-row"); if(x.r[3]) hd.append(el("span",{class:"tbadge",text:`T${x.r[3]}`})); hd.append(ii);
     const nb=el("span",{class:"inm"}); const tn=el("strong",{}); tn.append(nm_); if(mq>1) tn.append(el("span",{class:"qtag q"+mq,text:QNAME[mq]})); nb.append(tn,el("small",{text:`${x.r[3]?`T${x.r[3]}.${x.e}`:"sem tier"} · ${CATALOG.c[x.r[1]]||""}${x.r[2]&&subName(x.r[2])!==CATALOG.c[x.r[1]]?` › ${subName(x.r[2])}`:""}`})); hd.append(nb); c0.append(hd);
     for(const c of cities){ const v=rec[c], td=tr.insertCell(); td.className="num mk-city"; if(!v||!(v[0]>0)){ td.textContent="—"; td.classList.add("none"); continue; }
-      const b=el("b",{class:"mk-pr"+(x.x.smin&&v[0]===x.x.smin.p?" low":x.x.smax&&v[0]===x.x.smax.p&&sp>0?" high":""),text:fmt(v[0])}); td.append(b); }
-    { const pts=cities.map(c=>rec[c]&&rec[c][0]).filter(v=>v>0), pm=tr.insertCell(); pm.className="num mk-avg"; pm.textContent=pts.length?fmt(Math.round(median(pts))):"—"; pm.title="Mediana dos preços de venda nas cidades desta linha"+(pts.length?` (${pts.length} ${pts.length===1?"cidade":"cidades"})`:""); if(!pts.length) pm.classList.add("none"); }
+      const b=el("b",{class:"mk-pr"+(x.x.smin&&v[0]===x.x.smin.p?" low":x.x.smax&&v[0]===x.x.smax.p&&sp>0?" high":""),text:fmtC(v[0]),title:fmt(v[0])}); td.append(b); }
+    { const pts=cities.map(c=>rec[c]&&rec[c][0]).filter(v=>v>0), pm=tr.insertCell(); pm.className="num mk-avg"; pm.textContent=pts.length?fmtC(Math.round(median(pts))):"—"; pm.title="Mediana dos preços de venda nas cidades desta linha"+(pts.length?` (${pts.length} ${pts.length===1?"cidade":"cidades"})`:""); if(!pts.length) pm.classList.add("none"); }
     const d=tr.insertCell(); d.className="num bm-profit "+(hot?"gain":tone==="is-warn"?"warn":""); d.textContent=x.x.smax&&x.x.smin?fmt(sp):"—"; if(x.x.smax&&x.x.smin) d.append(el("small",{text:`${sp>=0?"+":""}${dec(spp*100)}%`})); d.title="Maior venda menos menor venda: o espaço para comprar numa cidade e vender em outra";
     const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean); const tu=tr.insertCell(); tu.className="num"; tu.append(ts.length?(ageSpan(Math.max(...ts))||"—"):"—");
-    const ac=tr.insertCell(); const bt=el("button",{type:"button",class:"btn mn-craft",text:"Detalhe"}); ac.append(bt,bagBtn(()=>[{id:x.id,q:1,nm:`${nm_}${x.r[3]?` T${x.r[3]}.${x.e}`:""}`,buy:x.x.smin?x.x.smin.p:0,buyC:x.x.smin?x.x.smin.c:"",sell:x.x.smax?x.x.smax.p:0,sellC:x.x.smax?x.x.smax.c:""}],"Pôr na bag: compra na cidade mais barata, vende na mais cara"));
+    const ac=tr.insertCell(); const bt=el("button",{type:"button",class:"btn mn-craft",text:NARROW?"Ver":"Detalhe",title:"Ver detalhe"}); ac.append(bt,bagBtn(()=>[{id:x.id,q:1,nm:`${nm_}${x.r[3]?` T${x.r[3]}.${x.e}`:""}`,buy:x.x.smin?x.x.smin.p:0,buyC:x.x.smin?x.x.smin.c:"",sell:x.x.smax?x.x.smax.p:0,sellC:x.x.smax?x.x.smax.c:""}],"Pôr na bag: compra na cidade mais barata, vende na mais cara"));
     const op=()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`,mq); tr.addEventListener("click",op); tr.addEventListener("keydown",ev=>{ if(ev.key==="Enter"&&ev.target===tr) op(); }); }
   const shownN=rows.length, cortado=achados>shownN, naoVistos=slice.filter(x=>!MK_SEEN.has(seen(x.id))).length;
   const mm=$("mkMore"); if(mm) mm.hidden=true;

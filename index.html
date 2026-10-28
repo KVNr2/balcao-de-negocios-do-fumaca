@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="4495910c">
+<html lang="pt-BR" data-v="5d3cf51b">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=4495910c">
-<link rel="stylesheet" href="css/vip.css?v=4495910c">
-<link rel="stylesheet" href="css/avicons.css?v=4495910c">
-<link rel="stylesheet" href="css/souk.css?v=4495910c">
+<link rel="stylesheet" href="css/balcao.css?v=5d3cf51b">
+<link rel="stylesheet" href="css/vip.css?v=5d3cf51b">
+<link rel="stylesheet" href="css/avicons.css?v=5d3cf51b">
+<link rel="stylesheet" href="css/souk.css?v=5d3cf51b">
 </head>
 <body>
 <div class="wrap app">
@@ -55,6 +55,7 @@ html.em-atual .av-card{margin:0}
     <nav class="tabs" role="tablist" aria-orientation="vertical" aria-label="Páginas"><span class="lamp" id="tabLamp" aria-hidden="true"></span>
       <span class="grp" aria-hidden="true">Livro-caixa</span>
       <button role="tab" id="t-voce" aria-controls="p-voce" aria-selected="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6.5" rx="7" ry="3"/><path d="M5 6.5v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5M5 11.5v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/></svg><span class="tl">Para você</span><em class="fl">fl. 1</em></button>
+      <button role="tab" id="t-plano" aria-controls="p-plano" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2.5v3M16 2.5v3M4 9h16"/><path d="M8 13.5l2 2 4-4"/></svg><span class="tl">Plano do dia</span><em class="fl">Hoje</em></button>
       <button role="tab" id="t-ficha" aria-controls="p-ficha" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h10v13a3 3 0 0 1-3 3H7"/><path d="M8 4a2 2 0 0 0-2 2v12a2 2 0 1 0 4 0v-1h8"/><path d="M11 8h4M11 11h4"/></svg><span class="tl">Minha ficha</span><em class="fl">fl. 2</em></button>
       <span class="grp" aria-hidden="true">Ofícios</span>
       <button role="tab" id="t-refino" aria-controls="p-refino" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.5 3 5 5.2 5 10a5 5 0 0 1-10 0c0-2.6 1.4-4 2.2-6 .8 1.2 1.6 1.9 2.6 2.2C12.3 7.4 12 5 12 3z"/></svg><span class="tl">Refino</span><em class="fl">fl. 3</em></button>
@@ -136,6 +137,19 @@ html.em-atual .av-card{margin:0}
       <div class="tbl"><table id="recPesca"></table></div>
       <p class="tiny muted">Peixe em qualidade normal, mediana das cidades reais. Os raros saem do bioma indicado e valem mais; o peixe também pode virar Chopped Fish para comida.</p>
     </div>
+  </section>
+
+  <section class="panel" id="p-plano" role="tabpanel" aria-labelledby="t-plano" hidden>
+    <p class="aside">O que fazer hoje para ganhar mais prata com o foco e com os lotes que você tem. As contas são as mesmas das outras abas, com os preços de agora e as specs da sua ficha.</p>
+    <div class="row-ctl src-ctl">
+      <div id="plFocBox"></div>
+      <label class="f" title="Cada lote é uma fazenda de 9 sementes, um pasto de 9 animais ou um canil de 4 montarias raras. O mesmo número vale na Cozinha e na Ilha e fazenda.">Lotes na ilha<input type="number" id="plLotes" min="0" max="999" placeholder="0" style="width:100px"></label>
+    </div>
+    <p class="small muted" id="plNote"></p>
+    <h2 class="pc-h">Da ilha até a venda</h2>
+    <div id="plIlha"></div>
+    <h2 class="pc-h">Onde gastar o foco do dia</h2>
+    <div id="plFoco"></div>
   </section>
 
   <!-- FICHA -->
@@ -686,6 +700,15 @@ html.em-atual .av-card{margin:0}
       <div class="src-g"><span class="of-ct">Água</span><div class="seg" role="group" aria-label="Água">
         <button type="button" data-pc="agua:all">Lago e mar</button><button type="button" data-pc="agua:doce">Lago</button><button type="button" data-pc="agua:mar">Mar</button></div></div>
     </div>
+    <div class="row-ctl src-ctl pc-gear">
+      <div class="src-g"><span class="of-ct">Vara</span><div class="seg" role="group" aria-label="Tipo de vara">
+        <button type="button" data-pc="vara:comum">Comum</button><button type="button" data-pc="vara:avalon" title="Vara avaloniana: de 10% (T4) a 20% (T8) de chance de peixe a mais">Avaloniana</button></div></div>
+      <label class="f">Roupa de pescador<select id="pcGear" aria-label="Gorro, roupa e botas de pescador"><option value="0">Nenhuma</option><option value="4">T4</option><option value="5">T5</option><option value="6">T6</option><option value="7">T7</option><option value="8">T8</option></select></label>
+      <label class="f">Comida<select id="pcFood" aria-label="Comida"><option value="">Nenhuma</option><option value="T3_MEAL_PIE">Torta T3 (+5% peixe)</option><option value="T5_MEAL_PIE">Torta T5 (+10% peixe)</option><option value="T7_MEAL_PIE">Torta T7 (+15% peixe)</option><option value="T3_MEAL_PIE_FISH">Torta de peixe T3 (+5% peixe)</option><option value="T5_MEAL_PIE_FISH">Torta de peixe T5 (+10% peixe)</option><option value="T7_MEAL_PIE_FISH">Torta de peixe T7 (+15% peixe)</option><option value="T1_MEAL_SEAWEEDSALAD">Salada de algas (+10% velocidade)</option></select></label>
+      <label class="f">Isca<select id="pcBait" aria-label="Isca"><option value="">Nenhuma</option><option value="T1_FISHINGBAIT">Isca T1 (+50% velocidade)</option><option value="T3_FISHINGBAIT">Isca T3 (+125% velocidade)</option><option value="T5_FISHINGBAIT">Isca T5 (+250% velocidade)</option></select></label>
+      <label class="f" title="Quantos peixes você pega por hora sem comida, isca nem specs. Para medir: cronometre 10 peixes e faça 36000 dividido pelos segundos.">Seu ritmo (peixes por hora)<input type="number" id="pcPace" min="10" max="1000" step="5" style="width:110px"></label>
+    </div>
+    <p class="small" id="pcHourTxt"></p>
     <p class="small muted" id="pcNote"></p>
     <p class="ganho-top" id="pcSum" hidden></p>
     <h2 class="pc-h">Onde pescar</h2>
@@ -775,25 +798,26 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=4495910c"></script>
-<script src="js/base.js?v=4495910c"></script>
-<script src="js/fx.js?v=4495910c"></script>
-<script src="js/biz.js?v=4495910c"></script>
-<script src="js/builds.js?v=4495910c"></script>
-<script src="js/nossas.js?v=4495910c"></script>
-<script src="js/ip.js?v=4495910c"></script>
-<script src="js/zvz.js?v=4495910c"></script>
-<script src="js/pvp.js?v=4495910c"></script>
-<script src="js/novos.js?v=4495910c"></script>
-<script src="js/guia.js?v=4495910c"></script>
-<script src="js/ui.js?v=4495910c"></script>
-<script src="js/avalon.js?v=4495910c"></script>
-<script src="js/oficina.js?v=4495910c"></script>
-<script src="js/versao.js?v=4495910c"></script>
-<script src="js/bag.js?v=4495910c"></script>
+<script src="js/icons.js?v=5d3cf51b"></script>
+<script src="js/base.js?v=5d3cf51b"></script>
+<script src="js/fx.js?v=5d3cf51b"></script>
+<script src="js/biz.js?v=5d3cf51b"></script>
+<script src="js/builds.js?v=5d3cf51b"></script>
+<script src="js/nossas.js?v=5d3cf51b"></script>
+<script src="js/ip.js?v=5d3cf51b"></script>
+<script src="js/zvz.js?v=5d3cf51b"></script>
+<script src="js/pvp.js?v=5d3cf51b"></script>
+<script src="js/novos.js?v=5d3cf51b"></script>
+<script src="js/guia.js?v=5d3cf51b"></script>
+<script src="js/ui.js?v=5d3cf51b"></script>
+<script src="js/avalon.js?v=5d3cf51b"></script>
+<script src="js/oficina.js?v=5d3cf51b"></script>
+<script src="js/versao.js?v=5d3cf51b"></script>
+<script src="js/bag.js?v=5d3cf51b"></script>
+<script src="js/plano.js?v=x"></script>
 <script src="js/pesca.js?v=x"></script>
-<script src="js/listfil.js?v=4495910c"></script>
-<script src="js/fav.js?v=4495910c"></script>
-<script src="js/main.js?v=4495910c"></script>
+<script src="js/listfil.js?v=5d3cf51b"></script>
+<script src="js/fav.js?v=5d3cf51b"></script>
+<script src="js/main.js?v=5d3cf51b"></script>
 </body>
 </html>
