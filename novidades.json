@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T09:00:00Z",
+   "titulo": "Mercado Negro: preços das cidades de volta ao Albion Data",
+   "itens": [
+    "O preço do Mercado Negro continua vindo só da nossa base (Supabase), com as médias de 7 e 30 dias.",
+    "Os preços das cidades e dos materiais voltaram a vir do Albion Data. Para cada preço vale o mais recente: se o Albion Data foi coletado depois do nosso registro, fica o dele; senão, o do Supabase.",
+    "Isso corrige a lista vazia: sem preço de material nas cidades o site não conseguia calcular o lucro de fabricar."
+   ]
+  },
+  {
    "t": "2026-10-28T08:00:00Z",
    "titulo": "Planta dos mapas de Avalon pelos dados do jogo (reserva)",
    "itens": [
