@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T23:25:00Z",
+   "titulo": "Albion Overlay 2.0.10: aviso de versão nova",
+   "programa": "2.0.10",
+   "itens": [
+    "Com o overlay aberto, o programa confere a cada 10 minutos se saiu versão nova. Quando sai, aparece uma janela no estilo do site perguntando se pode reiniciar: \"Reiniciar e atualizar\" baixa a versão nova, confere o arquivo e abre o overlay de novo; \"Depois\" volta a perguntar em 3 horas (ou antes, se sair outra versão).",
+    "Se o download falhar, um aviso no mesmo estilo informa e o overlay continua aberto na versão atual."
+   ]
+  },
+  {
    "t": "2026-10-28T23:00:00Z",
    "titulo": "Albion Overlay 2.0.9: nuvem mais rápida e ficha só quando muda",
    "programa": "2.0.9",
