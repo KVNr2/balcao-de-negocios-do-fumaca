@@ -30,6 +30,32 @@
    ]
   },
   {
+   "t": "2026-10-28T05:34:00Z",
+   "titulo": "Montar a bag: peso, valor e montaria indicada",
+   "itens": [
+    "Botão com a sacola em Refino, Craft (itens prontos e materiais), Mercado e Mercado Negro para pôr itens na bag.",
+    "A gaveta da bag mostra quantidades, peso, custo, valor de venda no destino, preço médio de 7 dias e lucro com taxas.",
+    "Você escolhe de onde para onde vai, e o site mostra o risco do caminho (zona vermelha, Brumas, cidades reais).",
+    "Com bolsa, torta e peso do equipamento, o site calcula a carga em % e a velocidade com as faixas de sobrecarga do jogo, e indica a montaria mais adequada (e a melhor fora as raras). Quando nada leva tudo, mostra as viagens necessárias.",
+    "A bag pode ser compartilhada por link."
+   ]
+  },
+  {
+   "t": "2026-10-28T05:16:00Z",
+   "titulo": "Oficina: filtros mais estreitos em janela pequena",
+   "itens": [
+    "Na janela pequena do Overlay, os filtros do Craft e do Refino ocupam menos espaço."
+   ]
+  },
+  {
+   "t": "2026-10-28T05:07:00Z",
+   "titulo": "Craft e Refino: ordenar e filtrar pelas colunas",
+   "itens": [
+    "O título de cada coluna ordena nos dois sentidos.",
+    "Novos filtros por lucro, lucro % e vendas por dia."
+   ]
+  },
+  {
    "t": "2026-10-28T05:00:00Z",
    "titulo": "Albion Overlay 2.0.5",
    "programa": "2.0.5",
@@ -37,6 +63,104 @@
     "Novo atalho \"Ler mapa de Avalon sob o mouse\" (configure em Ajustes): passe o mouse no portal da Estrada de Avalon e aperte. O programa lê o nome escrito abaixo de \"Estrada de Avalon para\", corrige erros de leitura comparando com a lista de mapas e abre a aba Avalon já pesquisando por ele.",
     "A leitura usa o reconhecimento de texto do próprio Windows e só olha a tela no instante em que você aperta o atalho. Em jogo em tela cheia exclusiva a captura pode sair preta; use tela cheia sem bordas.",
     "Ficha: a troca de mapa não apaga mais a mensagem de uma ficha já lida nem mostra o aviso \"Ficha lida do jogo\" de novo."
+   ]
+  },
+  {
+   "t": "2026-10-28T04:16:00Z",
+   "titulo": "Craft: Refinar eu mesmo; Refino: melhor craft de cada material",
+   "itens": [
+    "No Craft, o cartão Materiais refinados deixa escolher Comprar prontos ou Refinar eu mesmo, com ou sem foco. Cada barra, tecido, couro ou tábua passa a custar o mais barato entre comprar e refinar (em cadeia), com o retorno da cidade e a taxa da estação.",
+    "No Refino, cada linha mostra o craft que mais rende por unidade do material, e o nome abre o item no Craft."
+   ]
+  },
+  {
+   "t": "2026-10-27T04:55:00Z",
+   "titulo": "Botão Coletar preços removido",
+   "itens": [
+    "O botão \"Coletar preços\" saiu do topo do site: a coleta já roda sozinha enquanto o Albion Overlay está aberto."
+   ]
+  },
+  {
+   "t": "2026-10-27T04:06:00Z",
+   "titulo": "Albion Overlay 2.0.4",
+   "programa": "2.0.4",
+   "itens": [
+    "Respeita o limite medido da API (85 por minuto e 250 por 5 minutos), com contador compartilhado entre os quadros e espera exata depois de um aviso de limite."
+   ]
+  },
+  {
+   "t": "2026-10-27T03:55:00Z",
+   "titulo": "Ritmo da API medido e painel de diagnóstico",
+   "itens": [
+    "Medido: a API recusa acima de 100 pedidos por minuto e 300 a cada 5 minutos. O site usa no máximo 85 por minuto e 250 por 5 minutos, com pedidos de até 200 itens.",
+    "Abas e quadros do overlay dividem o mesmo contador; depois de um aviso de limite, o site espera até o reinício exato da janela.",
+    "Abrindo o site com ?diag=1 aparece um painel com o registro dos pedidos e um teste de limite."
+   ]
+  },
+  {
+   "t": "2026-10-27T03:32:00Z",
+   "titulo": "Albion Overlay 2.0.3",
+   "programa": "2.0.3",
+   "itens": [
+    "Traz o site com o ritmo novo da API e o carregamento com barra."
+   ]
+  },
+  {
+   "t": "2026-10-27T03:20:00Z",
+   "titulo": "Barra de carregamento nas consultas pesadas",
+   "itens": [
+    "Mercado Negro, Mercado, Encantar, Craft, Refino, Cozinha, Fazenda e Trabalhadores mostram uma barra de carregamento visual quando consultam muitos itens.",
+    "O \"Consultar mais\" saiu: tudo é consultado em lotes espaçados, e as linhas aparecem conforme chegam."
+   ]
+  },
+  {
+   "t": "2026-10-27T03:10:00Z",
+   "titulo": "Overlay: listas ajustadas à janela",
+   "itens": [
+    "No Albion Overlay, as listas diminuem de tamanho para caber na janela, sem cortar o conteúdo e, quando dá, sem barra de rolagem."
+   ]
+  },
+  {
+   "t": "2026-10-27T03:03:00Z",
+   "titulo": "Albion Overlay 2.0.2",
+   "programa": "2.0.2",
+   "itens": [
+    "Passa a coletar só as ordens de compra do Mercado Negro (equipamento T2 a T8), sem o preço de venda."
+   ]
+  },
+  {
+   "t": "2026-10-27T02:50:00Z",
+   "titulo": "Mercado Negro: colunas, Todas e Cidade de compra",
+   "itens": [
+    "Colunas com nomes mais curtos e dicas; \"Vendas por dia\" no lugar de \"compra por dia\".",
+    "A aba abre com Categoria e Tipo em Todas e não mostra mais as armas por spec.",
+    "Novo filtro \"Cidade de compra\", que vale para comprar a peça (revender) ou os materiais (fabricar)."
+   ]
+  },
+  {
+   "t": "2026-10-27T02:30:00Z",
+   "titulo": "Aba Custo removida; Craft e Encantar ajustados",
+   "itens": [
+    "A aba Custo foi removida: o valor da build já aparece nas outras abas.",
+    "Encantar ganhou \"Todas as mercadorias\" e abre nela, consultando um tipo por vez.",
+    "A frase do Craft sobre comparar todos os itens do grupo foi corrigida (T2 a T8)."
+   ]
+  },
+  {
+   "t": "2026-10-26T23:20:00Z",
+   "titulo": "Mercado Negro: só o pedido de compra atual",
+   "itens": [
+    "O valor do Mercado Negro passou a ser o pedido de compra atual, e não o preço comum de venda da página (o Mercado Negro só compra).",
+    "Cabeçalho, dica, texto da aba e guia explicam isso."
+   ]
+  },
+  {
+   "t": "2026-10-26T21:30:00Z",
+   "titulo": "PvP: Terras Antigas (AL) e total real de builds",
+   "itens": [
+    "O conteúdo Terras Antigas (AL) passou a ser reconhecido pela regra de itens de dragão, IP e fama, e os nomes dos conteúdos ficaram padronizados em português.",
+    "Os botões mostram o total real de builds e a lista completa.",
+    "A coleta das candidatas a AL guarda o evento completo (matador, vítima, assistentes e grupo), para montar composições e conferir mortes."
    ]
   },
   {
@@ -78,6 +202,14 @@
     "Cada mapa mostra à esquerda do nome um ícone do tipo (Hideout, Tunnel e caveiras preta, vermelha e azul para Black, Royal vermelho e Royal azul).",
     "Ao lado do nome ficam ícones de Brecilien, baú azul, baú verde e número de dungeons.",
     "Os tipos de risco passaram a usar os nomes do jogo: Low Black, Medium Black, High Black, Low Tunnel, Medium Tunnel, High Tunnel e Deep Tunnel."
+   ]
+  },
+  {
+   "t": "2026-10-26T10:17:00Z",
+   "titulo": "Albion Overlay 2.0.1",
+   "programa": "2.0.1",
+   "itens": [
+    "A ficha começa vazia, sem o exemplo."
    ]
   },
   {
@@ -129,11 +261,38 @@
    ]
   },
   {
-   "t": "2026-10-23T19:20:00Z",
-   "titulo": "PvP: mais dados, sobretudo no 5v5",
+   "t": "2026-10-24T01:58:00Z",
+   "titulo": "PvP: coleta com mais paciência na API",
    "itens": [
-    "O histórico dos jogadores agora roda 4 vezes por hora e começa pelos jogadores que já eram os mais ativos em cada conteúdo, com prioridade máxima para o Hellgate 5v5, que é o mais raro.",
-    "A visão \"Por composição\" aparece sempre em Hellgate 2v2/5v5 e Depths; no 5v5 mostra também composições com 1 ou 2 lutas, marcadas como amostra pequena."
+    "As métricas mostraram que o limite de 12 s por pedido estava cortando respostas boas que levam de 8 a 12 s. O limite subiu para 25 s. O ritmo de pedidos por segundo continua o mesmo."
+   ]
+  },
+  {
+   "t": "2026-10-24T01:55:00Z",
+   "titulo": "PvP: tier list com cara de accordion",
+   "itens": [
+    "A faixa da tier list agora tem seta, fundo destacado e um botão \"Clique para abrir\" (e \"Fechar\" quando aberta), deixando claro que é só clicar para expandir."
+   ]
+  },
+  {
+   "t": "2026-10-23T23:10:00Z",
+   "titulo": "PvP: tier list também em \"Por composição\"",
+   "itens": [
+    "A tier list (por arma e por composição) agora aparece nas visões Por build e Por composição. Em Por jogador continua escondida."
+   ]
+  },
+  {
+   "t": "2026-10-23T22:55:00Z",
+   "titulo": "PvP: métricas completas da coleta",
+   "itens": [
+    "O registro do coletor agora mostra tempo de resposta (mediana, p90, máximo), tamanho médio, causa dos erros de rede (timeout, reset, recusada…), tempo gasto em fila, pausa, erros e espera, e a taxa real de pedidos por segundo, separados por tipo de consulta."
+   ]
+  },
+  {
+   "t": "2026-10-23T22:05:00Z",
+   "titulo": "PvP: coleta menos presa em erros de rede",
+   "itens": [
+    "O coletor agora desiste de um pedido à API oficial após 12 s (antes 30 s), para não gastar a rodada esperando conexões que caem. O ritmo de pedidos por segundo não mudou."
    ]
   },
   {
@@ -161,6 +320,23 @@
    ]
   },
   {
+   "t": "2026-10-23T19:30:00Z",
+   "titulo": "PvP: Hellgate em uma aba só e histórico dobrado",
+   "itens": [
+    "Hellgate 2v2 e 5v5 agora ficam juntos na aba \"Hellgate\", com o seletor Grupo de 2 / Grupo de 5, igual às Depths.",
+    "O coletor carrega histórico de jogadores em 8 das 10 coletas por hora (antes 4), mantendo o mesmo espaçamento entre pedidos à API oficial.",
+    "O coletor passou a registrar quantos pedidos fez e quais erros a API devolveu em cada rodada, para ajustar o ritmo com segurança."
+   ]
+  },
+  {
+   "t": "2026-10-23T19:20:00Z",
+   "titulo": "PvP: mais dados, sobretudo no 5v5",
+   "itens": [
+    "O histórico dos jogadores agora roda 4 vezes por hora e começa pelos jogadores que já eram os mais ativos em cada conteúdo, com prioridade máxima para o Hellgate 5v5, que é o mais raro.",
+    "A visão \"Por composição\" aparece sempre em Hellgate 2v2/5v5 e Depths; no 5v5 mostra também composições com 1 ou 2 lutas, marcadas como amostra pequena."
+   ]
+  },
+  {
    "t": "2026-10-23T19:10:00Z",
    "titulo": "PvP: composições em 2v2, 3v3 e 5v5",
    "itens": [
@@ -170,20 +346,20 @@
    ]
   },
   {
-   "t": "2026-10-23T18:40:00Z",
-   "titulo": "Rotina: banco de preços se limpa sozinho",
-   "itens": [
-    "O banco de preços do AlbionSpecs agora confere com a API oficial do Albion Data: quando o preço da API é mais novo que o nosso, o nosso valor de venda ou de compra é apagado, e a linha some quando os dois ficam vazios.",
-    "A conferência roda sozinha no Supabase, um lote de 100 itens a cada 2 minutos, e um ciclo completo leva uns 26 minutos."
-   ]
-  },
-  {
    "t": "2026-10-23T18:50:00Z",
    "titulo": "PvP: vitória por luta em 2v2, 3v3 e 5v5",
    "itens": [
     "Em Hellgate 2v2/5v5 e Depths, as mortes seguidas entre os mesmos jogadores (até 150 s uma da outra) viram uma luta só, e o grupo com menos mortes ganha: cada jogador conta uma vitória ou derrota por luta, não por morte.",
     "Empates e lutas incompletas demais ficam de fora. Corrompida e Brumas solo continuam contando por morte.",
     "Isso baixa o winrate inflado de armas como o Cajado Sagrado; os números novos aparecem na próxima atualização diária."
+   ]
+  },
+  {
+   "t": "2026-10-23T18:40:00Z",
+   "titulo": "Rotina: banco de preços se limpa sozinho",
+   "itens": [
+    "O banco de preços do AlbionSpecs agora confere com a API oficial do Albion Data: quando o preço da API é mais novo que o nosso, o nosso valor de venda ou de compra é apagado, e a linha some quando os dois ficam vazios.",
+    "A conferência roda sozinha no Supabase, um lote de 100 itens a cada 2 minutos, e um ciclo completo leva uns 26 minutos."
    ]
   },
   {
@@ -237,11 +413,12 @@
    ]
   },
   {
-   "t": "2026-10-23T16:15:00Z",
-   "titulo": "Aba Versão: todas as atualizações",
+   "t": "2026-10-23T16:30:00Z",
+   "titulo": "PvP: classificador melhor e contagem em builds",
    "itens": [
-    "O cartão \"Versão no ar\" ganhou um resumo curto do que mudou.",
-    "O botão \"Ver todas as atualizações\" abre a lista completa por categoria: Site, AlbionSpecs e Rotinas (as atualizações automáticas de dados), e o botão Voltar do navegador devolve você de onde estava."
+    "O classificador que descobre de qual conteúdo é cada morte agora é uma floresta de árvores: acerta cerca de 94% nos testes, contra 92% antes.",
+    "Os botões de conteúdo e o resumo da aba contam builds, não lutas.",
+    "O coletor passa a guardar as características de cada morte, para reclassificar com o modelo novo e continuar treinando."
    ]
   },
   {
@@ -254,20 +431,19 @@
    ]
   },
   {
+   "t": "2026-10-23T16:15:00Z",
+   "titulo": "Aba Versão: todas as atualizações",
+   "itens": [
+    "O cartão \"Versão no ar\" ganhou um resumo curto do que mudou.",
+    "O botão \"Ver todas as atualizações\" abre a lista completa por categoria: Site, AlbionSpecs e Rotinas (as atualizações automáticas de dados), e o botão Voltar do navegador devolve você de onde estava."
+   ]
+  },
+  {
    "t": "2026-10-23T16:00:00Z",
    "titulo": "PvP: armas populares com nível",
    "itens": [
     "Cada conteúdo ganhou uma lista de armas populares (usos, winrate e nível S, A, B ou C), somando todas as builds da arma, mesmo as de poucas lutas.",
     "O nível usa o winrate puxado para 50% quando há poucas lutas (S 58% ou mais, A 52%, B 46%, C abaixo), e armas com menos de 5 usos ficam sem nível. Aparece depois da próxima atualização do PvP."
-   ]
-  },
-  {
-   "t": "2026-10-23T16:30:00Z",
-   "titulo": "PvP: classificador melhor e contagem em builds",
-   "itens": [
-    "O classificador que descobre de qual conteúdo é cada morte agora é uma floresta de árvores: acerta cerca de 94% nos testes, contra 92% antes.",
-    "Os botões de conteúdo e o resumo da aba contam builds, não lutas.",
-    "O coletor passa a guardar as características de cada morte, para reclassificar com o modelo novo e continuar treinando."
    ]
   },
   {
@@ -294,20 +470,20 @@
    ]
   },
   {
-   "t": "2026-10-22T20:00:00Z",
-   "titulo": "Mercado Negro e Craft",
-   "itens": [
-    "A aba do Mercado Negro ganhou os mesmos filtros do Mercado (busca, categoria, tipo, tier, encantamento e qualidade).",
-    "O botão Craft agora funciona para peças T2 e T3 do Mercado Negro."
-   ]
-  },
-  {
    "t": "2026-10-23T02:46:58Z",
    "programa": "1.4.5",
    "titulo": "AlbionSpecs 1.4.5",
    "itens": [
     "Junta todas as páginas da busca e envia só no fim, ficando com o menor preço de venda de cada item.",
     "No Mercado Negro, nenhuma página é cortada: os preços de compra vêm completos, sem filtro de preço suspeito."
+   ]
+  },
+  {
+   "t": "2026-10-22T20:00:00Z",
+   "titulo": "Mercado Negro e Craft",
+   "itens": [
+    "A aba do Mercado Negro ganhou os mesmos filtros do Mercado (busca, categoria, tipo, tier, encantamento e qualidade).",
+    "O botão Craft agora funciona para peças T2 e T3 do Mercado Negro."
    ]
   },
   {
@@ -325,148 +501,6 @@
    "titulo": "AlbionSpecs 1.4.3",
    "itens": [
     "O modo de coleta liga a leitura do tráfego."
-   ]
-  },
-  {
-   "t": "2026-10-23T19:30:00Z",
-   "titulo": "PvP: Hellgate em uma aba só e histórico dobrado",
-   "itens": [
-    "Hellgate 2v2 e 5v5 agora ficam juntos na aba \"Hellgate\", com o seletor Grupo de 2 / Grupo de 5, igual às Depths.",
-    "O coletor carrega histórico de jogadores em 8 das 10 coletas por hora (antes 4), mantendo o mesmo espaçamento entre pedidos à API oficial.",
-    "O coletor passou a registrar quantos pedidos fez e quais erros a API devolveu em cada rodada, para ajustar o ritmo com segurança."
-   ]
-  },
-  {
-   "t": "2026-10-23T22:05:00Z",
-   "titulo": "PvP: coleta menos presa em erros de rede",
-   "itens": [
-    "O coletor agora desiste de um pedido à API oficial após 12 s (antes 30 s), para não gastar a rodada esperando conexões que caem. O ritmo de pedidos por segundo não mudou."
-   ]
-  },
-  {
-   "t": "2026-10-23T22:55:00Z",
-   "titulo": "PvP: métricas completas da coleta",
-   "itens": [
-    "O registro do coletor agora mostra tempo de resposta (mediana, p90, máximo), tamanho médio, causa dos erros de rede (timeout, reset, recusada…), tempo gasto em fila, pausa, erros e espera, e a taxa real de pedidos por segundo, separados por tipo de consulta."
-   ]
-  },
-  {
-   "t": "2026-10-23T23:10:00Z",
-   "titulo": "PvP: tier list também em \"Por composição\"",
-   "itens": [
-    "A tier list (por arma e por composição) agora aparece nas visões Por build e Por composição. Em Por jogador continua escondida."
-   ]
-  },
-  {
-   "t": "2026-10-24T01:55:00Z",
-   "titulo": "PvP: tier list com cara de accordion",
-   "itens": [
-    "A faixa da tier list agora tem seta, fundo destacado e um botão \"Clique para abrir\" (e \"Fechar\" quando aberta), deixando claro que é só clicar para expandir."
-   ]
-  },
-  {
-   "t": "2026-10-24T01:58:00Z",
-   "titulo": "PvP: coleta com mais paciência na API",
-   "itens": [
-    "As métricas mostraram que o limite de 12 s por pedido estava cortando respostas boas que levam de 8 a 12 s. O limite subiu para 25 s. O ritmo de pedidos por segundo continua o mesmo."
-   ]
-  },
-  {
-   "t": "2026-10-26T21:30:00Z",
-   "titulo": "PvP: Terras Antigas (AL) e total real de builds",
-   "itens": [
-    "O conteúdo Terras Antigas (AL) passou a ser reconhecido pela regra de itens de dragão, IP e fama, e os nomes dos conteúdos ficaram padronizados em português.",
-    "Os botões mostram o total real de builds e a lista completa.",
-    "A coleta das candidatas a AL guarda o evento completo (matador, vítima, assistentes e grupo), para montar composições e conferir mortes."
-   ]
-  },
-  {
-   "t": "2026-10-26T23:20:00Z",
-   "titulo": "Mercado Negro: só o pedido de compra atual",
-   "itens": [
-    "O valor do Mercado Negro passou a ser o pedido de compra atual, e não o preço comum de venda da página (o Mercado Negro só compra).",
-    "Cabeçalho, dica, texto da aba e guia explicam isso."
-   ]
-  },
-  {
-   "t": "2026-10-27T02:30:00Z",
-   "titulo": "Aba Custo removida; Craft e Encantar ajustados",
-   "itens": [
-    "A aba Custo foi removida: o valor da build já aparece nas outras abas.",
-    "Encantar ganhou \"Todas as mercadorias\" e abre nela, consultando um tipo por vez.",
-    "A frase do Craft sobre comparar todos os itens do grupo foi corrigida (T2 a T8)."
-   ]
-  },
-  {
-   "t": "2026-10-27T02:50:00Z",
-   "titulo": "Mercado Negro: colunas, Todas e Cidade de compra",
-   "itens": [
-    "Colunas com nomes mais curtos e dicas; \"Vendas por dia\" no lugar de \"compra por dia\".",
-    "A aba abre com Categoria e Tipo em Todas e não mostra mais as armas por spec.",
-    "Novo filtro \"Cidade de compra\", que vale para comprar a peça (revender) ou os materiais (fabricar)."
-   ]
-  },
-  {
-   "t": "2026-10-27T03:10:00Z",
-   "titulo": "Overlay: listas ajustadas à janela",
-   "itens": [
-    "No Albion Overlay, as listas diminuem de tamanho para caber na janela, sem cortar o conteúdo e, quando dá, sem barra de rolagem."
-   ]
-  },
-  {
-   "t": "2026-10-27T03:20:00Z",
-   "titulo": "Barra de carregamento nas consultas pesadas",
-   "itens": [
-    "Mercado Negro, Mercado, Encantar, Craft, Refino, Cozinha, Fazenda e Trabalhadores mostram uma barra de carregamento visual quando consultam muitos itens.",
-    "O \"Consultar mais\" saiu: tudo é consultado em lotes espaçados, e as linhas aparecem conforme chegam."
-   ]
-  },
-  {
-   "t": "2026-10-27T03:55:00Z",
-   "titulo": "Ritmo da API medido e painel de diagnóstico",
-   "itens": [
-    "Medido: a API recusa acima de 100 pedidos por minuto e 300 a cada 5 minutos. O site usa no máximo 85 por minuto e 250 por 5 minutos, com pedidos de até 200 itens.",
-    "Abas e quadros do overlay dividem o mesmo contador; depois de um aviso de limite, o site espera até o reinício exato da janela.",
-    "Abrindo o site com ?diag=1 aparece um painel com o registro dos pedidos e um teste de limite."
-   ]
-  },
-  {
-   "t": "2026-10-26T10:17:00Z",
-   "titulo": "Albion Overlay 2.0.1",
-   "programa": "2.0.1",
-   "itens": [
-    "A ficha começa vazia, sem o exemplo."
-   ]
-  },
-  {
-   "t": "2026-10-27T03:03:00Z",
-   "titulo": "Albion Overlay 2.0.2",
-   "programa": "2.0.2",
-   "itens": [
-    "Passa a coletar só as ordens de compra do Mercado Negro (equipamento T2 a T8), sem o preço de venda."
-   ]
-  },
-  {
-   "t": "2026-10-27T03:32:00Z",
-   "titulo": "Albion Overlay 2.0.3",
-   "programa": "2.0.3",
-   "itens": [
-    "Traz o site com o ritmo novo da API e o carregamento com barra."
-   ]
-  },
-  {
-   "t": "2026-10-27T04:06:00Z",
-   "titulo": "Albion Overlay 2.0.4",
-   "programa": "2.0.4",
-   "itens": [
-    "Respeita o limite medido da API (85 por minuto e 250 por 5 minutos), com contador compartilhado entre os quadros e espera exata depois de um aviso de limite."
-   ]
-  },
-  {
-   "t": "2026-10-27T04:55:00Z",
-   "titulo": "Botão Coletar preços removido",
-   "itens": [
-    "O botão \"Coletar preços\" saiu do topo do site: a coleta já roda sozinha enquanto o Albion Overlay está aberto."
    ]
   }
  ]
