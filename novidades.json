@@ -1,13 +1,23 @@
 {
  "itens": [
   {
+   "t": "2026-10-28T17:55:00Z",
+   "titulo": "Albion Overlay 2.0.7",
+   "programa": "2.0.7",
+   "itens": [
+    "O ícone da bandeja agora fica na seta ^ junto dos outros programas (Discord, Steam...). O programa confere essa configuração do Windows 11 por cerca de 1 minuto, porque o Explorer a desfazia.",
+    "Desinstalar (em Configurações > Aplicativos) corrigido: a pergunta aparece na hora e vem para a frente, o overlay é minimizado enquanto você decide e, ao confirmar, o programa fecha, a entrada some da lista e a pasta é apagada. O desinstalador só diz que terminou depois de conferir que a entrada realmente sumiu.",
+    "As caixas de pergunta e aviso do programa não são mais escondidas pelo próprio overlay.",
+    "O escudo ficou mais nítido e contrastado nos tamanhos pequenos (bandeja e barra de tarefas)."
+   ]
+  },
+  {
    "t": "2026-10-28T17:30:00Z",
    "titulo": "Albion Overlay 2.0.6",
    "programa": "2.0.6",
    "itens": [
     "Ícone novo: um escudo de Albion com o toldo listrado, o lampião e a fumaça do Balcão do Fumaça. Aparece no arquivo, na bandeja, no botão da barra de tarefas, na miniatura e no Menu Iniciar.",
     "O programa agora aparece em Configurações > Aplicativos (com Desinstalar) e ganha um atalho no Menu Iniciar. Se você apagar o atalho, o item \"Criar atalho no Menu Iniciar\" do ícone da bandeja cria de novo. Em cada atualização, a versão e o ícone se renovam sozinhos.",
-    "O ícone da bandeja passa a ficar visível ao lado do relógio (no Windows 11 o programa confere e refaz essa configuração, que o Explorer desfazia).",
     "As perguntas e avisos do instalador e do desinstalador usam o visual do site em vez da caixa cinza do Windows."
    ]
   },
