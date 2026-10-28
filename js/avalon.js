@@ -162,3 +162,10 @@ async function avMapaAtual(id){
   host.textContent=""; const m=AV.byId&&AV.byId[id]; if(!m) return false;
   host.append(avCard(m)); return true;
 }
+
+/* Overlay: o atalho "Ler mapa de Avalon sob o mouse" manda o nome lido; limpa os filtros e pesquisa por ele. */
+window.addEventListener("message",async e=>{
+  const q=e.data&&e.data.avBusca; if(typeof q!=="string"||e.origin!==location.origin||e.source!==window.parent) return;
+  try{ await renderAv(); $("avClear").click(); AV.q=q.trim(); $("avQ").value=AV.q; AV.shown=60; await renderAv(); }catch(x){}
+  try{ window.parent.postMessage({avOk:1},location.origin); }catch(x){}
+});
