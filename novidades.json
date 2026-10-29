@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T15:40:00Z",
+   "titulo": "Builds com a cidade mais barata de cada peça; menu do item no botão direito",
+   "itens": [
+    "Builds, PvP, ZvZ e Nossas builds: a cidade agora começa em \"Mais barata em cada peça\". O site procura cada peça nas 5 cidades da royal e em Caerleon e soma o menor preço de cada uma. Abaixo do total aparece peça por peça: a cidade onde comprar e por quanto (em cinza quando é média de dias, não anúncio atual). Escolher uma cidade fixa continua funcionando como antes.",
+    "Menu do item: clique com o botão direito (no celular, segure o dedo) em qualquer ícone de item do site. Mostra onde ele está mais barato agora e atalhos: procurar no Mercado, ver no Mercado Negro, como fabricar (abre o Craft, o Refino ou a Cozinha já no item), substituição de mesmo IP mais barata (T8.0 = 7.1 = 6.2 = 5.3 = 4.4, com preço de cada), pôr na bag e copiar o nome para a busca do jogo. Shift+botão direito abre o menu normal do navegador."
+   ]
+  },
+  {
    "t": "2026-10-29T06:00:00Z",
    "titulo": "Plano do dia junta foco e dinheiro; Craft mostra a cidade com bônus",
    "itens": [

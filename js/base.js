@@ -246,7 +246,7 @@ const ICON_RENDER = (id,q=1) => `https://render.albiononline.com/v1/item/${id}.p
 const ICON_REMOTE = id => `https://albionmarket.gg/icon/${encodeURIComponent(id)}/1/200`;
 const ICON = (id,q=1) => ICON_LOCAL(id,q) || ICON_RENDER(id,q);
 /* tenta cada fonte em ordem; se todas falharem, chama onFail */
-function iconSrc(im,id,onFail,q=1){ im.referrerPolicy="no-referrer"; const fontes=[ICON_LOCAL(id,q),ICON_RENDER(id,q),q===1?ICON_REMOTE(id):""].filter(Boolean); let i=0;
+function iconSrc(im,id,onFail,q=1){ im.referrerPolicy="no-referrer"; if(id){ im.dataset.item=id; im.dataset.q=String(q||1); }   /* data-item: o menu do item (botão direito) sabe qual é */ const fontes=[ICON_LOCAL(id,q),ICON_RENDER(id,q),q===1?ICON_REMOTE(id):""].filter(Boolean); let i=0;
   im.onerror=()=>{ if(++i<fontes.length) im.src=fontes[i]; else onFail(); }; im.src=fontes[0]; }
 const iconImg = (id,size=36,q=1) => { const i=el("img",{alt:"",loading:"lazy",decoding:"async",width:size,height:size}); i.className="ico"; iconSrc(i,id,()=>{ i.style.visibility="hidden"; },q); return i; };
 /* célula com o ícone do item (tier e encantamento já vão no código, ex.: T6_2H_BOW@2) ao lado do texto; withIconQ usa o ícone da qualidade q */
