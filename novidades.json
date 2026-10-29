@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T01:24:00Z",
+   "titulo": "Mercado Negro: vendas por dia",
+   "itens": [
+    "Nova coluna Vende por dia: quantas peças daquele item, naquela qualidade, o Mercado Negro comprou por dia nos últimos 7 dias (histórico do Albion Data Project).",
+    "Novo filtro Vende por dia, no mínimo: esconde o que quase não vende. O site consulta as vendas das 300 primeiras da lista e mostra só as que passam do mínimo; o valor fica salvo no navegador.",
+    "A tabela do Mercado Negro ficou mais compacta em telas de até 1600 px e cabe inteira em 1440 px."
+   ]
+  },
+  {
    "t": "2026-10-29T01:15:00Z",
    "titulo": "Mercado: carregamento rápido pela nuvem",
    "itens": [
