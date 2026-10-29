@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T00:40:00Z",
+   "titulo": "Mercado: botão Pesquisar, ordenação local e menos pedidos à API",
+   "itens": [
+    "Mercado: a primeira consulta é automática. Depois dela, trocar categoria, tipo, tier, encantamento, qualidade, cidade ou texto não consulta a API de novo: a tabela mostra o que já foi consultado, e o botão Pesquisar (com o número de itens ainda sem preço) consulta o que falta. O botão Atualizar lista refaz a consulta dos itens do filtro atual sem usar o que estava guardado.",
+    "Clicar no cabeçalho de uma coluna ordena na hora, sem nova consulta: item, cada cidade, preço médio, diferença ou atualização.",
+    "T1, T2 e T3 saíram do Mercado e T2 e T3 do Mercado Negro. Em Todas as categorias o encantamento .0 de tudo é consultado primeiro, para a tabela ficar útil logo.",
+    "Preço novo (do jogo ou da nuvem) troca só os valores das linhas que mudaram de verdade, com um brilho curto na célula, sem redesenhar nem reordenar a tabela. Valor igual não faz nada.",
+    "O cache do navegador passou para o IndexedDB (sem o limite de ~5 MB que apagava tudo quando enchia). As listas do Mercado valem 45 minutos; a atualização automática de 10 minutos não apaga mais o que o Mercado já consultou."
+   ]
+  },
+  {
    "t": "2026-10-28T23:25:00Z",
    "titulo": "Albion Overlay 2.0.10: aviso de versão nova",
    "programa": "2.0.10",

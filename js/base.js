@@ -309,10 +309,19 @@ const VER = document.documentElement.dataset.v || "1";
 const DATA_P = {};
 function need(name){ return DATA_P[name] || (DATA_P[name] = fetch(`data/${name}.json?v=${VER}`).then(r=>{ if(!r.ok) throw new Error(name); return r.json(); })); }
 /* cache das respostas da API: 10 min para preços, 6 h para histórico */
-const CACHE_PREFIX="c1:";
+/* Cache das respostas da API no IndexedDB do navegador (centenas de MB, sem o limite de ~5 MB do localStorage que apagava tudo quando enchia).
+   Fica também em memória; o que vence (6 h) é descartado ao abrir. Os preços valem pelo prazo de cada consulta; a nuvem em tempo quase real cobre o resto. */
 let FORCE=false;
-function cacheGet(url,ttlMin){ try{ const raw=localStorage.getItem(CACHE_PREFIX+url); if(!raw) return null; const o=JSON.parse(raw); if(Date.now()-o.t>ttlMin*60e3) return null; return o; }catch(e){ return null; } }
-function cachePut(url,j){ const v=JSON.stringify({t:Date.now(),j}); try{ localStorage.setItem(CACHE_PREFIX+url,v); }catch(e){ try{ Object.keys(localStorage).filter(k=>k.startsWith(CACHE_PREFIX)).forEach(k=>localStorage.removeItem(k)); localStorage.setItem(CACHE_PREFIX+url,v); }catch(e2){} } }
+const CACHE_MEM=new Map(), CACHE_W=new Map(); let CACHE_DB=null, CACHE_TM=0;
+const CACHE_READY=Promise.race([(async()=>{
+  try{ Object.keys(localStorage).filter(k=>k.startsWith("c1:")).forEach(k=>localStorage.removeItem(k)); }catch(e){}
+  try{ const db=await new Promise((ok,no)=>{ const r=indexedDB.open("albion-cache",1); r.onupgradeneeded=()=>r.result.createObjectStore("c"); r.onsuccess=()=>ok(r.result); r.onerror=()=>no(r.error); });
+    CACHE_DB=db; await new Promise(ok=>{ const tx=db.transaction("c","readwrite"), rq=tx.objectStore("c").openCursor(), now=Date.now();
+      rq.onsuccess=()=>{ const c=rq.result; if(!c){ ok(); return; } const v=c.value; if(v&&now-v.t<6*3600e3) CACHE_MEM.set(c.key,v); else c.delete(); c.continue(); }; rq.onerror=()=>ok(); }); }catch(e){}
+})(),new Promise(f=>setTimeout(f,4000))]);
+function cacheGet(url,ttlMin){ const o=CACHE_MEM.get(url); if(!o||Date.now()-o.t>ttlMin*60e3) return null; return o; }
+function cachePut(url,j){ const o={t:Date.now(),j}; CACHE_MEM.set(url,o); if(!CACHE_DB) return; CACHE_W.set(url,o);
+  if(!CACHE_TM) CACHE_TM=setTimeout(()=>{ CACHE_TM=0; const w=[...CACHE_W]; CACHE_W.clear(); try{ const st=CACHE_DB.transaction("c","readwrite").objectStore("c"); for(const [k,v] of w) st.put(v,k); }catch(e){} },1500); }
 /* limite global de pedidos simultâneos à API (como um pool de threads): o resto espera a vez */
 const API_MAX=6; let apiBusy=0; const apiQ=[];
 const apiSlot=()=>apiBusy<API_MAX?(apiBusy++,Promise.resolve()):new Promise(f=>apiQ.push(f));
@@ -364,11 +373,11 @@ const CROWD_MEM=new Map(); let CROWD_OFF=false; const CROWD={hits:0};
    nova). Aqui o valor é aplicado na hora nas listas já carregadas, guardado para as próximas consultas (o mais recente vence o Albion
    Data e o Supabase) e a aba aberta é redesenhada. Só vale dentro do overlay (?overlay=1): a página-mãe repassa os avisos por postMessage
    e cada quadro também pede o que já chegou nos últimos 20 min ao abrir. */
-const LIVEP={ovr:new Map(),timer:0,n:0,fonte:"jogo"};
+const LIVEP={ovr:new Map(),timer:0,n:0,fonte:"jogo",mud:new Set(),outros:false};   /* mud: "qualidade|item" cujo valor mudou de verdade nas listas do Mercado; outros: mudou algo nas demais abas */
 const livepIso=t=>new Date(t).toISOString().slice(0,19), livepMs=d=>d&&!String(d).startsWith("0001")?(Date.parse(/(Z|[+-]\d\d:?\d\d)$/.test(String(d))?d:d+"Z")||0):0;
 function livepAplicar(j,nuvem){
   if(!j||!Array.isArray(j.itens)||!j.itens.length) return;
-  const now=Date.now(); let n=0;
+  const now=Date.now(); let n=0, ch=false;
   for(const [k,v] of LIVEP.ovr) if(now-v.t>20*60e3) LIVEP.ovr.delete(k);
   const toc=new Map();
   for(const e of j.itens){
@@ -377,14 +386,16 @@ function livepAplicar(j,nuvem){
     LIVEP.ovr.set(key,{s,b,sa:+e.sa||0,ba:+e.ba||0,t}); n++;
     const k=e.i.includes("_LEVEL")?e.i.split("@")[0]:e.i;
     /* listas já carregadas: [venda, compra, hora da venda, hora da compra] */
-    const tg=q===1?DATA.itens:PQ[q]; if(tg&&tg[k]){ const a=tg[k][c]||(tg[k][c]=[0,0,0,0]); if(s&&c!=="Black Market"&&(!nuvem||t>=a[2])){ a[0]=s; a[2]=t; } if(b&&(!nuvem||t>=a[3])){ a[1]=b; a[3]=t; } (toc.get(tg)||toc.set(tg,new Set()).get(tg)).add(k); }
-    if(typeof BMD!=="undefined"&&q===1&&BMD[k]){ const a=BMD[k][c]||(BMD[k][c]=[0,0,0,0]); if(s&&c!=="Black Market"&&(!nuvem||t>=a[2])){ a[0]=s; a[2]=t; } if(b&&(!nuvem||t>=a[3])){ a[1]=b; a[3]=t; } }
+    const tg=q===1?DATA.itens:PQ[q]; if(tg&&tg[k]){ const a=tg[k][c]||(tg[k][c]=[0,0,0,0]), a0=a[0], a1=a[1]; if(s&&c!=="Black Market"&&(!nuvem||t>=a[2])){ a[0]=s; a[2]=t; } if(b&&(!nuvem||t>=a[3])){ a[1]=b; a[3]=t; } if(a[0]!==a0||a[1]!==a1){ LIVEP.mud.add(q+"|"+k); ch=true; } (toc.get(tg)||toc.set(tg,new Set()).get(tg)).add(k); }
+    if(typeof BMD!=="undefined"&&q===1&&BMD[k]){ const a=BMD[k][c]||(BMD[k][c]=[0,0,0,0]), a0=a[0], a1=a[1]; if(s&&c!=="Black Market"&&(!nuvem||t>=a[2])){ a[0]=s; a[2]=t; } if(b&&(!nuvem||t>=a[3])){ a[1]=b; a[3]=t; } if(a[0]!==a0||a[1]!==a1){ LIVEP.outros=true; ch=true; } }
     /* Mercado Negro e aba Mercado: [venda, compra, idade da compra em horas, idade da venda em horas] */
-    if(typeof BMP!=="undefined"){ const r=q===1?BMP[e.i]:((BMQ[e.i]||{})[q]); if(r){ const a=r[c]||(r[c]=[0,0,Infinity,Infinity]); if(s&&c!=="Black Market"&&(!nuvem||(Date.now()-t)/36e5<=a[3])){ a[0]=s; a[3]=Math.max(0,(Date.now()-t)/36e5); } if(b&&(!nuvem||(Date.now()-t)/36e5<=a[2])){ a[1]=b; a[2]=Math.max(0,(Date.now()-t)/36e5); } } }
+    if(typeof BMP!=="undefined"){ const r=q===1?BMP[e.i]:((BMQ[e.i]||{})[q]); if(r){ const a=r[c]||(r[c]=[0,0,Infinity,Infinity]), a0=a[0], a1=a[1]; if(s&&c!=="Black Market"&&(!nuvem||(Date.now()-t)/36e5<=a[3])){ a[0]=s; a[3]=Math.max(0,(Date.now()-t)/36e5); } if(b&&(!nuvem||(Date.now()-t)/36e5<=a[2])){ a[1]=b; a[2]=Math.max(0,(Date.now()-t)/36e5); } if(a[0]!==a0||a[1]!==a1){ LIVEP.outros=true; ch=true; } } }
   }
   if(!n) return;
   for(const [tg,ks] of toc) try{ dropOutliers(tg,ks); }catch(e){}
-  CROWD_MEM.clear(); SB_MEM.clear(); LIVEP.n+=n; LIVEP.fonte=nuvem?"nuvem":"jogo"; if(LIVEP.ovr.size>5000){ const o=[...LIVEP.ovr].sort((x,y)=>x[1].t-y[1].t); for(let i=0;i<o.length-4000;i++) LIVEP.ovr.delete(o[i][0]); } livepAgenda();
+  CROWD_MEM.clear(); SB_MEM.clear(); LIVEP.n+=n; LIVEP.fonte=nuvem?"nuvem":"jogo";
+  if(LIVEP.ovr.size>5000){ const o=[...LIVEP.ovr].sort((x,y)=>x[1].t-y[1].t); for(let i=0;i<o.length-4000;i++) LIVEP.ovr.delete(o[i][0]); }
+  if(ch) livepAgenda();   /* só redesenha se algum valor mudou de verdade */
 }
 function livepApiRows(out,idx,ids,locs,quals){
   if(!LIVEP.ovr.size) return; const I=new Set(ids), L=locs.length?new Set(locs):null, Q=new Set(quals.map(String));
@@ -409,8 +420,12 @@ async function livepRedesenha(){
   try{
     const hh=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
     const w=$("when"); if(w){ const nv=LIVEP.fonte==="nuvem"; w.textContent=(nv?"preço novo, ":"preço do jogo, ")+hh; $("whenBox").classList.remove("stale","off"); $("whenBox").title=nv?"Preço novo de outro jogador chegou à nuvem às "+hh+" (Albion Overlay), conferida a cada poucos segundos":"Preço novo lido do jogo às "+hh+" (Albion Overlay), aplicado na hora"; }
-    if(["voce","craft","refino","mercado","fazenda","encantar"].some(vis)) recompute(false);
-    if(vis("cozinha")) await renderCook(); if(vis("mapas")) renderMaps(); if(vis("trab")) await renderWK(); if(vis("mk")) await renderMk();
+    const mud=LIVEP.mud; LIVEP.mud=new Set(); LIVEP.outros=false;
+    if(vis("mk")){ if(mud.size) mkAtualizaLinhas(mud); }   /* Mercado: só as linhas e os valores que mudaram, sem redesenhar nem consultar a API */
+    else{
+      if(["voce","craft","refino","mercado","fazenda","encantar"].some(vis)) recompute(false);
+      if(vis("cozinha")) await renderCook(); if(vis("mapas")) renderMaps(); if(vis("trab")) await renderWK();
+    }
     if(typeof BAG!=="undefined"&&BAG.open&&typeof bagRender==="function") bagRender();
   }catch(e){}
   requestAnimationFrame(()=>window.scrollTo(0,y)); setTimeout(()=>window.scrollTo(0,y),250);
@@ -501,6 +516,7 @@ async function apiJSON(url,ttlMin=10){
 /* registro de cada pedido à API (para o diagnóstico: abra o site com ?diag=1) */
 const API_LOG=[]; function apiLog(url,status,ini,fim,pedido,txt){ API_LOG.push({t:ini||pedido,esperou:Math.max(0,(ini||pedido)-pedido),ms:fim-(ini||pedido),status,itens:((/prices\/([^?]*)\.json/.exec(url)||[])[1]||"").split(",").filter(Boolean).length,url:url.length,resp:(txt||"").slice(0,200)}); if(API_LOG.length>3000) API_LOG.splice(0,500); }
 async function apiJSON0(url,ttlMin=10){
+  await CACHE_READY;
   if(!FORCE){ const c=cacheGet(url,ttlMin); if(c){ apiJSON.oldest=Math.min(apiJSON.oldest||Infinity,c.t); return c.j; } }
   let r;
   for(let n=0;;n++){
@@ -510,7 +526,10 @@ async function apiJSON0(url,ttlMin=10){
     const txt=r.status===429?await r.text().catch(()=>""):""; const w=r.status===429?(apiResetMs(txt)||1500*Math.pow(2,n)):1500*Math.pow(2,n); if(r.status===429) apiBlock(Date.now()+w);
     await new Promise(f=>setTimeout(f,w));
   }
-  if(!r.ok) throw new Error("API respondeu "+r.status); const j=await r.json(); cachePut(url,j); return j;
+  if(!r.ok) throw new Error("API respondeu "+r.status); let j=await r.json();
+  /* lista de preços: guarda só o que o site usa e só linhas com preço (a API devolve uma linha por cidade mesmo vazia); cabe muito mais no cache do navegador */
+  if(url.includes("/stats/prices/")&&Array.isArray(j)) j=j.filter(x=>x.sell_price_min>0||x.buy_price_max>0).map(x=>({item_id:x.item_id,city:x.city,quality:x.quality,sell_price_min:x.sell_price_min,sell_price_min_date:x.sell_price_min_date,buy_price_max:x.buy_price_max,buy_price_max_date:x.buy_price_max_date}));
+  cachePut(url,j); return j;
 }
 const CITIES=["Thetford","Fort Sterling","Martlock","Bridgewatch","Lymhurst"];
 const MAX_AGE_H=72;
@@ -528,10 +547,10 @@ function dropOutliers(target,keys){
       if(cs.length>=3){ const m=med(vs); for(const c of cs){ const v=r[c][f]; if(v>m*6||v<m/6){ r[c][f]=0; r[c][f+2]=0; } } }
       else { const [lo,hi]=vs[0]<vs[1]?[0,1]:[1,0]; if(vs[hi]>vs[lo]*10){ r[cs[hi]][f]=0; r[cs[hi]][f+2]=0; } } } }
 }
-async function fetchIds(ids, target, locs=CITIES, q=1){
+async function fetchIds(ids, target, locs=CITIES, q=1, ttl=10){
   const loc=locs.join(",").replace(/ /g,"%20");
   const parts=apiChunks(ids,loc.length+q.toString().length);
-  const res=await Promise.all(parts.map(p=>apiJSON(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=${q}`)));   // pedaços em paralelo
+  const res=await Promise.all(parts.map(p=>apiJSON(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=${q}`,ttl)));   // pedaços em paralelo
   for(const j of res){
     for(const x of j){
       const s=fresh(x.sell_price_min_date)?x.sell_price_min:0, b=fresh(x.buy_price_max_date)?x.buy_price_max:0;
@@ -551,8 +570,9 @@ async function loadLive(force){
     let ouro=DATA.ouro; try{ const g=await apiJSON(`${HOST}/api/v2/stats/gold.json?count=168`,30); if(g[0]) ouro=g[0].price; drawGold(g); }catch(e){}
     const when=isFinite(apiJSON.oldest)?new Date(apiJSON.oldest):new Date(); FORCE=false;
     const hh=when.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+    if(!force){ const o=DATA.itens||{}; for(const k in o) if(!(k in itens)) itens[k]=o[k]; }   /* atualização automática: mantém o que o Mercado já consultou */
     DATA={geradoEm:new Date().toISOString(),janela:`ao vivo, ${hh}`,ouro,itens}; LIVE=true; loadedFam.clear();
-    COOK_LOADED=false; BM_LOADED.clear(); PLANKS_LOADED=false; WK_LOADED=false; FZ_LOADED=false; EN_LOADED.clear(); OF.loaded.clear(); MK_SEEN.clear(); for(const q in PQ) PQ[q]={}; if(typeof BMQ!=="undefined") for(const k in BMQ) delete BMQ[k]; applyMeta(); recompute(true); btn.classList.remove("busy"); btnTxt("Atualizar preços"); setTimeout(()=>{ try{ warmBM(!!force); }catch(e){} },400); if(!$("p-cozinha").hidden) renderCook(); if(!$("p-mapas").hidden) renderMaps(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-trab").hidden) renderWK(); if(!$("p-fazenda").hidden) renderFZ(); if(!$("p-encantar").hidden) renderEN(); if(!$("p-craft").hidden) renderOf(); if(!$("p-mk").hidden) renderMk();
+    COOK_LOADED=false; BM_LOADED.clear(); PLANKS_LOADED=false; WK_LOADED=false; FZ_LOADED=false; EN_LOADED.clear(); OF.loaded.clear(); if(force){ MK_SEEN.clear(); for(const q in PQ) PQ[q]={}; } if(typeof BMQ!=="undefined") for(const k in BMQ) delete BMQ[k]; applyMeta(); recompute(true); btn.classList.remove("busy"); btnTxt("Atualizar preços"); setTimeout(()=>{ try{ warmBM(!!force); }catch(e){} },400); if(!$("p-cozinha").hidden) renderCook(); if(!$("p-mapas").hidden) renderMaps(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-trab").hidden) renderWK(); if(!$("p-fazenda").hidden) renderFZ(); if(!$("p-encantar").hidden) renderEN(); if(!$("p-craft").hidden) renderOf(); if(!$("p-mk").hidden) renderMk();
   }catch(e){ FORCE=false; $("when").textContent="sem conexão, usando os salvos"; $("whenBox").classList.add("off"); $("whenBox").title="Não consegui puxar os preços ao vivo agora. "+(DATA.janela?"Usando os preços salvos no site: "+DATA.janela:""); btn.classList.remove("busy"); btnTxt("Tentar de novo"); }
   btn.disabled=false;
 }
