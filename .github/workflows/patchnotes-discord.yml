@@ -4,6 +4,11 @@ on:
     branches: [main]
     paths: [novidades.json]
   workflow_dispatch:
+    inputs:
+      resumo:
+        description: "Arquivo de resumo em tools/patchnotes/ para postar (vazio = só as entradas novas)"
+        required: false
+        default: ""
 permissions:
   contents: read
 jobs:
@@ -20,4 +25,5 @@ jobs:
         env:
           DISCORD_WEBHOOK_PATCHNOTES: ${{ secrets.DISCORD_WEBHOOK_PATCHNOTES }}
           BEFORE: ${{ github.event.before }}
+          RESUMO: ${{ github.event.inputs.resumo }}
         run: python3 tools/postar_patchnotes.py

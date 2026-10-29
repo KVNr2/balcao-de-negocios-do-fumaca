@@ -48,34 +48,53 @@ def bloco(n):
             "fields": campos, "timestamp": n.get("t"), "footer": {"text": f"Balcão de Negócios do Fumaça · {tag}"}}
 
 
+def lotes(blocos):
+    """Divide em mensagens de até 10 blocos e ~5.800 caracteres (o Discord aceita 6.000), sem perder nenhum."""
+    atual = []
+    for b in blocos:
+        if atual and (len(atual) == 10 or len(json.dumps(atual + [b])) > 5800):
+            yield atual
+            atual = []
+        atual.append(b)
+    if atual:
+        yield atual
+
+
+def postar(hook, titulo, blocos):
+    for i, parte in enumerate(lotes(blocos)):
+        if not hook:
+            print("Sem webhook configurado; mandaria:", [b["title"] for b in parte])
+            continue
+        corpo = json.dumps({"username": "Balcão do Fumaça", "content": f"**{titulo}**" if i == 0 else "", "embeds": parte}).encode()
+        req = urllib.request.Request(hook, data=corpo, headers={"Content-Type": "application/json", "User-Agent": "balcao-patchnotes"})
+        urllib.request.urlopen(req, timeout=20)
+        print("Postadas:", [b["title"] for b in parte])
+        time.sleep(1.5)
+
+
 def main():
+    """Com RESUMO=<arquivo>, posta um resumo escrito à mão (tools/patchnotes/*.json: titulo + notas) em vez das entradas novas."""
+    hook = os.environ.get("DISCORD_WEBHOOK_PATCHNOTES", "").strip()
+    resumo = os.environ.get("RESUMO", "").strip()
+    if resumo:
+        r = json.load(open(resumo, encoding="utf-8"))
+        postar(hook, r.get("titulo", "Atualização no Balcão"), [bloco(n) for n in r.get("notas", [])])
+        return
     atuais = entradas(open(ARQ, encoding="utf-8").read())
     antes = anterior(os.environ.get("BEFORE", ""))
     if antes is None:
         print("Sem versão anterior para comparar: nada postado (evita repostar o histórico inteiro).")
         return
     vistos = {n.get("t") for n in antes}
-    novas = sorted([n for n in atuais if n.get("t") not in vistos], key=lambda n: n.get("t", ""))
+    novas = sorted([n for n in atuais if n.get("t") not in vistos and n.get("discord", True) is not False], key=lambda n: n.get("t", ""))   # "discord": false = só no site
     if not novas:
         print("Nenhuma entrada nova.")
         return
-    hook = os.environ.get("DISCORD_WEBHOOK_PATCHNOTES", "").strip()
-    for i in range(0, len(novas), 10):
-        parte = [bloco(n) for n in novas[i:i + 10]]
-        while len(json.dumps(parte)) > 5800 and len(parte) > 1:   # limite de 6000 caracteres por mensagem
-            parte.pop()
-        if not hook:
-            print("Sem webhook configurado; mandaria:", [b["title"] for b in parte])
-            continue
-        corpo = json.dumps({"username": "Balcão do Fumaça", "content": "**Atualização no Balcão**", "embeds": parte}).encode()
-        req = urllib.request.Request(hook, data=corpo, headers={"Content-Type": "application/json", "User-Agent": "balcao-patchnotes"})
-        try:
-            urllib.request.urlopen(req, timeout=20)
-            print("Postadas:", [b["title"] for b in parte])
-        except Exception as e:
-            print("Falhou ao postar:", e, file=sys.stderr)
-            sys.exit(1)
-        time.sleep(1.5)
+    try:
+        postar(hook, "Atualização no Balcão", [bloco(n) for n in novas])
+    except Exception as e:
+        print("Falhou ao postar:", e, file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

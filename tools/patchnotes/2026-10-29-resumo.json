@@ -1,0 +1,77 @@
+{
+ "titulo": "Balcão do Fumaça: o que mudou em 28 e 29/10",
+ "notas": [
+  {
+   "titulo": "Plano do dia: foco e dinheiro juntos",
+   "itens": [
+    "Você diz quanto foco e quanto dinheiro quer usar, quantos lotes tem e em quantos dias quer vender; o site monta a combinação que dá mais lucro.",
+    "Cada linha diz se é com foco ou sem foco, quanto fazer, o investimento, o lucro e o lucro %.",
+    "Um campo de foco só, que vale também na Cozinha e na Fazenda (o que passa do teto conta sem foco)."
+   ],
+   "como": "Plano do dia → preencha Foco e Dinheiro para investir no topo → Montar plano.",
+   "impacto": "O plano deixa de sugerir o que prende muito dinheiro para lucrar pouco."
+  },
+  {
+   "titulo": "Builds: custo mais perto do real",
+   "itens": [
+    "Cada peça é procurada nas 5 cidades da royal, com base em Lymhurst.",
+    "Só sai de Lymhurst se a economia pagar o teleporte de volta, calculado pelo peso da peça.",
+    "Caerleon aparece ao lado quando é mais barato, mas não entra no total (não dá para voltar com a bag por teleporte).",
+    "Abaixo do total, a lista peça por peça com a cidade e o preço."
+   ],
+   "como": "Deixe a cidade em \"Mais barata (base Lymhurst)\" e passe o mouse em cada peça para ver o motivo.",
+   "impacto": "Menos idas a outra cidade por diferenças que o teleporte come."
+  },
+  {
+   "titulo": "Menu do item e De olho",
+   "itens": [
+    "Botão direito (ou segurar o dedo no celular) em qualquer ícone de item: onde comprar, onde vender na hora e onde anunciar.",
+    "Atalhos para o Mercado, o Mercado Negro e a receita (Craft, Refino ou Cozinha), e a troca por um equivalente de mesmo IP mais barato.",
+    "De olho: marque um preço-alvo e o site avisa quando chegar. Os itens ficam no botão de olho na barra de cima."
+   ],
+   "como": "Clique com o botão direito no ícone do item.",
+   "impacto": "Menos cliques entre páginas e um jeito de esperar o preço certo sem vigiar."
+  },
+  {
+   "titulo": "Mercado, Mercado Negro, Craft e Refino",
+   "itens": [
+    "Tier, encantamento e qualidade aceitam várias opções de uma vez (ex.: T6 e T7).",
+    "Mercado Negro mostra quanto vende por dia e filtra por isso.",
+    "Craft e Refino mostram a cidade com bônus de produção (+15% ou +40%) e o Rest da zona preta com o mesmo bônus.",
+    "Com a varredura da nuvem em dia, listas grandes carregam em segundos; quando ela atrasa, aparece \"nuvem atrasada\" ao lado do horário."
+   ],
+   "como": "Abra o filtro de Tier e marque mais de um.",
+   "impacto": "Comparar tiers e achar onde fabricar ficou bem mais rápido."
+  },
+  {
+   "titulo": "Correções",
+   "itens": [
+    "Poções com ingrediente raro (ex.: Calmante, Purificadora) contavam retorno sobre esse ingrediente; no jogo ele não volta. O lucro delas aparecia bem maior do que é.",
+    "Preços que sumiam na Cozinha, Fazenda, Trabalhadores e Pesca quando os preços ao vivo chegavam no meio da busca."
+   ],
+   "como": "Nada: as contas já estão certas.",
+   "impacto": "Se você viu uma poção com lucro alto demais nos últimos dias, confira de novo."
+  },
+  {
+   "titulo": "Celular, testes e avisos",
+   "itens": [
+    "No celular, Craft, Refino e Mercado mostram só a busca e a categoria; o resto abre em Mais opções / Mais filtros.",
+    "Testes automáticos conferem as contas a cada mudança no site.",
+    "As atualizações agora chegam sozinhas neste canal."
+   ],
+   "como": "No celular, toque em Mais opções para abrir os filtros.",
+   "impacto": "Menos erro chegando no site e todo mundo sabendo do que mudou."
+  },
+  {
+   "titulo": "Albion Overlay 2.0.7 a 2.1.0",
+   "itens": [
+    "Preços em tempo real a partir do que você vê no mercado do jogo.",
+    "Envio mais rápido para a nuvem e ficha sincronizada só quando muda.",
+    "Aviso quando sai versão nova do programa.",
+    "Varredura de preços em blocos, que deixa o filtro Todas rápido para todo mundo."
+   ],
+   "como": "O programa se atualiza sozinho; deixe ele aberto enquanto joga.",
+   "impacto": "Quanto mais gente com o Overlay aberto, mais rápido e mais novo o preço para todos."
+  }
+ ]
+}
