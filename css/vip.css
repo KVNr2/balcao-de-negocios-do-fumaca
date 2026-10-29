@@ -1827,3 +1827,6 @@ td.gv-cell .gv-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:400
 .msel-all{color:var(--parch-2);border-bottom:1px solid var(--line-soft);border-radius:5px 5px 0 0;margin-bottom:2px}
 .msel-all.on{color:var(--saffron)}
 .msel-h{padding:4px 10px 2px;font-size:12px}
+/* Plano do dia: seção "Vale fazer também sem foco" */
+.pl-sf{margin-top:22px;padding-top:16px;border-top:1px solid rgba(239,226,196,.12)}
+.pl-sfh{font:700 18px var(--f-body);color:var(--parch);margin:0 0 4px}

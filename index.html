@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="38125710">
+<html lang="pt-BR" data-v="0977633b">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=38125710">
-<link rel="stylesheet" href="css/vip.css?v=38125710">
-<link rel="stylesheet" href="css/avicons.css?v=38125710">
-<link rel="stylesheet" href="css/souk.css?v=38125710">
+<link rel="stylesheet" href="css/balcao.css?v=0977633b">
+<link rel="stylesheet" href="css/vip.css?v=0977633b">
+<link rel="stylesheet" href="css/avicons.css?v=0977633b">
+<link rel="stylesheet" href="css/souk.css?v=0977633b">
 </head>
 <body>
 <div class="wrap app">
@@ -339,7 +339,7 @@ html.em-atual .av-card{margin:0}
             <div class="of-cnt">Itens na lista <b id="ofCount">—</b></div></div>
           <div class="of-card of-rc"><span class="of-ct" id="ofRcT">Receita</span><input id="ofQty" type="number" min="1" step="1" value="10" aria-label="Quantidade de receitas a fabricar"><small class="muted" id="ofRcS">receitas pagas de cada item</small><div class="seg" id="ofQMode" role="group" aria-label="O que a quantidade significa"><button type="button" data-q="pay" aria-pressed="true" title="Você compra o material de N receitas; o que volta do retorno vira peças extras">Material de N</button><button type="button" data-q="final" aria-pressed="false" title="Você quer fabricar exatamente N peças (o retorno só barateia)">N peças finais</button></div></div>
           <div class="of-g"><h3>Item</h3>
-            <div class="of-2c"><label class="f">Tier<select id="ofTier"></select></label><label class="f">Encantamento<select id="ofEnch"></select></label></div>
+            <div class="of-2c"><label class="f">Tier<div id="ofTier"></div></label><label class="f">Encantamento<div id="ofEnch"></div></label></div>
             <label class="f" id="ofQualBox">Qualidade do item vendido<select id="ofQual"></select></label></div>
           <div class="of-card" id="ofCityCard">
             <button type="button" class="of-chead" aria-expanded="false" aria-controls="ofCityPop">
@@ -777,8 +777,8 @@ html.em-atual .av-card{margin:0}
       <label class="f">Procurar em todos os itens<input type="search" id="mkFind" placeholder="Ex.: Lança, Batata, Minério" autocomplete="off"></label>
       <label class="f">Categoria<select id="mkCat"></select></label>
       <label class="f">Tipo<select id="mkSub"></select></label>
-      <label class="f">Tier<select id="mkTier"></select></label>
-      <label class="f">Encantamento<select id="mkEnch"></select></label>
+      <label class="f">Tier<div id="mkTier"></div></label>
+      <label class="f">Encantamento<div id="mkEnch"></div></label>
       <label class="f">Qualidade<select id="mkQual"></select></label>
       <label class="f">Cidade<select id="mkCity"></select></label>
       <label class="chk"><input type="checkbox" id="mkOnly" checked> Só itens com anúncio</label>
@@ -816,26 +816,26 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=38125710"></script>
-<script src="js/base.js?v=38125710"></script>
-<script src="js/fx.js?v=38125710"></script>
-<script src="js/biz.js?v=38125710"></script>
-<script src="js/builds.js?v=38125710"></script>
-<script src="js/nossas.js?v=38125710"></script>
-<script src="js/ip.js?v=38125710"></script>
-<script src="js/zvz.js?v=38125710"></script>
-<script src="js/pvp.js?v=38125710"></script>
-<script src="js/novos.js?v=38125710"></script>
-<script src="js/guia.js?v=38125710"></script>
-<script src="js/ui.js?v=38125710"></script>
-<script src="js/avalon.js?v=38125710"></script>
-<script src="js/oficina.js?v=38125710"></script>
-<script src="js/versao.js?v=38125710"></script>
-<script src="js/bag.js?v=38125710"></script>
-<script src="js/plano.js?v=38125710"></script>
-<script src="js/pesca.js?v=38125710"></script>
-<script src="js/listfil.js?v=38125710"></script>
-<script src="js/fav.js?v=38125710"></script>
-<script src="js/main.js?v=38125710"></script>
+<script src="js/icons.js?v=0977633b"></script>
+<script src="js/base.js?v=0977633b"></script>
+<script src="js/fx.js?v=0977633b"></script>
+<script src="js/biz.js?v=0977633b"></script>
+<script src="js/builds.js?v=0977633b"></script>
+<script src="js/nossas.js?v=0977633b"></script>
+<script src="js/ip.js?v=0977633b"></script>
+<script src="js/zvz.js?v=0977633b"></script>
+<script src="js/pvp.js?v=0977633b"></script>
+<script src="js/novos.js?v=0977633b"></script>
+<script src="js/guia.js?v=0977633b"></script>
+<script src="js/ui.js?v=0977633b"></script>
+<script src="js/avalon.js?v=0977633b"></script>
+<script src="js/oficina.js?v=0977633b"></script>
+<script src="js/versao.js?v=0977633b"></script>
+<script src="js/bag.js?v=0977633b"></script>
+<script src="js/plano.js?v=0977633b"></script>
+<script src="js/pesca.js?v=0977633b"></script>
+<script src="js/listfil.js?v=0977633b"></script>
+<script src="js/fav.js?v=0977633b"></script>
+<script src="js/main.js?v=0977633b"></script>
 </body>
 </html>

@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T03:00:00Z",
+   "titulo": "Vários tiers no Craft, Refino e Mercado; Plano do dia mostra o que vale fazer sem foco",
+   "itens": [
+    "Craft, Refino e Mercado: Tier e Encantamento agora abrem uma lista em que dá para marcar mais de um, como no Mercado Negro (por exemplo T5 e T7, .0 e .2). Sem nada marcado, valem todos. Craft e Refino guardam a escolha de cada um.",
+    "Plano do dia: nova seção \"Vale fazer também sem foco\", com o que dá lucro sem gastar foco nenhum, limitado pelo que o mercado vende no prazo e descontando o que o plano com foco já produz do mesmo item. Mostra investimento, lucro sem foco, lucro % e quanto daria com foco."
+   ]
+  },
+  {
    "t": "2026-10-29T02:40:00Z",
    "titulo": "Correção: preços que sumiam na Cozinha, Fazenda, Trabalhadores e Pesca",
    "itens": [
