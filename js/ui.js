@@ -194,9 +194,12 @@ async function imNome(id){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id)||[]; const
   if(m[2]&&typeof BM!=="undefined"&&BM&&BM[m[2]]){ const n=nmKey(m[2],BM[m[2]][0]); return {pt:n,en:BM[m[2]][0]}; }
   return {pt:id,en:id}; }
 function imFechar(){ if(IM.el){ IM.el.remove(); IM.el=null; } }
-async function imPrecos(ids,q){ const locs=[...CITIES,"Caerleon"], out={};
+/* menor anúncio de venda nas cidades da royal e Caerleon; com full, também onde vender: maior pedido de compra (inclui Mercado Negro) e maior anúncio */
+async function imPrecos(ids,q,full){ const locs=[...CITIES,"Caerleon",...(full?["Black Market"]:[])], out={};
   try{ const j=await apiJSON(`${HOST}/api/v2/stats/prices/${ids.join(",")}.json?locations=${locs.join(",").replace(/ /g,"%20")}&qualities=${q||1}`);
-    for(const x of j){ if(!(x.sell_price_min>0)||!fresh(x.sell_price_min_date)) continue; const o=out[x.item_id]; if(!o||x.sell_price_min<o.p) out[x.item_id]={p:x.sell_price_min,c:x.city}; } }catch(e){}
+    for(const x of j){ const bm=x.city==="Black Market";
+      if(!bm&&x.sell_price_min>0&&fresh(x.sell_price_min_date)){ const o=out[x.item_id]; if(!o||x.sell_price_min<o.p) out[x.item_id]={...(o||{}),p:x.sell_price_min,c:x.city}; const a=out[x.item_id]; if(!a.anuncio||x.sell_price_min>a.anuncio.p) a.anuncio={p:x.sell_price_min,c:x.city}; }
+      if(full&&x.buy_price_max>0&&fresh(x.buy_price_max_date)){ const o=out[x.item_id]||(out[x.item_id]={}); if(!o.ordem||x.buy_price_max>o.ordem.p) o.ordem={p:x.buy_price_max,c:bm?"Mercado Negro":x.city}; } } }catch(e){}
   return out; }
 async function imIr(tab){ const t=$(tab); if(t) t.click(); await new Promise(f=>setTimeout(f,60)); }
 async function imAcao(k,id,q,nm){
@@ -222,23 +225,33 @@ async function itemMenu(id,q,x,y,origem){
   const itens=[]; const add=(k,txt,sub)=>{ const b=el("button",{type:"button",class:"imenu-i",role:"menuitem"}); b.append(el("span",{text:txt})); if(sub) b.append(el("small",{text:sub})); b.addEventListener("click",()=>{ imFechar(); imAcao(k,id,q,nm); }); menu.append(b); itens.push(b); return b; };
   if(!BM&&typeof need==="function"){ try{ BM=await need("bm"); }catch(err){} }
   const gear=!!(BM&&BM[code]), cook=typeof COOK!=="undefined"&&COOK&&COOK.r&&!!COOK.r[id], ref=/^(METALBAR|PLANKS|CLOTH|LEATHER|STONEBLOCK)$/.test(code);
-  add("mk","Procurar no Mercado","preços em todas as cidades");
-  if(gear) add("bm","Ver no Mercado Negro","quanto o Mercado Negro paga");
-  if(gear||cook||ref) add("craft",cook?"Como fazer (Cozinha e alquimia)":ref?"Como refinar (Refino)":"Como fabricar (Craft)","receita, custo e lucro");
+  add("mk","Procurar no Mercado");
+  if(gear) add("bm","Ver no Mercado Negro");
+  if(gear||cook||ref) add("craft",cook?"Como fazer (Cozinha e alquimia)":ref?"Como refinar (Refino)":"Como fabricar (Craft)");
   const eqBox=el("div",{class:"imenu-eq",hidden:true});
   if(gear&&t>=4&&bcEquivs(t+e).length>1){ const b=el("button",{type:"button",class:"imenu-i",role:"menuitem"}); b.append(el("span",{text:"Substituição de mesmo IP mais barata"}),el("small",{text:`${t}.${e} = ${bcEquivs(t+e).map(([a,b])=>a+"."+b).join(" = ")}`}));
     b.addEventListener("click",async()=>{ eqBox.hidden=false; eqBox.textContent="Consultando…"; const ids=bcEquivs(t+e).map(([a,b])=>`T${a}_${code}${b?"@"+b:""}`); const pr=await imPrecos(ids,q); eqBox.textContent="";
       const lst=ids.map(i=>({i,r:pr[i]})).sort((a,b)=>(a.r?a.r.p:Infinity)-(b.r?b.r.p:Infinity));
       for(const {i,r} of lst){ const mm=/^T(\d)_.+?(?:@(\d))?$/.exec(i); const li=el("div",{class:"imenu-eqr"+(i===id?" cur":"")}); li.append(iconImg(i,24,q),el("span",{text:`${mm[1]}.${mm[2]||0}${i===id?" (este)":""}`}),el("span",{class:"muted",text:r?r.c:"sem anúncio"}),el("b",{text:r?fmtS(r.p):"—"})); eqBox.append(li); } });
     menu.append(b,eqBox); itens.push(b); }
-  if(typeof bagAdd==="function") add("bag","Pôr na bag","calcula peso, valor e montaria");
-  add("copy","Copiar o nome",`para colar na busca do mercado do jogo`);
+  if(typeof bagAdd==="function") add("bag","Pôr na bag");
+  add("copy","Copiar o nome");
+  /* de olho: guarda o item com um preço-alvo; o site confere de tempos em tempos e avisa quando o menor anúncio chega no alvo */
+  const ol=olhoGet(id,q), ob=el("div",{class:"imenu-olho"}), ock=el("input",{type:"checkbox"}), oin=el("input",{type:"number",min:"1",step:"1",placeholder:"preço-alvo","aria-label":"Avisar quando o preço cair até"});
+  ock.checked=!!ol; if(ol&&ol.alvo) oin.value=String(ol.alvo);
+  const salvar=()=>{ if(ock.checked) olhoSet({id,q,nm:nm.pt,alvo:+oin.value>0?+oin.value:0}); else olhoDel(id,q); };
+  ock.addEventListener("change",()=>{ if(ock.checked&&!oin.value&&IM.min) oin.value=String(Math.round(IM.min*0.9)); salvar(); if(ock.checked) olhoPermissao(); });
+  oin.addEventListener("change",()=>{ if(+oin.value>0&&!ock.checked){ ock.checked=true; olhoPermissao(); } salvar(); });
+  ob.append(el("label",{class:"imenu-olc"},ock," De olho"),el("span",{class:"imenu-olt",text:"alvo"}),oin); menu.append(ob);
   document.body.append(menu);
   const W=menu.offsetWidth, H=menu.offsetHeight; menu.style.left=Math.max(8,Math.min(x,innerWidth-W-8))+"px"; menu.style.top=Math.max(8,Math.min(y,innerHeight-H-8))+"px";
   if(itens[0]) itens[0].focus({preventScroll:true});
-  menu.addEventListener("keydown",ev=>{ const i=itens.indexOf(document.activeElement); if(ev.key==="Escape"){ imFechar(); if(origem&&origem.focus) origem.focus(); } else if(ev.key==="ArrowDown"||ev.key==="ArrowUp"){ ev.preventDefault(); const n=itens.length; itens[(i+(ev.key==="ArrowDown"?1:-1)+n)%n].focus(); } });
-  const pr=await imPrecos([id],q); if(IM.el!==menu) return; const b=pr[id];
-  preco.textContent=""; if(b) preco.append("Mais barato agora: ",el("b",{text:fmt(b.p)})," em ",el("b",{class:"imenu-c",text:b.c})); else preco.textContent="Sem anúncio de venda recente nas cidades da royal.";
+  menu.addEventListener("keydown",ev=>{ if(ev.target.tagName==="INPUT"&&ev.key!=="Escape") return; const i=itens.indexOf(document.activeElement); if(ev.key==="Escape"){ imFechar(); if(origem&&origem.focus) origem.focus(); } else if(ev.key==="ArrowDown"||ev.key==="ArrowUp"){ ev.preventDefault(); const n=itens.length; itens[(i+(ev.key==="ArrowDown"?1:-1)+n)%n].focus(); } });
+  IM.min=0; const pr=await imPrecos([id],q,true); if(IM.el!==menu) return; const b=pr[id]||{};
+  preco.textContent=""; const ln=(lab,x,cls)=>{ const d=el("div"); d.append(lab,el("b",{text:fmt(x.p)})," em ",el("b",{class:cls,text:x.c})); preco.append(d); };
+  if(b.p){ IM.min=b.p; ln("Comprar: ",b,"imenu-c"); } else preco.append(el("div",{text:"Sem anúncio de venda recente nas cidades da royal."}));
+  if(b.ordem) ln("Vender na hora: ",b.ordem,"imenu-v"); if(b.anuncio&&b.anuncio.c!==b.c) ln("Anunciar: ",b.anuncio,"imenu-v");
+  if(!oin.value&&!ock.checked&&b.p) oin.placeholder=`ex.: ${fmt(Math.round(b.p*0.9))}`;
 }
 document.addEventListener("contextmenu",ev=>{ const im=ev.target.closest&&ev.target.closest("img[data-item]"); if(!im||ev.shiftKey) return; ev.preventDefault(); itemMenu(im.dataset.item,+im.dataset.q||1,ev.clientX,ev.clientY,im.closest("[tabindex]")); });
 document.addEventListener("click",ev=>{ if(IM.el&&!IM.el.contains(ev.target)) imFechar(); },true);
@@ -248,3 +261,31 @@ addEventListener("resize",imFechar); addEventListener("scroll",ev=>{ if(IM.el&&!
   ["pointerup","pointercancel"].forEach(t=>document.addEventListener(t,()=>clearTimeout(tm))); document.addEventListener("pointermove",ev=>{ if(Math.abs(ev.clientX-x0)+Math.abs(ev.clientY-y0)>10) clearTimeout(tm); }); }
 /* teclado: tecla de menu ou Shift+F10 numa linha que tem ícone de item */
 document.addEventListener("keydown",ev=>{ if(!(ev.key==="ContextMenu"||(ev.shiftKey&&ev.key==="F10"))) return; const a=document.activeElement; const im=a&&(a.matches&&a.matches("img[data-item]")?a:a.querySelector&&a.querySelector("img[data-item]")); if(!im) return; ev.preventDefault(); const r=im.getBoundingClientRect(); itemMenu(im.dataset.item,+im.dataset.q||1,r.left,r.bottom+4,a); });
+
+/* ===== De olho: itens marcados no menu do item, com preço-alvo (guardado neste navegador) ===== */
+const OLHO_K="deOlho";
+const olhoList=()=>{ try{ return JSON.parse(localStorage.getItem(OLHO_K)||"[]")||[]; }catch(e){ return []; } };
+const olhoSave=l=>{ try{ localStorage.setItem(OLHO_K,JSON.stringify(l)); }catch(e){} olhoBadge(); };
+const olhoGet=(id,q)=>olhoList().find(x=>x.id===id&&x.q===q);
+function olhoSet(o){ const l=olhoList().filter(x=>!(x.id===o.id&&x.q===o.q)); const old=olhoGet(o.id,o.q); l.push({...old,...o,avisado:old&&old.alvo===o.alvo?old.avisado:0}); olhoSave(l); }
+function olhoDel(id,q){ olhoSave(olhoList().filter(x=>!(x.id===id&&x.q===q))); }
+function olhoPermissao(){ try{ if("Notification" in window&&Notification.permission==="default") Notification.requestPermission(); }catch(e){} }
+function olhoBadge(){ const b=$("olhoBtn"); if(!b) return; const n=olhoList().length; b.hidden=!n; const c=b.querySelector(".olho-n"); if(c) c.textContent=String(n); const al=olhoList().some(x=>x.avisado); b.classList.toggle("alerta",al); }
+async function olhoConferir(){ const l=olhoList(); if(!l.length||document.hidden) return; const porQ={}; l.forEach(x=>(porQ[x.q]=porQ[x.q]||[]).push(x));
+  let mudou=false;
+  for(const q in porQ){ const ids=[...new Set(porQ[q].map(x=>x.id))]; const pr=await imPrecos(ids,+q);
+    for(const x of porQ[q]){ const r=pr[x.id]; x.agora=r&&r.p?{p:r.p,c:r.c}:null; x.visto=Date.now(); mudou=true;
+      if(x.alvo&&r&&r.p&&r.p<=x.alvo){ if(!x.avisado){ x.avisado=Date.now(); const msg=`${x.nm}: ${fmt(r.p)} em ${r.c} (alvo ${fmt(x.alvo)})`; toast("De olho: "+msg);
+          try{ if("Notification" in window&&Notification.permission==="granted") new Notification("Balcão do Fumaça: preço no alvo",{body:msg}); }catch(e){} } }
+      else if(x.avisado&&r&&r.p>x.alvo*1.05) x.avisado=0; } }
+  if(mudou){ const cur=olhoList(); for(const x of l){ const c=cur.find(y=>y.id===x.id&&y.q===x.q); if(c) Object.assign(c,{agora:x.agora,visto:x.visto,avisado:x.avisado}); } olhoSave(cur); }
+  if(document.querySelector(".olho-pop")) olhoAbrir(true); }
+function olhoAbrir(re){ let pop=document.querySelector(".olho-pop"); if(pop&&!re){ pop.remove(); return; } if(!pop){ pop=el("div",{class:"olho-pop",role:"dialog","aria-label":"Itens de olho"}); document.body.append(pop); }
+  pop.textContent=""; const l=olhoList(); pop.append(el("b",{class:"olho-h",text:"De olho"}));
+  if(!l.length){ pop.append(el("p",{class:"muted small",text:"Nada aqui. Clique com o botão direito num item e marque De olho."})); }
+  for(const x of l){ const r=el("div",{class:"olho-r"+(x.avisado?" ok":"")}); const del=el("button",{type:"button",class:"linkbtn",text:"tirar","aria-label":"Tirar "+x.nm+" de olho"}); del.addEventListener("click",()=>{ olhoDel(x.id,x.q); olhoAbrir(true); });
+    r.append(iconImg(x.id,28,x.q),el("span",{class:"olho-nm",text:x.nm}),el("span",{class:"olho-p",text:x.agora?`${fmtS(x.agora.p)} em ${x.agora.c}`:"—"}),el("span",{class:"olho-a muted",text:x.alvo?`alvo ${fmtS(x.alvo)}`:"sem alvo"}),del); pop.append(r); }
+  pop.append(el("p",{class:"tiny muted",text:"Confere a cada 5 minutos enquanto o site está aberto e avisa quando o menor anúncio nas cidades da royal chega no alvo. Fica guardado neste navegador."}));
+  const b=$("olhoBtn").getBoundingClientRect(); pop.style.top=(b.bottom+6)+"px"; pop.style.right=Math.max(8,innerWidth-b.right)+"px"; }
+{ const b=$("olhoBtn"); if(b){ b.addEventListener("click",ev=>{ ev.stopPropagation(); olhoAbrir(); if(document.querySelector(".olho-pop")) olhoConferir(); }); document.addEventListener("click",ev=>{ const p=document.querySelector(".olho-pop"); if(p&&!p.contains(ev.target)&&ev.target!==b) p.remove(); }); }
+  olhoBadge(); setTimeout(olhoConferir,15000); setInterval(olhoConferir,5*60e3); }

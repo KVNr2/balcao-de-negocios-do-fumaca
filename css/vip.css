@@ -1865,3 +1865,23 @@ td.gv-cell .gv-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:400
 .imenu-eqr.cur span:nth-child(2){color:var(--saffron,#e8ab45)}
 .bld-cost .bld-por{flex:1 0 100%;width:100%;order:99}
 .bld-cost .bld-pl{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:5px 16px}
+.bld-pl .bld-cae{color:var(--smoke,#a39382);font-size:10.5px}
+.imenu-p div+div{margin-top:2px}.imenu-p .imenu-v{color:#e8ab45}
+.imenu-olho{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 6px 2px;padding-top:7px;border-top:1px solid rgba(239,226,196,.1);font-size:13px}
+.imenu-olc{display:flex;align-items:center;gap:5px;font-weight:700;cursor:pointer}
+.imenu-olt{color:var(--smoke,#a39382);font-size:12px}
+.imenu-olho input[type=number]{width:96px;min-height:30px;padding:3px 6px;font-size:13px}
+/* De olho na barra de cima */
+.olho-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;border:1px solid var(--line,#4a3a2a);background:transparent;color:var(--parch-2,#d8c9a8);font:700 13px var(--f-body);cursor:pointer}
+.olho-chip[hidden]{display:none}
+.olho-chip svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+.olho-chip.alerta{border-color:#52d38a;color:#7fe0a8}
+.olho-pop{position:fixed;z-index:1000;width:360px;max-width:calc(100vw - 16px);max-height:70vh;overflow:auto;padding:10px;background:var(--night-2,#1d1714);border:1px solid var(--line,#4a3a2a);border-radius:10px;box-shadow:0 14px 34px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:6px}
+.olho-h{font-size:14px}
+.olho-r{display:grid;grid-template-columns:28px 1fr auto;grid-template-areas:"ic nm del" "ic p a";gap:0 8px;align-items:center;font-size:12.5px;padding:4px;border-radius:7px}
+.olho-r img{grid-area:ic;width:28px;height:28px;border-radius:6px}
+.olho-r .olho-nm{grid-area:nm;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.olho-r .olho-p{grid-area:p}.olho-r .olho-a{grid-area:a;text-align:right}.olho-r button{grid-area:del;justify-self:end;font-size:12px}
+.olho-r.ok{background:rgba(82,211,138,.1)}.olho-r.ok .olho-p{color:#7fe0a8;font-weight:700}
+.imenu-olc{white-space:nowrap}.imenu-olc input{width:16px;height:16px;margin:0}
+.imenu-olho{flex-wrap:nowrap}.imenu-olho input[type=number]{width:88px;flex:none}

@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T16:10:00Z",
+   "titulo": "Builds com base em Lymhurst; menu do item com onde vender e De olho",
+   "itens": [
+    "Builds: \"Mais barata (base Lymhurst)\" procura cada peça nas 5 cidades da royal. Se Lymhurst custa no máximo 20% a mais que a mais barata (10% para peças acima de 500 mil), a peça fica em Lymhurst; passe o mouse na peça para ver quanto sai mais barato na outra cidade. Caerleon aparece ao lado quando é mais barato, mas só entra no total se a peça não existir na royal, porque de lá não dá para voltar com a bag por teleporte.",
+    "Menu do item: mais curto. Mostra onde comprar mais barato, onde vender na hora (maior pedido de compra, Mercado Negro incluído) e onde anunciar. Nova caixa De olho com preço-alvo: o site confere a cada 5 minutos enquanto está aberto e avisa (na tela e, se você permitir, com notificação do navegador) quando o menor anúncio chega no alvo. Os itens de olho ficam no botão de olho na barra de cima."
+   ]
+  },
+  {
    "t": "2026-10-29T15:40:00Z",
    "titulo": "Builds com a cidade mais barata de cada peça; menu do item no botão direito",
    "itens": [
