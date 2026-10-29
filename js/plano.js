@@ -98,7 +98,7 @@ async function renderPlanoProd(run){
     if(C.equip){ const sv=[OF.tier,OF.ench]; OF.tier=0; OF.ench=-1; try{ for(const it of ofItems("g:*tudo")) ofPush(it,"Fabricar",["peça","peças"],`${it.name} T${it.t}.${it.e}`); } finally{ [OF.tier,OF.ench]=sv; } }
     if(C.ref) for(const it of ofItems("refine")) ofPush(it,"Refinar",["unidade","unidades"]);
     if(C.cons) for(const id in COOK.r){ const m=cookModel(id); if(!m||m.miss||m.thin||!(m.p1>0)) continue; if(PP.spec&&!(cookFCE(m.kind,id)>0)) continue;
-      cand.push({id,name:m.name,city:COOK_CITY[m.kind],q:m.q,fc1:m.fc,profitF:m.p1,semFoco:m.p0,invest:m.cost*(1-rrr(0.15,true,st.daily))+m.fee,sale:m.item.p,kind:m.kind==="f"?"Cozinhar":"Preparar",unit:["fornada","fornadas"]}); }
+      cand.push({id,name:m.name,city:COOK_CITY[m.kind],q:m.q,fc1:m.fc,profitF:m.p1,semFoco:m.p0,invest:m.inv,sale:m.item.p,kind:m.kind==="f"?"Cozinhar":"Preparar",unit:["fornada","fornadas"]}); }
     if(C.rega){ const L=ilhaL(); if(L>0){ const pl=FARM.p.map(plantModel).filter(Boolean).filter(m=>m.p1>0&&m.fc>0).sort((a,b)=>b.p1/b.fc-a.p1/a.fc)[0];
       if(pl) cand.push({id:pl.crop,name:`${fzName(pl.crop)} nos seus ${fmt(L)} lotes`,city:"sua ilha",q:1,fc1:pl.fc,profitF:pl.p1,semFoco:pl.p0,invest:pl.sp,sale:pl.cp,kind:"Plantar e regar",unit:["semente","sementes"],cap:9*L,rega:true}); } }
     /* o que o foco acrescenta de verdade: se já dá lucro sem foco, só a diferença; se sem foco daria prejuízo, o lucro inteiro (o foco é o que faz valer a pena) */
