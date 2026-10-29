@@ -7,7 +7,7 @@ const BMP = {};                     // id: {cidade: [venda, compra, idade em hor
 const BMQ = {};                     // qualidades 2 a 5, mesmo formato do BMP: id: {qualidade: {cidade: [venda, compra, idade da compra, idade da venda]}} (a qualidade 1 fica no BMP)
 const BM_VOL = {};                  // id: {qualidade: peças que o Mercado Negro comprou por dia (média dos últimos 7 dias)}, ou -1 se a consulta falhou
 /* dicas dos cabeçalhos da tabela (a coluna fica curta; o que ela é e de onde vem está aqui) */
-const BM_HT={"Pedido":"Pedido de compra atual do Mercado Negro para esta peça (qualidade indicada ou melhor), antes da taxa de venda. Vem só dos jogadores com o Albion Overlay coletando preços (Supabase do site). Pedido com mais de 72 horas não aparece.","Média 7 dias":"Média dos pedidos de compra do Mercado Negro registrados nos últimos 7 dias (não é média de vendas fechadas)","Custo":"Custo de fabricar a peça: matéria-prima (já com o retorno de recursos), artefato e taxa da bancada","Bônus em":"Cidade que dá bônus de retorno de recursos para fabricar esta peça"};
+const BM_HT={"Vende por dia":"Unidades desta peça, nesta qualidade, que o Mercado Negro comprou por dia nos últimos 7 dias (histórico do Albion Data Project). Use o filtro \"Vende por dia, no mínimo\" para esconder o que quase não vende.","Pedido":"Pedido de compra atual do Mercado Negro para esta peça (qualidade indicada ou melhor), antes da taxa de venda. Vem só dos jogadores com o Albion Overlay coletando preços (Supabase do site). Pedido com mais de 72 horas não aparece.","Média 7 dias":"Média dos pedidos de compra do Mercado Negro registrados nos últimos 7 dias (não é média de vendas fechadas)","Custo":"Custo de fabricar a peça: matéria-prima (já com o retorno de recursos), artefato e taxa da bancada","Bônus em":"Cidade que dá bônus de retorno de recursos para fabricar esta peça"};
 const BM_LOADED = new Set(), BM_TS = {}, BM_REF = {}; let BM_TOK=0, bmMode="craft", bmTierSel=0, bmQualSel=0, bmSel=null, PLANKS_LOADED=false;
 const ageH = d => d&&!d.startsWith("0001") ? (Date.now()-Date.parse(d+"Z"))/3600e3 : Infinity;
 /* allQ: traz as qualidades 1 a 5 (a 1 vai para o BMP, as outras para o BMQ); sem allQ só a qualidade 1, como as outras páginas usam */
@@ -176,6 +176,7 @@ function setupBM(){
   sel.addEventListener("change",()=>{ store.set("bmGroup",sel.value); bmSel=null; renderBM(); });
   document.querySelectorAll("[data-bm]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-bm]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); bmMode=b.dataset.bm; renderBM(); }));
   { const fbx=$("bmFocBox"); if(fbx&&!fbx.firstChild){ fbx.append(focBudUI(renderBM,"O foco só aumenta o retorno de recursos ao fabricar. Cada linha mostra quantas receitas o foco do dia cobre.")); } const fx=()=>{ if(fbx) fbx.hidden=!$("bmFocus").checked||bmMode==="flip"; }; $("bmFocus").addEventListener("change",fx); fx(); }
+  { const mv=$("bmMinVol"); if(mv){ try{ const sv=store.get("bmMinVol"); if(sv) mv.value=sv; }catch(e){} let tm; mv.addEventListener("input",()=>{ try{ store.set("bmMinVol",mv.value.trim()); }catch(e){} clearTimeout(tm); tm=setTimeout(()=>renderBM(),400); }); } }
   $("bmFocus").addEventListener("change",renderBM); $("bmAtivo").addEventListener("change",()=>{ store.set("bmAtivo",$("bmAtivo").checked?"1":"0"); renderBM(); });
 }
 /* barra de carregamento do Mercado Negro (componente compartilhado, acima da faixa de resumo) */
@@ -205,10 +206,14 @@ async function renderBM(partial){
   /* ordem: primeiro pela porcentagem de lucro, depois pelo valor em prata (o cabeçalho de cada coluna inverte a prioridade) */
   const cmp=bmSort==="val"?(a,b)=>val(b)-val(a)||pct(b)-pct(a):(a,b)=>pct(b)-pct(a)||val(b)-val(a);
   let ok=rows.filter(m=>val(m)!=null).sort(cmp);
+  const minV=bmMinVol(); let volOut=0;
+  if(minV>0&&ok.length){   // o filtro precisa do número: consulta as vendas das 300 primeiras antes de mostrar
+    const top=ok.slice(0,300); if(top.some(m=>bmVOf(m)==null)){ bmProg(true,0,0,"Consultando as vendas por dia no Mercado Negro…"); await bmVolFetch(top); if(tok!==BM_TOK) return; if(!partial) bmProg(false); }
+    const n0=ok.length; ok=top.filter(m=>{ const v=bmVOf(m); return v!=null&&v>=minV; }); volOut=Math.min(n0,300)-ok.length; }
   const shown=ok.slice(0,100);
   if(BM_GEN!==DATA.geradoEm){ BM_BASE=BM_CUR; BM_CUR={}; BM_GEN=DATA.geradoEm; }
   tb.textContent=""; const hr=tb.createTHead().insertRow();
-  (bmMode==="flip"?["Peça","Tier","Qualidade","Pedido","Média 7 dias","Mais barato em","Preço lá","Lucro %","Lucro por peça"]:["Peça","Tier","Qualidade","Pedido","Média 7 dias","Custo","Lucro %","Lucro por peça","Bônus em"]).concat([""]).forEach(h=>{ const th=el("th",{text:h,...(BM_HT[h]?{title:BM_HT[h]}:{})}), pc=h==="Lucro %", vl=h==="Lucro por peça";
+  (bmMode==="flip"?["Peça","Tier","Qualidade","Pedido","Média 7 dias","Vende por dia","Mais barato em","Preço lá","Lucro %","Lucro por peça"]:["Peça","Tier","Qualidade","Pedido","Média 7 dias","Vende por dia","Custo","Lucro %","Lucro por peça","Bônus em"]).concat([""]).forEach(h=>{ const th=el("th",{text:h,...(BM_HT[h]?{title:BM_HT[h]}:{})}), pc=h==="Lucro %", vl=h==="Lucro por peça";
     if(pc||vl){ th.className="bm-sort"; th.tabIndex=0; th.setAttribute("role","button"); const on=pc===(bmSort==="pct"); th.setAttribute("aria-sort",on?"descending":"none"); th.append(on?" ▼":""); th.title=pc?"Ordenar primeiro pela porcentagem de lucro (e depois pelo valor)":"Ordenar primeiro pelo valor do lucro (e depois pela porcentagem)";
       const go=()=>{ bmSort=pc?"pct":"val"; renderBM(); }; th.addEventListener("click",go); th.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); go(); } }); }
     hr.append(th); });
@@ -217,6 +222,7 @@ async function renderBM(partial){
     tr.insertCell().append(el("span",{class:"qtag q"+m.q,text:QNAME[m.q]}));
     const c1=tr.insertCell(); c1.className="num"; c1.append(fmt(m.bm.p)," ",el("span",{class:"age"+(m.bm.age>6?" old":""),title:ageTip(m.bm.age),text:ageTxt(m.bm.age)}));
     { const cm=tr.insertCell(); cm.className="num mk-avg bm-avg"; { const A=BM_A[m.id+"|"+m.q+"|Black Market"]||{}; cm.title=`Média dos pedidos de compra do Mercado Negro registrados pelo Albion Overlay nos últimos 7 dias (${A.n7||0} registro${A.n7===1?"":"s"}). Não é média de vendas fechadas.`; } cm.textContent=avgTxt(bmAvgOf(m.id,m.q)); }
+    { const cv=tr.insertCell(); cv.className="num bm-vol"; cv.dataset.bmv=m.id+"|"+m.q; cv.textContent=volTxt(bmVOf(m)); cv.title="Unidades desta peça, nesta qualidade, vendidas por dia ao Mercado Negro (média dos últimos 7 dias, Albion Data Project). Mostra quanto o Mercado Negro absorve: se vende 2 por dia, levar 20 não sai de uma vez."; }
     if(bmMode==="flip"){ tr.insertCell().textContent=m.buy.c+(m.buy.q>m.q?` (${QNAME[m.buy.q]})`:""); const cb=tr.insertCell(); cb.className="num"; cb.append(fmt(m.buy.p)," ",el("span",{class:"age"+(m.buy.age>6?" old":""),title:ageTip(m.buy.age),text:ageTxt(m.buy.age)})); }
     else { const c2=tr.insertCell(); c2.className="num"; c2.textContent=fmt(m.cost); }
     const v=val(m), pc=pct(m), cp=tr.insertCell(); cp.className="num bm-pct "+(v>=0?"gain":"loss"); cp.textContent=pc===-Infinity?"—":`${v>=0?"+":""}${dec(pc)}%`;
@@ -225,7 +231,7 @@ async function renderBM(partial){
       if(m.focus&&m.fc>0){ const nR=Math.floor(focBud()/m.fc), fm=el("span",{class:"wk-fm"+(nR>0?" full":" none"),title:`Cada receita gasta ${fmt(m.fc)} de foco; com ${fmt(focBud())} por dia o foco cobre ${nR} receita${nR===1?"":"s"}`}); fm.append(el("span",{class:"wk-fl",text:"Foco"}),el("b",{text:nR>0?`cobre ${fmt(nR)} receita${nR===1?"":"s"}`:"não cobre 1 receita"})); c4.append(el("br"),fm); } }
     tr.dataset.id=m.id; tr.dataset.q=String(m.q); tr.dataset.fav=m.id+"|"+m.q; tr.dataset.fctx=JSON.stringify({key:m.key,t:m.t,e:m.e,q:m.q});
     const cg=tr.insertCell(); const gb=el("button",{type:"button",class:"btn mn-craft",title:"Abrir no Craft: fabricar este item e vender para o Mercado Negro",text:"Craft ➜"}); gb.addEventListener("click",ev=>{ ev.stopPropagation(); ofFromBM(BM[m.key][1],m); }); gb.addEventListener("keydown",ev=>ev.stopPropagation()); cg.append(gb,bagBtn(()=>[{id:m.id,q:1,nm:`${nmKey(m.key,m.name)} ${m.t}.${m.e}`,sell:m.bm.p,sellC:"Black Market",buy:bmMode==="flip"?m.buyC:m.cost,buyC:bmMode==="flip"?(m.buy&&m.buy.c):m.city}],"Pôr na bag para vender no Mercado Negro"));
-    const dr=document.createElement("tr"); body.append(dr); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dr.append(dc); dc.colSpan=10;
+    const dr=document.createElement("tr"); body.append(dr); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dr.append(dc); dc.colSpan=11;
     const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open)); if(open){ dc.textContent=""; try{ dc.append(bmPanel(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes: "+(e&&e.message||e)})); } setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8) dr.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"}); }catch(e){} },60); } };
     tr.setAttribute("aria-expanded","false"); tr.addEventListener("click",ev=>{ if(ev.target.closest("a,button")) return; toggle(); }); tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } }); }
   { const w=$("bmWrap"); if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }
@@ -233,7 +239,7 @@ async function renderBM(partial){
   const qtxt=(bmQualSel?` na qualidade ${QNAME[bmQualSel].toLowerCase()}`:"")+(BMF.ench>=0?`, encantamento .${BMF.ench}`:"");
   note.textContent = !keys.length ? "Nenhuma peça com esse filtro."
     : !rows.length ? `Nenhuma ordem do Mercado Negro registrada para ${gname.toLowerCase()}${qtxt} nos últimos 3 dias (só aparecem peças que alguém com o Albion Overlay viu no jogo).${more?` Foram consultados ${useG.length} de ${groups.length} tipos: use "Consultar mais".`:""}`
-    : `${rows.length} ordens registradas de ${gname.toLowerCase()}${qtxt}; ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${more?` Foram consultados ${useG.length} de ${groups.length} tipos: use "Consultar mais" para os outros.`:""}${ok.length>100?` Mostrando as 100 de maior lucro de ${fmt(ok.length)} registros: não são todos.`:(bmSort==="val"?" Ordenado pelo valor do lucro e, se empatar, pela porcentagem.":" Ordenado pela porcentagem de lucro e, se empatar, pelo valor.")} Clique numa linha para ver a conta e as médias.`;
+    : `${rows.length} ordens registradas de ${gname.toLowerCase()}${qtxt}; ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}.${more?` Foram consultados ${useG.length} de ${groups.length} tipos: use "Consultar mais" para os outros.`:""}${minV>0?` Filtro de vendas: só as que vendem ${volTxt(minV)} ou mais por dia ao Mercado Negro (olhando as 300 primeiras da lista; ${fmt(volOut)} ficaram de fora).`:""}${ok.length>100?` Mostrando as 100 de maior lucro de ${fmt(ok.length)} registros: não são todos.`:(bmSort==="val"?" Ordenado pelo valor do lucro e, se empatar, pela porcentagem.":" Ordenado pela porcentagem de lucro e, se empatar, pelo valor.")} Clique numa linha para ver a conta e as médias.`;
   if(FAVON) note.textContent=rows.length?`Só os seus favoritos (${rows.length} ordens do Mercado Negro): os filtros de seleção não valem aqui. ${pos} dão lucro ${bmMode==="flip"?"comprando na cidade mais barata e levando para Caerleon":"fabricando"+($("bmFocus").checked?" com foco":" sem foco")}. Clique numa linha para ver a conta e as médias.`:(favs.length?"Nenhuma ordem do Mercado Negro para os seus favoritos nos últimos 3 dias.":"Nenhum favorito aqui ainda: marque a estrela de uma linha.");
   if(!partial) bmProg(false);
   if(window.gsap&&!RM) gsap.from(tb.querySelectorAll(".bm-row"),{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
@@ -249,7 +255,24 @@ const BM_AVG={};   // id: {qualidade: preço médio que o Mercado Negro pagou}, 
 const bmAvgOf=(id,q)=>{ const a=BM_A[id+"|"+q+"|Black Market"]; return a&&a.a7?a.a7:null; };
 const avgTxt=v=>v===undefined?"…":v?fmt(Math.round(v)):"—";
 const volTxt=v=>v==null?"…":v<0?"—":v===0?"0":v<1?"menos de 1":v<10?dec(v):fmt(v);
-async function bmVolumes(){}   // o Supabase não registra vendas fechadas: não há "vendas por dia"
+/* vendas por dia no Mercado Negro: o histórico de 7 dias do Albion Data Project tem as vendas fechadas no Mercado Negro por qualidade.
+   BMV["id|q"] = média de unidades por dia; -1 = sem resposta. Busca 20 peças por vez. */
+const BMV={};
+const bmMinVol=()=>{ const x=$("bmMinVol"); const v=x?+String(x.value).replace(",","."):0; return isFinite(v)&&v>0?v:0; };
+const bmVOf=m=>BMV[m.id+"|"+m.q];
+async function bmVolFetch(list){
+  const ids=[...new Set(list.filter(m=>BMV[m.id+"|"+m.q]==null).map(m=>m.id))];
+  for(let i=0;i<ids.length;i+=20){ const part=ids.slice(i,i+20);
+    try{ const j=await apiJSON(`${HOST}/api/v2/stats/history/${part.join(",")}.json?locations=Black%20Market&time-scale=24`,360);
+      const since=Date.now()-7*86400e3, acc={};
+      for(const x of (j||[])){ if(x.location!=="Black Market") continue; const k=x.item_id+"|"+x.quality; let n=0; for(const d of (x.data||[])) if(Date.parse(d.timestamp+"Z")>=since) n+=d.item_count; acc[k]=(acc[k]||0)+n; }
+      for(const id of part) for(let q=1;q<=5;q++) BMV[id+"|"+q]=(acc[id+"|"+q]||0)/7;
+    }catch(e){ for(const id of part) for(let q=1;q<=5;q++) if(BMV[id+"|"+q]==null) BMV[id+"|"+q]=-1; } }
+}
+async function bmVolumes(shown){
+  const tok=BM_TOK; await bmVolFetch(shown); if(tok!==BM_TOK) return;
+  document.querySelectorAll("#bmTable [data-bmv]").forEach(c=>{ c.textContent=volTxt(BMV[c.dataset.bmv]); });
+}
 function bmPanel(m){
   const d=el("div",{class:"of-xp"}), left=el("div",{class:"of-xl"}), right=el("div",{class:"of-xs"});
   left.append(el("h4",{class:"of-xh",text:"Preços & quantidades"}));
