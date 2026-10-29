@@ -183,3 +183,68 @@ function iniciarLimpar(){
   limparFiltros({scope:"p-avalon",btn:document.getElementById("avClear"),
     count:()=>typeof AV==="undefined"||!AV.inited?0:(AV.q.trim()?1:0)+(AV.tier?1:0)+(AV.type?1:0)+AV.res.size+AV.extra.size,reset:()=>{}, });
 }
+
+/* ================= menu do item (botão direito, toque longo ou tecla de menu) =================
+   Vale para qualquer ícone de item do site (img[data-item]). Mostra onde está mais barato agora nas cidades da royal e atalhos:
+   Mercado, Mercado Negro, como fabricar (Craft, Refino ou Cozinha), equivalentes de mesmo IP mais baratos, bag e copiar o nome. */
+const IM={el:null,cat:null};
+async function imNome(id){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id)||[]; const base=id.split("@")[0].replace(/_LEVEL\d$/,"");
+  if(typeof COOK!=="undefined"&&COOK&&COOK.r&&COOK.r[id]) return {pt:COOK.r[id][0],en:COOK.r[id][0]};
+  try{ if(!IM.cat){ const c=await need("catalog"); IM.cat=new Map(c.i.map(r=>[r[0],r])); } const r=IM.cat.get(base); if(r) return {pt:r[5]||r[6],en:r[6]||r[5]}; }catch(e){}
+  if(m[2]&&typeof BM!=="undefined"&&BM&&BM[m[2]]){ const n=nmKey(m[2],BM[m[2]][0]); return {pt:n,en:BM[m[2]][0]}; }
+  return {pt:id,en:id}; }
+function imFechar(){ if(IM.el){ IM.el.remove(); IM.el=null; } }
+async function imPrecos(ids,q){ const locs=[...CITIES,"Caerleon"], out={};
+  try{ const j=await apiJSON(`${HOST}/api/v2/stats/prices/${ids.join(",")}.json?locations=${locs.join(",").replace(/ /g,"%20")}&qualities=${q||1}`);
+    for(const x of j){ if(!(x.sell_price_min>0)||!fresh(x.sell_price_min_date)) continue; const o=out[x.item_id]; if(!o||x.sell_price_min<o.p) out[x.item_id]={p:x.sell_price_min,c:x.city}; } }catch(e){}
+  return out; }
+async function imIr(tab){ const t=$(tab); if(t) t.click(); await new Promise(f=>setTimeout(f,60)); }
+async function imAcao(k,id,q,nm){
+  const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id)||[], t=+m[1]||0, e=+(m[3]||0), code=(m[2]||"").replace(/_LEVEL\d$/,"");
+  if(k==="mk"){ await imIr("t-mk"); try{ if(typeof setupMk==="function") setupMk(); MK.cat=""; const c=$("mkCat"); if(c) c.value=""; MK.sub=""; MK.tiers.clear(); MK.enchs.clear(); if(t>=4){ MK.tiers.add(t); MK.enchs.add(e); } ["mkTier","mkEnch"].forEach(x=>{ const b=$(x); if(b&&b._msel) b._msel.paint(); }); const f=$("mkFind"); f.value=nm.pt; MK.q=nm.pt.toLowerCase(); mkGatilho(); setTimeout(()=>{ const g=$("mkGo"); if(g&&!g.hidden&&!g.disabled) g.click(); },400); }catch(err){} return; }
+  if(k==="bm"){ await imIr("t-mercado"); const f=$("bmFind"); if(f){ f.value=nm.pt; f.dispatchEvent(new Event("input",{bubbles:true})); } return; }
+  if(k==="craft"){
+    if(typeof COOK!=="undefined"&&COOK.r&&COOK.r[id]){ await imIr("t-cozinha"); const kind=COOK.r[id][1]; const b=document.querySelector(`[data-ck="${kind}"]`); if(b&&b.getAttribute("aria-pressed")!=="true") b.click();
+      setTimeout(()=>{ const r=document.querySelector(`#ckTable tr[data-fav="${id}"]`); if(r){ r.scrollIntoView({block:"center",behavior:"smooth"}); if(r.getAttribute("aria-expanded")!=="true") r.click(); } },900); return; }
+    if(/^(METALBAR|PLANKS|CLOTH|LEATHER|STONEBLOCK)$/.test(code)){ await imIr("t-refino"); setupOf(); ofApplyMode("refine"); OF.tier=t; OF.ench=e; ofFiltLoad(ofFiltSave()); const f=$("ofFind"); f.value=""; OF.q=""; renderOf(); return; }
+    if(!BM) BM=await need("bm");
+    if(BM[code]){ setupOf(); ofApplyMode("craft"); const sel=$("ofCat"); sel.value="g:"+BM[code][1]; store.set("ofCat",sel.value); OF.tier=t; OF.ench=e; ofFiltLoad(ofFiltSave());
+      const n=nmKey(code,BM[code][0]); OF.q=n.toLowerCase(); $("ofFind").value=n; OF2.open.clear(); OF2.open.add(id); await imIr("t-craft"); try{ ofCards(); }catch(err){} renderOf(); }
+    return; }
+  if(k==="bag"){ const pr=await imPrecos([id],q); const b=pr[id]; bagAdd([{id:id.replace(/_LEVEL(\d)@\d$/,"_LEVEL$1"),q:1,nm:nm.pt,sell:b?b.p:0,sellC:b?b.c:""}]); return; }
+  if(k==="copy"){ try{ await navigator.clipboard.writeText(LANG==="en"?nm.en:nm.pt); }catch(err){} return; }
+}
+async function itemMenu(id,q,x,y,origem){
+  imFechar(); const nm=await imNome(id), info=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id), t=info?+info[1]:0, e=info?+(info[3]||0):0, code=info?info[2].replace(/_LEVEL\d$/,""):"";
+  const menu=el("div",{class:"imenu",role:"menu","aria-label":"Ações do item "+nm.pt}); IM.el=menu;
+  const hd=el("div",{class:"imenu-h"}); hd.append(iconImg(id,40,q),el("span",{},el("b",{text:nm.pt}),el("small",{class:"muted",text:`${t?`T${t}.${e}`:""}${q>1?` · ${QNAME[q]}`:""}`}))); menu.append(hd);
+  const preco=el("p",{class:"imenu-p",text:"Procurando o menor preço nas cidades da royal…"}); menu.append(preco);
+  const itens=[]; const add=(k,txt,sub)=>{ const b=el("button",{type:"button",class:"imenu-i",role:"menuitem"}); b.append(el("span",{text:txt})); if(sub) b.append(el("small",{text:sub})); b.addEventListener("click",()=>{ imFechar(); imAcao(k,id,q,nm); }); menu.append(b); itens.push(b); return b; };
+  if(!BM&&typeof need==="function"){ try{ BM=await need("bm"); }catch(err){} }
+  const gear=!!(BM&&BM[code]), cook=typeof COOK!=="undefined"&&COOK&&COOK.r&&!!COOK.r[id], ref=/^(METALBAR|PLANKS|CLOTH|LEATHER|STONEBLOCK)$/.test(code);
+  add("mk","Procurar no Mercado","preços em todas as cidades");
+  if(gear) add("bm","Ver no Mercado Negro","quanto o Mercado Negro paga");
+  if(gear||cook||ref) add("craft",cook?"Como fazer (Cozinha e alquimia)":ref?"Como refinar (Refino)":"Como fabricar (Craft)","receita, custo e lucro");
+  const eqBox=el("div",{class:"imenu-eq",hidden:true});
+  if(gear&&t>=4&&bcEquivs(t+e).length>1){ const b=el("button",{type:"button",class:"imenu-i",role:"menuitem"}); b.append(el("span",{text:"Substituição de mesmo IP mais barata"}),el("small",{text:`${t}.${e} = ${bcEquivs(t+e).map(([a,b])=>a+"."+b).join(" = ")}`}));
+    b.addEventListener("click",async()=>{ eqBox.hidden=false; eqBox.textContent="Consultando…"; const ids=bcEquivs(t+e).map(([a,b])=>`T${a}_${code}${b?"@"+b:""}`); const pr=await imPrecos(ids,q); eqBox.textContent="";
+      const lst=ids.map(i=>({i,r:pr[i]})).sort((a,b)=>(a.r?a.r.p:Infinity)-(b.r?b.r.p:Infinity));
+      for(const {i,r} of lst){ const mm=/^T(\d)_.+?(?:@(\d))?$/.exec(i); const li=el("div",{class:"imenu-eqr"+(i===id?" cur":"")}); li.append(iconImg(i,24,q),el("span",{text:`${mm[1]}.${mm[2]||0}${i===id?" (este)":""}`}),el("span",{class:"muted",text:r?r.c:"sem anúncio"}),el("b",{text:r?fmtS(r.p):"—"})); eqBox.append(li); } });
+    menu.append(b,eqBox); itens.push(b); }
+  if(typeof bagAdd==="function") add("bag","Pôr na bag","calcula peso, valor e montaria");
+  add("copy","Copiar o nome",`para colar na busca do mercado do jogo`);
+  document.body.append(menu);
+  const W=menu.offsetWidth, H=menu.offsetHeight; menu.style.left=Math.max(8,Math.min(x,innerWidth-W-8))+"px"; menu.style.top=Math.max(8,Math.min(y,innerHeight-H-8))+"px";
+  if(itens[0]) itens[0].focus({preventScroll:true});
+  menu.addEventListener("keydown",ev=>{ const i=itens.indexOf(document.activeElement); if(ev.key==="Escape"){ imFechar(); if(origem&&origem.focus) origem.focus(); } else if(ev.key==="ArrowDown"||ev.key==="ArrowUp"){ ev.preventDefault(); const n=itens.length; itens[(i+(ev.key==="ArrowDown"?1:-1)+n)%n].focus(); } });
+  const pr=await imPrecos([id],q); if(IM.el!==menu) return; const b=pr[id];
+  preco.textContent=""; if(b) preco.append("Mais barato agora: ",el("b",{text:fmt(b.p)})," em ",el("b",{class:"imenu-c",text:b.c})); else preco.textContent="Sem anúncio de venda recente nas cidades da royal.";
+}
+document.addEventListener("contextmenu",ev=>{ const im=ev.target.closest&&ev.target.closest("img[data-item]"); if(!im||ev.shiftKey) return; ev.preventDefault(); itemMenu(im.dataset.item,+im.dataset.q||1,ev.clientX,ev.clientY,im.closest("[tabindex]")); });
+document.addEventListener("click",ev=>{ if(IM.el&&!IM.el.contains(ev.target)) imFechar(); },true);
+addEventListener("resize",imFechar); addEventListener("scroll",ev=>{ if(IM.el&&!IM.el.contains(ev.target)) imFechar(); },true);
+/* toque longo (celular) */
+{ let tm=null, x0=0, y0=0; document.addEventListener("pointerdown",ev=>{ if(ev.pointerType!=="touch") return; const im=ev.target.closest&&ev.target.closest("img[data-item]"); if(!im) return; x0=ev.clientX; y0=ev.clientY; clearTimeout(tm); tm=setTimeout(()=>{ itemMenu(im.dataset.item,+im.dataset.q||1,x0,y0,null); },550); });
+  ["pointerup","pointercancel"].forEach(t=>document.addEventListener(t,()=>clearTimeout(tm))); document.addEventListener("pointermove",ev=>{ if(Math.abs(ev.clientX-x0)+Math.abs(ev.clientY-y0)>10) clearTimeout(tm); }); }
+/* teclado: tecla de menu ou Shift+F10 numa linha que tem ícone de item */
+document.addEventListener("keydown",ev=>{ if(!(ev.key==="ContextMenu"||(ev.shiftKey&&ev.key==="F10"))) return; const a=document.activeElement; const im=a&&(a.matches&&a.matches("img[data-item]")?a:a.querySelector&&a.querySelector("img[data-item]")); if(!im) return; ev.preventDefault(); const r=im.getBoundingClientRect(); itemMenu(im.dataset.item,+im.dataset.q||1,r.left,r.bottom+4,a); });
