@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T06:00:00Z",
+   "titulo": "Plano do dia junta foco e dinheiro; Craft mostra a cidade com bônus",
+   "itens": [
+    "Plano do dia: Onde gastar o foco e o dinheiro. Novo campo Dinheiro para investir (vazio = sem limite). O site monta a combinação que dá mais lucro somado sem passar do foco, do dinheiro e do que o mercado vende no prazo; cada linha diz se é Com foco ou Sem foco, com investimento, lucro e lucro %. Substitui a lista só de foco e a seção separada do que vale fazer sem foco.",
+    "Craft e Refino: cada item mostra em verde a cidade com bônus de produção e quanto ele dá (+15% para equipamento, +40% no refino). Armas e armaduras mostram também o Rest da zona preta (Arthur's, Merlyn's ou Morgana's Rest) com o mesmo bônus. Os dados vêm dos arquivos do jogo."
+   ]
+  },
+  {
    "t": "2026-10-29T03:45:00Z",
    "titulo": "Plano do dia: sem linhas de lucro irrisório",
    "itens": [
