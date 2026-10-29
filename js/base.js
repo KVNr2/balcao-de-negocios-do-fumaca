@@ -461,8 +461,38 @@ async function nuvemCiclo(){
 }
 function nuvemIniciar(){ if(NUVEM.on) return; NUVEM.on=true; nuvemAgenda(8000);
   document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&NUVEM.on){ NUVEM.delay=20e3; nuvemAgenda(1500); } }); }
-async function crowdMerge(url,j){
-  if(CROWD_OFF||!Array.isArray(j)) return j;
+/* ===== Varredura da API na nuvem =====
+   O banco e os programas Albion Overlay consultam a API pública em blocos pequenos (T4 a T8, todos os encantamentos e qualidades) e gravam em market_latest.
+   Enquanto o bloco mais antigo tiver menos de valido_min minutos (crawl_estado), os itens cobertos vêm só da nuvem e a API pública fica de reserva
+   (falha da nuvem, atualização manual ou item fora da cobertura = consulta normal à API). */
+const VARR={est:null,t:0,ids:null,hits:0};
+const VARR_CIDADES=new Set(["Caerleon","Bridgewatch","Fort Sterling","Lymhurst","Martlock","Thetford","Brecilien","Black Market"]);
+async function varrFresca(){
+  const now=Date.now();
+  if(!(VARR.est!==null&&now-VARR.t<(VARR.est?120e3:60e3))){
+    try{ const cfg=await need("nuvem"); const r=await fetch(cfg.url.replace(/\/$/,"")+"/rest/v1/crawl_estado?select=mais_antigo_em,valido_min&id=eq.1",{headers:{apikey:cfg.key,Authorization:"Bearer "+cfg.key},cache:"no-store"});
+      const d=Date.parse(r.headers.get("Date")||""); if(d) NUVEM.skew=Date.now()-d;
+      const j=r.ok?await r.json():[]; VARR.est=j[0]||false; }catch(e){ VARR.est=false; }
+    VARR.t=now; }
+  const e=VARR.est; if(!e||!e.mais_antigo_em) return false;
+  return (Date.now()-NUVEM.skew-Date.parse(e.mais_antigo_em))<=(+e.valido_min||90)*60e3;
+}
+async function varrIds(){
+  if(VARR.ids) return VARR.ids; const cat=await need("catalog"), set=new Set();
+  for(const r of cat.i){ if(!(r[3]>=4&&r[3]<=8)||!/^[A-Z0-9_]{3,56}$/.test(r[0])) continue;   /* mesma regra do banco (crawl_semear_json) */ const lv=r[2]==="resources"||r[2]==="refinedresources", ne=(r[4]||lv)?4:0;
+    for(let e=0;e<=ne;e++) set.add(!e?r[0]:lv?`${r[0]}_LEVEL${e}@${e}`:`${r[0]}@${e}`); }
+  return VARR.ids=set;
+}
+async function varrCobre(url){
+  try{ const m=/stats\/prices\/([^?]+)\.json\?(.*)$/.exec(url); if(!m) return false;
+    const q=new URLSearchParams(m[2]); const locs=(q.get("locations")||"").split(",").filter(Boolean); if(locs.some(c=>!VARR_CIDADES.has(c))) return false;
+    if((q.get("qualities")||"1").split(",").some(x=>!(+x>=1&&+x<=5))) return false;
+    if(!(await varrFresca())) return false; const set=await varrIds();
+    return decodeURIComponent(m[1]).split(",").every(id=>set.has(id));
+  }catch(e){ return false; }
+}
+async function crowdMerge(url,j,strict){
+  if(CROWD_OFF||!Array.isArray(j)){ if(strict) throw new Error("nuvem indisponível"); return j; }
   try{
     const m=/stats\/prices\/([^?]+)\.json\?(.*)$/.exec(url); if(!m) return j;
     const ids=decodeURIComponent(m[1]).split(","), q=new URLSearchParams(m[2]);
@@ -470,11 +500,11 @@ async function crowdMerge(url,j){
     const key=m[1]+"|"+m[2]; let rows; const hit=CROWD_MEM.get(key);
     if(hit&&Date.now()-hit.t<60e3) rows=hit.r;
     else{
-      const cfg=await need("nuvem"); if(!(cfg.url&&cfg.key)){ CROWD_OFF=true; return j; }
+      const cfg=await need("nuvem"); if(!(cfg.url&&cfg.key)){ CROWD_OFF=true; if(strict) throw new Error("nuvem indisponível"); return j; }
       const qs=`select=item_id,quality,city,sell_min,sell_min_at,sell_amt,buy_max,buy_max_at,buy_amt&item_id=in.(${ids.map(encodeURIComponent).join(",")})`+(locs.length?`&city=in.(${locs.map(c=>encodeURIComponent(c)).join(",")})`:"")+`&quality=in.(${quals.join(",")})&limit=1000`;
       const ctl=new AbortController(); const tm=setTimeout(()=>ctl.abort(),5000);
       try{ /* o Supabase devolve no máximo 1000 linhas por pedido: pagina, senão as linhas do Mercado Negro podiam ficar de fora */
-        rows=[]; for(let off=0;off<8000;off+=1000){ const r=await fetch(cfg.url.replace(/\/$/,"")+"/rest/v1/market_latest?"+qs+"&order=item_id,city,quality&offset="+off,{signal:ctl.signal,headers:{apikey:cfg.key,Authorization:"Bearer "+cfg.key}}); if(!r.ok){ if(!rows.length) return j; break; } const part=await r.json(); if(!Array.isArray(part)) break; rows.push(...part); if(part.length<1000) break; } }
+        rows=[]; for(let off=0;off<8000;off+=1000){ const r=await fetch(cfg.url.replace(/\/$/,"")+"/rest/v1/market_latest?"+qs+"&order=item_id,city,quality&offset="+off,{signal:ctl.signal,headers:{apikey:cfg.key,Authorization:"Bearer "+cfg.key}}); if(!r.ok){ if(!rows.length||strict) throw new Error("nuvem "+r.status); break; } const part=await r.json(); if(!Array.isArray(part)) break; rows.push(...part); if(part.length<1000) break; } }
       finally{ clearTimeout(tm); }
       CROWD_MEM.set(key,{t:Date.now(),r:rows});
     }
@@ -489,7 +519,7 @@ async function crowdMerge(url,j){
     }
     livepApiRows(out,idx,ids,locs,quals);
     return out;
-  }catch(e){ return j; }
+  }catch(e){ if(strict) throw e; return j; }
 }
 /* Preços só do Supabase (Albion Overlay), sem passar pela API pública: usado pelo Mercado Negro.
    Devolve as linhas de market_latest (menor venda, maior pedido de compra, médias de 7 e 30 dias) dos itens, cidades e qualidades pedidos. */
@@ -510,6 +540,7 @@ async function sbRows(ids,locs,quals=[1]){
   return out;
 }
 async function apiJSON(url,ttlMin=10){
+  if(!FORCE&&url.includes("/stats/prices/")&&await varrCobre(url)){ try{ const o=await crowdMerge(url,[],true); VARR.hits++; return o; }catch(e){ /* nuvem falhou: segue para a API pública */ } }
   const j=await apiJSON0(url,ttlMin);
   return url.includes("/stats/prices/")?crowdMerge(url,j):j;
 }

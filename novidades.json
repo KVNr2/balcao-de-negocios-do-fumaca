@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T01:00:00Z",
+   "titulo": "Albion Overlay 2.1.0: varredura de preços em blocos",
+   "programa": "2.1.0",
+   "itens": [
+    "A nuvem passa a ter os preços de T4 a T8 (todos os encantamentos e qualidades) mantidos por uma varredura em blocos pequenos da API pública: cada programa Albion Overlay aberto busca 1 bloco por minuto (cerca de 1% do limite da API) e o banco também tenta por conta própria. Um preço que veio do jogo ou da API só é gravado se for mais novo que o já guardado.",
+    "O site lê esses itens só da nuvem enquanto o bloco mais antigo tiver menos de 90 minutos. Se a varredura estiver atrasada, a nuvem falhar, o item estiver fora da cobertura ou você clicar em Atualizar preços, ele consulta a API pública como antes. Com isso a pesquisa em Todas deixa de gastar o limite da API.",
+    "O programa só participa da varredura com a coleta de preços ligada (a mesma chave do envio de preços do jogo) e registra cada bloco no mercado.log."
+   ]
+  },
+  {
    "t": "2026-10-29T00:40:00Z",
    "titulo": "Mercado: botão Pesquisar, ordenação local e menos pedidos à API",
    "itens": [
