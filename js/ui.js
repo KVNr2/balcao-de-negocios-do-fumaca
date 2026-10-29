@@ -294,3 +294,30 @@ function olhoAbrir(re){ let pop=document.querySelector(".olho-pop"); if(pop&&!re
   const b=$("olhoBtn").getBoundingClientRect(); pop.style.top=(b.bottom+6)+"px"; pop.style.right=Math.max(8,innerWidth-b.right)+"px"; }
 { const b=$("olhoBtn"); if(b){ b.addEventListener("click",ev=>{ ev.stopPropagation(); olhoAbrir(); if(document.querySelector(".olho-pop")) olhoConferir(); }); document.addEventListener("click",ev=>{ const p=document.querySelector(".olho-pop"); if(p&&!p.contains(ev.target)&&ev.target!==b) p.remove(); }); }
   olhoBadge(); setTimeout(olhoConferir,15000); setInterval(olhoConferir,5*60e3); }
+
+/* ===== aviso de varredura atrasada =====
+   Com o Albion Overlay aberto por alguém, os preços T4 a T8 vêm da nuvem e as listas grandes carregam em segundos.
+   Quando o bloco mais antigo da varredura passa do prazo (valido_min, 90 min), o site volta para a API pública com pausas:
+   o selo "nuvem atrasada" no status de preços explica por que Todas, Mercado e Mercado Negro ficam lentos. */
+async function nuvemSelo(){
+  const box=$("whenBox"); if(!box) return; let fr=null, min=0;
+  try{ VARR.t=0; fr=await varrFresca(); const e=VARR.est; if(e&&e.mais_antigo_em) min=Math.round((Date.now()-NUVEM.skew-Date.parse(e.mais_antigo_em))/60e3); else fr=null; }catch(e){ fr=null; }
+  let s=box.querySelector(".nv-atr");
+  if(fr===false){ if(!s){ s=el("span",{class:"nv-atr",text:"nuvem atrasada"}); box.append(s); }
+    s.title=`A varredura de preços da nuvem está ${min>=120?`${Math.floor(min/60)} h`:`${min} min`} atrasada: ninguém com o Albion Overlay aberto agora. O site está usando a API pública com pausas, então listas grandes (Todas, Mercado, Mercado Negro) demoram mais. Os preços continuam certos.`; }
+  else if(s) s.remove();
+}
+setTimeout(nuvemSelo,6000); setInterval(()=>{ if(!document.hidden) nuvemSelo(); },5*60e3);
+
+/* ===== celular: filtros em gaveta =====
+   Em telas até 700 px, o Craft/Refino mostra só a categoria e a busca, e o Mercado só a busca; o resto dos filtros abre no botão.
+   No computador nada muda (o botão e a regra só existem no celular, pelo CSS). */
+function gaveta(box,manter,rotulo){
+  if(!box||box.dataset.gav) return; box.dataset.gav="1"; box.classList.add("gav");
+  const kids=[...box.children]; kids.slice(manter).forEach(k=>k.classList.add("gav-x"));
+  const bt=el("button",{type:"button",class:"gav-btn","aria-expanded":"false"}); const upd=()=>{ const ab=box.classList.contains("gav-aberta"); bt.textContent=ab?"Fechar filtros":rotulo; bt.setAttribute("aria-expanded",String(ab)); };
+  bt.addEventListener("click",()=>{ box.classList.toggle("gav-aberta"); upd(); }); upd();
+  if(kids[manter]) kids[manter].before(bt); else box.append(bt);
+}
+gaveta(document.querySelector("#ofRoot .of2-side"),1,"Mais opções (receita, compra, venda, filtros)");
+gaveta(document.querySelector("#p-mk > .row-ctl"),1,"Mais filtros (categoria, tier, qualidade, cidade)");

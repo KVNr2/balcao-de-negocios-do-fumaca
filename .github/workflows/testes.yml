@@ -1,0 +1,27 @@
+name: Testes do site
+on:
+  push:
+    branches: [main]
+    paths: ["js/**", "css/**", "index.html", "tests/**"]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Instalar o navegador de teste
+        run: |
+          npm i --no-save playwright@1.49.1
+          npx playwright install --with-deps chromium
+      - name: Rodar os testes (preços simulados, nada sai para a internet)
+        run: |
+          python3 -m http.server 8766 >/dev/null 2>&1 &
+          sleep 2
+          node tests/rodar.js

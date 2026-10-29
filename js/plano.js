@@ -66,7 +66,7 @@ function renderPlanoIlha(){
 async function renderPlano(){
   const note=$("plNote");
   { const l=$("plLotes"); if(l&&document.activeElement!==l) l.value=ilhaL()>0?String(ilhaL()):""; }
-  { const bx=$("plTeto"); if(bx&&!bx.firstChild) bx.append(tetoUI(()=>renderPlano())); }
+  if(tetoOn()&&+SRC.teto>0&&+SRC.teto!==PP.foc){ PP.foc=Math.min(FOC_MAX,+SRC.teto); ppSave(); }   // o teto mudado na Cozinha ou na Fazenda vale aqui também
   const ok=await plEnsure(note); if(!ok){ note.textContent="Não consegui abrir os dados agora. Tente atualizar."; return; }
   note.textContent="Com os preços de agora, as specs da sua ficha e as escolhas de origem dos materiais da Cozinha e da Fazenda.";
   renderPlanoIlha(); renderPlanoProd(false);
@@ -164,7 +164,8 @@ async function renderPlanoProd(run){
 { const pt=$("ppParte"), sp=$("ppSpec"), f=$("ppFoc"), d=$("ppDias"), go=$("ppGo");
   if(pt) pt.addEventListener("change",()=>{ const v=Math.round(+pt.value); PP.parte=v>0?Math.min(100,v):80; ppSave(); });
   if(sp) sp.addEventListener("change",()=>{ PP.spec=sp.checked; ppSave(); });
-  if(f) f.addEventListener("change",()=>{ const v=Math.round(+f.value); PP.foc=v>0?Math.min(FOC_MAX,v):30000; ppSave(); });
+  /* um campo de foco só: vale para o plano e para a ilha (é o mesmo teto da Cozinha e da Fazenda) */
+  if(f) f.addEventListener("change",()=>{ const v=Math.round(+f.value); PP.foc=v>0?Math.min(FOC_MAX,v):30000; ppSave(); SRC.teto=PP.foc; SRC.tetoOn=true; srcSave(); document.querySelectorAll(".teto-ui").forEach(x=>x._sync&&x._sync()); renderPlanoIlha(); });
   if(d) d.addEventListener("change",()=>{ const v=Math.round(+d.value); PP.dias=v>0?Math.min(30,v):3; ppSave(); });
   { const cp=$("ppCap"); if(cp) cp.addEventListener("change",()=>{ const v=Math.round(+cp.value); PP.cap=v>0?v:0; ppSave(); }); }
   document.querySelectorAll("[data-ppc]").forEach(c=>c.addEventListener("change",()=>{ PP.cats[c.dataset.ppc]=c.checked; ppSave(); }));

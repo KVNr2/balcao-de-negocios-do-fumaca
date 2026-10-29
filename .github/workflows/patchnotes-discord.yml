@@ -2,7 +2,7 @@ name: Patch notes no Discord
 on:
   push:
     branches: [main]
-    paths: [data/patchnotes.json]
+    paths: [novidades.json]
   workflow_dispatch:
 permissions:
   contents: read

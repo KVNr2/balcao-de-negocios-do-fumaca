@@ -1,6 +1,20 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T17:10:00Z",
+   "titulo": "Plano do dia mais direto, aviso de nuvem atrasada, filtros em gaveta no celular e testes automáticos",
+   "itens": [
+    "Plano do dia: os campos ficam no topo e há um campo de foco só (Foco), que vale para o plano e para a ilha; é o mesmo teto da Cozinha e da Fazenda. Lotes na ilha entrou na mesma linha.",
+    "Status de preços: quando a varredura de preços da nuvem está atrasada (ninguém com o Albion Overlay aberto), aparece \"nuvem atrasada\" ao lado do horário, explicando por que listas grandes demoram.",
+    "Celular: no Craft, no Refino e no Mercado, só a busca e a categoria ficam à vista; o resto abre no botão Mais opções / Mais filtros. O Craft passa a ocupar uma coluna só no celular.",
+    "O aviso da ficha de exemplo ficou em uma linha e o Entendi vale por 7 dias.",
+    "Testes automáticos: a cada envio de código, o GitHub abre o site com preços simulados e confere as contas que já deram erro (retorno, ingrediente raro, teto de foco, plano, teleporte) e se as páginas abrem sem erro.",
+    "Patch notes no Discord agora saem do novidades.json, com os campos \"como\" e \"impacto\" quando existirem."
+   ],
+   "como": "No Plano do dia, preencha Foco e Dinheiro para investir no topo e clique em Montar plano. No celular, toque em Mais opções ou Mais filtros para abrir o resto dos filtros. Passe o mouse em \"nuvem atrasada\" para ver há quanto tempo a varredura parou.",
+   "impacto": "Menos rolagem até a ferramenta, menos confusão com dois campos de foco e erros de conta pegos antes de chegar no site."
+  },
+  {
    "t": "2026-10-29T16:40:00Z",
    "titulo": "Teleporte pelo peso no custo das builds; patch notes no Discord",
    "itens": [

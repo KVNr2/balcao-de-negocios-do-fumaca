@@ -169,15 +169,15 @@ function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clea
 /* lembrete no topo de Craft, Refino e Plano do dia: as contas de foco usam as specs da ficha, então ela precisa estar em dia */
 function fichaLembrete(panelId){
   const pan=$(panelId); if(!pan) return; let b=pan.querySelector(":scope>.ficha-lemb");
-  let dis=false; try{ dis=sessionStorage.getItem("fichaLemb")==="1"; }catch(e){}
+  let dis=false; try{ dis=Date.now()-(+localStorage.getItem("fichaLembAte")||0)<7*864e5; }catch(e){}   // "Entendi" vale por 7 dias
   const dias=PF&&PF.atualizado?Math.floor((Date.now()-PF.atualizado)/864e5):null;
-  const txt=IS_EXAMPLE?"Os números estão usando a ficha de exemplo. Preencha ou sincronize a sua em Minha ficha para o custo de foco e as sugestões usarem as suas specs."
+  const txt=IS_EXAMPLE?"Usando a ficha de exemplo: o foco e as sugestões ainda não são os seus."
     :dias==null?"As contas de foco e as sugestões usam as specs da sua ficha. Sincronize em Minha ficha de vez em quando para os números ficarem certos."
     :dias>=7?`Sua ficha foi atualizada há ${dias} dias. Se você subiu specs desde então, sincronize em Minha ficha para os números ficarem certos.`:null;
   if(!txt||dis){ if(b) b.remove(); return; }
   if(!b){ b=el("div",{class:"ficha-lemb",role:"note"}); const aside=pan.querySelector(":scope>.aside"); if(aside) aside.after(b); else pan.prepend(b); }
   b.textContent=""; const go=el("button",{type:"button",class:"linkbtn",text:"Abrir Minha ficha"}), ok=el("button",{type:"button",class:"linkbtn",text:"Entendi"});
-  go.addEventListener("click",()=>showTab("t-ficha")); ok.addEventListener("click",()=>{ try{ sessionStorage.setItem("fichaLemb","1"); }catch(e){} b.remove(); });
+  go.addEventListener("click",()=>showTab("t-ficha")); ok.addEventListener("click",()=>{ try{ localStorage.setItem("fichaLembAte",String(Date.now())); }catch(e){} b.remove(); });
   b.append(el("span",{text:txt}),go,ok);
 }
 function saveProfile(quieto){ IS_EXAMPLE=false; deriveLv(); PF.atualizado=Date.now(); store.set("ficha",JSON.stringify(PF)); if(typeof ponteEmpurrar==="function") ponteEmpurrar(); if(!quieto){ $("pfStatus").textContent="Ficha salva neste navegador."; toast("Ficha guardada no livro"); coinBurst(); } renderWho(); recompute(); }   /* quieto: ficha que chegou do programa/jogo, não uma edição da pessoa (sem aviso nem moedinhas) */
