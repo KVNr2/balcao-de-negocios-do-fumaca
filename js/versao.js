@@ -10,7 +10,8 @@ const V_ROTINAS=[["PvP","data/pvp.json","a cada 6 horas","Builds, armas e jogado
   ["ZvZ","data/zvz.json","uma vez por dia","Funções e armas das maiores lutas recentes (200 jogadores ou mais)."],
   ["Builds (AlbionOnlineGrind)","data/builds-grind.json","a cada 6 horas","As builds mais votadas de cada conteúdo."],
   ["Composições (Top Comps)","data/comps.json","a cada 6 horas","As composições de grupo mais usadas."],
-  ["Patch notes no Discord","data/patchnotes.json","a cada publicação","Quando uma publicação traz nota nova em data/patchnotes.json, posta no canal do Discord o que mudou, como usar e o impacto."]];
+  ["Testes do site","","a cada envio de código","Abre o site com preços simulados e confere as contas que já deram erro (retorno, ingrediente raro, teto de foco, plano, teleporte) e se as páginas abrem sem erro. Se algo falhar, o GitHub marca o envio em vermelho."],
+  ["Patch notes no Discord","","a cada publicação","Quando uma publicação traz entrada nova em novidades.json, posta no canal do Discord o que mudou e, quando a entrada tiver, como usar e o impacto."]];
 function vIr(cat){ history.replaceState({...(history.state||{}),y:window.scrollY},""); history.pushState({vsub:1},"","#versao/atualizacoes"+(cat?"/"+cat:"")); renderVersao(); window.scrollTo({top:0}); }
 function vVoltar(){ if(history.state&&history.state.vsub) history.back(); else { history.replaceState(null,"","#versao"); renderVersao(); } }
 function vCard(x){ const c=el("div",{class:"v-nov-i"}), h=el("div",{class:"v-nov-h"}); h.append(el("b",{text:x.titulo}),el("span",{class:"v-tag "+(x.programa?"prog":"site"),text:x.programa?"Albion Overlay":"Site"}),el("small",{class:"muted",text:fmtDH(new Date(x.t))})); c.append(h);
