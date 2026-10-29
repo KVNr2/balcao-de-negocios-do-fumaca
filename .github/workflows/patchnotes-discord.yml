@@ -1,0 +1,23 @@
+name: Patch notes no Discord
+on:
+  push:
+    branches: [main]
+    paths: [data/patchnotes.json]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  postar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Postar as notas novas
+        env:
+          DISCORD_WEBHOOK_PATCHNOTES: ${{ secrets.DISCORD_WEBHOOK_PATCHNOTES }}
+          BEFORE: ${{ github.event.before }}
+        run: python3 tools/postar_patchnotes.py

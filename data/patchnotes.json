@@ -1,0 +1,18 @@
+{
+ "atualizado": "2026-10-29T16:40:00Z",
+ "notas": [
+  {
+   "t": "2026-10-29T16:40:00Z",
+   "titulo": "Builds com custo de teleporte, menu do item e plano com foco e dinheiro",
+   "mudou": [
+    "Builds, PvP, ZvZ e Nossas builds: o custo da build procura cada peça nas cidades da royal e fica em Lymhurst, a não ser que a economia em outra cidade pague o teleporte de volta (calculado pelo peso da peça). Caerleon aparece ao lado quando é mais barato.",
+    "Menu do item: botão direito (ou segurar o dedo no celular) em qualquer ícone mostra onde comprar e vender e leva ao Mercado, ao Mercado Negro ou à receita.",
+    "De olho: marque um item com preço-alvo e o site avisa quando o preço chega lá.",
+    "Plano do dia: monta o que fazer com o seu foco e o dinheiro que você quer investir, com foco ou sem foco em cada tarefa.",
+    "Craft e Refino: cada item mostra a cidade com bônus de produção e quanto ela dá."
+   ],
+   "como": "Na build, deixe a cidade em \"Mais barata (base Lymhurst)\" e passe o mouse em cada peça para ver o motivo da cidade. Para o menu, clique com o botão direito no ícone do item. No Plano do dia, preencha Foco e Dinheiro para investir e clique em Montar plano.",
+   "impacto": "Custo de build mais perto do que se paga de verdade, sem mandar comprar em outra cidade por diferenças que o teleporte come. Menos cliques entre páginas e um plano de produção que respeita o dinheiro disponível."
+  }
+ ]
+}

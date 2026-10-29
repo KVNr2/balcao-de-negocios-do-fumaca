@@ -210,13 +210,18 @@ const bldLiveP=(id,c,q)=>BLD_LV[`${id}|${c}|${q}`]||null;
 /* d = 7 pede só a média de 7 dias; d = 30 aceita a de 30 dias */
 const bldPrice=(id,c,q,d)=>{ const r=BLD_P[`${id}|${c}|${q}`]; if(!r) return null; if(d===7) return r.p7?{p:r.p7,d:7}:null; return r.p30?{p:r.p30,d:30}:null; };
 /* "best" = em cada peça, a cidade da royal (as 5 cidades e Caerleon) que vende mais barato agora */
-const ROYAL_LOCS=[...CITIES,"Caerleon"], BLD_BASE="Lymhurst", BLD_TP=30000;   // base do grupo: é onde se compra quando a diferença é pequena
+const ROYAL_LOCS=[...CITIES,"Caerleon"], BLD_BASE="Lymhurst";
+/* custo de teleporte de uma peça até Lymhurst: ceil(150 × peso × fator × G) × distância (albionfreemarket). G muda com o servidor; ~1,16.
+   Distância no anel das cidades: Fort Sterling e Bridgewatch são vizinhas de Lymhurst (1); Thetford e Martlock ficam a 2. Pesos: data/peso.json (arquivos do jogo). */
+const TP_G=1.16, TP_DIST={"Fort Sterling":1,"Bridgewatch":1,"Thetford":2,"Martlock":2,"Lymhurst":0};
+let PESO=null; const pesoLoad=()=>PESO?Promise.resolve(PESO):need("peso").then(d=>PESO=d).catch(()=>PESO={w:{},f:{}});
+function tpCusto(id,de){ const m=/^T(\d)_(.+?)(?:@\d)?$/.exec(id||""); if(!m||!PESO) return null; const w=(PESO.w[m[2]]||[])[+m[1]-1]; if(!(w>0)) return null; const d=TP_DIST[de]; if(d==null) return null; return Math.ceil(150*w*(PESO.f[m[2]]||1)*TP_G)*d; }   // base do grupo: é onde se compra quando a diferença é pequena
 let BLD_CITY=(()=>{ try{ const c=localStorage.getItem("bldCity2"); return c||"best"; }catch(e){ return "best"; } })();
 const bldCities=()=>BLD_CITY==="best"?ROYAL_LOCS:[BLD_CITY], bldOnde=()=>BLD_CITY==="best"?"nenhuma cidade da royal":BLD_CITY;
 const BLD_PANELS=new Set();
 let BLD_TIER=(()=>{ try{ const t=+localStorage.getItem("bldTier"); return t>=4&&t<=8?t:0; }catch(e){ return 0; } })();   // tier escolhido vale para todas as builds e não se perde ao abrir o card
 function costPanel(b,get,ui){
-  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Onde comprar. \"Mais barata (base Lymhurst)\" procura cada peça nas 5 cidades da royal: fica Lymhurst se a economia em outra cidade não pagar o teleporte de volta com a peça (até 30 mil de diferença; para peças de 500 mil ou mais, até 10%). Passe o mouse na peça para ver. Caerleon aparece ao lado quando é mais barato, mas só entra no total se a peça não existir na royal. Preço de cada peça, nesta ordem: pedido de venda atual (cada versão equivalente troca de qualidade se preciso, e vale a de menor preço; T8 = 8.0, 7.1, 6.2, 5.3, 4.4); média de 7 dias; média de 30 dias"});
+  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Onde comprar. \"Mais barata (base Lymhurst)\" procura cada peça nas 5 cidades da royal: fica Lymhurst se a economia em outra cidade não pagar o teleporte de volta com a peça (calculado pelo peso dela; peças de 500 mil ou mais precisam também de mais de 10% de diferença). Passe o mouse na peça para ver. Caerleon aparece ao lado quando é mais barato, mas só entra no total se a peça não existir na royal. Preço de cada peça, nesta ordem: pedido de venda atual (cada versão equivalente troca de qualidade se preciso, e vale a de menor preço; T8 = 8.0, 7.1, 6.2, 5.3, 4.4); média de 7 dias; média de 30 dias"});
   cs.append(el("option",{value:"best",text:"Mais barata (base Lymhurst)"})); SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
   const out=el("span",{class:"bld-tot",role:"status","aria-live":"polite"});
   const seg=(selEl,label,lab)=>{ const g=el("div",{class:"bld-seg",role:"group","aria-label":label}); const bs=[...selEl.options].map(o=>{ const bt=el("button",{type:"button",text:lab(o),title:o.text,"aria-pressed":"false"}); bt.addEventListener("click",()=>{ selEl.value=o.value; selEl.dispatchEvent(new Event("change")); g._sync(); }); g.append(bt); return [o.value,bt]; });
@@ -233,7 +238,7 @@ function costPanel(b,get,ui){
     out.classList.add("load"); out.textContent="…";
     const ids=[...new Set([...gear.flatMap(g=>g.groups.flat().map(([t,e])=>idOf(g,t,e))),...cons])];
     const CS=bldCities();
-    try{ await Promise.all([bldFetch(ids,CS), bldLive(ids,CS).catch(()=>{})]); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
+    try{ await Promise.all([bldFetch(ids,CS), bldLive(ids,CS).catch(()=>{}), pesoLoad()]); }catch(err){ if(my===run){ out.classList.remove("load"); out.textContent="sem preço agora"; } return; }
     if(my!==run) return;
     /* Ordem de busca do preço de cada peça (cidade escolhida). Em cada etapa de preço (1º pedido de venda atual, 2º média de 7 dias, 3º média de 30 dias):
        a) cada versão equivalente (T8 = 8.0, 7.1, 6.2, 5.3, 4.4) acha o seu preço na qualidade pedida e, se não houver, TROCA a qualidade (a mais próxima: primeiro abaixo, depois acima);
@@ -245,30 +250,32 @@ function costPanel(b,get,ui){
     const preco=(id,d,q,ref,c)=>{ if(d!==0) return bldPrice(id,c,q,d); const l=bldLiveP(id,c,q); return l&&ref&&l.p>ref*8?null:l; };
     /* em cada etapa (pedido atual, 7 dias, 30 dias) compara todas as cidades e versões; um pedido atual em qualquer cidade vale mais que uma média */
     const pickX=(g,cs=CS)=>{ const qs=qOrder(g.q), ref=refG(g); for(const d of [0,7,30]){ let best=null;
-        for(const c of cs) for(const [t,e] of g.groups[0]){ for(let k=0;k<qs.length;k++){ const r=preco(idOf(g,t,e),d,qs[k],ref,c); if(r){ if(!best||r.p<best.p||(r.p===best.p&&k<best.k)) best={...r,d,t,e,q:qs[k],k,c}; break; } } }
+        for(const c of cs) for(const [t,e] of g.groups[0]){ for(let k=0;k<qs.length;k++){ const r=preco(idOf(g,t,e),d,qs[k],ref,c); if(r){ if(!best||r.p<best.p||(r.p===best.p&&k<best.k)) best={...r,d,t,e,q:qs[k],k,c,id:idOf(g,t,e)}; break; } } }
         if(best) return best; } return null; };
     /* "Mais barata em cada peça": a compra é numa cidade da royal (de Caerleon não dá para voltar com a bag por teleporte).
-       Lymhurst é a base: comprar em outra cidade só compensa se a economia passa do custo de voltar de teleporte com a peça (~30 mil, BLD_TP).
-       Peças de 500 mil ou mais: fica Lymhurst se a diferença é de até 10%. O aviso de quanto sai mais barato fora vai no título.
+       Lymhurst é a base: comprar em outra cidade só compensa se a economia passa do custo de voltar de teleporte com a peça (pelo peso dela, tpCusto).
+       Peças de 500 mil ou mais: além disso, a diferença precisa passar de 10%. O aviso de quanto sai mais barato fora vai no título.
        Se Caerleon for mais barato, aparece ao lado como opção; só entra no total se nenhuma cidade da royal tiver a peça. */
     const escolhe=(f)=>{ if(BLD_CITY!=="best") return f(CS); let x=f(CITIES); const lym=f([BLD_BASE]), cae=f(["Caerleon"]);
-      if(x&&lym&&x.c!==BLD_BASE){ const tol=x.p>=500000?x.p*0.10:BLD_TP; if(lym.p<=x.p) x=lym; else if(lym.p-x.p<=tol) x={...lym,outra:{c:x.c,p:x.p,pct:(lym.p-x.p)/lym.p,dif:lym.p-x.p}}; }
+      if(x&&lym&&x.c!==BLD_BASE){ const dif=lym.p-x.p, tp=tpCusto(x.id||"",x.c), lim=Math.max(tp==null?10000:tp,x.p>=500000?x.p*0.10:0);
+        if(dif<=0) x=lym; else if(dif<=lim) x={...lym,outra:{c:x.c,p:x.p,pct:dif/lym.p,dif,tp}}; else x={...x,tp}; }
       if(!x&&cae) return {...cae,soCae:true};
       if(x&&cae&&cae.p<x.p) x={...x,cae:{p:cae.p,pct:(x.p-cae.p)/x.p}};
       return x; };
     const sel=gear.map(g=>({g,x:escolhe(cs=>pickX(g,cs))}));
     b._costSel={}; for(const {g,x} of sel) if(x) b._costSel[g.k]={from:g.src,id:idOf(g,x.t,x.e),q:x.q!==g.q?x.q:0}; bQApply(b); if(badgeUpd) badgeUpd();
-    const pr0=(id,cs)=>{ for(const d of [0,7,30]){ let b0=null; for(const c of cs){ const r=d===0?bldLiveP(id,c,1):bldPrice(id,c,1,d); if(r&&(!b0||r.p<b0.p)) b0={p:r.p,c,d}; } if(b0) return b0; } return null; }, pr=id=>escolhe(cs=>pr0(id,cs));
+    const pr0=(id,cs)=>{ for(const d of [0,7,30]){ let b0=null; for(const c of cs){ const r=d===0?bldLiveP(id,c,1):bldPrice(id,c,1,d); if(r&&(!b0||r.p<b0.p)) b0={p:r.p,c,d,id}; } if(b0) return b0; } return null; }, pr=id=>escolhe(cs=>pr0(id,cs));
     const SLN={w:"Arma",o:"Secundária",h:"Cabeça",a:"Peito",s:"Botas",c:"Capa"}, linhas=[];
     let tot=0, miss=0, old=0, est7=0; const tip=[], names=[], qch=[];
     for(const {g,x} of sel){ const nm=itemNome(g.code);
-      if(x){ tot+=x.p; if(x.d===30) old++; if(x.d===7) est7++; linhas.push({k:SLN[g.k],nm:`${nm} ${x.t}.${x.e||0}`,c:x.c,p:x.p,d:x.d,id:idOf(g,x.t,x.e),q:x.q,outra:x.outra,cae:x.cae,soCae:x.soCae}); tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} em ${x.c} (${x.d===0?(x.app?"pedido de venda atual, via Albion Overlay":"pedido de venda atual"):"estimativa de "+x.d+" dias"})`+(x.q!==g.q?` — sem ${x.d===0?"pedido de venda":"preço"} em ${QNAME[g.q]}, usei ${QNAME[x.q]}`:"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q]); }
+      if(x){ tot+=x.p; if(x.d===30) old++; if(x.d===7) est7++; linhas.push({k:SLN[g.k],nm:`${nm} ${x.t}.${x.e||0}`,c:x.c,p:x.p,d:x.d,id:idOf(g,x.t,x.e),q:x.q,outra:x.outra,cae:x.cae,soCae:x.soCae,tp:x.tp}); tip.push(`${nm} T${x.t}${x.e?"."+x.e:""}${x.q>1?" "+QNAME[x.q]:""}: ${fmt(x.p)} em ${x.c} (${x.d===0?(x.app?"pedido de venda atual, via Albion Overlay":"pedido de venda atual"):"estimativa de "+x.d+" dias"})`+(x.q!==g.q?` — sem ${x.d===0?"pedido de venda":"preço"} em ${QNAME[g.q]}, usei ${QNAME[x.q]}`:"")); if(x.q!==g.q) qch.push([g.k,g.q,x.q]); }
       else { miss++; names.push(nm); tip.push(`${nm}: sem vendas em ${bldOnde()} nos últimos 30 dias`); } }
-    for(const id of cons){ const r=pr(id), p=r&&r.p, ii=idInfo(id), cx=cosInfo(id), nm=(cx&&cx.n)||itemNome(ii.c); if(p){ tot+=p; linhas.push({k:"",nm,c:r.c,p,d:r.d,id,q:1,outra:r.outra,cae:r.cae,soCae:r.soCae}); } else { miss++; names.push(nm); } tip.push(`${nm}: ${p?fmt(p)+" em "+r.c:"sem preço"}`); }
+    for(const id of cons){ const r=pr(id), p=r&&r.p, ii=idInfo(id), cx=cosInfo(id), nm=(cx&&cx.n)||itemNome(ii.c); if(p){ tot+=p; linhas.push({k:"",nm,c:r.c,p,d:r.d,id,q:1,outra:r.outra,cae:r.cae,soCae:r.soCae,tp:r.tp}); } else { miss++; names.push(nm); } tip.push(`${nm}: ${p?fmt(p)+" em "+r.c:"sem preço"}`); }
     /* peça por peça: onde comprar e por quanto (a cidade mais barata quando "Mais barata em cada peça") */
     por.textContent=""; if(linhas.length){ const ul=el("ul",{class:"bld-pl"}); for(const L of linhas){ const li=el("li"); const im=iconImg(L.id,24,L.q||1); const pc=el("span",{class:"bld-pc",text:L.c}); if(L.cae) pc.append(el("span",{class:"bld-cae",text:` · Caerleon ${fmtS(L.cae.p)}`})); if(L.soCae) pc.append(el("span",{class:"bld-cae",text:" (só lá)"}));
       li.append(im,el("span",{class:"bld-pn",text:L.nm}),pc,el("b",{class:"bld-pp",text:fmtS(L.p)})); li.title=`${L.k?L.k+": ":""}${L.nm} em ${L.c}: ${fmt(L.p)} (${L.d===0?"pedido de venda atual":"média de "+L.d+" dias"})`
-        +(L.outra?`\nEm ${L.outra.c} sai ${fmt(L.outra.p)}, ${fmt(L.outra.dif)} (${dec(L.outra.pct*100)}%) mais barato. Fica ${BLD_BASE}: a economia não paga o teleporte de volta com a peça.`:"")
+        +(L.outra?`\nEm ${L.outra.c} sai ${fmt(L.outra.p)}, ${fmt(L.outra.dif)} (${dec(L.outra.pct*100)}%) mais barato. Fica ${BLD_BASE}: a economia não paga o teleporte de volta com a peça${L.outra.tp?` (cerca de ${fmt(L.outra.tp)} pelo peso dela)`:""}.`:"")
+        +(!L.outra&&L.tp&&L.c!==BLD_BASE?`\nMais barato que em ${BLD_BASE} mesmo somando o teleporte de volta (cerca de ${fmt(L.tp)} pelo peso).`:"")
         +(L.cae?`\nEm Caerleon sai ${fmt(L.cae.p)} (${dec(L.cae.pct*100)}% mais barato), mas de lá não dá para voltar com a bag por teleporte.`:"")
         +(L.soCae?`\nSó tem em Caerleon: nenhuma cidade da royal tem esta peça agora.`:""); if(L.d) li.classList.add("est"); ul.append(li); } por.append(ul); }
     out.classList.remove("load"); out.textContent=""; out.title=`${fmt(tot)} de prata no total\n`+tip.join("\n");
