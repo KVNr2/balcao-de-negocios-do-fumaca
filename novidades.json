@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T17:45:00Z",
+   "titulo": "Patch notes: um bloco por mensagem quando preciso",
+   "discord": false,
+   "itens": [
+    "O resumo de patch notes pode mandar cada bloco numa mensagem separada (\"separado\": true), e a data só vai quando a entrada tem uma."
+   ]
+  },
+  {
    "t": "2026-10-29T17:30:00Z",
    "titulo": "Resumos de patch notes no Discord",
    "discord": false,
