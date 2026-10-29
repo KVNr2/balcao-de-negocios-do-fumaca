@@ -1,0 +1,37 @@
+name: Alerta de falha no Discord
+# Quando um teste ou uma rotina falha, avisa no canal de alertas (segredo DISCORD_WEBHOOK_ALERTAS).
+# Sem o segredo, não faz nada.
+on:
+  workflow_run:
+    workflows:
+      - "Testes do site"
+      - "Atualizar builds (a cada 6 horas)"
+      - "Atualizar composições (a cada 6 horas)"
+      - "Atualizar PVP (a cada 6 horas)"
+      - "Atualizar ZvZ (diário)"
+      - "Coletar mortes EU (ciclos de 6 min)"
+      - "Coletar mortes ASIA (ciclos de 6 min)"
+      - "Coletar mortes NA (ciclos de 6 min)"
+      - "Patch notes no Discord"
+    types: [completed]
+permissions: {}
+jobs:
+  avisar:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Avisar no Discord
+        env:
+          HOOK: ${{ secrets.DISCORD_WEBHOOK_ALERTAS }}
+          NOME: ${{ github.event.workflow_run.name }}
+          LINK: ${{ github.event.workflow_run.html_url }}
+          COMMIT: ${{ github.event.workflow_run.head_commit.message }}
+        run: |
+          [ -z "$HOOK" ] && { echo "Sem DISCORD_WEBHOOK_ALERTAS: nada a avisar."; exit 0; }
+          python3 - <<'PY'
+          import json, os, urllib.request
+          msg = {"username": "Balcão do Fumaça", "embeds": [{"title": "Falhou: " + os.environ["NOME"], "url": os.environ["LINK"], "color": 0xD9534F,
+                 "description": "Último envio: " + (os.environ.get("COMMIT") or "").splitlines()[0][:200] + "\nAbra o link para ver o que deu errado."}]}
+          req = urllib.request.Request(os.environ["HOOK"], data=json.dumps(msg).encode(), headers={"Content-Type": "application/json", "User-Agent": "balcao-alertas"})
+          urllib.request.urlopen(req, timeout=20)
+          PY
