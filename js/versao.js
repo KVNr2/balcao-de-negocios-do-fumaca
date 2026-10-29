@@ -11,6 +11,7 @@ const V_ROTINAS=[["PvP","data/pvp.json","a cada 6 horas","Builds, armas e jogado
   ["Builds (AlbionOnlineGrind)","data/builds-grind.json","a cada 6 horas","As builds mais votadas de cada conteúdo."],
   ["Composições (Top Comps)","data/comps.json","a cada 6 horas","As composições de grupo mais usadas."],
   ["Testes do site","","a cada envio de código","Abre o site com preços simulados e confere as contas que já deram erro (retorno, ingrediente raro, teto de foco, plano, teleporte) e se as páginas abrem sem erro. Se algo falhar, o GitHub marca o envio em vermelho."],
+  ["Alerta de falha no Discord","","quando algo falha","Se um teste ou uma rotina (builds, composições, PvP, ZvZ, coletor de mortes, patch notes) falhar, avisa no canal de alertas do Discord com o link do erro."],
   ["Patch notes no Discord","","a cada publicação","Quando uma publicação traz entrada nova em novidades.json, posta no canal do Discord o que mudou e, quando a entrada tiver, como usar e o impacto."]];
 function vIr(cat){ history.replaceState({...(history.state||{}),y:window.scrollY},""); history.pushState({vsub:1},"","#versao/atualizacoes"+(cat?"/"+cat:"")); renderVersao(); window.scrollTo({top:0}); }
 function vVoltar(){ if(history.state&&history.state.vsub) history.back(); else { history.replaceState(null,"","#versao"); renderVersao(); } }

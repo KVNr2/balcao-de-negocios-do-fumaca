@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T17:20:00Z",
+   "titulo": "Patch notes e alertas no Discord",
+   "itens": [
+    "As atualizações do Balcão passam a ser anunciadas sozinhas no canal de patch notes do Discord a cada publicação. Esta mensagem é a primeira, e confirma que a ligação com o canal funciona.",
+    "Nova rotina Alerta de falha no Discord: se um teste ou uma rotina falhar, avisa no canal de alertas com o link do erro (precisa do segredo DISCORD_WEBHOOK_ALERTAS)."
+   ],
+   "como": "Não precisa fazer nada: as notas aparecem no canal quando sai versão nova. A lista completa continua em Versão, no site.",
+   "impacto": "Todo mundo do grupo fica sabendo do que mudou sem abrir o site, e falhas das rotinas aparecem na hora em vez de serem descobertas dias depois."
+  },
+  {
    "t": "2026-10-29T17:10:00Z",
    "titulo": "Plano do dia mais direto, aviso de nuvem atrasada, filtros em gaveta no celular e testes automáticos",
    "itens": [
