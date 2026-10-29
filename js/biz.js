@@ -93,7 +93,7 @@ async function warmBM(force){
     const wait=async()=>{};
     const was=FORCE; if(force) FORCE=true;
     try{
-      if(g==="*"){ for(const t of [8,7,6,5,4,3,2]){ if(run!==WARM_RUN) return; await wait(); await ensureBM("*",t); } }
+      if(g==="*"){ for(const t of [8,7,6,5,4]){ if(run!==WARM_RUN) return; await wait(); await ensureBM("*",t); } }
       else { await wait(); await ensureBM(g,0); }
       /* só a visão que a pessoa abre: as outras mercadorias são buscadas quando ela clicar (uma vez, depois ficam no cache),
          para não pesar na API da comunidade com dezenas de pedidos por visita */
@@ -108,8 +108,7 @@ async function ensureBM1(g,only=0){
   const lk=bmLk(g,only);
   if(g==="*"&&only) return ensureBMTop(only,lk);
   const keys=bmKeys(g), gear=[], extra=new Set();
-  for(const k of keys) for(let t=(only||2);t<=(only||8);t++){ if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) gear.push(bmId(k,t,e)); if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
-  for(const t of [2,3]) for(const r of ["METALBAR","PLANKS","LEATHER","CLOTH"]) extra.add(`T${t}_${r}`);
+  for(const k of keys) for(let t=(only||4);t<=(only||8);t++){ if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++) gear.push(bmId(k,t,e)); if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
   try{
     await bmFetch(gear,["Black Market",...SHOP_LOCS],true);
     await bmMats(extra);
@@ -118,7 +117,7 @@ async function ensureBM1(g,only=0){
 }
 /* o que já foi carregado envelhece: ao abrir ou refazer a lista, relê as ordens do Mercado Negro (o valor mais recente vale) sem apagar a tela */
 function bmStaleCheck(g,only){
-  const lks=(g==="*"&&!only)?[8,7,6,5,4,3,2].map(t=>[t,bmLk(g,t)]):[[only,bmLk(g,only)]];
+  const lks=(g==="*"&&!only)?[8,7,6,5,4].map(t=>[t,bmLk(g,t)]):[[only,bmLk(g,only)]];
   for(const [t,lk] of lks){ if(!BM_LOADED.has(lk)||BM_REF[lk]||Date.now()-(BM_TS[lk]||0)<45e3) continue;
     BM_REF[lk]=(g==="*"&&t?ensureBMTop(t,lk):ensureBM1(g,t||0)).catch(()=>false).finally(()=>{ delete BM_REF[lk]; }).then(ok=>{ if(ok&&!Object.keys(BM_REF).length) renderBM(true); }); }
 }
@@ -163,13 +162,13 @@ function setupBM(){
   [og1,og3].forEach(g=>{ if(g.children.length) sel.append(g); }); { const sg=store.get("bmGroup"); sel.value=(sg&&sg!=="*"&&BM_GROUPS.some(x=>x[0]===sg)||LINES.some(x=>x[0]===sg))?sg:bmGroupDefault(); if(!sel.value) sel.value=bmGroupDefault(); }
   /* filtros iguais aos da aba Mercado: busca, categoria, tipo, tier, encantamento e qualidade */
   /* a aba sempre abre em Todas as categorias e tipos; só tier, encantamento e qualidade são lembrados */
-  BMF.cat=""; BMF.sub=""; try{ const sv=JSON.parse(store.get("bmF")||"null"); if(sv){ BMF.ench=sv.ench==null?-1:+sv.ench; bmTierSel=+sv.tier||0; bmQualSel=+sv.qual||0; } }catch(e){}
+  BMF.cat=""; BMF.sub=""; try{ const sv=JSON.parse(store.get("bmF")||"null"); if(sv){ BMF.ench=sv.ench==null?-1:+sv.ench; bmTierSel=+sv.tier>=4?+sv.tier:0; bmQualSel=+sv.qual||0; } }catch(e){}
   const bmSave=()=>{ try{ store.set("bmF",JSON.stringify({cat:BMF.cat,sub:BMF.sub,ench:BMF.ench,tier:bmTierSel,qual:bmQualSel})); }catch(e){} };
   const fill=(id,opts,val,fn)=>{ const x=$(id); opts.forEach(([v,t])=>x.append(el("option",{value:String(v),text:t}))); x.value=String(val); x.addEventListener("change",()=>{ fn(x.value); bmSave(); BMF.lim=0; bmSel=null; renderBM(); }); };
   fill("bmCat",[["","Todas"],...BM_CATS],BMF.cat,v=>{ BMF.cat=v; BMF.sub=""; bmFillSub(); });
   bmFillSub();
   $("bmSub").addEventListener("change",()=>{ BMF.sub=$("bmSub").value; if(BMF.sub&&[...sel.options].some(o=>o.value===BMF.sub)){ sel.value=BMF.sub; store.set("bmGroup",BMF.sub); } bmSave(); BMF.lim=0; bmSel=null; renderBM(); });
-  fill("bmTierS",[[0,"Todos"],...[2,3,4,5,6,7,8].map(t=>[t,`T${t}`])],bmTierSel,v=>{ bmTierSel=+v; });
+  fill("bmTierS",[[0,"Todos"],...[4,5,6,7,8].map(t=>[t,`T${t}`])],bmTierSel,v=>{ bmTierSel=+v; });
   fill("bmEnch",[[-1,"Todos"],...[0,1,2,3,4].map(e=>[e,`.${e}`])],BMF.ench,v=>{ BMF.ench=+v; });
   fill("bmBuyC",[["","Todas"],...SHOP_LOCS.map(c=>[c,c])],BMF.buy,v=>{ BMF.buy=v; });
   fill("bmQualS",[[0,"Todas"],...[1,2,3,4,5].map(q=>[q,QNAME[q]])],bmQualSel,v=>{ bmQualSel=+v; });
@@ -201,7 +200,7 @@ async function renderBM(partial){
       bmProg(true,useG.length-falta.length+i+1,useG.length,falta.length>1?`Consultando as ordens do Mercado Negro: ${gn.toLowerCase()}`:"Consultando as ordens do Mercado Negro…");
       if(i<falta.length-1){ await renderBM(true); if(tok!==BM_TOK) return; } }
   }
-  const rows=[]; for(const k of keys){ if(!useSet.has(BM[k][1])) continue; for(let t=2;t<=8;t++){ if(T&&t!==T) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++){ if(!FAVON&&BMF.ench>=0&&e!==BMF.ench) continue; for(let q=1;q<=5;q++){ if(!FAVON&&bmQualSel&&q!==bmQualSel) continue; if(FAVON&&!favSet.has(bmId(k,t,e)+"|"+q)) continue; if(!bmHas(bmId(k,t,e),q)) continue; if(!FAVON&&$("bmAtivo").checked&&(bmRec(bmId(k,t,e),q)["Black Market"][2]||0)>BM_ATIVO_H) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } } } }
+  const rows=[]; for(const k of keys){ if(!useSet.has(BM[k][1])) continue; for(let t=4;t<=8;t++){ if(T&&t!==T) continue; if(t<4&&BM[k][4]) continue; for(let e=0;e<=(t<4?0:4);e++){ if(!FAVON&&BMF.ench>=0&&e!==BMF.ench) continue; for(let q=1;q<=5;q++){ if(!FAVON&&bmQualSel&&q!==bmQualSel) continue; if(FAVON&&!favSet.has(bmId(k,t,e)+"|"+q)) continue; if(!bmHas(bmId(k,t,e),q)) continue; if(!FAVON&&$("bmAtivo").checked&&(bmRec(bmId(k,t,e),q)["Black Market"][2]||0)>BM_ATIVO_H) continue; const m=bmModel(k,t,e,$("bmFocus").checked,q); if(m.bm) rows.push(m); } } } }
   const val=m=>bmMode==="flip"?m.flip:m.craft, base=m=>bmMode==="flip"?(m.buy&&m.buy.p):m.cost, pct=m=>{ const b=base(m), v=val(m); return b>0&&v!=null?v/b*100:-Infinity; };
   /* ordem: primeiro pela porcentagem de lucro, depois pelo valor em prata (o cabeçalho de cada coluna inverte a prioridade) */
   const cmp=bmSort==="val"?(a,b)=>val(b)-val(a)||pct(b)-pct(a):(a,b)=>pct(b)-pct(a)||val(b)-val(a);
