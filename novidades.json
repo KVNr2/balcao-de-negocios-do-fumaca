@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T17:30:00Z",
+   "titulo": "Resumos de patch notes no Discord",
+   "discord": false,
+   "itens": [
+    "A rotina Patch notes no Discord ganhou um jeito de postar um resumo escrito à mão (arquivos em tools/patchnotes/), usado para anunciar de uma vez as mudanças de 28 e 29/10. Mensagens grandes são divididas sem perder nenhum bloco.",
+    "Entradas de novidades com \"discord\": false aparecem só no site, sem ir para o canal."
+   ]
+  },
+  {
    "t": "2026-10-29T17:20:00Z",
    "titulo": "Patch notes e alertas no Discord",
    "itens": [
