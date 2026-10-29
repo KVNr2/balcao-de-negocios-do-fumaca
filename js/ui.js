@@ -173,7 +173,7 @@ function iniciarLimpar(){
   limparFiltros({scope:"p-mk",into:document.querySelector("#p-mk .row-ctl"),focus:"mkFind",
     defs:[["mkFind",""],["mkCat",""],["mkSub",""],["mkTier","0"],["mkEnch","-1"],["mkQual","1"],["mkCity",""],["mkOnly",true]]});
   limparFiltros({scope:"p-mercado",into:document.querySelector("#p-mercado .row-ctl"),focus:"bmFind",
-    defs:[["bmFind",""],["bmCat",""],["bmSub",""],["bmTierS","0"],["bmEnch","-1"],["bmQualS","0"],["bmAtivo",false]]});
+    defs:[["bmFind",""],["bmCat",""],["bmSub",""],["bmTierS",""],["bmEnch",""],["bmQualS",""],["bmAtivo",false]]});
   limparFiltros({scope:"p-matchup",into:document.querySelector("#p-matchup .row-ctl"),focus:"muFind",defs:[["muFind",""],["muMine",false]]});
   limparFiltros({scope:"ofRoot",after:"ofFind",focus:"ofFind",
     defs:[["ofFind",""],["ofCat",()=>{ const s=document.getElementById("ofCat"); return s&&s.options[0]?s.options[0].value:""; }],["ofTier","0"],["ofEnch","-1"],["ofQual","0"]]});

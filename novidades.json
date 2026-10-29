@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T01:45:00Z",
+   "titulo": "Mercado Negro: vários tiers, encantamentos e qualidades de uma vez",
+   "itens": [
+    "Tier, Encantamento e Qualidade agora abrem uma lista em que dá para marcar mais de uma opção, como T6 e T7 ou Normal e Bom. Sem nada marcado, valem todos.",
+    "Com tiers marcados, o site consulta só esses tiers, e a nota acima da tabela diz o que está filtrado. A escolha fica salva no navegador e o botão Limpar filtros desmarca tudo."
+   ]
+  },
+  {
    "t": "2026-10-29T01:24:00Z",
    "titulo": "Mercado Negro: vendas por dia",
    "itens": [
