@@ -10,6 +10,15 @@
    ]
   },
   {
+   "t": "2026-10-29T01:01:00Z",
+   "titulo": "Teto de foco na produção",
+   "itens": [
+    "Nova opção Travar foco em (30.000 por padrão), na Cozinha, na Ilha e fazenda e no Plano do dia. Com a trava, só a parte da produção que cabe no teto leva foco e o resto entra na conta como feito sem foco.",
+    "Assim, com muitos lotes ou muitas fornadas, o lucro mostrado é o que você teria de verdade com o foco que tem, e não como se tudo fosse feito com foco. A linha mostra quantas unidades vão com foco e quantas sem.",
+    "A trava vem ligada; desligando, a conta volta a usar foco em tudo."
+   ]
+  },
+  {
    "t": "2026-10-29T01:00:00Z",
    "titulo": "Albion Overlay 2.1.0: varredura de preços em blocos",
    "programa": "2.1.0",
