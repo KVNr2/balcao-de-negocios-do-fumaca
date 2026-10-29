@@ -45,7 +45,7 @@ def bloco(n):
         campos.append({"name": "Impacto", "value": corta(n["impacto"], 1024)})
     tag = f"Albion Overlay {n['programa']}" if n.get("programa") else "Site"
     return {"title": corta(n.get("titulo", "Atualização do Balcão"), 256), "url": SITE + "#versao", "color": 0xE8AB45,
-            "fields": campos, "timestamp": n.get("t"), "footer": {"text": f"Balcão de Negócios do Fumaça · {tag}"}}
+            "fields": campos, "footer": {"text": f"Balcão de Negócios do Fumaça · {tag}"}, **({"timestamp": n["t"]} if n.get("t") else {})}
 
 
 def lotes(blocos):
@@ -60,8 +60,8 @@ def lotes(blocos):
         yield atual
 
 
-def postar(hook, titulo, blocos):
-    for i, parte in enumerate(lotes(blocos)):
+def postar(hook, titulo, blocos, separado=False):
+    for i, parte in enumerate([[b] for b in blocos] if separado else lotes(blocos)):
         if not hook:
             print("Sem webhook configurado; mandaria:", [b["title"] for b in parte])
             continue
@@ -78,7 +78,7 @@ def main():
     resumo = os.environ.get("RESUMO", "").strip()
     if resumo:
         r = json.load(open(resumo, encoding="utf-8"))
-        postar(hook, r.get("titulo", "Atualização no Balcão"), [bloco(n) for n in r.get("notas", [])])
+        postar(hook, r.get("titulo", "Atualização no Balcão"), [bloco(n) for n in r.get("notas", [])], separado=bool(r.get("separado")))
         return
     atuais = entradas(open(ARQ, encoding="utf-8").read())
     antes = anterior(os.environ.get("BEFORE", ""))

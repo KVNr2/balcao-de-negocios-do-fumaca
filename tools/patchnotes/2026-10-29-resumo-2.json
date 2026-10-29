@@ -1,0 +1,37 @@
+{
+ "titulo": "Balcão do Fumaça: mais mudanças de 28 e 29/10",
+ "separado": true,
+ "notas": [
+  {
+   "titulo": "Builds: custo mais perto do real",
+   "itens": [
+    "Cada peça é procurada nas 5 cidades da royal, com base em Lymhurst.",
+    "Só sai de Lymhurst se a economia pagar o teleporte de volta, calculado pelo peso da peça.",
+    "Caerleon aparece ao lado quando é mais barato, mas não entra no total (não dá para voltar com a bag por teleporte).",
+    "Abaixo do total, a lista peça por peça com a cidade e o preço."
+   ],
+   "como": "Deixe a cidade em \"Mais barata (base Lymhurst)\" e passe o mouse em cada peça para ver o motivo.",
+   "impacto": "Menos idas a outra cidade por diferenças que o teleporte come."
+  },
+  {
+   "titulo": "Mercado, Mercado Negro, Craft e Refino",
+   "itens": [
+    "Tier, encantamento e qualidade aceitam várias opções de uma vez (ex.: T6 e T7).",
+    "Mercado Negro mostra quanto vende por dia e filtra por isso.",
+    "Craft e Refino mostram a cidade com bônus de produção (+15% ou +40%) e o Rest da zona preta com o mesmo bônus.",
+    "Com a varredura da nuvem em dia, listas grandes carregam em segundos; quando ela atrasa, aparece \"nuvem atrasada\" ao lado do horário."
+   ],
+   "como": "Abra o filtro de Tier e marque mais de um.",
+   "impacto": "Comparar tiers e achar onde fabricar ficou bem mais rápido."
+  },
+  {
+   "titulo": "Correções",
+   "itens": [
+    "Poções com ingrediente raro (ex.: Calmante, Purificadora) contavam retorno sobre esse ingrediente; no jogo ele não volta. O lucro delas aparecia bem maior do que é.",
+    "Preços que sumiam na Cozinha, Fazenda, Trabalhadores e Pesca quando os preços ao vivo chegavam no meio da busca."
+   ],
+   "como": "Nada: as contas já estão certas.",
+   "impacto": "Se você viu uma poção com lucro alto demais nos últimos dias, confira de novo."
+  }
+ ]
+}
