@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T16:40:00Z",
+   "titulo": "Teleporte pelo peso no custo das builds; patch notes no Discord",
+   "itens": [
+    "Builds: a peça só sai de Lymhurst se a economia em outra cidade passar do custo de teleporte de volta, calculado pelo peso dela (fórmula do jogo: 150 × peso × distância, com o multiplicador do servidor). Fort Sterling e Bridgewatch ficam a 1 de distância; Thetford e Martlock a 2. Peças de 500 mil ou mais também precisam de mais de 10% de diferença. Os pesos vêm dos arquivos do jogo (data/peso.json).",
+    "Nova rotina \"Patch notes no Discord\": a cada publicação com nota nova em data/patchnotes.json, o GitHub posta no canal do Discord o que mudou, como usar e o impacto. Precisa do segredo DISCORD_WEBHOOK_PATCHNOTES no repositório."
+   ]
+  },
+  {
    "t": "2026-10-29T16:20:00Z",
    "titulo": "Builds com base em Lymhurst; menu do item com onde vender e De olho",
    "itens": [
