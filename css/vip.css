@@ -1885,3 +1885,4 @@ td.gv-cell .gv-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:400
 .olho-r.ok{background:rgba(82,211,138,.1)}.olho-r.ok .olho-p{color:#7fe0a8;font-weight:700}
 .imenu-olc{white-space:nowrap}.imenu-olc input{width:16px;height:16px;margin:0}
 .imenu-olho{flex-wrap:nowrap}.imenu-olho input[type=number]{width:88px;flex:none}
+.olho-nt{font-size:12.5px;gap:6px}

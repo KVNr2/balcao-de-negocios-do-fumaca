@@ -269,14 +269,16 @@ const olhoSave=l=>{ try{ localStorage.setItem(OLHO_K,JSON.stringify(l)); }catch(
 const olhoGet=(id,q)=>olhoList().find(x=>x.id===id&&x.q===q);
 function olhoSet(o){ const l=olhoList().filter(x=>!(x.id===o.id&&x.q===o.q)); const old=olhoGet(o.id,o.q); l.push({...old,...o,avisado:old&&old.alvo===o.alvo?old.avisado:0}); olhoSave(l); }
 function olhoDel(id,q){ olhoSave(olhoList().filter(x=>!(x.id===id&&x.q===q))); }
-function olhoPermissao(){ try{ if("Notification" in window&&Notification.permission==="default") Notification.requestPermission(); }catch(e){} }
+/* notificação do navegador é opcional: só quem ligar no quadro De olho; o aviso na tela vale sempre */
+const olhoNotif=()=>{ try{ return localStorage.getItem("deOlhoNotif")==="1"; }catch(e){ return false; } };
+function olhoPermissao(){}
 function olhoBadge(){ const b=$("olhoBtn"); if(!b) return; const n=olhoList().length; b.hidden=!n; const c=b.querySelector(".olho-n"); if(c) c.textContent=String(n); const al=olhoList().some(x=>x.avisado); b.classList.toggle("alerta",al); }
 async function olhoConferir(){ const l=olhoList(); if(!l.length||document.hidden) return; const porQ={}; l.forEach(x=>(porQ[x.q]=porQ[x.q]||[]).push(x));
   let mudou=false;
   for(const q in porQ){ const ids=[...new Set(porQ[q].map(x=>x.id))]; const pr=await imPrecos(ids,+q);
     for(const x of porQ[q]){ const r=pr[x.id]; x.agora=r&&r.p?{p:r.p,c:r.c}:null; x.visto=Date.now(); mudou=true;
       if(x.alvo&&r&&r.p&&r.p<=x.alvo){ if(!x.avisado){ x.avisado=Date.now(); const msg=`${x.nm}: ${fmt(r.p)} em ${r.c} (alvo ${fmt(x.alvo)})`; toast("De olho: "+msg);
-          try{ if("Notification" in window&&Notification.permission==="granted") new Notification("Balcão do Fumaça: preço no alvo",{body:msg}); }catch(e){} } }
+          try{ if(olhoNotif()&&"Notification" in window&&Notification.permission==="granted") new Notification("Balcão do Fumaça: preço no alvo",{body:msg}); }catch(e){} } }
       else if(x.avisado&&r&&r.p>x.alvo*1.05) x.avisado=0; } }
   if(mudou){ const cur=olhoList(); for(const x of l){ const c=cur.find(y=>y.id===x.id&&y.q===x.q); if(c) Object.assign(c,{agora:x.agora,visto:x.visto,avisado:x.avisado}); } olhoSave(cur); }
   if(document.querySelector(".olho-pop")) olhoAbrir(true); }
@@ -285,7 +287,10 @@ function olhoAbrir(re){ let pop=document.querySelector(".olho-pop"); if(pop&&!re
   if(!l.length){ pop.append(el("p",{class:"muted small",text:"Nada aqui. Clique com o botão direito num item e marque De olho."})); }
   for(const x of l){ const r=el("div",{class:"olho-r"+(x.avisado?" ok":"")}); const del=el("button",{type:"button",class:"linkbtn",text:"tirar","aria-label":"Tirar "+x.nm+" de olho"}); del.addEventListener("click",()=>{ olhoDel(x.id,x.q); olhoAbrir(true); });
     r.append(iconImg(x.id,28,x.q),el("span",{class:"olho-nm",text:x.nm}),el("span",{class:"olho-p",text:x.agora?`${fmtS(x.agora.p)} em ${x.agora.c}`:"—"}),el("span",{class:"olho-a muted",text:x.alvo?`alvo ${fmtS(x.alvo)}`:"sem alvo"}),del); pop.append(r); }
-  pop.append(el("p",{class:"tiny muted",text:"Confere a cada 5 minutos enquanto o site está aberto e avisa quando o menor anúncio nas cidades da royal chega no alvo. Fica guardado neste navegador."}));
+  if("Notification" in window){ const nl=el("label",{class:"chk olho-nt"}), nc=el("input",{type:"checkbox"}); nc.checked=olhoNotif()&&Notification.permission==="granted";
+    nc.addEventListener("change",async()=>{ let on=nc.checked; if(on&&Notification.permission!=="granted"){ try{ on=(await Notification.requestPermission())==="granted"; }catch(e){ on=false; } } nc.checked=on; try{ localStorage.setItem("deOlhoNotif",on?"1":"0"); }catch(e){} });
+    nl.append(nc," Avisar também com notificação do navegador (opcional)"); pop.append(nl); }
+  pop.append(el("p",{class:"tiny muted",text:"Confere a cada 5 minutos enquanto o site está aberto e avisa na tela quando o menor anúncio nas cidades da royal chega no alvo. Fica guardado neste navegador."}));
   const b=$("olhoBtn").getBoundingClientRect(); pop.style.top=(b.bottom+6)+"px"; pop.style.right=Math.max(8,innerWidth-b.right)+"px"; }
 { const b=$("olhoBtn"); if(b){ b.addEventListener("click",ev=>{ ev.stopPropagation(); olhoAbrir(); if(document.querySelector(".olho-pop")) olhoConferir(); }); document.addEventListener("click",ev=>{ const p=document.querySelector(".olho-pop"); if(p&&!p.contains(ev.target)&&ev.target!==b) p.remove(); }); }
   olhoBadge(); setTimeout(olhoConferir,15000); setInterval(olhoConferir,5*60e3); }

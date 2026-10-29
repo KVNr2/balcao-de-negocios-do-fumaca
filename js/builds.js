@@ -210,13 +210,13 @@ const bldLiveP=(id,c,q)=>BLD_LV[`${id}|${c}|${q}`]||null;
 /* d = 7 pede só a média de 7 dias; d = 30 aceita a de 30 dias */
 const bldPrice=(id,c,q,d)=>{ const r=BLD_P[`${id}|${c}|${q}`]; if(!r) return null; if(d===7) return r.p7?{p:r.p7,d:7}:null; return r.p30?{p:r.p30,d:30}:null; };
 /* "best" = em cada peça, a cidade da royal (as 5 cidades e Caerleon) que vende mais barato agora */
-const ROYAL_LOCS=[...CITIES,"Caerleon"], BLD_BASE="Lymhurst";   // base do grupo: é onde se compra quando a diferença é pequena
+const ROYAL_LOCS=[...CITIES,"Caerleon"], BLD_BASE="Lymhurst", BLD_TP=30000;   // base do grupo: é onde se compra quando a diferença é pequena
 let BLD_CITY=(()=>{ try{ const c=localStorage.getItem("bldCity2"); return c||"best"; }catch(e){ return "best"; } })();
 const bldCities=()=>BLD_CITY==="best"?ROYAL_LOCS:[BLD_CITY], bldOnde=()=>BLD_CITY==="best"?"nenhuma cidade da royal":BLD_CITY;
 const BLD_PANELS=new Set();
 let BLD_TIER=(()=>{ try{ const t=+localStorage.getItem("bldTier"); return t>=4&&t<=8?t:0; }catch(e){ return 0; } })();   // tier escolhido vale para todas as builds e não se perde ao abrir o card
 function costPanel(b,get,ui){
-  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Onde comprar. \"Mais barata (base Lymhurst)\" procura cada peça nas 5 cidades da royal: fica Lymhurst se a diferença para a mais barata for pequena (até 20%, ou 10% acima de 500 mil; passe o mouse na peça para ver). Caerleon aparece ao lado quando é mais barato, mas só entra no total se a peça não existir na royal. Preço de cada peça, nesta ordem: pedido de venda atual (cada versão equivalente troca de qualidade se preciso, e vale a de menor preço; T8 = 8.0, 7.1, 6.2, 5.3, 4.4); média de 7 dias; média de 30 dias"});
+  const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Onde comprar. \"Mais barata (base Lymhurst)\" procura cada peça nas 5 cidades da royal: fica Lymhurst se a economia em outra cidade não pagar o teleporte de volta com a peça (até 30 mil de diferença; para peças de 500 mil ou mais, até 10%). Passe o mouse na peça para ver. Caerleon aparece ao lado quando é mais barato, mas só entra no total se a peça não existir na royal. Preço de cada peça, nesta ordem: pedido de venda atual (cada versão equivalente troca de qualidade se preciso, e vale a de menor preço; T8 = 8.0, 7.1, 6.2, 5.3, 4.4); média de 7 dias; média de 30 dias"});
   cs.append(el("option",{value:"best",text:"Mais barata (base Lymhurst)"})); SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c}))); cs.value=BLD_CITY;
   const out=el("span",{class:"bld-tot",role:"status","aria-live":"polite"});
   const seg=(selEl,label,lab)=>{ const g=el("div",{class:"bld-seg",role:"group","aria-label":label}); const bs=[...selEl.options].map(o=>{ const bt=el("button",{type:"button",text:lab(o),title:o.text,"aria-pressed":"false"}); bt.addEventListener("click",()=>{ selEl.value=o.value; selEl.dispatchEvent(new Event("change")); g._sync(); }); g.append(bt); return [o.value,bt]; });
@@ -248,10 +248,11 @@ function costPanel(b,get,ui){
         for(const c of cs) for(const [t,e] of g.groups[0]){ for(let k=0;k<qs.length;k++){ const r=preco(idOf(g,t,e),d,qs[k],ref,c); if(r){ if(!best||r.p<best.p||(r.p===best.p&&k<best.k)) best={...r,d,t,e,q:qs[k],k,c}; break; } } }
         if(best) return best; } return null; };
     /* "Mais barata em cada peça": a compra é numa cidade da royal (de Caerleon não dá para voltar com a bag por teleporte).
-       Lymhurst é a base: se o preço lá passa no máximo 20% do mais barato (10% para peças acima de 500 mil), fica Lymhurst e o aviso vai no título.
+       Lymhurst é a base: comprar em outra cidade só compensa se a economia passa do custo de voltar de teleporte com a peça (~30 mil, BLD_TP).
+       Peças de 500 mil ou mais: fica Lymhurst se a diferença é de até 10%. O aviso de quanto sai mais barato fora vai no título.
        Se Caerleon for mais barato, aparece ao lado como opção; só entra no total se nenhuma cidade da royal tiver a peça. */
     const escolhe=(f)=>{ if(BLD_CITY!=="best") return f(CS); let x=f(CITIES); const lym=f([BLD_BASE]), cae=f(["Caerleon"]);
-      if(x&&lym&&x.c!==BLD_BASE){ const tol=x.p>500000?0.10:0.20; if(lym.p<=x.p) x=lym; else if(lym.p<=x.p*(1+tol)) x={...lym,outra:{c:x.c,p:x.p,pct:(lym.p-x.p)/lym.p}}; }
+      if(x&&lym&&x.c!==BLD_BASE){ const tol=x.p>=500000?x.p*0.10:BLD_TP; if(lym.p<=x.p) x=lym; else if(lym.p-x.p<=tol) x={...lym,outra:{c:x.c,p:x.p,pct:(lym.p-x.p)/lym.p,dif:lym.p-x.p}}; }
       if(!x&&cae) return {...cae,soCae:true};
       if(x&&cae&&cae.p<x.p) x={...x,cae:{p:cae.p,pct:(x.p-cae.p)/x.p}};
       return x; };
@@ -267,7 +268,7 @@ function costPanel(b,get,ui){
     /* peça por peça: onde comprar e por quanto (a cidade mais barata quando "Mais barata em cada peça") */
     por.textContent=""; if(linhas.length){ const ul=el("ul",{class:"bld-pl"}); for(const L of linhas){ const li=el("li"); const im=iconImg(L.id,24,L.q||1); const pc=el("span",{class:"bld-pc",text:L.c}); if(L.cae) pc.append(el("span",{class:"bld-cae",text:` · Caerleon ${fmtS(L.cae.p)}`})); if(L.soCae) pc.append(el("span",{class:"bld-cae",text:" (só lá)"}));
       li.append(im,el("span",{class:"bld-pn",text:L.nm}),pc,el("b",{class:"bld-pp",text:fmtS(L.p)})); li.title=`${L.k?L.k+": ":""}${L.nm} em ${L.c}: ${fmt(L.p)} (${L.d===0?"pedido de venda atual":"média de "+L.d+" dias"})`
-        +(L.outra?`\nEstá ${dec(L.outra.pct*100)}% mais barato em ${L.outra.c} (${fmt(L.outra.p)}); fica ${BLD_BASE} por ser a base e a diferença ser pequena.`:"")
+        +(L.outra?`\nEm ${L.outra.c} sai ${fmt(L.outra.p)}, ${fmt(L.outra.dif)} (${dec(L.outra.pct*100)}%) mais barato. Fica ${BLD_BASE}: a economia não paga o teleporte de volta com a peça.`:"")
         +(L.cae?`\nEm Caerleon sai ${fmt(L.cae.p)} (${dec(L.cae.pct*100)}% mais barato), mas de lá não dá para voltar com a bag por teleporte.`:"")
         +(L.soCae?`\nSó tem em Caerleon: nenhuma cidade da royal tem esta peça agora.`:""); if(L.d) li.classList.add("est"); ul.append(li); } por.append(ul); }
     out.classList.remove("load"); out.textContent=""; out.title=`${fmt(tot)} de prata no total\n`+tip.join("\n");
