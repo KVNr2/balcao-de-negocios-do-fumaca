@@ -6,7 +6,14 @@ const REF5 = [
   {k:"wood",raw:"WOOD",ref:"PLANKS",city:"Fort Sterling",rawPT:"Madeira",refPT:"Tábua"},
   {k:"stone",raw:"ROCK",ref:"STONEBLOCK",city:"Bridgewatch",rawPT:"Pedra",refPT:"Bloco de pedra"}];
 const MAT_PT = {METALBAR:"Barra de metal",PLANKS:"Tábua",LEATHER:"Couro",CLOTH:"Tecido"};
-const OF = {mode:null, sort:"profit", cat:null, tier:0, ench:-1, q:"", rr:"auto", sellC:new Set(), sellS:"auto", buyS:"auto", city:"", loaded:new Set(), vol:{}};
+const OF = {mode:null, sort:"profit", cat:null, tiers:new Set(), enchs:new Set(), q:"", rr:"auto", sellC:new Set(), sellS:"auto", buyS:"auto", city:"", loaded:new Set(), vol:{}};
+/* tier e encantamento aceitam vários ao mesmo tempo (OF.tiers, OF.enchs; vazio = todos). OF.tier e OF.ench continuam valendo para o código
+   que precisa de um só: devolvem o único marcado (ou 0 / -1 quando há nenhum ou vários) e, ao receber um valor, marcam só ele. */
+Object.defineProperty(OF,"tier",{get(){ return OF.tiers.size===1?[...OF.tiers][0]:0; },set(v){ OF.tiers.clear(); if(+v>0) OF.tiers.add(+v); }});
+Object.defineProperty(OF,"ench",{get(){ return OF.enchs.size===1?[...OF.enchs][0]:-1; },set(v){ OF.enchs.clear(); if(+v>=0) OF.enchs.add(+v); }});
+const ofTierOk=t=>!OF.tiers.size||OF.tiers.has(t), ofEnchOk=e=>!OF.enchs.size||OF.enchs.has(e);
+const ofFiltSave=()=>[[...OF.tiers],[...OF.enchs]];
+const ofFiltLoad=([t,e])=>{ OF.tiers.clear(); OF.enchs.clear(); (t||[]).forEach(x=>OF.tiers.add(+x)); (e||[]).forEach(x=>OF.enchs.add(+x)); ["ofTier","ofEnch"].forEach(id=>{ const b=$(id); if(b&&b._msel) b._msel.paint(); }); };
 function ofCats(){
   const c=[];
   if(OF.mode==="refine"){ c.push({k:"refine",label:"Todos os recursos (minério, fibra, pelego, madeira e pedra)",grp:"Todos"});
@@ -28,8 +35,8 @@ function ofGroups(cat){ const g=cat.slice(2);
 function ofItems(cat){
   const out=[];
   if(cat.startsWith("g:")){ const g=cat.slice(2);
-    for(const gg of ofGroups(cat)) for(const k of bmKeys(gg)){ const r=BM[k]; for(let t=(OF.tier>=2&&OF.tier<4?OF.tier:4);t<=8;t++) for(let e=0;e<=4;e++){
-      if((OF.tier&&t!==OF.tier)||(OF.ench>=0&&e!==OF.ench)) continue;
+    for(const gg of ofGroups(cat)) for(const k of bmKeys(gg)){ const r=BM[k]; const lows=[...OF.tiers].filter(x=>x>=2&&x<4); for(let t=(lows.length?Math.min(...lows):4);t<=8;t++) for(let e=0;e<=4;e++){
+      if(!ofTierOk(t)||!ofEnchOk(e)) continue;
       if(t<4&&(e>0||r[4])) continue;   // T2 e T3 não têm encantamento nem artefato
       const ing=[]; for(const [,c,n] of r[3].matchAll(/([MPLC])(\d+)/g)) ing.push({id:idLv(t,BM_RES[c],e),n:+n,nm:`${MAT_PT[BM_RES[c]]} T${t}.${e}`});
       if(r[4]) ing.push({id:`T${t}_${r[4][0]}`,n:r[4][1],nm:r[4][0].startsWith("ALCHEMY")?"Ingrediente raro":"Artefato",art:true});
@@ -47,7 +54,7 @@ function ofItems(cat){
 }
 /* receitas por grupo: busca só os tiers e encantamentos do filtro; com "Mercado Negro" como destino, busca também as ordens de compra de lá */
 async function ensureOfG(cat,note,cancel){
-  const tiers=OF.tier?[OF.tier]:[4,5,6,7,8], enchs=OF.ench>=0?[OF.ench]:[0,1,2,3,4], bm=sellBM(), groups=ofGroups(cat);
+  const tiers=OF.tiers.size?[...OF.tiers].sort():[4,5,6,7,8], enchs=OF.enchs.size?[...OF.enchs].sort():[0,1,2,3,4], bm=sellBM(), groups=ofGroups(cat);
   const jobs=[];
   for(const gg of groups){
     const ids=[], idsBM=[], extra=new Set(), mats=new Set();
@@ -153,13 +160,13 @@ function ofFillCats(){
 const OF_FOOT_C=null;
 function ofApplyMode(mode){
   if(OF.mode===mode) return; const ref=mode==="refine";
-  if(OF.mode){ OF2["tier_"+OF.mode]=OF.tier; OF2["ench_"+OF.mode]=OF.ench; OF2["qty_"+OF.mode]=OF2.qty; if(OF.mode==="craft") OF2.qualSaved=OF2.qual; }
+  if(OF.mode){ OF2["filt_"+OF.mode]=ofFiltSave(); OF2["qty_"+OF.mode]=OF2.qty; if(OF.mode==="craft") OF2.qualSaved=OF2.qual; }
   OF.mode=mode; $(ref?"ofSlotRef":"ofSlotCraft").append($("ofRoot"));
   const fill=(box,opts)=>{ box.textContent=""; opts.forEach(([v,t])=>box.append(el("option",{value:String(v),text:t}))); };
   const tiers=ref?[4,5,6,7,8]:[1,2,3,4,5,6,7,8];
-  fill($("ofTier"),[[0,"Todos"],...tiers.map(t=>[t,`T${t}`])]); fill($("ofEnch"),[[-1,"Todos"],...[0,1,2,3,4].map(e=>[e,`.${e}`])]);
-  OF.tier=OF2["tier_"+mode]||0; OF.ench=OF2["ench_"+mode]??-1; OF2.qty=OF2["qty_"+mode]||(ref?100:10);
-  $("ofTier").value=String(OF.tier); $("ofEnch").value=String(OF.ench); $("ofQty").value=String(OF2.qty);
+  mselUI("ofTier",[],OF.tiers,"Todos","tiers",()=>renderOf()); mselUI("ofEnch",[0,1,2,3,4].map(e=>[e,`.${e}`]),OF.enchs,"Todos","encantamentos",()=>renderOf());
+  ofFiltLoad(OF2["filt_"+mode]||[[],[]]); $("ofTier")._msel.setOpts(tiers.map(t=>[t,`T${t}`])); OF2.qty=OF2["qty_"+mode]||(ref?100:10);
+  $("ofQty").value=String(OF2.qty);
   $("ofQualBox").hidden=ref; if(ref) OF2.qual=0; else { OF2.qual=OF2.qualSaved||0; $("ofQual").value=String(OF2.qual); }
   $("ofTitle").textContent=ref?"Oficina de refino":"Oficina"; $("ofRcT").textContent=ref?"Refino":"Receita";
   $("ofRcT").textContent=ref?"Foco a gastar":"Receita"; $("ofRcS").textContent=ref?"cada item mostra quantas unidades esse foco refina, o lucro, onde comprar e onde vender":"receitas pagas de cada item (o retorno rende peças extras)"; $("ofQty").setAttribute("aria-label",ref?"Foco a gastar no refino":"Quantidade de receitas");
@@ -176,7 +183,7 @@ function setupOf(){
   const fill=(box,opts)=>opts.forEach(([v,t])=>box.append(el("option",{value:String(v),text:t})));
   fill($("ofQual"),[[0,"Automática"],...[1,2,3,4,5].map(q=>[q,QNAME[q]])]);
   const bind=(id,key,num,store_)=>$(id).addEventListener("change",()=>{ (store_||OF)[key]=num?+$(id).value:$(id).value; renderOf(); });
-  bind("ofTier","tier",1); bind("ofEnch","ench",1); bind("ofQual","qual",1,OF2); ofCards();
+  bind("ofQual","qual",1,OF2); ofCards();
   $("ofRRp").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; OF2.rrMan=null; OF.rr=b.dataset.rr; renderOf(); });
   $("ofRRs").addEventListener("input",()=>{ OF2.rrMan=+$("ofRRs").value/100; $("ofRRv").textContent=dec(OF2.rrMan*100)+"%"; renderOf(); });
   { const bx=$("ofFocBox"); if(bx&&!bx.firstChild) bx.append(focBudUI(renderOf,"O foco só aumenta o retorno de recursos. Em cada item aberto aparece quantas unidades o foco do dia cobre.")); }
@@ -267,10 +274,10 @@ function ofSetSort(k){ if(OF.sort===k) OF.dir=-(OF.dir||1); else { OF.sort=k; OF
 const ofFavCtx=it=>JSON.stringify({cat:OF.mode==="refine"?"refine":(BM&&BM[it.key]?"g:"+BM[it.key][1]:(COOK&&COOK.r&&COOK.r[it.id]?(COOK.r[it.id][1]==="f"?"meal":"potion"):""))});
 async function ofFavItems(){
   const tab=OF.mode==="refine"?"refine":"craft", favs=FAV.list(tab), keep=new Set(favs.map(f=>f.k)), cats=[...new Set(favs.map(f=>f.c&&f.c.cat).filter(Boolean))];
-  const sT=OF.tier, sE=OF.ench, out=[], seen=new Set();
+  const sv=ofFiltSave(), out=[], seen=new Set();
   try{ for(const c of cats){ if(!OF.loaded.has(c.startsWith("refine")?"refine":c)){ if(!await ensureOf(c)) return null; }
       OF.tier=0; OF.ench=-1; for(const it of ofItems(c)) if(keep.has(it.id)&&!seen.has(it.id)){ seen.add(it.id); out.push(it); } } }
-  finally{ OF.tier=sT; OF.ench=sE; }
+  finally{ ofFiltLoad(sv); }
   return out;
 }
 async function renderOf(){
@@ -280,14 +287,14 @@ async function renderOf(){
   const FAVON=!!(window.FAV&&FAV.on(OF.mode==="refine"?"refine":"craft"));
   const isG=!FAVON&&cat.startsWith("g:"), agg=!FAVON&&cat.startsWith("g:*");
   $("ofPrem").checked=!!st.prem; $("ofDaily").checked=st.daily>0;
-  if(agg&&!OF.tier){ tb.textContent=""; $("ofCount").textContent="—"; note.textContent="Para comparar todos os itens do grupo, escolha um tier (de T2 a T8) no campo Tier, no painel à esquerda. O encantamento pode ficar em Todos."; return; }
-  const sellKey=ofSig(), tierKey=OF.tier, enchKey=OF.ench, qKey=OF2.qual;
-  const stale=()=>$("ofCat").value!==cat||ofSig()!==sellKey||OF.tier!==tierKey||OF.ench!==enchKey||OF2.qual!==qKey;
+  if(agg&&!OF.tiers.size){ tb.textContent=""; $("ofCount").textContent="—"; note.textContent="Para comparar todos os itens do grupo, escolha pelo menos um tier (de T2 a T8) no campo Tier, no painel à esquerda; pode marcar mais de um. O encantamento pode ficar em Todos."; return; }
+  const fk=()=>ofFiltSave().map(a=>a.slice().sort().join(",")).join("|"), sellKey=ofSig(), filtKey=fk(), qKey=OF2.qual;
+  const stale=()=>$("ofCat").value!==cat||ofSig()!==sellKey||fk()!==filtKey||OF2.qual!==qKey;
   let items;
   if(FAVON){ tb.textContent=""; note.textContent="Consultando os favoritos…"; items=await ofFavItems(); if(items===null){ note.textContent="Não consegui consultar os preços agora."; return; } if(stale()) return; }
   else if(isG){ tb.textContent=""; note.textContent="Consultando receitas e preços…"; const ok=await ensureOfG(cat,note,stale); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if(stale()) return; }
   else if(!OF.loaded.has(cat.startsWith("refine")?"refine":cat)){ tb.textContent=""; note.textContent="Consultando receitas e preços…"; lpShow(note,0,0,"Consultando receitas e preços…"); const ok=await ensureOf(cat); lpHide(note); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } if($("ofCat").value!==cat) return; }
-  if(!FAVON) items=ofItems(cat).filter(it=>(!OF.tier||it.t===OF.tier)&&(OF.ench<0||it.e===OF.ench)&&(!OF.q||it.name.toLowerCase().includes(OF.q)));
+  if(!FAVON) items=ofItems(cat).filter(it=>ofTierOk(it.t)&&ofEnchOk(it.e)&&(!OF.q||it.name.toLowerCase().includes(OF.q)));
   $("ofCount").textContent=fmt(items.length);
   if(OF2.qual>1&&isG){ note.textContent=`Consultando preços de venda em qualidade ${QNAME[OF2.qual].toLowerCase()}…`; if(!await ensureOfQ(items)){ note.textContent="Não consegui consultar a qualidade agora."; return; } if(stale()) return; }
   if(OF.sellS==='medio'||OF.buyS==='medio'){ note.textContent='Consultando valores médios…'; await ofPrefetchAvg(items); if(stale()) return; }
@@ -397,7 +404,7 @@ document.addEventListener("input",ev=>{ if(ev.target.id==="ofManS"){ OF2.manS=+e
 
 /* ================= mercado: todos os itens do jogo ================= */
 let CATALOG = null;                 // data/catalog.json: c: categorias, i: [id, categoria, subcategoria, tier, encantável, nome PT, nome EN]
-const MK = {limit:180, cat:"", sub:"", city:"", tier:0, ench:-1, qual:1, q:"", only:true, consultou:false, busy:false, ord:{k:"dif",d:-1}};   // qual: qualidade dos preços e dos ícones (1 a 5); q é o texto da busca
+const MK = {limit:180, cat:"", sub:"", city:"", tiers:new Set(), enchs:new Set(), qual:1, q:"", only:true, consultou:false, busy:false, ord:{k:"dif",d:-1}};   // qual: qualidade dos preços e dos ícones (1 a 5); q é o texto da busca
 const SUB_PT = {resources:"Recursos brutos",refinedresources:"Recursos refinados",fish:"Peixes",alchemy:"Ingredientes de alquimia",cityresources:"Recursos de cidade",tokens:"Fichas",food:"Comidas",potions:"Poções",tomes:"Tomos",silverbag:"Sacos de prata",
   plate_armor:"Placa",leather_armor:"Couro",cloth_armor:"Pano",plate_helmet:"Placa",leather_helmet:"Couro",cloth_helmet:"Pano",plate_shoes:"Placa",leather_shoes:"Couro",cloth_shoes:"Pano",shieldtype:"Escudos",booktype:"Livros",torchtype:"Tochas",
   bags:"Bolsas",satchels:"Bolsas de lado",labourers:"Trabalhadores e diários",luxurygoods:"Artigos de luxo",maps:"Mapas",trash:"Sucata",killtrophy:"Troféus",lootitem:"Saque",farm:"Sementes e colheitas",pasture:"Animais",kennel:"Montarias da fazenda",herbgarden:"Ervas",farmingproducts:"Produtos",
@@ -418,8 +425,8 @@ function setupMk(){
   sel.append(el("option",{value:"",text:"Todas"})); for(const c of order) if(CATALOG.c[c]) sel.append(el("option",{value:c,text:CATALOG.c[c]}));
   { const sv=store.get("mkCat2"); sel.value=sv==null?"":sv; if(sel.value!==(sv==null?"":sv)) sel.value=""; } MK.cat=sel.value; MK.sub="";
   const fillSel=(id,opts,val,key)=>{ const x=$(id); opts.forEach(([v,t])=>x.append(el("option",{value:String(v),text:t}))); x.value=String(val); x.addEventListener("change",()=>{ MK[key]=id==="mkCity"?x.value:+x.value; mkGatilho(); }); };
-  fillSel("mkTier",[[0,"Todos"],...[4,5,6,7,8].map(t=>[t,`T${t}`])],MK.tier,"tier");
-  fillSel("mkEnch",[[-1,"Todos"],...[0,1,2,3,4].map(e=>[e,`.${e}`])],MK.ench,"ench");
+  mselUI("mkTier",[4,5,6,7,8].map(t=>[t,`T${t}`]),MK.tiers,"Todos","tiers",()=>mkGatilho());
+  mselUI("mkEnch",[0,1,2,3,4].map(e=>[e,`.${e}`]),MK.enchs,"Todos","encantamentos",()=>mkGatilho());
   fillSel("mkQual",[1,2,3,4,5].map(q=>[q,QNAME[q]]),MK.qual,"qual");
   fillSel("mkCity",[["","Todas as cidades"],...SHOP_LOCS.map(c=>[c,c])],"","city");
   sel.addEventListener("change",()=>{ MK.cat=sel.value; MK.sub=""; store.set("mkCat2",sel.value); fillSubs(); mkGatilho(); });
@@ -476,12 +483,12 @@ async function renderMk(partial=false,forcar=false){
   const q=MK.q, search=q.length>=2;
   const FAVON=!!(window.FAV&&FAV.on("mk"));
   let base=CATALOG.i.filter(r=> FAVON ? true : search ? ((r[5]||"").toLowerCase().includes(q)||(r[6]||"").toLowerCase().includes(q)||r[0].toLowerCase().includes(q)) : ((!MK.cat||r[1]===MK.cat)&&(!MK.sub||r[2]===MK.sub)));
-  base=base.filter(r=>FAVON||(r[3]>=4&&(!MK.tier||r[3]===MK.tier)));
+  base=base.filter(r=>FAVON||(r[3]>=4&&(!MK.tiers.size||MK.tiers.has(r[3]))));
   if(search&&!FAVON){ const rank={weapons:0,armors:1,head:1,shoes:1,offhands:2,capes:2,crafting:3,consumables:3,farming:4,mounts:4,bags:4,gathering:5,artefacts:6,other:7,furniture:8,vanity:9};
     const nm_=r=>(mkName(r)||"").toLowerCase(); base.sort((a,b)=>((nm_(b).startsWith(q))-(nm_(a).startsWith(q)))||((rank[a[1]]??9)-(rank[b[1]]??9))||(a[3]-b[3])); }
   else if(!MK.cat){ const rank={weapons:0,armors:1,head:1,shoes:1,offhands:2,capes:2,crafting:3,consumables:3,farming:4,mounts:4,bags:4,gathering:5,artefacts:6,other:7,furniture:8,vanity:9}; base.sort((a,b)=>((rank[a[1]]??9)-(rank[b[1]]??9))||mkName(a).localeCompare(mkName(b),"pt-BR")||(a[3]-b[3])); }
   else base.sort((a,b)=>subName(a[2]).localeCompare(subName(b[2]),"pt-BR")||mkName(a).localeCompare(mkName(b),"pt-BR")||(a[3]-b[3]));
-  const list=[]; for(const r of base){ const es = (FAVON||MK.ench<0) ? (r[4]||isLevelRes(r)?[0,1,2,3,4]:[0]) : (MK.ench===0||r[4]||isLevelRes(r)?[MK.ench]:[]); for(const e of es) list.push({r,e,id:mkId(r,e)}); }
+  const list=[]; for(const r of base){ const all=r[4]||isLevelRes(r)?[0,1,2,3,4]:[0], es = (FAVON||!MK.enchs.size) ? all : all.filter(e=>MK.enchs.has(e)); for(const e of es) list.push({r,e,id:mkId(r,e)}); }
   if(FAVON){ const keep=new Set(FAV.list("mk").map(f=>f.k)); const kept=list.filter(x=>keep.has(x.id)); list.length=0; list.push(...kept); }
   const total=list.length, slice=list.slice(), SHOWN=300;
   const mq=MK.qual, seen=id=>mq>1?`${mq}|${id}`:id;

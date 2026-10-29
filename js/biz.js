@@ -146,29 +146,6 @@ function bmModel(key,t,e,focus=$("bmFocus").checked,q=1){
 function bmGroupDefault(){ return LINES[0][0]; }   /* sem ordem por spec: o Mercado Negro compra de todos, o que a pessoa sabe fabricar não muda o que ele paga */
 /* seleção da aba, como no Mercado: busca livre (acha em qualquer tipo) ou categoria + tipo */
 const BMF={q:"",cat:"",sub:"",lim:0,buy:""};
-/* seleção múltipla (tier, encantamento, qualidade): um botão com cara de caixa de seleção que abre uma lista de opções marcáveis.
-   O elemento guarda o valor como texto ("6,7"; vazio = todos), para o botão Limpar filtros e os favoritos tratarem como um campo comum. */
-function mselUI(id,opts,set,allTxt,unit,onChange){
-  const root=$(id); if(!root||root.dataset.msel) return; root.dataset.msel="1"; root.classList.add("msel");
-  const b=el("button",{type:"button",class:"msel-b","aria-haspopup":"true","aria-expanded":"false"}), bt=el("span",{class:"msel-t"});
-  b.append(bt,el("i",{class:"msel-car","aria-hidden":"true",text:"▾"}));
-  const pn=el("div",{class:"msel-p",role:"group",hidden:true}), all=el("button",{type:"button",class:"msel-o msel-all",text:allTxt});
-  pn.append(all); const items=opts.map(([v,t])=>{ const o=el("button",{type:"button",class:"msel-o",role:"checkbox"}); o.dataset.v=String(v); o.append(el("i",{class:"msel-ck","aria-hidden":"true"}),t); pn.append(o); return o; });
-  pn.append(el("small",{class:"msel-h muted",text:"Marque quantos quiser."}));
-  root.append(b,pn); pn.addEventListener("click",ev=>ev.preventDefault());   // clique no fundo da lista não aciona o rótulo em volta
-  const paint=()=>{ items.forEach(o=>{ const on=set.has(+o.dataset.v); o.setAttribute("aria-checked",String(on)); o.classList.toggle("on",on); }); all.classList.toggle("on",!set.size);
-    const ch=opts.filter(([v])=>set.has(v)).map(([,t])=>t); bt.textContent=!ch.length?allTxt:ch.length<=3?ch.join(", "):`${ch.length} ${unit}`; b.title=ch.length?ch.join(", "):allTxt; root.classList.toggle("on",!!ch.length); };
-  Object.defineProperty(root,"value",{configurable:true,get:()=>[...set].sort((a,b)=>a-b).join(","),set:v=>{ set.clear(); String(v||"").split(",").forEach(x=>{ x=x.trim(); if(x!==""&&opts.some(([o])=>String(o)===x)) set.add(+x); }); paint(); }});
-  const fire=()=>{ paint(); root.dispatchEvent(new Event("change",{bubbles:true})); };
-  const open=on=>{ pn.hidden=!on; b.setAttribute("aria-expanded",String(on)); };
-  b.addEventListener("click",ev=>{ ev.preventDefault(); open(pn.hidden); });
-  all.addEventListener("click",ev=>{ ev.preventDefault(); if(!set.size) return; set.clear(); fire(); });
-  items.forEach(o=>o.addEventListener("click",ev=>{ ev.preventDefault(); const v=+o.dataset.v; if(set.has(v)) set.delete(v); else set.add(v); fire(); }));
-  document.addEventListener("click",ev=>{ if(!pn.hidden&&!root.contains(ev.target)) open(false); });
-  root.addEventListener("keydown",ev=>{ if(ev.key==="Escape"&&!pn.hidden){ open(false); b.focus(); } });
-  root.addEventListener("change",()=>{ onChange(); });
-  paint();
-}
 const BM_CATS=[["weapons","Armas"],["armors","Peito"],["head","Cabeça"],["shoes","Pés"],["offhands","Mão secundária"]];
 const bmCatOf=k=>k.startsWith("ARMOR_")?"armors":k.startsWith("HEAD_")?"head":k.startsWith("SHOES_")?"shoes":BM[k][1]==="mao"?"offhands":"weapons";
 function bmFillSub(){ const x=$("bmSub"); x.textContent=""; x.append(el("option",{value:"",text:"Todas"}));

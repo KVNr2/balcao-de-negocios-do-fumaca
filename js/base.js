@@ -358,6 +358,32 @@ function lpShow(anchor,done,total,txt,unit="tipos"){ const b=lpEl(anchor); if(!b
   b.classList.toggle("det",det); b.querySelector("i").style.width=pc+"%"; b.querySelector("b").textContent=txt||"Consultando preços…"; b.querySelector(".bm-prog-pct").textContent=det?`${done} de ${total} ${unit} · ${pc}%`:""; b.setAttribute("aria-valuenow",String(pc)); b.setAttribute("aria-label",txt||"Consultando preços"); }
 function lpHide(anchor){ if(anchor&&anchor._lp) anchor._lp.hidden=true; }
 /* consulta uma lista grande de itens em lotes espaçados, com a barra de carregamento ancorada no elemento de id anchorId */
+/* seleção múltipla (tier, encantamento, qualidade; Mercado Negro, Craft, Refino e Mercado): um botão com cara de caixa de seleção que abre uma lista de opções marcáveis.
+   O elemento guarda o valor como texto ("6,7"; vazio = todos), para o botão Limpar filtros e os favoritos tratarem como um campo comum. */
+function mselUI(id,opts,set,allTxt,unit,onChange){
+  const root=$(id); if(!root||root.dataset.msel) return; root.dataset.msel="1"; root.classList.add("msel");
+  const b=el("button",{type:"button",class:"msel-b","aria-haspopup":"true","aria-expanded":"false"}), bt=el("span",{class:"msel-t"});
+  b.append(bt,el("i",{class:"msel-car","aria-hidden":"true",text:"▾"}));
+  const pn=el("div",{class:"msel-p",role:"group",hidden:true}), all=el("button",{type:"button",class:"msel-o msel-all",text:allTxt}), hint=el("small",{class:"msel-h muted",text:"Marque quantos quiser."});
+  let items=[];
+  const build=()=>{ items.forEach(o=>o.remove()); items=opts.map(([v,t])=>{ const o=el("button",{type:"button",class:"msel-o",role:"checkbox"}); o.dataset.v=String(v); o.append(el("i",{class:"msel-ck","aria-hidden":"true"}),t);
+    o.addEventListener("click",ev=>{ ev.preventDefault(); const x=+o.dataset.v; if(set.has(x)) set.delete(x); else set.add(x); fire(); }); pn.insertBefore(o,hint); return o; }); };
+  pn.append(all,hint);
+  root.append(b,pn); pn.addEventListener("click",ev=>ev.preventDefault());   // clique no fundo da lista não aciona o rótulo em volta
+  const paint=()=>{ items.forEach(o=>{ const on=set.has(+o.dataset.v); o.setAttribute("aria-checked",String(on)); o.classList.toggle("on",on); }); all.classList.toggle("on",!set.size);
+    const ch=opts.filter(([v])=>set.has(v)).map(([,t])=>t); bt.textContent=!ch.length?allTxt:ch.length<=3?ch.join(", "):`${ch.length} ${unit}`; b.title=ch.length?ch.join(", "):allTxt; root.classList.toggle("on",!!ch.length); };
+  Object.defineProperty(root,"value",{configurable:true,get:()=>[...set].sort((a,b)=>a-b).join(","),set:v=>{ set.clear(); String(v||"").split(",").forEach(x=>{ x=x.trim(); if(x!==""&&opts.some(([o])=>String(o)===x)) set.add(+x); }); paint(); }});
+  const fire=()=>{ paint(); root.dispatchEvent(new Event("change",{bubbles:true})); };
+  const open=on=>{ pn.hidden=!on; b.setAttribute("aria-expanded",String(on)); };
+  b.addEventListener("click",ev=>{ ev.preventDefault(); open(pn.hidden); });
+  all.addEventListener("click",ev=>{ ev.preventDefault(); if(!set.size) return; set.clear(); fire(); });
+  document.addEventListener("click",ev=>{ if(!pn.hidden&&!root.contains(ev.target)) open(false); });
+  root.addEventListener("keydown",ev=>{ if(ev.key==="Escape"&&!pn.hidden){ open(false); b.focus(); } });
+  root.addEventListener("change",()=>{ onChange(); });
+  /* troca as opções (ex.: Craft vai de T1 a T8, Refino de T4 a T8) e tira da seleção o que deixou de existir */
+  root._msel={setOpts:o=>{ opts=o; for(const v of [...set]) if(!opts.some(([x])=>x===v)) set.delete(v); build(); paint(); },paint};
+  build(); paint();
+}
 /* preços ao vivo: loadLive troca DATA por um objeto novo. Quem estava buscando preços para DATA.itens nesse meio tempo gravava no objeto velho
    (e marcava a aba como carregada sem os preços). LIVE_GEN conta as trocas; fetchLive refaz a busca no objeto novo quando isso acontece. */
 let LIVE_GEN=0;
