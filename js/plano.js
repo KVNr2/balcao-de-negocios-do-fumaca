@@ -78,38 +78,48 @@ async function renderPlano(){
    Entram equipamentos, comidas e poções, refino e a rega das plantas da ilha. A ordem é pelo lucro com foco por
    ponto de foco (o foco é o que acaba primeiro), e cada item tem teto no que o mercado compra no prazo escolhido,
    contando só a sua parte das vendas. A coluna Sem foco mostra quanto a mesma coisa daria sem gastar foco. */
-let PP={foc:30000,dias:3,parte:80,spec:true,cats:{equip:true,cons:true,ref:true,rega:true}}; try{ Object.assign(PP,JSON.parse(store.get("plProd")||"{}")); }catch(e){}
+let PP={foc:30000,dias:3,parte:80,spec:true,cap:30000000,cats:{equip:true,cons:true,ref:true,rega:true}}; try{ Object.assign(PP,JSON.parse(store.get("plProd")||"{}")); }catch(e){}
 if(!PP.cats) PP.cats={equip:true,cons:true,ref:true,rega:true};
 const ppSave=()=>{ try{ store.set("plProd",JSON.stringify(PP)); }catch(e){} };
 let PP_BUSY=false;
 /* "Vale fazer também sem foco": o que já dá lucro sem gastar foco, limitado pelo que o mercado absorve no prazo.
    Desconta as unidades que o plano com foco já usa do mesmo item. Ordena pelo lucro total sem foco. */
+/* "Vale fazer também sem foco": o que já dá lucro sem gastar foco, limitado pelo que o mercado absorve no prazo e pelo dinheiro que você
+   quer empatar (PP.cap). Desconta as unidades que o plano com foco já usa do mesmo item. O dinheiro vai primeiro para o maior lucro %. */
 async function plSemFoco(cand,plan){
   const usado={}; for(const x of plan) if(!x.rega) usado[x.id]=(usado[x.id]||0)+x.n*x.q;
   const pool=cand.filter(c=>!c.rega&&c.semFoco>0).sort((a,b)=>b.semFoco-a.semFoco).slice(0,150);
   if(!pool.length) return null;
   await histFetch(pool.flatMap(c=>SHOP_LOCS.map(l=>nk(c.id)+"|"+l)));
-  const out=[];
+  const opts=[];
   for(const c of pool){ const v=lfVol(c.id); if(!(v>=0.5)) continue;
-    const un=Math.max(0,v*PP.dias*(PP.parte/100)-(usado[c.id]||0)), n=Math.floor(un/c.q); if(n<1) continue;
+    const un=Math.max(0,v*PP.dias*(PP.parte/100)-(usado[c.id]||0)), nMax=Math.floor(un/c.q); if(nMax<1) continue;
     const inv0=c.invest+(c.profitF-c.semFoco);   // sem foco o retorno é menor: o custo sobe exatamente o que o lucro cai
-    out.push({...c,n,lucro:n*c.semFoco,inv:n*inv0,pct:inv0>0?c.semFoco/inv0:0,vol:v,dias:n*c.q/(v*PP.parte/100)}); }
-  out.sort((a,b)=>b.lucro-a.lucro); const top=out.slice(0,10); if(!top.length) return null;
+    if(!(inv0>0)) continue; opts.push({...c,nMax,inv0,pct:c.semFoco/inv0,vol:v}); }
+  opts.sort((a,b)=>b.pct-a.pct||b.semFoco-a.semFoco);
   const sec=el("section",{class:"pl-sf"});
-  sec.append(el("h3",{class:"pl-sfh",text:"Vale fazer também sem foco"}),el("p",{class:"small muted",text:`Isto dá lucro sem gastar foco nenhum, então pode ser feito além do plano acima. A quantidade é o que o mercado absorve em ${fmt(PP.dias)} ${PP.dias>1?"dias":"dia"} (${fmt(PP.parte)}% das vendas), já descontando o que o plano com foco produz do mesmo item. Se ainda sobrar foco num dia, gastar nestes itens rende o que a coluna "O foco acrescenta" mostra.`}));
-  const t=el("table",{class:"pl-t"}); const h=t.createTHead().insertRow(); ["","O que fazer","Quanto","Investimento","Lucro sem foco","Lucro %","Com foco daria","Vende em"].forEach(x=>h.append(el("th",{text:x})));
-  const b=t.createTBody();
-  top.forEach((x,i)=>{ const r=b.insertRow();
-    r.insertCell().append(el("b",{class:"pl-n",text:String(i+1)}));
-    r.insertCell().append(withIcon(x.id,el("span",{},el("b",{text:`${x.kind} ${x.name}`}),el("small",{class:"gv-sub",text:`em ${x.city} · vende ${fmtU(x.vol)} por dia, a ${fmt(Math.round(x.sale))} cada`}))));
-    const c=(v,cls)=>{ const td=r.insertCell(); td.className="num"+(cls?" "+cls:""); td.textContent=v; };
-    c(`${fmt(x.n)} ${x.n>1?x.unit[1]:x.unit[0]}`); c(fmt(Math.round(x.inv))); c("+"+fmt(Math.round(x.lucro)),"gain"); c(`${dec(x.pct*100)}%`);
-    { const td=r.insertCell(); td.className="num"; td.append(document.createTextNode("+"+fmt(Math.round(x.n*x.profitF))),el("small",{class:"gv-sub",text:`gastando ${fmt(x.n*x.fc1)} de foco`})); }
-    c(x.dias<1?"menos de 1 dia":`${dec(x.dias)} dias`); });
-  const w=el("div",{class:"tbl"}); w.append(t); sec.append(w);
-  const tot=top.reduce((a,x)=>a+x.lucro,0), inv=top.reduce((a,x)=>a+x.inv,0);
-  sec.append(el("p",{class:"small",text:`Fazendo tudo desta lista sem foco: ${sgn(Math.round(tot))} de lucro com ${fmt(Math.round(inv))} de investimento. Cada linha disputa o mesmo dinheiro: comece pelas de maior lucro % se o capital for curto.`}));
-  return sec;
+  const capIn=el("input",{type:"number",min:"0",step:"1000000",value:String(PP.cap||0),style:"width:150px"}); capIn.setAttribute("aria-label","Dinheiro para investir sem foco");
+  const head=el("div",{class:"pl-sfc"}); head.append(el("label",{class:"f"},"Dinheiro para investir (prata)",capIn,el("small",{class:"f-hint",text:"Quanto você topa empatar em materiais. O site enche primeiro o que dá maior lucro %."})));
+  sec.append(el("h3",{class:"pl-sfh",text:"Vale fazer também sem foco"}),el("p",{class:"small muted",text:`Isto dá lucro sem gastar foco nenhum, então pode ser feito além do plano acima. A quantidade de cada item é o menor entre o que o mercado absorve em ${fmt(PP.dias)} ${PP.dias>1?"dias":"dia"} (${fmt(PP.parte)}% das vendas, já descontando o que o plano com foco produz do mesmo item) e o que o dinheiro abaixo paga.`}),head);
+  const body=el("div"); sec.append(body);
+  const draw=()=>{ body.textContent=""; let left=PP.cap>0?PP.cap:Infinity; const top=[];
+    for(const o of opts){ const n=Math.min(o.nMax,Math.floor(left/o.inv0)); if(n<1) continue; left-=n*o.inv0;
+      top.push({...o,n,lucro:n*o.semFoco,inv:n*o.inv0,dias:n*o.q/(o.vol*PP.parte/100)}); if(top.length>=10||left<1) break; }
+    if(!top.length){ body.append(el("p",{class:"muted",text:opts.length?"Com esse dinheiro não dá para fazer nem uma fornada do que dá lucro sem foco. Aumente o valor.":"Com os preços de agora, nada dá lucro sem foco e vende nesse prazo."})); return; }
+    const t=el("table",{class:"pl-t"}); const h=t.createTHead().insertRow(); ["","O que fazer","Quanto","Investimento","Lucro sem foco","Lucro %","Com foco daria","Vende em"].forEach(x=>h.append(el("th",{text:x})));
+    const b=t.createTBody();
+    top.forEach((x,i)=>{ const r=b.insertRow();
+      r.insertCell().append(el("b",{class:"pl-n",text:String(i+1)}));
+      r.insertCell().append(withIcon(x.id,el("span",{},el("b",{text:`${x.kind} ${x.name}`}),el("small",{class:"gv-sub",text:`em ${x.city} · vende ${fmtU(x.vol)} por dia, a ${fmt(Math.round(x.sale))} cada`}))));
+      const c=(v,cls)=>{ const td=r.insertCell(); td.className="num"+(cls?" "+cls:""); td.textContent=v; };
+      c(`${fmt(x.n)} ${x.n>1?x.unit[1]:x.unit[0]}`); c(fmt(Math.round(x.inv))); c("+"+fmt(Math.round(x.lucro)),"gain"); c(`${dec(x.pct*100)}%`);
+      { const td=r.insertCell(); td.className="num"; td.append(document.createTextNode("+"+fmt(Math.round(x.n*x.profitF))),el("small",{class:"gv-sub",text:`gastando ${fmt(x.n*x.fc1)} de foco`})); }
+      c(x.dias<1?"menos de 1 dia":`${dec(x.dias)} dias`); });
+    const w=el("div",{class:"tbl"}); w.append(t); body.append(w);
+    const tot=top.reduce((a,x)=>a+x.lucro,0), inv=top.reduce((a,x)=>a+x.inv,0);
+    body.append(el("p",{class:"small",text:`Fazendo tudo desta lista sem foco: ${sgn(Math.round(tot))} de lucro com ${fmt(Math.round(inv))} de investimento${PP.cap>0?` (de ${fmt(PP.cap)} disponíveis)`:""}.`})); };
+  let tm; capIn.addEventListener("input",()=>{ const v=+capIn.value; PP.cap=isFinite(v)&&v>0?v:0; try{ store.set("plProd",JSON.stringify(PP)); }catch(e){} clearTimeout(tm); tm=setTimeout(draw,300); });
+  draw(); return sec;
 }
 async function renderPlanoProd(run){
   const box=$("plProd"); if(!box) return;

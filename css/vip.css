@@ -1830,3 +1830,4 @@ td.gv-cell .gv-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:400
 /* Plano do dia: seção "Vale fazer também sem foco" */
 .pl-sf{margin-top:22px;padding-top:16px;border-top:1px solid rgba(239,226,196,.12)}
 .pl-sfh{font:700 18px var(--f-body);color:var(--parch);margin:0 0 4px}
+.pl-sfc{margin:8px 0 6px}
