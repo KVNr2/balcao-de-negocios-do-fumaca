@@ -31,7 +31,7 @@ function plBestChain(L){
   SRC.ck="planto"; SRC.ckO={}; SRC.ckAuto=true; SRC.lotes=L;
   try{ for(const id in COOK.r){ const m=cookModel(id); if(!m||m.miss||m.thin||!(m.p1>0)) continue; const lpb=ckLotsPerBatch(m); if(!(lpb>0)) continue;
       const N=Math.floor(L/lpb+1e-9); if(N<1) continue; const v=lfVol(id), sell=v>0?Math.min(N*m.q,v):N*m.q;
-      const total=m.p1*N; if(!best||total>best.total) best={m,N,lpb,total,vol:v,parts:m.parts.map(x=>({...x,p:{...x.p}}))}; } }
+      const total=focMix(N,m.fc,m.p1,m.p0).tot; if(!best||total>best.total) best={m,N,lpb,total,vol:v,parts:m.parts.map(x=>({...x,p:{...x.p}}))}; } }
   finally{ SRC.ck=saveCk; SRC.ckO=saveO; SRC.ckAuto=saveA; SRC.lotes=saveL; }
   return best;
 }
@@ -40,7 +40,7 @@ function renderPlanoIlha(){
   const L=ilhaL(); if(!(L>0)){ box.append(el("p",{class:"muted",text:"Informe acima quantos lotes você tem na ilha."})); return; }
   const opts=[];
   const crop=FARM.p.map(plantModel).filter(Boolean).sort((a,b)=>b.p1-a.p1)[0];
-  if(crop) opts.push({k:"Vender a colheita",v:crop.p1*9*L,txt:`Plantar ${fzName(crop.crop)} nos ${fmt(L)} lotes, regar e vender a colheita`,crop});
+  if(crop){ const mx=focMix(9*L,crop.fc,crop.p1,crop.p0); opts.push({k:"Vender a colheita",v:mx.tot,txt:`Plantar ${fzName(crop.crop)} nos ${fmt(L)} lotes, regar e vender a colheita${mx.parcial?` (${mixTxt(mx)})`:""}`,crop}); }
   const prod=FARM.pr.map(producerModel).filter(Boolean).map(m=>({m,ps:fzPasture(L,m.food,m.food.n,9)})).sort((a,b)=>b.m.profit*b.ps.an-a.m.profit*a.ps.an)[0];
   if(prod) opts.push({k:"Leite e ovos",v:prod.m.profit*prod.ps.an,txt:`${fmt(prod.ps.an)} ${fzName(prod.m.grown)} em ${fmt(prod.ps.P)} pastos${prod.ps.F?` e ${fmt(prod.ps.F)} lotes de ração`:""}, vendendo ${fzName(prod.m.item)} (por dia)`});
   const ch=plBestChain(L);
@@ -55,7 +55,7 @@ function renderPlanoIlha(){
     const plant=top.ch.parts.filter(x=>x.p.src==="planto").map(x=>`${COOK.n[x.iid]||x.iid}`).join(", "), buy=top.ch.parts.filter(x=>x.p.src!=="planto").map(x=>`${fmt(Math.ceil(x.c*N))} × ${COOK.n[x.iid]||x.iid}`).join(", ");
     ol.append(el("li",{text:`Plante na ilha: ${plant}. O quadro abaixo diz quantos lotes de cada.`}));
     if(buy) ol.append(el("li",{text:`Compre o resto: ${buy}.`}));
-    ol.append(el("li",{text:`Cozinhe ${fmt(N)} fornadas de ${m.name} em ${COOK_CITY[m.kind]} (cidade com bônus), com ${fmt(m.fc*N)} de foco.`}));
+    { const mx=focMix(N,m.fc,m.p1,m.p0); ol.append(el("li",{text:`Cozinhe ${fmt(N)} fornadas de ${m.name} em ${COOK_CITY[m.kind]} (cidade com bônus), ${mx.parcial?`${fmt(mx.k)} com foco e ${fmt(N-mx.k)} sem, gastando ${fmt(mx.foc)} de foco (o seu teto)`:`com ${fmt(mx.foc)} de foco`}.`})); }
     const sc=bestCity(m.id,plField(),"max"), v=lfVol(m.id);
     ol.append(el("li",{text:`Venda ${fmt(m.q*N)} ${m.kind==="f"?"porções":"poções"}${sc?` em ${sc.c}, perto de ${fmt(sc.p)} cada`:""}.${v>0&&v<m.q*N?` O mercado vende uns ${fmtU(v)} por dia: leva alguns dias para vender tudo.`:""}`}));
     box.append(el("h3",{class:"pl-h3",text:"Passo a passo"}),ol); if(plan) box.append(plan);
@@ -66,6 +66,7 @@ function renderPlanoIlha(){
 async function renderPlano(){
   const note=$("plNote");
   { const l=$("plLotes"); if(l&&document.activeElement!==l) l.value=ilhaL()>0?String(ilhaL()):""; }
+  { const bx=$("plTeto"); if(bx&&!bx.firstChild) bx.append(tetoUI(()=>renderPlano())); }
   const ok=await plEnsure(note); if(!ok){ note.textContent="Não consegui abrir os dados agora. Tente atualizar."; return; }
   note.textContent="Com os preços de agora, as specs da sua ficha e as escolhas de origem dos materiais da Cozinha e da Fazenda.";
   renderPlanoIlha(); renderPlanoProd(false);

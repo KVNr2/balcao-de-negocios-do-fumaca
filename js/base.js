@@ -1098,15 +1098,16 @@ function cookModel(id){
   const bc=cost*(1-r1)+fee;
   return {id,name,kind,q,cost,fee,net,item,parts,p1,p0,pct:bc>0?p1/bc:0,fc,spf:(p1-p0)/fc,day:p1*Math.floor(10000/fc),thin,tier:+id[1]};
 }
+const ckMix=m=>focMix(ckNFor(m),m.fc,m.p1,m.p0), ckTot=m=>ckMix(m).tot;
 const CK_FIL=[
-  {k:"minP",lab:"Lucro mínimo (no total)",step:1000,get:m=>m.p1*ckNFor(m)},
+  {k:"minP",lab:"Lucro mínimo (no total)",step:1000,get:m=>ckTot(m)},
   {k:"minPct",lab:"Lucro % mínimo",step:1,get:m=>m.pct*100},
   {k:"minSpf",lab:"Prata por foco, no mínimo",step:1,get:m=>m.spf},
   {k:"minVol",lab:"Vende por dia, no mínimo",step:1,min:0,get:m=>lfVol(m.id)} ];
 const CK_COLS=[
   {h:"Item",k:"name",s:m=>m.name},
   {h:"Fornada"},
-  {h:"Você ganha",k:"profit",s:m=>m.miss?null:m.p1*ckNFor(m),t:"Ordenar pela prata que sobra no bolso, já descontados ingredientes, taxas e retorno"},
+  {h:"Você ganha",k:"profit",s:m=>m.miss?null:ckTot(m),t:"Ordenar pela prata que sobra no bolso, já descontados ingredientes, taxas e retorno"},
   {h:"Lucro %",k:"pct",s:m=>m.miss?null:m.pct,t:"Ordenar pelo lucro sobre o custo da fornada"},
   {h:"Por ponto de foco",k:"spf",s:m=>m.miss?null:m.spf},
   {h:"Venda típica",k:"sale",s:m=>m.miss?null:m.item.p},
@@ -1121,13 +1122,14 @@ async function renderCook(){
   lfBar(bar,"ck",CK_FIL,rer);
   if(ckNeedsFarm()){ try{ if(!FARM) FARM=await need("farm"); await ensureFZ(); }catch(e){} }
   { const l=$("ckLotes"); if(l&&document.activeElement!==l) l.value=SRC.lotes>0?String(SRC.lotes):""; }
+  { const bx=$("ckTeto"); if(bx&&!bx.firstChild) bx.append(tetoUI(()=>renderCook())); }
   const N=ckN(), AUTO=!!(SRC.ckAuto&&ilhaL()>0); { const th=tb.tHead.rows[0].cells[2]; const b=th&&th.querySelector(".lf-hs"); if(b&&AUTO) b.firstChild.textContent=`Você ganha com ${fmt(ilhaL())} lotes`; else if(b&&N>1) b.firstChild.textContent=`Você ganha em ${fmt(N)} fornadas`; }
   const only=$("ckBuilds").checked, FAVON=!!(window.FAV&&FAV.on("cozinha"));
   let rows=Object.keys(COOK.r).filter(id=>FAVON?FAV.has("cozinha",id):(COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id)))).map(cookModel).filter(Boolean);
   const st0=lfState("ck",def), needVol=st0.k==="vol"||lfNum(lfGet("ck").minVol);
   await lfEnsureVol(rows.map(m=>m.id),needVol,tb,note);
   const nAll=rows.length; rows=lfSort("ck",lfFilter("ck",rows,CK_FIL),CK_COLS,def); lfCount(bar,"ck",CK_FIL,nAll-rows.length);
-  ganhoTop($("ckSum"),rows.filter(m=>!m.miss),m=>m.p1*ckNFor(m),m=>{ const n=ckNFor(m); return `${m.name}: você ganha ${fmt(Math.round(m.p1*n))} de prata em ${n>1?fmt(n)+" fornadas":"uma fornada"}${AUTO&&ckLotsPerBatch(m)>0?`, o máximo que os seus ${fmt(ilhaL())} lotes dão por colheita`:""} (${fmt(m.q*n)} ${m.kind==="f"?"porções":"poções"}, ${fmt(m.fc*n)} de foco). Já descontados ingredientes, taxa da estação e taxas de venda.`; },"Com os preços de agora, nada desta lista dá lucro.");
+  ganhoTop($("ckSum"),rows.filter(m=>!m.miss),m=>ckTot(m),m=>{ const n=ckNFor(m), mx=ckMix(m); return `${m.name}: você ganha ${fmt(Math.round(mx.tot))} de prata em ${n>1?fmt(n)+" fornadas":"uma fornada"}${AUTO&&ckLotsPerBatch(m)>0?`, o máximo que os seus ${fmt(ilhaL())} lotes dão por colheita`:""} (${fmt(m.q*n)} ${m.kind==="f"?"porções":"poções"}, ${fmt(mx.foc)} de foco${mx.parcial?`; ${mixTxt(mx)}`:""}). Já descontados ingredientes, taxa da estação e taxas de venda.`; },"Com os preços de agora, nada desta lista dá lucro.");
   if(!rows.length){ const td=body.insertRow().insertCell(); td.colSpan=NC; td.className="muted"; td.textContent=nAll?"Nada passa pelos filtros. Afrouxe um deles ou clique em Limpar filtros.":"Nada para mostrar aqui."; }
   for(const m of rows){ const tr=body.insertRow(); tr.dataset.fav=m.id; tr.tabIndex=0; tr.className="clickrow";
     const a=tr.insertCell(); const an=el("span"); an.append(m.name); if(BUILD_FOOD.includes(m.id)) an.append(" ",el("span",{class:"spec",text:"build"})); a.append(withIcon(m.id,an));
@@ -1136,7 +1138,7 @@ async function renderCook(){
     const Nm=ckNFor(m), lpb=ilhaL()>0?ckLotsPerBatch(m):0;
     const c=tr.insertCell(); c.className="num gv-cell "+(m.p1>=0?"gain":"loss");
     if(AUTO&&lpb>0&&Nm<1){ c.className="num gv-cell muted"; c.append(el("b",{class:"gv",text:"—"}),el("small",{class:"gv-sub",text:`1 fornada ocupa ${dec(lpb)} lotes: mais que os seus ${fmt(ilhaL())}`})); }
-    else c.append(el("b",{class:"gv",text:sgn(m.p1*Nm)}),el("small",{class:"gv-sub",text:(m.p1<0?"prejuízo: ":"")+(AUTO&&lpb>0?`${fmt(Nm)} fornadas com seus lotes · ${sgn(m.p1)} cada`:Nm>1?`${sgn(m.p1)} por fornada`:"por fornada, com foco")+` · ${fmt(m.fc*Nm)} de foco`+(!AUTO&&lpb>0?` · seus lotes dão ${fmt(Math.floor(ilhaL()/lpb+1e-9))}`:"")}));
+    else { const mx=focMix(Nm,m.fc,m.p1,m.p0); c.className="num gv-cell "+(mx.tot>=0?"gain":"loss"); c.append(el("b",{class:"gv",text:sgn(mx.tot)}),el("small",{class:"gv-sub",text:(mx.tot<0?"prejuízo: ":"")+(AUTO&&lpb>0?`${fmt(Nm)} fornadas com seus lotes · ${sgn(m.p1)} cada`:Nm>1?`${sgn(m.p1)} por fornada`:"por fornada, com foco")+` · ${fmt(mx.foc)} de foco`+(mx.parcial?` · ${mixTxt(mx)}`:"")+(!AUTO&&lpb>0?` · seus lotes dão ${fmt(Math.floor(ilhaL()/lpb+1e-9))}`:"")})); }
     const p=tr.insertCell(); p.className="num "+(m.p1>=0?"gain":"loss"); p.textContent=dec(m.pct*100)+"%";
     const d=tr.insertCell(); d.className="num"; d.textContent=dec(m.spf);
     const e=tr.insertCell(); e.className="num"; e.textContent=fmt(m.item.p);
@@ -1212,12 +1214,13 @@ function cookPanel(m){
   const card=(cls,title,lines,tot)=>{ const c=el("div",{class:"of-xcard "+cls}); c.append(el("h4",{class:"of-xh",text:title})); for(const [k,v] of lines){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{text:v})); c.append(l); } if(tot){ const l=el("div",{class:"of-xline of-xtot"}); l.append(el("span",{text:tot[0]}),el("b",{text:tot[1]})); c.append(l); } return c; };
   const rr=rrr(0.15,true,st.daily), bruto=m.q*m.item.p*N, fN=N>1?` (${fmt(N)} fornadas)`:"";
   right.append(card("cost","Custos detalhados (−)",[[`Ingredientes${fN}`,fmt(m.cost*N)],[`Retorno de recursos (${dec(rr*100)}%)`,"−"+fmt(m.cost*rr*N)],["Taxa da estação",fmt(m.fee*N)]],[N>1?"Custo total":"Custo da fornada",fmt((m.cost*(1-rr)+m.fee)*N)]));
-  const lines=[[`Venda (${fmt(m.q*N)} × ${fmt(m.item.p)})`,fmt(bruto)],[`Taxas de venda (${dec(taxOf()*100)}%)`,"−"+fmt(bruto-m.net*N)],["Líquido da venda",fmt(m.net*N)],[N>1?"Foco no total":"Foco por fornada",fmt(m.fc*N)]];
+  const lines=[[`Venda (${fmt(m.q*N)} × ${fmt(m.item.p)})`,fmt(bruto)],[`Taxas de venda (${dec(taxOf()*100)}%)`,"−"+fmt(bruto-m.net*N)],["Líquido da venda",fmt(m.net*N)],[N>1?"Foco no total":"Foco por fornada",fmt(focMix(N,m.fc,m.p1,m.p0).foc)]];
   if(N>1) lines.push(["Lucro por fornada",sgn(m.p1)]);
   lines.push(["Com 10.000 de foco",sgn(m.day)+" por dia"],["Por ponto de foco",dec(m.spf)+" pratas"]);
   const v=lfVol(m.id); if(v!=null&&v>=0) lines.push(["O mercado vende por dia",`${fmtU(v)} (você faz ${fmt(m.q*N)})`]);
   const sc=bestCity(m.id,st.sell==="instant"?1:0,"max"); if(sc) lines.push(["Melhor cidade para vender",`${sc.c}, ${fmt(sc.p)} cada`]);
-  right.append(card(m.p1<0?"res neg":"res",m.p1<0?"Resultado (−)":"Resultado (+)",lines,[N>1?"Lucro total":"Lucro por fornada",sgn(m.p1*N)]));
+  { const mx=focMix(N,m.fc,m.p1,m.p0); if(mx.parcial){ lines.push(["Com o teto de foco",mixTxt(mx)],["Sem foco, cada fornada dá",sgn(m.p0)]); }
+  right.append(card(mx.tot<0?"res neg":"res",mx.tot<0?"Resultado (−)":"Resultado (+)",lines,[N>1?"Lucro total":"Lucro por fornada",sgn(mx.tot)])); }
   d.append(left,right); drawHistory(svg,hn,m.id,city); return d;
 }
 function bestCook(){ if(!COOK_LOADED) return []; const out=[]; for(const id in COOK.r){ const k=COOK.r[id][1]; if(((PF[k==="f"?"cozinha":"alquimia"]||{}).lv||0)===0) continue; const m=cookModel(id); if(m&&!m.miss&&!m.thin&&m.p1>0) out.push(m); } return out.sort((a,b)=>b.day-a.day); }
