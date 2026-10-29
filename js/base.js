@@ -1085,18 +1085,20 @@ function ckBuy(iid){
   return i?{p:i.p,n:i.n,src:o?"ordem":"inst"}:null;
 }
 const ckNeedsFarm=()=>SRC.ck==="planto"||Object.values(SRC.ckO||{}).includes("planto");
+/* ingredientes que o retorno de recursos não devolve (no jogo, maxreturnamount 0): os ingredientes raros de alquimia e o token de Avalon */
+const ckNoRet=iid=>/_ALCHEMY_RARE_|^QUESTITEM_TOKEN_AVALON/.test(iid);
 function cookModel(id){
   const r=COOK.r[id]; if(!r||!r[3]) return null; const [name,kind,q,fo,nut,ing]=r;
-  let cost=0, miss=null, thin=false; const parts=[];
-  for(const [iid,c] of ing){ const p=ckBuy(iid); if(!p){ miss=COOK.n[iid]||iid; break; } cost+=c*p.p; if(p.n<2&&(p.src==="inst"||p.src==="ordem")) thin=true; parts.push({iid,c,p}); }
+  let cost=0, fix=0, miss=null, thin=false; const parts=[];
+  for(const [iid,c] of ing){ const p=ckBuy(iid); if(!p){ miss=COOK.n[iid]||iid; break; } cost+=c*p.p; const nr=ckNoRet(iid); if(nr) fix+=c*p.p; if(p.n<2&&(p.src==="inst"||p.src==="ordem")) thin=true; parts.push({iid,c,p,nr}); }
   const item=typical(id, st.sell==="instant"?1:0);
   if(miss||!item) return {id,name,kind,q,miss:miss||"preço do próprio item"};
   if(item.n<2) thin=true;
   const fee=q*nut*0.1125*feeVal()/100, net=q*item.p*(1-taxOf());
   const r1=rrr(0.15,true,st.daily), r0=rrr(0.15,false,st.daily);
-  const p1=net-cost*(1-r1)-fee, p0=net-cost*(1-r0)-fee, fc=Math.max(1,Math.round(fo*Math.pow(0.5,cookFCE(kind,id)/10000)));
-  const bc=cost*(1-r1)+fee;
-  return {id,name,kind,q,cost,fee,net,item,parts,p1,p0,pct:bc>0?p1/bc:0,fc,spf:(p1-p0)/fc,day:p1*Math.floor(10000/fc),thin,tier:+id[1]};
+  const ret=cost-fix, p1=net-ret*(1-r1)-fix-fee, p0=net-ret*(1-r0)-fix-fee, fc=Math.max(1,Math.round(fo*Math.pow(0.5,cookFCE(kind,id)/10000)));
+  const bc=ret*(1-r1)+fix+fee;
+  return {id,name,kind,q,cost,ret,fix,fee,net,item,parts,p1,p0,inv:bc,pct:bc>0?p1/bc:0,fc,spf:(p1-p0)/fc,day:p1*Math.floor(10000/fc),thin,tier:+id[1]};
 }
 const ckMix=m=>focMix(ckNFor(m),m.fc,m.p1,m.p0), ckTot=m=>ckMix(m).tot;
 const CK_FIL=[
@@ -1191,7 +1193,7 @@ function cookPanel(m){
     const it=el("span",{class:"of-xi"}); it.append(el("i",{class:"of-dot"+(kind==="buy"?" red":"")}),iconImg(id,34)); const n=el("span",{class:"of-xn"}); n.append(el("b",{text:nm})); if(sub) n.append(el("small",{text:sub})); it.append(n); r.append(it);
     r.append(el("b",{class:"of-xv",text:fmt(val)}),el("span",{class:"of-xt",text:"—"}),el("span",{class:"of-xc",text:where}),el("span",{class:"of-xq",text:qty})); return r; };
   left.append(row("sale","VENDA INST",m.id,m.name,"preço típico",m.item.p,`${fmt(m.q*N)}x`,city));
-  for(const x of m.parts) left.append(row("buy",CK_PILL[x.p.src]||"COMPRA INST",x.iid,COOK.n[x.iid]||x.iid,CK_SUB[x.p.src]||"",x.p.p,`${fmt(x.c*N)}x`,x.p.src==="tenho"||x.p.src==="planto"?"—":city));
+  for(const x of m.parts) left.append(row("buy",CK_PILL[x.p.src]||"COMPRA INST",x.iid,COOK.n[x.iid]||x.iid,(CK_SUB[x.p.src]||"")+(x.nr?" · não volta no retorno":""),x.p.p,`${fmt(x.c*N)}x`,x.p.src==="tenho"||x.p.src==="planto"?"—":city));
   /* de onde vem cada ingrediente: troca só este, por cima do geral */
   const box=el("div",{class:"ck-src"}); box.append(el("b",{class:"of-ct",text:"De onde vem cada ingrediente"}),el("span"));
   for(const x of m.parts){
@@ -1213,7 +1215,7 @@ function cookPanel(m){
   const hist=el("div",{class:"hist"}), hh=el("div",{class:"hist-h"}); hh.append(el("span",{text:"Histórico de 30 dias"})); const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("viewBox","0 0 520 150"); svg.setAttribute("role","img"); const hn=el("p",{class:"tiny muted"}); hist.append(hh,svg,hn); left.append(hist);
   const card=(cls,title,lines,tot)=>{ const c=el("div",{class:"of-xcard "+cls}); c.append(el("h4",{class:"of-xh",text:title})); for(const [k,v] of lines){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{text:v})); c.append(l); } if(tot){ const l=el("div",{class:"of-xline of-xtot"}); l.append(el("span",{text:tot[0]}),el("b",{text:tot[1]})); c.append(l); } return c; };
   const rr=rrr(0.15,true,st.daily), bruto=m.q*m.item.p*N, fN=N>1?` (${fmt(N)} fornadas)`:"";
-  right.append(card("cost","Custos detalhados (−)",[[`Ingredientes${fN}`,fmt(m.cost*N)],[`Retorno de recursos (${dec(rr*100)}%)`,"−"+fmt(m.cost*rr*N)],["Taxa da estação",fmt(m.fee*N)]],[N>1?"Custo total":"Custo da fornada",fmt((m.cost*(1-rr)+m.fee)*N)]));
+  right.append(card("cost","Custos detalhados (−)",[[`Ingredientes${fN}`,fmt(m.cost*N)],[`Retorno de recursos (${dec(rr*100)}%${m.fix>0?", o ingrediente raro não volta":""})`,"−"+fmt(m.ret*rr*N)],["Taxa da estação",fmt(m.fee*N)]],[N>1?"Custo total":"Custo da fornada",fmt((m.ret*(1-rr)+m.fix+m.fee)*N)]));
   const lines=[[`Venda (${fmt(m.q*N)} × ${fmt(m.item.p)})`,fmt(bruto)],[`Taxas de venda (${dec(taxOf()*100)}%)`,"−"+fmt(bruto-m.net*N)],["Líquido da venda",fmt(m.net*N)],[N>1?"Foco no total":"Foco por fornada",fmt(focMix(N,m.fc,m.p1,m.p0).foc)]];
   if(N>1) lines.push(["Lucro por fornada",sgn(m.p1)]);
   lines.push(["Com 10.000 de foco",sgn(m.day)+" por dia"],["Por ponto de foco",dec(m.spf)+" pratas"]);

@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T02:10:00Z",
+   "titulo": "Correção: ingrediente raro de alquimia não volta no retorno",
+   "itens": [
+    "As poções que usam ingrediente raro (os de animais e criaturas, como o da Poção Calmante) contavam o retorno de recursos também sobre esse ingrediente. No jogo ele não volta. Por isso o lucro dessas poções aparecia bem maior do que é de verdade, na Cozinha e alquimia e no Plano do dia.",
+    "Agora o retorno vale só para os outros ingredientes; o raro entra pelo preço cheio. O mesmo vale para o token de Avalon. No detalhe da receita, o ingrediente aparece marcado com \"não volta no retorno\"."
+   ]
+  },
+  {
    "t": "2026-10-29T01:45:00Z",
    "titulo": "Mercado Negro: vários tiers, encantamentos e qualidades de uma vez",
    "itens": [
