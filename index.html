@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="74b60603">
+<html lang="pt-BR" data-v="59728a8f">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=74b60603">
-<link rel="stylesheet" href="css/vip.css?v=74b60603">
-<link rel="stylesheet" href="css/avicons.css?v=74b60603">
-<link rel="stylesheet" href="css/souk.css?v=74b60603">
+<link rel="stylesheet" href="css/balcao.css?v=59728a8f">
+<link rel="stylesheet" href="css/vip.css?v=59728a8f">
+<link rel="stylesheet" href="css/avicons.css?v=59728a8f">
+<link rel="stylesheet" href="css/souk.css?v=59728a8f">
 </head>
 <body>
 <div class="wrap app">
@@ -142,25 +142,26 @@ html.em-atual .av-card{margin:0}
   <section class="panel" id="p-plano" role="tabpanel" aria-labelledby="t-plano" hidden>
     <p class="aside">O que fazer hoje para ganhar mais prata com o foco e com os lotes que você tem. As contas são as mesmas das outras abas, com os preços de agora e as specs da sua ficha.</p>
     <div class="row-ctl src-ctl">
-      <div id="plFocBox"></div>
       <label class="f" title="Cada lote é uma fazenda de 9 sementes, um pasto de 9 animais ou um canil de 4 montarias raras. O mesmo número vale na Cozinha e na Ilha e fazenda.">Lotes na ilha<input type="number" id="plLotes" min="0" max="999" placeholder="0" style="width:100px"></label>
     </div>
     <p class="small muted" id="plNote"></p>
-    <h2 class="pc-h">O que fabricar com o foco cheio</h2>
-    <p class="small pp-intro">O site olha todos os equipamentos, comidas e poções e monta uma lista do que fabricar para o seu foco render o máximo de prata. Ele começa pelo que dá mais lucro por ponto de foco e para quando o foco acaba ou quando o mercado não compraria mais daquele item no prazo que você escolher.</p>
+    <h2 class="pc-h">Onde gastar o foco</h2>
+    <p class="small pp-intro">O site olha equipamentos, comidas e poções, refino e a rega das plantas da sua ilha, e monta uma lista do que fazer para o foco render o máximo de prata. Começa pelo que dá mais lucro por ponto de foco e para quando o foco acaba ou quando o mercado não compraria mais daquele item no prazo que você escolher.</p>
     <div class="row-ctl src-ctl pp-ctl">
       <label class="f">Foco<input type="number" id="ppFoc" min="500" max="30000" step="500" style="width:110px"><small class="f-hint">Quanto foco você quer gastar. 30.000 é a reserva cheia do Premium.</small></label>
       <label class="f">Vender em até (dias)<input type="number" id="ppDias" min="1" max="30" step="1" style="width:90px"><small class="f-hint">Em quantos dias você quer ter vendido tudo. Menos dias, listas menores e mais seguras.</small></label>
       <label class="f">Sua parte das vendas (%)<input type="number" id="ppParte" min="5" max="100" step="5" style="width:90px"><small class="f-hint">Quanto do que o mercado vende por dia você espera vender. 80% se o seu anúncio estiver entre os mais baratos.</small></label>
       <label class="chk pp-chk"><input type="checkbox" id="ppSpec"> <span>Só o que tenho spec<small class="f-hint">Deixa de fora itens sem spec na sua ficha (ex.: roupas de pano para quem só tem spec em placas).</small></span></label>
-      <div class="src-g"><span class="of-ct">O que fabricar</span><div class="seg" role="group" aria-label="O que fabricar"><button type="button" data-pp="tudo">Tudo</button><button type="button" data-pp="equip">Equipamentos</button><button type="button" data-pp="cons">Comidas e poções</button></div><small class="f-hint">Armas, armaduras e mão secundária, ou comidas e poções.</small></div>
-      <button type="button" class="btn" id="ppGo">Montar sugestão</button>
+      <div class="src-g pp-cats"><span class="of-ct">O que entra</span>
+        <label class="chk"><input type="checkbox" data-ppc="equip"> Equipamentos</label>
+        <label class="chk"><input type="checkbox" data-ppc="cons"> Comidas e poções</label>
+        <label class="chk"><input type="checkbox" data-ppc="ref"> Refino</label>
+        <label class="chk"><input type="checkbox" data-ppc="rega"> Regar plantas da ilha</label></div>
+      <button type="button" class="btn" id="ppGo">Montar plano</button>
     </div>
     <div id="plProd"></div>
     <h2 class="pc-h">Da ilha até a venda</h2>
     <div id="plIlha"></div>
-    <h2 class="pc-h">Onde gastar o foco do dia</h2>
-    <div id="plFoco"></div>
   </section>
 
   <!-- FICHA -->
@@ -811,26 +812,26 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=74b60603"></script>
-<script src="js/base.js?v=74b60603"></script>
-<script src="js/fx.js?v=74b60603"></script>
-<script src="js/biz.js?v=74b60603"></script>
-<script src="js/builds.js?v=74b60603"></script>
-<script src="js/nossas.js?v=74b60603"></script>
-<script src="js/ip.js?v=74b60603"></script>
-<script src="js/zvz.js?v=74b60603"></script>
-<script src="js/pvp.js?v=74b60603"></script>
-<script src="js/novos.js?v=74b60603"></script>
-<script src="js/guia.js?v=74b60603"></script>
-<script src="js/ui.js?v=74b60603"></script>
-<script src="js/avalon.js?v=74b60603"></script>
-<script src="js/oficina.js?v=74b60603"></script>
-<script src="js/versao.js?v=74b60603"></script>
-<script src="js/bag.js?v=74b60603"></script>
+<script src="js/icons.js?v=59728a8f"></script>
+<script src="js/base.js?v=59728a8f"></script>
+<script src="js/fx.js?v=59728a8f"></script>
+<script src="js/biz.js?v=59728a8f"></script>
+<script src="js/builds.js?v=59728a8f"></script>
+<script src="js/nossas.js?v=59728a8f"></script>
+<script src="js/ip.js?v=59728a8f"></script>
+<script src="js/zvz.js?v=59728a8f"></script>
+<script src="js/pvp.js?v=59728a8f"></script>
+<script src="js/novos.js?v=59728a8f"></script>
+<script src="js/guia.js?v=59728a8f"></script>
+<script src="js/ui.js?v=59728a8f"></script>
+<script src="js/avalon.js?v=59728a8f"></script>
+<script src="js/oficina.js?v=59728a8f"></script>
+<script src="js/versao.js?v=59728a8f"></script>
+<script src="js/bag.js?v=59728a8f"></script>
 <script src="js/plano.js?v=x"></script>
 <script src="js/pesca.js?v=x"></script>
-<script src="js/listfil.js?v=74b60603"></script>
-<script src="js/fav.js?v=74b60603"></script>
-<script src="js/main.js?v=74b60603"></script>
+<script src="js/listfil.js?v=59728a8f"></script>
+<script src="js/fav.js?v=59728a8f"></script>
+<script src="js/main.js?v=59728a8f"></script>
 </body>
 </html>

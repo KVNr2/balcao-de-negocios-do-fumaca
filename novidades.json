@@ -20,6 +20,15 @@
    ]
   },
   {
+   "t": "2026-10-29T00:46:00Z",
+   "titulo": "Plano do dia: Onde gastar o foco revisto",
+   "itens": [
+    "As duas listas de foco do Plano do dia viraram uma só, Onde gastar o foco, com as mesmas regras para tudo: equipamentos, comidas e poções, refino e a rega das plantas da ilha (dá para escolher o que entra).",
+    "A ordem agora é por quanto o foco acrescenta de verdade. Se a tarefa já dá lucro sem foco, conta só a diferença que o foco faz; se sem foco daria prejuízo, conta o lucro inteiro. Antes, um refino que só dava lucro por causa do foco aparecia com um ganho maior que o próprio lucro.",
+    "Os equipamentos entram sempre (antes só entravam os que já tinham preço consultado no Craft), e a lista respeita as specs da ficha, o prazo de venda e a sua parte das vendas."
+   ]
+  },
+  {
    "t": "2026-10-29T00:40:00Z",
    "titulo": "Mercado: botão Pesquisar, ordenação local e menos pedidos à API",
    "itens": [
