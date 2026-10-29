@@ -33,7 +33,7 @@ async function ensurePesca(){
   if(PC_LOADED) return true;
   if(!PESCA_P) PESCA_P=(async()=>{
     PESCA=await need("pesca");
-    await Promise.all([ensureCook(), fetchPaced(PC_EXTRA,DATA.itens,SHOP_LOCS,"pcNote","Consultando algas e molhos").catch(()=>{})]);
+    await Promise.all([ensureCook(), fetchLive(PC_EXTRA,SHOP_LOCS,"pcNote","Consultando algas e molhos").catch(()=>{})]);
     PC_LOADED=true; return true; })().catch(()=>{ PESCA_P=null; return false; });
   return PESCA_P;
 }

@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T02:40:00Z",
+   "titulo": "Correção: preços que sumiam na Cozinha, Fazenda, Trabalhadores e Pesca",
+   "itens": [
+    "Quando os preços ao vivo chegavam enquanto a aba ainda buscava os seus próprios preços, a aba gravava os preços no lugar antigo e se dava por carregada. Resultado: muitas receitas apareciam como \"Sem preço\" até recarregar a página (na Cozinha e alquimia, só 39 de 186 itens tinham preço).",
+    "Agora, se os preços ao vivo chegam no meio, a busca é refeita no lugar certo."
+   ]
+  },
+  {
    "t": "2026-10-29T02:10:00Z",
    "titulo": "Correção: ingrediente raro de alquimia não volta no retorno",
    "itens": [

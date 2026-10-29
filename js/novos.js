@@ -34,7 +34,7 @@ async function ensureEnch(g,only=0,cancel=null,quiet=false,step=null){
     const tiers=only?[only]:[4,5,6,7,8];
     const ids=[]; for(const k of bmKeys(g)) for(const t of tiers) for(let e=0;e<=4;e++) ids.push(bmId(k,t,e));
     const mats=[]; for(const t of tiers) for(const e of [1,2,3]) mats.push(`T${t}_${EN_MAT[e][0]}`);
-    try{ await bmFetch(ids,SHOP_LOCS); await fetchIds(mats,DATA.itens,SHOP_LOCS); EN_LOADED.add(only?`${g}#${only}`:g); return true; }catch(e){ return false; }
+    try{ const lg=LIVE_GEN; await bmFetch(ids,SHOP_LOCS); await fetchIds(mats,DATA.itens,SHOP_LOCS); if(lg===LIVE_GEN) EN_LOADED.add(only?`${g}#${only}`:g); return true; }catch(e){ return false; }
   } finally{ if(!quiet) lpHide(note); }
 }
 function cheapestCity(id){ const c=cheapest(id); return c; }
@@ -114,7 +114,7 @@ const HERBS = /AGARIC|COMFREY|BURDOCK|TEASEL|FOXGLOVE|MULLEIN|YARROW/;
 function ensureFZ(){
   if(FZ_LOADED) return Promise.resolve(true); if(FZ_LOADING) return FZ_LOADING;
   const ids=new Set(["T1_WORM"]); FARM.p.forEach(r=>{ ids.add(r[0]); ids.add(r[1]); }); FARM.b.forEach(r=>{ ids.add(r[0]); ids.add(r[1]); if(r[7]) ids.add(r[7]); }); FARM.pr.forEach(r=>{ ids.add(r[1]); if(r[5]) ids.add(r[5]); });
-  FZ_LOADING=fetchPaced([...ids],DATA.itens,SHOP_LOCS,"fzNote","Consultando sementes, colheitas e animais").then(()=>{FZ_LOADED=true; return true;}).catch(()=>false).finally(()=>{FZ_LOADING=null;});
+  FZ_LOADING=fetchLive([...ids],SHOP_LOCS,"fzNote","Consultando sementes, colheitas e animais").then(()=>{FZ_LOADED=true; return true;}).catch(()=>false).finally(()=>{FZ_LOADING=null;});
   return FZ_LOADING;
 }
 const fzName = id => (FARM.n[id]||id).replace(/^Sementes de /,"");
