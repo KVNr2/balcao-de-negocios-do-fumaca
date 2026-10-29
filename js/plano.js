@@ -103,8 +103,11 @@ async function plSemFoco(cand,plan){
   sec.append(el("h3",{class:"pl-sfh",text:"Vale fazer também sem foco"}),el("p",{class:"small muted",text:`Isto dá lucro sem gastar foco nenhum, então pode ser feito além do plano acima. A quantidade de cada item é o menor entre o que o mercado absorve em ${fmt(PP.dias)} ${PP.dias>1?"dias":"dia"} (${fmt(PP.parte)}% das vendas, já descontando o que o plano com foco produz do mesmo item) e o que o dinheiro abaixo paga.`}),head);
   const body=el("div"); sec.append(body);
   const draw=()=>{ body.textContent=""; let left=PP.cap>0?PP.cap:Infinity; const top=[];
-    for(const o of opts){ const n=Math.min(o.nMax,Math.floor(left/o.inv0)); if(n<1) continue; left-=n*o.inv0;
+    /* linhas de lucro irrisório (resto de dinheiro que só paga 1 ou 2 unidades) ficam de fora: menos de 10 mil ou de 1% do lucro da lista */
+    const MIN_L=10000;
+    for(const o of opts){ const n=Math.min(o.nMax,Math.floor(left/o.inv0)); if(n<1||n*o.semFoco<MIN_L) continue; left-=n*o.inv0;
       top.push({...o,n,lucro:n*o.semFoco,inv:n*o.inv0,dias:n*o.q/(o.vol*PP.parte/100)}); if(top.length>=10||left<1) break; }
+    { const tot0=top.reduce((a,x)=>a+x.lucro,0); for(let i=top.length-1;i>=0;i--) if(top[i].lucro<tot0*0.01) top.splice(i,1); }
     if(!top.length){ body.append(el("p",{class:"muted",text:opts.length?"Com esse dinheiro não dá para fazer nem uma fornada do que dá lucro sem foco. Aumente o valor.":"Com os preços de agora, nada dá lucro sem foco e vende nesse prazo."})); return; }
     const t=el("table",{class:"pl-t"}); const h=t.createTHead().insertRow(); ["","O que fazer","Quanto","Investimento","Lucro sem foco","Lucro %","Com foco daria","Vende em"].forEach(x=>h.append(el("th",{text:x})));
     const b=t.createTBody();
