@@ -638,7 +638,7 @@ async function ensureRefMats(items){
   for(const it of items) for(const g of it.ing){ if(g.art) continue; const P=refParse(g.id); if(!P||P.t<4) continue;
     for(let t=P.t;t>=4;t--){ ids.add(apiLv(t,P.R.raw,P.e)); ids.add(apiLv(t,P.R.ref,P.e)); } ids.add(`T3_${P.R.ref}`); }
   const need=[...ids].filter(id=>!OF.loaded.has("rm|"+id)); if(!need.length) return true;
-  try{ await fetchIds(need,DATA.itens,SHOP_LOCS); need.forEach(id=>OF.loaded.add("rm|"+id)); return true; }catch(e){ return false; }
+  try{ const g=LIVE_GEN; await fetchIds(need,DATA.itens,SHOP_LOCS); if(g===LIVE_GEN) need.forEach(id=>OF.loaded.add("rm|"+id)); else await fetchIds(need,DATA.itens,SHOP_LOCS); return true; }catch(e){ return false; }
 }
 function setupSelfRef(){
   const sr=$("ofSR"), sf=$("ofSRF"); if(!sr||sr._ok) return; sr._ok=1;
@@ -659,7 +659,7 @@ async function ensureCraftTE(t,e){
   const key=t+"|"+e; if(BC.loaded.has(key)) return true;
   const ids=[], mats=new Set(), extra=new Set();
   for(const k in BM){ const r=BM[k]; ids.push(bmId(k,t,e)); for(const [,c] of r[3].matchAll(/([MPLC])(\d+)/g)) mats.add(apiLv(t,BM_RES[c],e)); if(r[4]) extra.add(`T${t}_${r[4][0]}`); }
-  try{ await fetchIds(ids,DATA.itens,SHOP_LOCS); await fetchIds([...mats,...extra],DATA.itens,SHOP_LOCS); BC.loaded.add(key); return true; }catch(e){ return false; }
+  try{ const g=LIVE_GEN; await fetchIds(ids,DATA.itens,SHOP_LOCS); await fetchIds([...mats,...extra],DATA.itens,SHOP_LOCS); if(g===LIVE_GEN) BC.loaded.add(key); return true; }catch(e){ return false; }
 }
 function bestCraftsFor(ref,t,e,unitCost){
   const L=REF_LETTER[ref]; if(!L) return [];

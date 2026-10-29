@@ -345,7 +345,7 @@ function ensureWK(){
   if(WK_LOADED) return Promise.resolve(true); if(WK_LOADING) return WK_LOADING;
   const ids=new Set();
   for(const [ty] of WK) for(let t=4;t<=8;t++){ ids.add(`T${t}_JOURNAL_${ty}_EMPTY`); ids.add(`T${t}_JOURNAL_${ty}_FULL`); const l=JOURNALS[ty][t][3]; if(Array.isArray(l)) for(const [iid] of l) if(!DATA.itens[iid]) ids.add(lootApi(iid)); }
-  WK_LOADING=fetchPaced([...ids],DATA.itens,[...CITIES,"Caerleon"],"wkStatus","Consultando os diários").then(()=>{WK_LOADED=true; return true;}).catch(()=>false).finally(()=>{WK_LOADING=null;});
+  WK_LOADING=fetchLive([...ids],[...CITIES,"Caerleon"],"wkStatus","Consultando os diários").then(()=>{WK_LOADED=true; return true;}).catch(()=>false).finally(()=>{WK_LOADING=null;});
   return WK_LOADING;
 }
 const wkN = () => Math.max(1,Math.min(99,Math.round(+(store.get("wkN")||1)||1)));

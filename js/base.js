@@ -358,6 +358,10 @@ function lpShow(anchor,done,total,txt,unit="tipos"){ const b=lpEl(anchor); if(!b
   b.classList.toggle("det",det); b.querySelector("i").style.width=pc+"%"; b.querySelector("b").textContent=txt||"Consultando preços…"; b.querySelector(".bm-prog-pct").textContent=det?`${done} de ${total} ${unit} · ${pc}%`:""; b.setAttribute("aria-valuenow",String(pc)); b.setAttribute("aria-label",txt||"Consultando preços"); }
 function lpHide(anchor){ if(anchor&&anchor._lp) anchor._lp.hidden=true; }
 /* consulta uma lista grande de itens em lotes espaçados, com a barra de carregamento ancorada no elemento de id anchorId */
+/* preços ao vivo: loadLive troca DATA por um objeto novo. Quem estava buscando preços para DATA.itens nesse meio tempo gravava no objeto velho
+   (e marcava a aba como carregada sem os preços). LIVE_GEN conta as trocas; fetchLive refaz a busca no objeto novo quando isso acontece. */
+let LIVE_GEN=0;
+async function fetchLive(ids,locs,anchorId,txt){ for(let n=0;n<3;n++){ const g=LIVE_GEN; await fetchPaced(ids,DATA.itens,locs,anchorId,txt); if(g===LIVE_GEN) return; } }
 async function fetchPaced(ids,itens,locs,anchorId,txt,q){
   const a=anchorId&&document.getElementById(anchorId), lotes=[]; for(let i=0;i<ids.length;i+=200) lotes.push(ids.slice(i,i+200));
   try{ for(let i=0;i<lotes.length;i++){ if(i) await lpSpace(); if(a&&lotes.length>1) lpShow(a,i,lotes.length,txt,"lotes"); else if(a) lpShow(a,0,0,txt);
@@ -600,7 +604,7 @@ async function fetchIds(ids, target, locs=CITIES, q=1, ttl=10){
   dropOutliers(target,new Set(res.flat().map(x=>x.item_id.includes("_LEVEL")?x.item_id.split("@")[0]:x.item_id)));
 }
 const loadedFam=new Set();
-async function ensureFamily(slot,mat){ const key=slot+"_"+mat; if(loadedFam.has(key)) return true; try{ await fetchIds(familyIds(slot,mat),DATA.itens); loadedFam.add(key); return true; }catch(e){ return false; } }
+async function ensureFamily(slot,mat){ const key=slot+"_"+mat; if(loadedFam.has(key)) return true; try{ const g=LIVE_GEN; await fetchIds(familyIds(slot,mat),DATA.itens); if(g===LIVE_GEN) loadedFam.add(key); return true; }catch(e){ return false; } }
 let LIVE=false;
 async function loadLive(force){
   const btn=$("reload"), btnTxt=t=>{ const sp=btn.querySelector("span"); (sp||btn).textContent=t; }; btn.disabled=true; btn.classList.add("busy"); btnTxt("Atualizando…"); FORCE=!!force; apiJSON.oldest=Infinity;
@@ -611,7 +615,7 @@ async function loadLive(force){
     const when=isFinite(apiJSON.oldest)?new Date(apiJSON.oldest):new Date(); FORCE=false;
     const hh=when.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
     if(!force){ const o=DATA.itens||{}; for(const k in o) if(!(k in itens)) itens[k]=o[k]; }   /* atualização automática: mantém o que o Mercado já consultou */
-    DATA={geradoEm:new Date().toISOString(),janela:`ao vivo, ${hh}`,ouro,itens}; LIVE=true; loadedFam.clear();
+    DATA={geradoEm:new Date().toISOString(),janela:`ao vivo, ${hh}`,ouro,itens}; LIVE_GEN++; LIVE=true; loadedFam.clear();
     COOK_LOADED=false; BM_LOADED.clear(); PLANKS_LOADED=false; WK_LOADED=false; FZ_LOADED=false; EN_LOADED.clear(); OF.loaded.clear(); if(force){ MK_SEEN.clear(); for(const q in PQ) PQ[q]={}; } if(typeof BMQ!=="undefined") for(const k in BMQ) delete BMQ[k]; applyMeta(); recompute(true); btn.classList.remove("busy"); btnTxt("Atualizar preços"); setTimeout(()=>{ try{ warmBM(!!force); }catch(e){} },400); if(!$("p-cozinha").hidden) renderCook(); if(!$("p-mapas").hidden) renderMaps(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-trab").hidden) renderWK(); if(!$("p-fazenda").hidden) renderFZ(); if(!$("p-encantar").hidden) renderEN(); if(!$("p-craft").hidden) renderOf(); if(!$("p-mk").hidden) renderMk();
   }catch(e){ FORCE=false; $("when").textContent="sem conexão, usando os salvos"; $("whenBox").classList.add("off"); $("whenBox").title="Não consegui puxar os preços ao vivo agora. "+(DATA.janela?"Usando os preços salvos no site: "+DATA.janela:""); btn.classList.remove("busy"); btnTxt("Tentar de novo"); }
   btn.disabled=false;
@@ -1051,7 +1055,7 @@ function ensureCook(){
   if(COOK_LOADED) return Promise.resolve(true);
   if(COOK_LOADING) return COOK_LOADING;
   const ids=[...new Set([...Object.keys(COOK.r), ...Object.keys(COOK.n)])].filter(i=>!i.startsWith("QUESTITEM"));
-  COOK_LOADING=fetchPaced(ids,DATA.itens,COOK_LOCS,"ckNote","Consultando os ingredientes e pratos").then(()=>{COOK_LOADED=true; return true;}).catch(()=>false).finally(()=>{COOK_LOADING=null;});
+  COOK_LOADING=fetchLive(ids,COOK_LOCS,"ckNote","Consultando os ingredientes e pratos").then(()=>{COOK_LOADED=true; return true;}).catch(()=>false).finally(()=>{COOK_LOADING=null;});
   return COOK_LOADING;
 }
 /* preço de cada ingrediente conforme de onde ele vem (SRC fica em novos.js) */
