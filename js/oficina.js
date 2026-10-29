@@ -489,14 +489,25 @@ async function renderMk(partial=false,forcar=false){
   const want=slice.filter(x=>!MK_SEEN.has(seen(x.id))).sort((a,b)=>a.e-b.e).map(x=>x.id);   /* o encantamento .0 de tudo vem primeiro: a tabela já fica útil nos primeiros lotes */
   const tok=partial?MK_TOK:++MK_TOK;
   if(!partial) MK.consultou=true;
-  if(want.length&&!partial){ MK.busy=true; const ff=FORCE; if(forcar) FORCE=true; tb.textContent=""; const lotes=[]; for(let i=0;i<want.length;i+=200) lotes.push(want.slice(i,i+200));
-    const txt=`Consultando ${fmt(want.length)} itens em todas as cidades${mq>1?`, qualidade ${QNAME[mq].toLowerCase()}`:""}`;
-    try{ for(let i=0;i<lotes.length;i++){
-        if(i){ await lpSpace(); if(tok!==MK_TOK) return; }
-        lpShow(note,i,lotes.length,txt,"lotes");
-        await fetchIds(lotes[i],mq>1?PQ[mq]:DATA.itens,SHOP_LOCS,mq,45); lotes[i].forEach(id=>MK_SEEN.add(seen(id)));
-        lpShow(note,i+1,lotes.length,txt,"lotes");
-        if(i<lotes.length-1){ await renderMk(true); if(tok!==MK_TOK) return; } }
+  if(want.length&&!partial){ MK.busy=true; const ff=FORCE; if(forcar) FORCE=true; tb.textContent="";
+    /* varredura da nuvem fresca: os itens cobertos vêm só da nuvem, em lotes grandes e em paralelo, sem a pausa que protege a API pública;
+       o resto (e tudo, se a nuvem falhar) segue pela API pública em lotes espaçados */
+    let cob=[], resto=want.slice(); try{ if(!FORCE&&await varrFresca()){ const set=await varrIds(); cob=want.filter(id=>set.has(id)); resto=want.filter(id=>!set.has(id)); } }catch(e){ cob=[]; resto=want.slice(); }
+    const txt=`Consultando ${fmt(want.length)} itens em todas as cidades${mq>1?`, qualidade ${QNAME[mq].toLowerCase()}`:""}${cob.length?" (na nuvem)":""}`;
+    const alvo=mq>1?PQ[mq]:DATA.itens; let ult=Date.now(), feitos=0;
+    const parcial=async()=>{ if(Date.now()-ult>2500){ await renderMk(true); ult=Date.now(); } };   /* redesenho parcial no máximo a cada 2,5 s */
+    try{
+      const lc=[]; for(let i=0;i<cob.length;i+=300) lc.push(cob.slice(i,i+300));
+      for(let i=0;i<lc.length;){ const g=lc.slice(i,i+3); lpShow(note,feitos,want.length,txt,"itens");
+        try{ await Promise.all(g.map(l=>fetchIdsNuvem(l,alvo,SHOP_LOCS,mq))); g.forEach(l=>{ l.forEach(id=>MK_SEEN.add(seen(id))); feitos+=l.length; }); i+=g.length; await parcial(); if(tok!==MK_TOK) return; }
+        catch(e){ resto=resto.concat(lc.slice(i).flat()); break; } }   /* a nuvem falhou: o que faltou segue pela API pública */
+      const lotes=[]; for(let i=0;i<resto.length;i+=200) lotes.push(resto.slice(i,i+200));
+      for(let i=0;i<lotes.length;i++){
+        if(i||feitos){ await lpSpace(); if(tok!==MK_TOK) return; }
+        lpShow(note,feitos,want.length,txt,"itens");
+        await fetchIds(lotes[i],alvo,SHOP_LOCS,mq,45); lotes[i].forEach(id=>MK_SEEN.add(seen(id))); feitos+=lotes[i].length;
+        lpShow(note,feitos,want.length,txt,"itens");
+        if(i<lotes.length-1){ await parcial(); if(tok!==MK_TOK) return; } }
       lpHide(note); MK.busy=false; }catch(e){ lpHide(note); MK.busy=false; if(tok===MK_TOK) note.textContent="Não consegui consultar os preços agora."; return; } finally{ FORCE=ff; }
     if(tok!==MK_TOK||MK.qual!==mq) return; }
   const spr=x=>x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0; let rows=slice.filter(x=>MK_SEEN.has(seen(x.id))||FAVON).map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>FAVON||!MK.only||x.x.smin||x.x.bmax).sort(mkCmp(mq)); const achados=rows.length; if(!FAVON&&rows.length>SHOWN) rows=rows.slice(0,SHOWN);

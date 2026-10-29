@@ -539,6 +539,15 @@ async function sbRows(ids,locs,quals=[1]){
   livepSbRows(out,ids,locs,quals);
   return out;
 }
+/* Leitura só da nuvem (varredura fresca): mesmo formato de fetchIds, sem passar pela API pública */
+async function varrCobreIds(ids){ if(FORCE) return false; try{ if(!(await varrFresca())) return false; const set=await varrIds(); return ids.every(id=>set.has(id)); }catch(e){ return false; } }
+async function fetchIdsNuvem(ids,target,locs,q){
+  const rows=await sbRows(ids,locs,[q]), lim=Date.now()-MAX_AGE_H*3600e3, ms=d=>d?(Date.parse(d)||0):0, ks=new Set();
+  for(const x of rows){ const bm=x.city==="Black Market", ts=bm?0:ms(x.sell_min_at), tb=ms(x.buy_max_at);
+    const s=!bm&&x.sell_min>0&&ts>lim?x.sell_min:0, b=x.buy_max>0&&tb>lim?x.buy_max:0; if(!s&&!b) continue;
+    const k=x.item_id.includes("_LEVEL")?x.item_id.split("@")[0]:x.item_id; (target[k]||(target[k]={}))[x.city]=[s,b,s?ts:0,b?tb:0]; ks.add(k); }
+  dropOutliers(target,ks); VARR.hits+=ids.length;
+}
 async function apiJSON(url,ttlMin=10){
   if(!FORCE&&url.includes("/stats/prices/")&&await varrCobre(url)){ try{ const o=await crowdMerge(url,[],true); VARR.hits++; return o; }catch(e){ /* nuvem falhou: segue para a API pública */ } }
   const j=await apiJSON0(url,ttlMin);

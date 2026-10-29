@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-29T01:15:00Z",
+   "titulo": "Mercado: carregamento rápido pela nuvem",
+   "itens": [
+    "Com a varredura da nuvem fresca, a consulta do Mercado lê os itens cobertos (T4 a T8) só da nuvem, em lotes grandes e em paralelo, sem a pausa que protege a API pública. Em Todas, com cerca de 10 mil itens, a carga caiu de dezenas de segundos para poucos segundos nos testes.",
+    "Itens fora da cobertura, nuvem com falha, varredura atrasada ou o botão Atualizar lista seguem pela API pública, em lotes espaçados como antes. A barra de carregamento conta itens e mostra \"(na nuvem)\" quando usa esse caminho.",
+    "O redesenho parcial durante a carga acontece no máximo a cada 2,5 segundos."
+   ]
+  },
+  {
    "t": "2026-10-29T01:00:00Z",
    "titulo": "Albion Overlay 2.1.0: varredura de preços em blocos",
    "programa": "2.1.0",
