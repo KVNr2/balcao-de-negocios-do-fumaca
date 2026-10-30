@@ -84,6 +84,18 @@ async function simular(p) {
   conf("bônus diário casa com a categoria do item", bd.arc === 0.1 && bd.placa === 0.1 && bd.couro === 0 && bd.espada === 0, bd);
   conf("faixa de bônus aparece no topo das páginas", bd.naMain && /Cajados arcanos/.test(bd.barra || "") && /Halloween/.test(bd.barra || ""), bd);
 
+  /* 8. conjuntos de builds: principais = mínimo, opcionais até o máximo, salvo no aparelho */
+  const cj = await p.evaluate(async () => { document.getElementById("t-builds").click();
+    for (let i = 0; i < 80 && !document.querySelector("#bList .bcard"); i++) await new Promise(f => setTimeout(f, 250));
+    localStorage.removeItem("conjuntos"); CJ = []; CJ_ED = null; renderBuilds();
+    document.querySelector("#bConj .btn").click();
+    for (let i = 0; i < 6; i++) { const b = [...document.querySelectorAll("#bList .cj-add")].find(x => !x.disabled && /Pôr/.test(x.textContent)); if (b) b.click(); }
+    const c = CJ[0], cheio = [...document.querySelectorAll("#bList .cj-add")].some(x => x.disabled);
+    c.min = 2; c.max = 3; cjAjusta(c); cjSalvar();
+    const salvo = JSON.parse(localStorage.getItem("conjuntos") || "[]")[0] || {};
+    return { p: salvo.p && salvo.p.length, o: salvo.o && salvo.o.length, txt: cjTexto(c).split("\n").length, cheio6: cheio }; });
+  conf("conjunto de builds guarda principais e opcionais", cj.p === 2 && cj.o === 1 && cj.txt === 6, cj);
+
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
   console.log(ok.map(x => "ok   " + x).join("\n")); if (falhas.length) { console.log(falhas.map(x => "FALHOU " + x).join("\n")); process.exit(1); }
