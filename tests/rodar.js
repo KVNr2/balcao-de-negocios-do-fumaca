@@ -20,6 +20,12 @@ async function simular(p) {
   await p.route("**/rest/v1/**", r => r.fulfill({ json: [] }));
   await p.route("**/api/v2/stats/**", route => { const u = decodeURIComponent(route.request().url());
     if (u.includes("gold")) return route.fulfill({ json: [{ price: 8300, timestamp: "2026-10-28T00:00:00" }] });
+    if (u.includes("festivities")) { const tk = d => String(BigInt(d.getTime() + 62135596800000) * 10000n);
+      return route.fulfill({ json: { Events: [
+        { Kind: 2, UniqueName: "COMMON_ARCANESTAFF", StartTime: tk(new Date(Date.now() - 3600e3)), EndTime: tk(new Date(Date.now() + 8 * 3600e3)) },
+        { Kind: 2, UniqueName: "COMMON_PLATE_ARMOR", StartTime: tk(new Date(Date.now() - 3600e3)), EndTime: tk(new Date(Date.now() + 8 * 3600e3)) },
+        { Kind: 0, UniqueName: "HALLOWEEN2026", StartTime: tk(new Date(Date.now() - 864e5)), EndTime: tk(new Date(Date.now() + 9 * 864e5)) }],
+        ExpiresAt: new Date(Date.now() + 8 * 3600e3).toISOString() } }); }
     const ids = (u.split(/\/(?:prices|history)\//)[1] || "").split(".json")[0].split(",").filter(Boolean);
     const locs = ((u.split("locations=")[1] || "").split("&")[0] || "Caerleon").split(",");
     if (u.includes("/history/")) return route.fulfill({ json: ids.flatMap(id => locs.map(l => ({ item_id: id, location: l, quality: 1,
@@ -68,6 +74,15 @@ async function simular(p) {
   /* 6. teleporte pelo peso */
   const tp = await p.evaluate(async () => { await pesoLoad(); return [tpCusto("T8_2H_HAMMER", "Thetford"), tpCusto("T8_ARMOR_PLATE_SET1", "Bridgewatch"), tpCusto("T8_2H_HAMMER", "Lymhurst")]; });
   conf("custo de teleporte pelo peso", tp[0] === 11902 && tp[1] === 2976 && tp[2] === 0, tp);
+
+  /* 7. bônus diário de produção: a categoria do jogo casa com o item e entra no retorno */
+  const bd = await p.evaluate(async () => { for (let i = 0; i < 40 && !(window.BONUS_DIA && window.BONUS_DIA.pct); i++) await new Promise(f => setTimeout(f, 250));
+    for (let i = 0; i < 40 && !BONUS_CAT; i++) await new Promise(f => setTimeout(f, 250));
+    const barra = document.querySelector(".fx-barra");
+    return { arc: bdItem("T6_MAIN_ARCANESTAFF@1"), arcArt: bdItem("T6_2H_ARCANE_RINGPAIR_AVALON"), placa: bdItem("T5_ARMOR_PLATE_SET2"), couro: bdItem("T5_ARMOR_LEATHER_SET1"),
+      espada: bdItem("T6_MAIN_SWORD"), barra: barra ? barra.innerText.replace(/\n/g, " | ") : null, naMain: !!(barra && barra.closest(".main")) }; });
+  conf("bônus diário casa com a categoria do item", bd.arc === 0.1 && bd.placa === 0.1 && bd.couro === 0 && bd.espada === 0, bd);
+  conf("faixa de bônus aparece no topo das páginas", bd.naMain && /Cajados arcanos/.test(bd.barra || "") && /Halloween/.test(bd.barra || ""), bd);
 
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();

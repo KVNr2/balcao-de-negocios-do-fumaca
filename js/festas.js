@@ -40,6 +40,7 @@
 
   function nome(u){
     if(!u) return "";
+    if(typeof bonusNome === "function" && typeof BONUS_NOME !== "undefined" && BONUS_NOME[bonusCanon(u)]) return bonusNome(u);   /* nomes de base.js (const no escopo global, fora do window) */
     if(NOMES[u]) return NOMES[u];
     for(var k in EVENTOS){ if(u.indexOf(k) === 0) return EVENTOS[k]; }
     return u.replace(/^COMMON_/,"").replace(/_/g," ").toLowerCase().replace(/^./,function(c){ return c.toUpperCase(); });
@@ -52,9 +53,26 @@
   }
   function ticks(t){ var n = Number(t); return isFinite(n) && n > 0 ? new Date(n/1e4 - TICKS_1970) : null; }
   function pctAtual(){ try{ var v = parseFloat(localStorage.getItem(PCT_KEY)); return v === 0.2 ? 0.2 : 0.1; }catch(e){ return 0.1; } }
+  var ultimo = "";
   function publicar(linhas, ativo){
-    /* base.js lê window.BONUS_DIA nas contas de refino, craft e cozinha */
+    /* base.js lê window.BONUS_DIA nas contas de refino, craft, cozinha, Mercado Negro e Plano do dia */
     window.BONUS_DIA = { pct: ativo ? pctAtual() : 0, linhas: linhas || {} };
+    var sig = JSON.stringify(window.BONUS_DIA);
+    if(sig !== ultimo){ var antes = ultimo; ultimo = sig; if(antes || (ativo && Object.keys(linhas || {}).length)) refazer(); }
+  }
+  /* com o bônus automático, o botão manual "Bônus diário" (+10% em tudo) sairia em dobro: fica escondido e zerado */
+  function manual(ocultar){
+    document.querySelectorAll('[data-g="daily"]').forEach(function(b){ var c = b.closest(".ctl"); if(c) c.hidden = ocultar; });
+    var od = document.getElementById("ofDaily"); if(od){ var l = od.closest("label"); if(l) l.hidden = ocultar; }
+    if(ocultar && typeof st !== "undefined" && st.daily){ st.daily = 0; var z = document.querySelector('[data-g="daily"][data-v="0"]'); if(z) z.click(); }
+  }
+  /* refaz a aba aberta para as contas usarem o bônus que acabou de chegar */
+  function refazer(){
+    try{ if(window.recompute) window.recompute(false); }catch(e){}
+    var aba = function(id){ var p = document.getElementById(id); return p && !p.hidden; };
+    try{ if((aba("p-craft") || aba("p-refino")) && window.renderOf) renderOf(); }catch(e){}
+    try{ if(aba("p-cozinha") && window.renderCook) renderCook(); }catch(e){}
+    try{ if(aba("p-mercado") && window.renderBM) renderBM(); }catch(e){}
   }
 
   /* ---- cache ---- */
@@ -69,99 +87,82 @@
   var barra = null, timer = 0;
   function esconder(){ if(barra){ barra.remove(); barra = null; } }
 
-  /* ---- desenho ---- */
+  /* ---- desenho ----
+     Uma faixa no topo da área das páginas: "Hoje no Albion" e um bloco por tipo de bônus (produção do dia, atividade, evento),
+     cada um com os nomes em destaque e o horário em que acaba. O estilo está em css/vip.css (.fx-*). */
+  function bloco(cls, rotulo, nomes, fim, dica){
+    var i = document.createElement("span"); i.className = "fx-i " + cls; i.title = dica;
+    var k = document.createElement("span"); k.className = "fx-k"; k.textContent = rotulo; i.appendChild(k);
+    nomes.forEach(function(n){ var b = document.createElement("b"); b.textContent = n; i.appendChild(b); });
+    if(fim){ var q = document.createElement("small"); q.textContent = fim; i.appendChild(q); }
+    return i;
+  }
   function desenhar(dados){
-    if(sessionStorage.getItem(OCULTO)) return esconder();
-    publicar({}, false);                                  /* sem bônus até provar o contrário */
+    var oculto = !!sessionStorage.getItem(OCULTO);
     var agora = new Date();
     var ev = (dados && dados.Events) || [];
     var ativos = ev.filter(function(e){
       var ini = ticks(e.StartTime), fim = ticks(e.EndTime);
       return fim && fim > agora && (!ini || ini <= agora);
     });
-    if(!ativos.length) return esconder();
-
     var sazonais = ativos.filter(function(e){ return +e.Kind === 0; });
     var atividades = ativos.filter(function(e){ return +e.Kind === 1; });
     var diarios = ativos.filter(function(e){ return +e.Kind === 2; });
+    if(dados) manual(true);                               /* a API respondeu: o bônus do dia é automático */
 
-    var partes = [], pctUI = null;
     /* publica para as contas (base.js lê window.BONUS_DIA) antes de desenhar */
     var linhas = {};
     diarios.forEach(function(e){ var k = String(e.UniqueName||"").replace(/^COMMON_/,""); if(k) linhas[k] = 1; });
     publicar(linhas, diarios.length > 0);
-    if(diarios.length){
-      var itens = diarios.map(function(e){ return nome(e.UniqueName); });
-      var fimDia = diarios.map(function(e){ return ticks(e.EndTime); }).filter(Boolean).sort(function(a,b){ return a-b; })[0];
-      var pct = Math.round(pctAtual()*100);
-      partes.push({rot:"Produção", txt:itens.join(" e ") + (fimDia ? " até " + quando(fimDia) : "") + " · " + pct + "%",
-                   dica:"Bônus diário de produção do jogo: já entra nas contas de refino, craft e cozinha destes itens. O percentual é o que aparece na aba Atividades."});
-      pctUI = document.createElement("span"); pctUI.className = "fx-pct";
-      [0.1, 0.2].forEach(function(v){
-        var b = document.createElement("button");
-        b.type = "button"; b.className = "fx-pctb" + (pctAtual() === v ? " on" : "");
-        b.textContent = Math.round(v*100) + "%";
-        b.title = "Percentual que o jogo está mostrando hoje na aba Atividades";
-        b.addEventListener("click", function(){
-          try{ localStorage.setItem(PCT_KEY, String(v)); }catch(e){}
-          publicar(linhas, true); desenhar(dados);
-          try{ if(window.recompute) window.recompute(false); }catch(e){}
-        });
-        pctUI.appendChild(b);
-      });
-    }
-    if(atividades.length){
-      partes.push({rot:"Atividade", txt:atividades.map(function(e){ return nome(e.UniqueName) + " até " + quando(ticks(e.EndTime)); }).join(" · "),
-                   dica:"Atividade com bônus extra no servidor."});
-    }
-    if(sazonais.length){
-      partes.push({rot:"Evento", txt:sazonais.map(function(e){ return nome(e.UniqueName) + " até " + quando(ticks(e.EndTime), true); }).join(" · "),
-                   dica:"Evento sazonal em andamento."});
-    }
-    if(!partes.length) return esconder();
+    if(!ativos.length || oculto) return esconder();   /* escondida, mas o bônus continua nas contas */
 
     if(!barra){
-      if(!document.getElementById("fx-estilo")){
-        var st = document.createElement("style"); st.id = "fx-estilo";
-        st.textContent = [
-          ".fx-barra{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;margin:0 0 10px;padding:7px 12px;",
-          "border:1px solid rgba(201,138,43,.4);border-radius:10px;font-size:13px;line-height:1.35;",
-          "background:linear-gradient(180deg,rgba(43,34,22,.92),rgba(20,17,13,.92));color:#f1e6d0}",
-          ".fx-barra .fx-t{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#c98a2b;font-weight:700}",
-          ".fx-barra .fx-i{display:inline-flex;gap:5px;align-items:baseline;min-width:0}",
-          ".fx-barra .fx-i b{font-weight:600;color:#ffd98a}",
-          ".fx-barra .fx-i small{color:#a99b84}",
-          ".fx-barra .fx-x{margin-left:auto;background:none;border:0;color:#a99b84;font-size:16px;line-height:1;cursor:pointer;padding:2px 4px}",
-          ".fx-barra .fx-x:hover{color:#f1e6d0}",
-          ".fx-barra .fx-pct{display:inline-flex;gap:2px;margin-left:2px}",
-          ".fx-barra .fx-pctb{border:1px solid rgba(201,138,43,.4);background:none;color:#a99b84;font:inherit;font-size:11px;",
-          "padding:1px 6px;border-radius:6px;cursor:pointer}",
-          ".fx-barra .fx-pctb.on{background:rgba(201,138,43,.22);color:#ffd98a;border-color:#c98a2b}",
-          "@media (max-width:640px){.fx-barra{font-size:12px;padding:6px 9px;gap:6px 10px}}"
-        ].join("");
-        document.head.appendChild(st);
-      }
       barra = document.createElement("div");
       barra.className = "fx-barra";
       barra.setAttribute("role","status");
       barra.setAttribute("aria-live","polite");
-      var cab = document.querySelector("header.vip-top");
-      if(cab && cab.parentNode) cab.parentNode.insertBefore(barra, cab.nextSibling);
+      /* abaixo do título da página, dentro da .main (a .wrap é uma grade: fora da .main a faixa caía no fim da página) */
+      var ph = document.getElementById("pagehead"), main = document.querySelector(".wrap .main");
+      if(ph && ph.parentNode) ph.parentNode.insertBefore(barra, ph.nextSibling);      /* logo abaixo do título da página */
+      else if(main) main.insertBefore(barra, main.firstChild);
       else document.body.insertBefore(barra, document.body.firstChild);
     }
-
     barra.textContent = "";
-    var t = document.createElement("span"); t.className = "fx-t"; t.textContent = "Bônus ativos"; barra.appendChild(t);
-    partes.forEach(function(p){
-      var i = document.createElement("span"); i.className = "fx-i"; i.title = p.dica;
-      var r = document.createElement("small"); r.textContent = p.rot + ":";
-      var b = document.createElement("b"); b.textContent = p.txt;
-      i.appendChild(r); i.appendChild(b); barra.appendChild(i);
-    });
-    if(pctUI) barra.appendChild(pctUI);
+    var t = document.createElement("span"); t.className = "fx-t"; t.textContent = "Hoje no Albion"; barra.appendChild(t);
+
+    if(diarios.length){
+      var pct = Math.round(pctAtual()*100);
+      var fimDia = diarios.map(function(e){ return ticks(e.EndTime); }).filter(Boolean).sort(function(a,b){ return a-b; })[0];
+      var p = bloco("fx-prod", "Produção +" + pct + "%", diarios.map(function(e){ return nome(e.UniqueName); }),
+        fimDia ? "troca " + quando(fimDia) : "",
+        "Bônus diário de produção: +" + pct + "% de retorno de recursos para fabricar ou refinar estas categorias. Já entra nas contas de Craft, Refino, Cozinha, Mercado Negro e Plano do dia, e os itens aparecem marcados com \"+" + pct + "% hoje\". O jogo mostra o percentual na aba Atividades; se lá estiver diferente, troque aqui.");
+      var pu = document.createElement("span"); pu.className = "fx-pct"; pu.setAttribute("role","group"); pu.setAttribute("aria-label","Percentual do bônus de produção");
+      [0.1, 0.2].forEach(function(v){
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "fx-pctb" + (pctAtual() === v ? " on" : "");
+        b.textContent = Math.round(v*100) + "%"; b.setAttribute("aria-pressed", String(pctAtual() === v));
+        b.title = "Percentual que o jogo está mostrando hoje na aba Atividades";
+        b.addEventListener("click", function(){
+          try{ localStorage.setItem(PCT_KEY, String(v)); }catch(e){}
+          desenhar(dados);
+        });
+        pu.appendChild(b);
+      });
+      p.appendChild(pu); barra.appendChild(p);
+    }
+    if(atividades.length){
+      atividades.forEach(function(e){
+        barra.appendChild(bloco("fx-ativ", "Atividade", [nome(e.UniqueName)], "até " + quando(ticks(e.EndTime)), "Atividade com bônus extra no servidor agora."));
+      });
+    }
+    if(sazonais.length){
+      sazonais.forEach(function(e){
+        barra.appendChild(bloco("fx-ev", "Evento", [nome(e.UniqueName)], "até " + quando(ticks(e.EndTime), true), "Evento sazonal em andamento."));
+      });
+    }
     var x = document.createElement("button");
     x.type = "button"; x.className = "fx-x"; x.textContent = "×";
-    x.setAttribute("aria-label","Esconder os bônus até fechar a página");
+    x.setAttribute("aria-label","Esconder os bônus até fechar a página"); x.title = "Esconder até fechar a página (os bônus continuam valendo nas contas)";
     x.addEventListener("click", function(){ try{ sessionStorage.setItem(OCULTO,"1"); }catch(e){} esconder(); });
     barra.appendChild(x);
   }
@@ -196,10 +197,7 @@
     }, 60e3);
   }
 
-  function iniciar(){
-    if(sessionStorage.getItem(OCULTO)) return;
-    try{ ciclo(); }catch(e){}
-  }
+  function iniciar(){ try{ ciclo(); }catch(e){} }
 
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar);
   else iniciar();
