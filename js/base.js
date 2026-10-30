@@ -273,6 +273,34 @@ function focBudUI(onChange,note){ const box=el("div",{class:"wk-foc"}); const w=
     hint.textContent=st.prem?`Premium: ${fmt(FOC_DIA)} de foco por dia, guardando até ${fmt(FOC_MAX)}. ${note||""}`:`Sem Premium você não ganha foco novo (e a taxa de venda é 8%), mas pode usar o foco que já tem guardado: informe quanto você tem. ${note||""}`; };
   FOC_UIS.add(box); box._sync(); return box; }
 const rrr=(cityB,focus,daily)=>{const b=0.18+cityB+(focus?0.59:0)+daily; return b/(1+b);};
+/* Bônus diário de produção: js/festas.js publica window.BONUS_DIA = {pct, linhas} lendo /api/v2/stats/festivities.
+   A chave é a linha do item sem o prefixo COMMON_ (CROSSBOW, LEATHER_ARMOR, PLANKS, MEAL, POTION...). Sem festas, devolve 0. */
+const bonusDia=(...chaves)=>{ const b=window.BONUS_DIA; if(!b||!b.pct||!b.linhas) return 0;
+  for(const c of chaves) if(c&&b.linhas[c]) return b.pct; return 0; };
+const BONUS_ARMADURA={PLATE:{HEAD:"PLATE_HELMET",ARMOR:"PLATE_ARMOR",SHOES:"PLATE_BOOTS"},
+  LEATHER:{HEAD:"LEATHER_HOOD",ARMOR:"LEATHER_ARMOR",SHOES:"LEATHER_SHOES"},
+  CLOTH:{HEAD:"CLOTH_COWL",ARMOR:"CLOTH_ARMOR",SHOES:"CLOTH_SANDALS"}};
+const bonusArmadura=(mat,slot)=>(BONUS_ARMADURA[mat]||{})[slot];
+const bonusCozinha=m=>/_POTION/i.test((m&&m.id)||"")?"POTION":"MEAL";
+/* Traduz o id do item (T5_2H_CROSSBOW, T4_ARMOR_LEATHER_SET1, T6_PLANKS...) na linha do bônus diário
+   (CROSSBOW, LEATHER_ARMOR, PLANKS...). A ordem importa: CROSSBOW antes de BOW, WAR_GLOVES antes de GLOVES. */
+const BONUS_LINHAS=[[/WAR_GLOVES|KNUCKLES/,"WAR_GLOVES"],[/CROSSBOW/,"CROSSBOW"],[/QUARTERSTAFF/,"QUARTERSTAFF"],
+ [/SHAPESHIFTER/,"SHAPESHIFTER_STAFF"],[/FIRESTAFF/,"FIRE_STAFF"],[/FROSTSTAFF|ICESTAFF/,"FROST_STAFF"],
+ [/ARCANESTAFF/,"ARCANE_STAFF"],[/HOLYSTAFF/,"HOLY_STAFF"],[/CURSEDSTAFF|DEMONIC/,"CURSED_STAFF"],
+ [/NATURESTAFF|WILDSTAFF/,"NATURE_STAFF"],[/_BOW|BOW/,"BOW"],[/DAGGER/,"DAGGER"],[/SPEAR|GLAIVE/,"SPEAR"],
+ [/HAMMER/,"HAMMER"],[/MACE|MORNINGSTAR/,"MACE"],[/AXE|HALBERD/,"AXE"],[/SWORD|CLAYMORE/,"SWORD"],
+ [/POTION/,"POTION"],[/MEAL/,"MEAL"]];
+function bonusLinhaItem(id){
+  if(!id) return null; const s=String(id);
+  const a=/_ARMOR_(PLATE|LEATHER|CLOTH)/.exec(s); if(a) return a[1]+"_ARMOR";
+  const c=/_HEAD_(PLATE|LEATHER|CLOTH)/.exec(s);
+  if(c) return c[1]+(c[1]==="PLATE"?"_HELMET":c[1]==="LEATHER"?"_HOOD":"_COWL");
+  const p=/_SHOES_(PLATE|LEATHER|CLOTH)/.exec(s);
+  if(p) return p[1]+(p[1]==="PLATE"?"_BOOTS":p[1]==="LEATHER"?"_SHOES":"_SANDALS");
+  const r=/(PLANKS|METALBAR|LEATHER|CLOTH|STONEBLOCK)(_LEVEL|@|$)/.exec(s); if(r) return r[1];
+  for(const par of BONUS_LINHAS){ if(par[0].test(s)) return par[1]; }
+  return null;
+}
 const taxOf=()=> (st.prem?0.04:0.08)+(st.sell==="order"?0.025:0);
 const feeVal=()=>+$("fee").value||0;
 function model(res,t,e,o={}){
@@ -282,7 +310,7 @@ function model(res,t,e,o={}){
   const bar=o.bar!=null?{p:o.bar,n:9}:typical(idOf(t,R.ref,e), st.sell==="instant"?1:0);
   if(!raw||!prev||!bar) return null;
   const inputs=N[t]*raw.p+prev.p, fee=IV(t,e)*0.1125*(o.fee??feeVal())/100, tax=taxOf(), net=bar.p*(1-tax);
-  const r1=rrr(0.40,true,st.daily), r0=rrr(0.40,false,st.daily);
+  const r1=rrr(0.40,true,st.daily+bonusDia(R.ref)), r0=rrr(0.40,false,st.daily+bonusDia(R.ref));
   const p1=net-inputs*(1-r1)-fee, p0=net-inputs*(1-r0)-fee, fc=o.fc||refFocus(res,t,e);
   return {raw,prev,bar,inputs,fee,tax,net,r1,r0,p1,p0,fc,spf:(p1-p0)/fc,thin:Math.min(raw.n,prev.n,bar.n)<2};
 }
@@ -291,14 +319,14 @@ function craftModel(slot,mat,set,t,e){
   const bar=typical(idOf(t,MATBAR[mat],e),0), item=typical(gearId(t,slot,mat,set,e), st.sell==="instant"?1:0);
   if(!bar||!item) return null;
   const inputs=cnt*bar.p, fee=cnt*IV(t,e)*0.1125*feeVal()/100, net=item.p*(1-taxOf());
-  const r1=rrr(0.15,true,st.daily), r0=rrr(0.15,false,st.daily);
+  const r1=rrr(0.15,true,st.daily+bonusDia(bonusArmadura(mat,slot))), r0=rrr(0.15,false,st.daily+bonusDia(bonusArmadura(mat,slot)));
   const p1=net-inputs*(1-r1)-fee, p0=net-inputs*(1-r0)-fee, fc=craftFocus(slot,mat,t,e,set);
   return {bar,item,inputs,fee,net,p1,p0,fc,spf:(p1-p0)/fc,thin:Math.min(bar.n,item.n)<2,cnt};
 }
 function refRoute(res,t,e){ const R=RES[res]; const raw=bestCity(idOf(t,R.raw,e),0,"min"), prev=bestCity(prevId(res,t,e),0,"min"), bar=bestCity(idOf(t,R.ref,e),st.sell==="instant"?1:0,"max");
   if(!raw||!prev||!bar) return null; const m=model(res,t,e,{raw:raw.p,prev:prev.p,bar:bar.p}); return m&&Object.assign(m,{rawC:raw.c,prevC:prev.c,barC:bar.c}); }
 function craftRoute(slot,mat,set,t,e){ const bar=bestCity(idOf(t,MATBAR[mat],e),0,"min"), item=bestCity(gearId(t,slot,mat,set,e),st.sell==="instant"?1:0,"max"); if(!bar||!item) return null;
-  const cnt=slot==="ARMOR"?16:8, inputs=cnt*bar.p, fee=cnt*IV(t,e)*0.1125*feeVal()/100, net=item.p*(1-taxOf()), r1=rrr(0.15,true,st.daily), r0=rrr(0.15,false,st.daily);
+  const cnt=slot==="ARMOR"?16:8, inputs=cnt*bar.p, fee=cnt*IV(t,e)*0.1125*feeVal()/100, net=item.p*(1-taxOf()), r1=rrr(0.15,true,st.daily+bonusDia(bonusArmadura(mat,slot))), r0=rrr(0.15,false,st.daily+bonusDia(bonusArmadura(mat,slot)));
   return {barC:bar.c,bar:bar.p,itemC:item.c,item:item.p,p1:net-inputs*(1-r1)-fee,p0:net-inputs*(1-r0)-fee}; }
 const gearName=(slot,mat,set)=>`${SETN[mat][set-1]} ${SLOTN[mat][slot]}`;
 
@@ -1125,7 +1153,7 @@ function cookModel(id){
   if(miss||!item) return {id,name,kind,q,miss:miss||"preço do próprio item"};
   if(item.n<2) thin=true;
   const fee=q*nut*0.1125*feeVal()/100, net=q*item.p*(1-taxOf());
-  const r1=rrr(0.15,true,st.daily), r0=rrr(0.15,false,st.daily);
+  const r1=rrr(0.15,true,st.daily+bonusDia(/_POTION/i.test(id)?"POTION":"MEAL")), r0=rrr(0.15,false,st.daily+bonusDia(/_POTION/i.test(id)?"POTION":"MEAL"));
   const ret=cost-fix, p1=net-ret*(1-r1)-fix-fee, p0=net-ret*(1-r0)-fix-fee, fc=Math.max(1,Math.round(fo*Math.pow(0.5,cookFCE(kind,id)/10000)));
   const bc=ret*(1-r1)+fix+fee;
   return {id,name,kind,q,cost,ret,fix,fee,net,item,parts,p1,p0,inv:bc,pct:bc>0?p1/bc:0,fc,spf:(p1-p0)/fc,day:p1*Math.floor(10000/fc),thin,tier:+id[1]};
@@ -1190,7 +1218,7 @@ const CK_OPT=[["","Como o geral"],["inst","Compro na hora"],["ordem","Ordem de c
 /* o que plantar ou criar na ilha para N fornadas, com foco por ingrediente e onde o foco rende mais */
 function ckFarmPlan(m,N){
   if(!FARM||!FZ_LOADED) return null;
-  const rr=rrr(0.15,true,st.daily), rows=[], usos=[{nm:`Fabricar ${m.name} com foco`,spf:m.spf,craft:true}];
+  const rr=rrr(0.15,true,st.daily+bonusDia(bonusCozinha(m))), rows=[], usos=[{nm:`Fabricar ${m.name} com foco`,spf:m.spf,craft:true}];
   for(const x of m.parts){ if(x.p.src!=="planto") continue;
     const U=Math.ceil(x.c*N*(1-rr)), nm=COOK.n[x.iid]||x.iid;
     const r=FARM.p.find(r=>r[1]===x.iid);
@@ -1244,7 +1272,7 @@ function cookPanel(m){
     left.append(bg); }
   const hist=el("div",{class:"hist"}), hh=el("div",{class:"hist-h"}); hh.append(el("span",{text:"Histórico de 30 dias"})); const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("viewBox","0 0 520 150"); svg.setAttribute("role","img"); const hn=el("p",{class:"tiny muted"}); hist.append(hh,svg,hn); left.append(hist);
   const card=(cls,title,lines,tot)=>{ const c=el("div",{class:"of-xcard "+cls}); c.append(el("h4",{class:"of-xh",text:title})); for(const [k,v] of lines){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{text:v})); c.append(l); } if(tot){ const l=el("div",{class:"of-xline of-xtot"}); l.append(el("span",{text:tot[0]}),el("b",{text:tot[1]})); c.append(l); } return c; };
-  const rr=rrr(0.15,true,st.daily), bruto=m.q*m.item.p*N, fN=N>1?` (${fmt(N)} fornadas)`:"";
+  const rr=rrr(0.15,true,st.daily+bonusDia(bonusCozinha(m))), bruto=m.q*m.item.p*N, fN=N>1?` (${fmt(N)} fornadas)`:"";
   right.append(card("cost","Custos detalhados (−)",[[`Ingredientes${fN}`,fmt(m.cost*N)],[`Retorno de recursos (${dec(rr*100)}%${m.fix>0?", o ingrediente raro não volta":""})`,"−"+fmt(m.ret*rr*N)],["Taxa da estação",fmt(m.fee*N)]],[N>1?"Custo total":"Custo da fornada",fmt((m.ret*(1-rr)+m.fix+m.fee)*N)]));
   const lines=[[`Venda (${fmt(m.q*N)} × ${fmt(m.item.p)})`,fmt(bruto)],[`Taxas de venda (${dec(taxOf()*100)}%)`,"−"+fmt(bruto-m.net*N)],["Líquido da venda",fmt(m.net*N)],[N>1?"Foco no total":"Foco por fornada",fmt(focMix(N,m.fc,m.p1,m.p0).foc)]];
   if(N>1) lines.push(["Lucro por fornada",sgn(m.p1)]);

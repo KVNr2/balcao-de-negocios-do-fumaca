@@ -122,8 +122,9 @@ function ofBonusPill(it){
   const p=el("span",{class:"of-bon",text:`+${pct}% em ${it.city}${rest?` ou ${rest}`:""}`});
   p.title=`Fabricar${OF.mode==="refine"?" (refinar)":""} em ${it.city} dá +${pct}% de bônus de produção, que aumenta o retorno de recursos.${rest?` ${rest}, na zona preta, dá o mesmo bônus para este item.`:""} A conta da lista já usa esse bônus.`;
   return p; }
-function ofRRbase(it){ const fb=it.bonus===0.40?0.40:0.15; if(OF.mode==="refine") return rrr(fb,true,st.daily);
-  if(OF.rr==="none") return rrr(0,false,st.daily); if(OF.rr==="focus") return rrr(fb,true,st.daily); return rrr(fb,false,st.daily); }
+function ofRRbase(it){ const fb=it.bonus===0.40?0.40:0.15, bd=bonusDia(bonusLinhaItem(it.id), it.key);
+  if(OF.mode==="refine") return rrr(fb,true,st.daily+bd);
+  if(OF.rr==="none") return rrr(0,false,st.daily+bd); if(OF.rr==="focus") return rrr(fb,true,st.daily+bd); return rrr(fb,false,st.daily+bd); }
 function ofRR(it){ return OF.mode!=="refine"&&OF2.rrMan!=null?OF2.rrMan:ofRRbase(it); }
 /* quantidade que o jogo devolve: o arredondamento é por jogada, aqui usamos a média */
 function ofN(){ return OF2.qty>0?OF2.qty:10; }
