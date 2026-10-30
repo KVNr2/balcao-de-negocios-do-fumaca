@@ -360,6 +360,7 @@ function buildCard(b){
   const btn=el("button",{type:"button",class:"bc-more bc-tog","aria-expanded":String(open),text:open?"Fechar ▴":"Abrir ▾"});
   btn.addEventListener("click",()=>{ bOpen=open?null:b.id; renderBuilds(); });
   const act=el("div",{class:"bc-act"}); act.append(btn,albionBar(b,ib,"g:"+b.id,{costHost:card})); card.append(act);
+  if(cjAtual()) act.prepend(cjBotao(b));
   if(open){ card.append(kbPanel(b)); qMoveTop(card); }
   return card;
 }
@@ -388,7 +389,93 @@ function renderBuilds(){
   $("bCount").textContent=list.length?`${list.length} ${list.length===1?"build":"builds"} · dados de ${(GB_DATE||"").split("-").reverse().join("/")}`:"";
   if(!list.length){ host.append(el("p",{class:"empty",text:only?"Nenhuma build deste conteúdo usa uma arma sua com spec 70 ou mais. Desmarque o filtro para ver todas.":"Nenhuma build nesta seleção."})); return; }
   const pg=pgSlice("bList",list,[bCont,bLine,only,bSort].join("|"),renderBuilds);
+  renderConj();
   for(const b of pg.items) host.append(buildCard(b));
   host.append(pg.bar);
 }
 let GB_DATE = "";
+
+/* ---- Conjuntos (comps) que o jogador monta: intervalo de jogadores, builds principais (= mínimo) e opcionais (até o máximo) ---- */
+const CJ_KEY="conjuntos";
+let CJ=(()=>{ try{ const v=JSON.parse(localStorage.getItem(CJ_KEY)||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } })();
+let CJ_ED=null;
+const cjSalvar=()=>{ try{ localStorage.setItem(CJ_KEY,JSON.stringify(CJ)); }catch(e){} };
+const cjAtual=()=>CJ_ED&&CJ.find(c=>c.id===CJ_ED);
+const cjBuild=id=>(GB||[]).find(b=>b.id===id);
+const cjIntervalo=c=>c.min===c.max?`${c.min} ${c.min===1?"jogador":"jogadores"}`:`${c.min} a ${c.max} jogadores`;
+function cjAjusta(c){
+  c.min=Math.max(1,Math.min(20,Math.round(+c.min)||1)); c.max=Math.max(c.min,Math.min(20,Math.round(+c.max)||c.min));
+  const todos=[...c.p,...c.o]; c.p=todos.slice(0,c.min); c.o=todos.slice(c.min,c.max);   // o que passa do máximo sai
+}
+function cjBotao(b){
+  const c=cjAtual(), dentro=c.p.includes(b.id)||c.o.includes(b.id), cheio=c.p.length+c.o.length>=c.max;
+  const bt=el("button",{type:"button",class:"btn sm cj-add",text:dentro?"Tirar do conjunto":cheio?"Conjunto cheio":"Pôr no conjunto"});
+  if(cheio&&!dentro){ bt.disabled=true; bt.title=`O conjunto já tem ${c.max} builds. Aumente o máximo de jogadores para pôr mais.`; }
+  bt.addEventListener("click",()=>{ if(dentro){ c.p=c.p.filter(x=>x!==b.id); c.o=c.o.filter(x=>x!==b.id); cjAjusta(c); }
+    else if(c.p.length<c.min) c.p.push(b.id); else c.o.push(b.id);
+    cjSalvar(); renderBuilds(); });
+  return bt;
+}
+function cjTexto(c){
+  const linha=(id,i)=>{ const b=cjBuild(id); if(!b) return `${i+1}. (build que saiu da lista)`;
+    const nm=x=>x&&x[0]?itemNome(x[0].replace(/^T\d_/,"").replace(/@\d$/,"")):"";
+    return `${i+1}. ${b.t||b.nome}: ${[codeName(b.wc),nm(b.h),nm(b.a),nm(b.s)].filter(Boolean).join(", ")}`; };
+  let t=`${c.nome} (${cjIntervalo(c)})\nPrincipais:\n${c.p.map(linha).join("\n")||"(nenhuma ainda)"}`;
+  if(c.max>c.min) t+=`\nOpcionais, se tiver mais gente:\n${c.o.map(linha).join("\n")||"(nenhuma ainda)"}`;
+  return t;
+}
+function cjVaga(c,id,grupo,i){
+  const b=id&&cjBuild(id), v=el("div",{class:"cj-vaga"+(id?"":" vazia")});
+  if(!id){ v.append(el("span",{class:"cj-n",text:String(i+1)}),el("span",{class:"muted",text:CJ_ED===c.id?"Vaga livre: use Pôr no conjunto numa build abaixo":"Vaga livre"})); return v; }
+  const im=b?itemImg(b.wc,[8,7,6,5,4]):el("span",{class:"btile"}); im.classList&&im.classList.add("cj-im");
+  const nm=el("button",{type:"button",class:"cj-nome",text:b?(b.t||b.nome):"Build que saiu da lista",title:"Abrir esta build na lista"});
+  nm.addEventListener("click",()=>{ if(b){ bCont=b.k; bLine=b.l||""; bOpen=b.id; renderBuilds(); setTimeout(()=>{ const o=document.querySelector("#bList .bcard.open"); if(o) o.scrollIntoView({behavior:"smooth",block:"start"}); },60); } });
+  v.append(el("span",{class:"cj-n",text:String(i+1)}),im,el("div",{class:"cj-tx"},nm,el("small",{class:"muted",text:b?[contName(b.k),roleOf(b.t)].filter(Boolean).join(", "):""})));
+  if(CJ_ED===c.id){
+    const ac=el("div",{class:"cj-va"});
+    const mv=el("button",{type:"button",class:"btn sm ghost",text:grupo==="p"?"Virar opcional":"Virar principal"});
+    mv.addEventListener("click",()=>{ const de=c[grupo], para=grupo==="p"?c.o:c.p, lim=grupo==="p"?c.max-c.min:c.min, k=de.indexOf(id);
+      if(para.length>=lim){ const j=grupo==="p"?0:para.length-1, x=para[j]; para[j]=id; de[k]=x; }   // grupo cheio: troca de lugar
+      else { de.splice(k,1); para.push(id); }
+      cjSalvar(); renderBuilds(); });
+    const rm=el("button",{type:"button",class:"btn sm ghost",text:"Tirar","aria-label":"Tirar esta build do conjunto"});
+    rm.addEventListener("click",()=>{ c[grupo].splice(c[grupo].indexOf(id),1); cjAjusta(c); cjSalvar(); renderBuilds(); });
+    if(c.max>c.min) ac.append(mv); ac.append(rm); v.append(ac);
+  }
+  return v;
+}
+function cjCartao(c){
+  const ed=CJ_ED===c.id, card=el("article",{class:"cj-card"+(ed?" ed":"")});
+  const head=el("div",{class:"cj-head"});
+  if(ed){
+    const nome=el("input",{type:"text",value:c.nome,maxLength:40,"aria-label":"Nome do conjunto"}); nome.addEventListener("change",()=>{ c.nome=nome.value.trim()||"Conjunto"; cjSalvar(); });
+    const num=(v,lb)=>{ const i=el("input",{type:"number",min:"1",max:"20",value:String(v),style:"width:64px","aria-label":lb}); return i; };
+    const mi=num(c.min,"Mínimo de jogadores"), ma=num(c.max,"Máximo de jogadores");
+    const muda=()=>{ c.min=mi.value; c.max=ma.value; cjAjusta(c); cjSalvar(); renderBuilds(); };
+    mi.addEventListener("change",muda); ma.addEventListener("change",muda);
+    head.append(el("label",{class:"f cj-nm"},"Nome",nome),el("label",{class:"f"},"Jogadores, de",mi),el("label",{class:"f"},"até",ma));
+  } else head.append(el("h4",{text:c.nome}),el("span",{class:"tag",text:cjIntervalo(c)}));
+  card.append(head);
+  const grupo=(tit,ids,n,g,dica)=>{ const s=el("div",{class:"cj-grupo"}); s.append(el("h5",{text:tit}),el("small",{class:"muted",text:dica}));
+    const l=el("div",{class:"cj-vagas"}); for(let i=0;i<n;i++) l.append(cjVaga(c,ids[i],g,i)); s.append(l); return s; };
+  card.append(grupo("Principais",c.p,c.min,"p",`Com ${c.min} ${c.min===1?"jogador":"jogadores"}, vão estas.`));
+  if(c.max>c.min) card.append(grupo("Opcionais",c.o,c.max-c.min,"o","Entram na ordem, conforme chega mais gente."));
+  const ac=el("div",{class:"cj-ac"});
+  const b1=el("button",{type:"button",class:"btn sm",text:ed?"Concluir":"Editar"});
+  b1.addEventListener("click",()=>{ CJ_ED=ed?null:c.id; renderBuilds(); });
+  const cp=el("button",{type:"button",class:"btn sm ghost",text:"Copiar para a party"});
+  cp.addEventListener("click",async()=>{ try{ await navigator.clipboard.writeText(cjTexto(c)); cp.textContent="Copiado"; }catch(e){ cp.textContent="Não deu para copiar"; } setTimeout(()=>{ cp.textContent="Copiar para a party"; },1800); });
+  const ap=el("button",{type:"button",class:"btn sm ghost cj-del",text:"Apagar"});
+  ap.addEventListener("click",()=>{ if(ap.dataset.ok){ CJ=CJ.filter(x=>x.id!==c.id); if(CJ_ED===c.id) CJ_ED=null; cjSalvar(); renderBuilds(); } else { ap.dataset.ok="1"; ap.textContent="Clique de novo para apagar"; setTimeout(()=>{ delete ap.dataset.ok; ap.textContent="Apagar"; },3000); } });
+  ac.append(b1,cp,ap); card.append(ac);
+  return card;
+}
+function renderConj(){
+  const box=$("bConj"); if(!box) return; box.textContent="";
+  const head=el("div",{class:"cj-top"});
+  head.append(el("h3",{class:"orn",text:"Meus conjuntos"}),el("p",{class:"small muted",text:"Monte a composição do grupo: diga de quantos a quantos jogadores ela vale, escolha as builds principais e as opcionais que entram se vier mais gente. Fica salvo neste aparelho."}));
+  const novo=el("button",{type:"button",class:"btn",text:"Novo conjunto"});
+  novo.addEventListener("click",()=>{ const c={id:"c"+Date.now().toString(36),nome:`Conjunto ${CJ.length+1}`,min:4,max:7,p:[],o:[]}; CJ.push(c); CJ_ED=c.id; cjSalvar(); renderBuilds(); });
+  head.append(novo); box.append(head);
+  if(CJ.length){ const l=el("div",{class:"cj-lista"}); CJ.slice().sort((a,b)=>(b.id===CJ_ED)-(a.id===CJ_ED)).forEach(c=>l.append(cjCartao(c))); box.append(l); }
+}

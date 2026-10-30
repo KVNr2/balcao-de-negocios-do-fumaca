@@ -1,6 +1,18 @@
 {
  "itens": [
   {
+   "t": "2026-10-30T15:40:00Z",
+   "titulo": "Builds: monte os conjuntos do seu grupo",
+   "itens": [
+    "Na aba Builds, a seção Meus conjuntos deixa montar a composição do grupo: você diz de quantos a quantos jogadores ela vale (por exemplo, de 4 a 7).",
+    "O mínimo vira as builds principais e o resto vira as opcionais, que entram na ordem conforme chega mais gente. Com o conjunto aberto, cada build da lista ganha o botão Pôr no conjunto.",
+    "Copiar para a party gera um texto com cada build, a arma, o elmo, o peito e as botas, pronto para colar no chat do jogo ou no Discord.",
+    "Os conjuntos ficam salvos neste aparelho."
+   ],
+   "como": "Builds > Meus conjuntos > Novo conjunto. Ajuste o intervalo de jogadores e use Pôr no conjunto nas builds da lista.",
+   "impacto": "O grupo combina as builds antes de sair, sem planilha à parte."
+  },
+  {
    "t": "2026-10-30T13:40:00Z",
    "titulo": "Hoje no Albion: bônus do dia no topo e marcado nos itens",
    "itens": [
