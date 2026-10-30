@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-30T06:40:46Z",
+   "titulo": "Bônus ativos no topo e aplicados nas contas",
+   "itens": [
+    "Uma faixa no topo mostra o que está bonificado agora: o evento sazonal, as atividades com bônus extra e os dois itens com bônus diário de produção, com o horário em que trocam.",
+    "O bônus diário entra sozinho na conta certa: refino, craft (inclusive a oficina) e cozinha já usam o retorno maior quando o item calculado é um dos bonificados.",
+    "A faixa tem um botão 10% / 20% porque a API do Albion Data Project não informa o percentual — é o que aparece na aba Atividades do jogo."
+   ]
+  },
+  {
    "t": "2026-10-29T17:45:00Z",
    "titulo": "Patch notes: um bloco por mensagem quando preciso",
    "discord": false,
