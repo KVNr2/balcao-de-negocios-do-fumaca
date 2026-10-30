@@ -1,17 +1,6 @@
 {
  "itens": [
   {
-   "t": "2026-10-30T15:30:00Z",
-   "titulo": "Conferimos as contas com o tools4albion",
-   "itens": [
-    "Retorno de recursos no refino: igual ao deles em todos os casos. Sem bônus de cidade, 15,2% sem foco e 43,5% com foco. Na cidade com bônus, 36,7% e 53,9%. Na ilha, 37,1% com foco.",
-    "Retorno no craft de poções: eles mostram 45% com foco, nós 43,5%. O nosso segue a fórmula do jogo, e a própria página deles avisa que o jogo devolve um pouco menos do que a conta deles mostra.",
-    "Custo de foco: o deles sai de 1% a 20% menor, conforme o tier, porque usa o nível de spec escolhido na página. O nosso usa a spec da sua ficha. Ainda vamos conferir item por item com a mesma spec dos dois lados.",
-    "Bônus diário de produção: a calculadora deles não considera, a nossa sim."
-   ],
-   "impacto": "Pode confiar no retorno de recursos do Balcão. O custo de foco segue a sua ficha, então mantenha as specs atualizadas."
-  },
-  {
    "t": "2026-10-30T15:45:00Z",
    "titulo": "Conferimos as nossas contas com o tools4albion",
    "itens": [
