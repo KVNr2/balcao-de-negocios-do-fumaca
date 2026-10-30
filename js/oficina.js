@@ -120,6 +120,7 @@ let DESC=null; need("descanso").then(d=>{ DESC=d.rest||{}; }).catch(()=>{ DESC={
 function ofBonusPill(it){
   const pct=Math.round((it.bonus||0)*100), rest=DESC&&DESC[it.key];
   const p=el("span",{class:"of-bon",text:`+${pct}% em ${it.city}${rest?` ou ${rest}`:""}`});
+  const bd=bdItem(it.id); if(bd>0){ const h=el("span",{class:"bd-hoje",text:`+${Math.round(bd*100)}% hoje`,title:"Bônus diário de produção do jogo: hoje esta categoria rende mais retorno de recursos. A conta já usa."}); p.append(" ",h); }
   p.title=`Fabricar${OF.mode==="refine"?" (refinar)":""} em ${it.city} dá +${pct}% de bônus de produção, que aumenta o retorno de recursos.${rest?` ${rest}, na zona preta, dá o mesmo bônus para este item.`:""} A conta da lista já usa esse bônus.`;
   return p; }
 function ofRRbase(it){ const fb=it.bonus===0.40?0.40:0.15, bd=bonusDia(bonusLinhaItem(it.id), it.key);
@@ -157,7 +158,7 @@ async function ensureOfQ(items){
 }
 const ofPct = v => dec(v*100)+"%";
 function ofSyncRR(){ const r=$("ofRRs"); if(!r) return; const it=OF2.sample||{bonus:0.15}; const v=OF2.rrMan!=null?OF2.rrMan:ofRRbase(it); r.value=Math.round(v*1000)/10; $("ofRRv").textContent=dec(v*100)+"%";
-  const fb=it.bonus===0.40?0.40:0.15, base={none:rrr(0,false,st.daily),auto:rrr(fb,false,st.daily),focus:rrr(fb,true,st.daily)};
+  const fb=it.bonus===0.40?0.40:0.15, bd=bdItem(it.id), base={none:rrr(0,false,st.daily+bd),auto:rrr(fb,false,st.daily+bd),focus:rrr(fb,true,st.daily+bd)};
   document.querySelectorAll("#ofRRp button").forEach(b=>{ const k=b.dataset.rr; b.textContent=dec(base[k]*100); b.setAttribute("aria-pressed",String(OF2.rrMan==null&&OF.rr===k)); });
   $("ofFocus").checked=OF2.rrMan==null&&OF.rr==="focus"; { const bx=$("ofFocBox"); if(bx){ bx.hidden=OF.mode==="refine"||!$("ofFocus").checked; FOC_UIS.forEach(u=>u._sync()); } } }
 function ofFillCats(){
@@ -267,7 +268,7 @@ function ofDetail(m){
 }
 const ofFB = it => it.bonus===0.40?0.40:0.15;
 /* ganho extra de usar foco, por ponto de foco gasto: (lucro com foco − lucro sem foco) ÷ foco */
-function ofSpf(m){ if(m.spf!=null) return m.spf; const fb=ofFB(m.it), a=ofModel(m.it,rrr(fb,true,st.daily)), b=ofModel(m.it,rrr(fb,false,st.daily));
+function ofSpf(m){ if(m.spf!=null) return m.spf; const fb=ofFB(m.it), bd=bdItem(m.it.id), a=ofModel(m.it,rrr(fb,true,st.daily+bd)), b=ofModel(m.it,rrr(fb,false,st.daily+bd));
   m.spf=a&&b&&!a.miss&&!b.miss&&a.fc>0?(a.profit-b.profit)/a.fc:-Infinity; m.pF=a&&!a.miss?a:null; m.pN=b&&!b.miss?b:null; return m.spf; }
 const ofDayProfit=m=>{ const h=OF2.hs[nk(m.it.id)+"|"+m.sale.c], v=h&&h.vol>0?h.vol:0; return m.units>0?m.profit/m.units*Math.min(m.units,v):m.profit; };   // lucro que dá para realizar em 1 dia de venda
 /* ordenação: qualquer coluna, nos dois sentidos (OF.dir 1 = maior primeiro, −1 = menor primeiro; no nome, 1 = A a Z) */

@@ -274,33 +274,47 @@ function focBudUI(onChange,note){ const box=el("div",{class:"wk-foc"}); const w=
   FOC_UIS.add(box); box._sync(); return box; }
 const rrr=(cityB,focus,daily)=>{const b=0.18+cityB+(focus?0.59:0)+daily; return b/(1+b);};
 /* Bônus diário de produção: js/festas.js publica window.BONUS_DIA = {pct, linhas} lendo /api/v2/stats/festivities.
-   A chave é a linha do item sem o prefixo COMMON_ (CROSSBOW, LEATHER_ARMOR, PLANKS, MEAL, POTION...). Sem festas, devolve 0. */
+   O jogo sorteia 2 das 38 categorias de produção (o @craftingcategory dos arquivos do jogo: arcanestaff, plate_helmet, fiber, potion…)
+   e a API manda COMMON_<CATEGORIA> (COMMON_ARCANESTAFF). Tudo é comparado pela forma canônica: maiúsculas, sem COMMON_ e sem "_".
+   Cada item acha a sua categoria em data/categoria.json (BONUS_CAT); sem o arquivo, cai nas regras por nome abaixo. Sem festas, devolve 0. */
+const BONUS_ALIAS={PLANKS:"WOOD",METALBAR:"ORE",CLOTH:"FIBER",LEATHER:"HIDE",STONEBLOCK:"ROCK",MEAL:"FOOD",WARGLOVES:"KNUCKLES",TOOL:"TOOLS",
+  CURSEDSTAFF:"CURSESTAFF",PLATEBOOTS:"PLATESHOES",LEATHERHOOD:"LEATHERHELMET",CLOTHCOWL:"CLOTHHELMET",CLOTHSANDALS:"CLOTHSHOES",
+  CAPES:"CAPE",BAGS:"BAG",POTIONS:"POTION",OFFHANDS:"OFFHAND",SWORDS:"SWORD",AXES:"AXE",HAMMERS:"HAMMER",MACES:"MACE",BOWS:"BOW",CROSSBOWS:"CROSSBOW",
+  DAGGERS:"DAGGER",SPEARS:"SPEAR",QUARTERSTAFFS:"QUARTERSTAFF"};
+const bonusCanon=x=>{ if(!x) return ""; const k=String(x).toUpperCase().replace(/^COMMON_/,"").replace(/_/g,""); return BONUS_ALIAS[k]||k; };
+const BONUS_NOME={SWORD:"Espadas",AXE:"Machados",CROSSBOW:"Bestas",HAMMER:"Martelos",MACE:"Maças",KNUCKLES:"Luvas de guerra",SPEAR:"Lanças",BOW:"Arcos",
+  DAGGER:"Adagas",QUARTERSTAFF:"Bordões",NATURESTAFF:"Cajados da natureza",SHAPESHIFTERSTAFF:"Cajados metamorfos",ARCANESTAFF:"Cajados arcanos",
+  CURSESTAFF:"Cajados amaldiçoados",FIRESTAFF:"Cajados de fogo",FROSTSTAFF:"Cajados de gelo",HOLYSTAFF:"Cajados sagrados",
+  PLATEHELMET:"Elmos de placa",PLATEARMOR:"Armaduras de placa",PLATESHOES:"Botas de placa",LEATHERHELMET:"Capuzes de couro",LEATHERARMOR:"Casacos de couro",
+  LEATHERSHOES:"Sapatos de couro",CLOTHHELMET:"Capotes de tecido",CLOTHARMOR:"Robes de tecido",CLOTHSHOES:"Sandálias de tecido",OFFHAND:"Mão secundária",
+  FIBER:"Refino de fibra",WOOD:"Refino de madeira",ROCK:"Refino de pedra",ORE:"Refino de minério",HIDE:"Refino de couro",TOOLS:"Ferramentas",
+  GATHERERGEAR:"Equipamento de coleta",POTION:"Poções",FOOD:"Comidas",BAG:"Bolsas",CAPE:"Capas",FACTIONPOINTS:"Pontos de facção",ROADS:"Estradas de Avalon"};
+const bonusNome=x=>{ const k=bonusCanon(x); return BONUS_NOME[k]||String(x||"").replace(/^COMMON_/,"").replace(/_/g," ").toLowerCase().replace(/^./,c=>c.toUpperCase()); };
 const bonusDia=(...chaves)=>{ const b=window.BONUS_DIA; if(!b||!b.pct||!b.linhas) return 0;
-  for(const c of chaves) if(c&&b.linhas[c]) return b.pct; return 0; };
-const BONUS_ARMADURA={PLATE:{HEAD:"PLATE_HELMET",ARMOR:"PLATE_ARMOR",SHOES:"PLATE_BOOTS"},
-  LEATHER:{HEAD:"LEATHER_HOOD",ARMOR:"LEATHER_ARMOR",SHOES:"LEATHER_SHOES"},
-  CLOTH:{HEAD:"CLOTH_COWL",ARMOR:"CLOTH_ARMOR",SHOES:"CLOTH_SANDALS"}};
+  const on=new Set(Object.keys(b.linhas).map(bonusCanon)); for(const c of chaves) if(c&&on.has(bonusCanon(c))) return b.pct; return 0; };
+const BONUS_ARMADURA={PLATE:{HEAD:"PLATE_HELMET",ARMOR:"PLATE_ARMOR",SHOES:"PLATE_SHOES"},
+  LEATHER:{HEAD:"LEATHER_HELMET",ARMOR:"LEATHER_ARMOR",SHOES:"LEATHER_SHOES"},
+  CLOTH:{HEAD:"CLOTH_HELMET",ARMOR:"CLOTH_ARMOR",SHOES:"CLOTH_SHOES"}};
 const bonusArmadura=(mat,slot)=>(BONUS_ARMADURA[mat]||{})[slot];
-const bonusCozinha=m=>/_POTION/i.test((m&&m.id)||"")?"POTION":"MEAL";
-/* Traduz o id do item (T5_2H_CROSSBOW, T4_ARMOR_LEATHER_SET1, T6_PLANKS...) na linha do bônus diário
-   (CROSSBOW, LEATHER_ARMOR, PLANKS...). A ordem importa: CROSSBOW antes de BOW, WAR_GLOVES antes de GLOVES. */
-const BONUS_LINHAS=[[/WAR_GLOVES|KNUCKLES/,"WAR_GLOVES"],[/CROSSBOW/,"CROSSBOW"],[/QUARTERSTAFF/,"QUARTERSTAFF"],
- [/SHAPESHIFTER/,"SHAPESHIFTER_STAFF"],[/FIRESTAFF/,"FIRE_STAFF"],[/FROSTSTAFF|ICESTAFF/,"FROST_STAFF"],
- [/ARCANESTAFF/,"ARCANE_STAFF"],[/HOLYSTAFF/,"HOLY_STAFF"],[/CURSEDSTAFF|DEMONIC/,"CURSED_STAFF"],
- [/NATURESTAFF|WILDSTAFF/,"NATURE_STAFF"],[/_BOW|BOW/,"BOW"],[/DAGGER/,"DAGGER"],[/SPEAR|GLAIVE/,"SPEAR"],
+const bonusCozinha=m=>/_POTION/i.test((m&&m.id)||"")?"POTION":"FOOD";
+let BONUS_CAT=null; setTimeout(()=>need("categoria").then(d=>{ BONUS_CAT=d.c||{}; }).catch(()=>{ BONUS_CAT={}; }),0);   /* depois do arquivo inteiro carregar (need usa constantes definidas mais abaixo) */
+/* reserva sem o data/categoria.json: pelo nome do item. A ordem importa: CROSSBOW antes de BOW. */
+const BONUS_LINHAS=[[/KNUCKLES|GAUNTLETS/,"KNUCKLES"],[/CROSSBOW/,"CROSSBOW"],[/QUARTERSTAFF/,"QUARTERSTAFF"],
+ [/SHAPESHIFTER/,"SHAPESHIFTERSTAFF"],[/FIRESTAFF/,"FIRESTAFF"],[/FROSTSTAFF|ICESTAFF/,"FROSTSTAFF"],
+ [/ARCANESTAFF/,"ARCANESTAFF"],[/HOLYSTAFF/,"HOLYSTAFF"],[/CURSEDSTAFF|DEMONIC/,"CURSESTAFF"],
+ [/NATURESTAFF|WILDSTAFF/,"NATURESTAFF"],[/BOW/,"BOW"],[/DAGGER/,"DAGGER"],[/SPEAR|GLAIVE/,"SPEAR"],
  [/HAMMER/,"HAMMER"],[/MACE|MORNINGSTAR/,"MACE"],[/AXE|HALBERD/,"AXE"],[/SWORD|CLAYMORE/,"SWORD"],
- [/POTION/,"POTION"],[/MEAL/,"MEAL"]];
+ [/^OFF_/,"OFFHAND"],[/CAPE/,"CAPE"],[/^BAG/,"BAG"],[/_TOOL_/,"TOOLS"],[/GATHERER/,"GATHERERGEAR"],[/POTION/,"POTION"],[/MEAL/,"FOOD"]];
+/* a categoria de produção de um item (T5_2H_CROSSBOW@1 -> CROSSBOW, T4_ARMOR_LEATHER_SET1 -> LEATHERARMOR, T6_PLANKS -> WOOD) */
 function bonusLinhaItem(id){
-  if(!id) return null; const s=String(id);
-  const a=/_ARMOR_(PLATE|LEATHER|CLOTH)/.exec(s); if(a) return a[1]+"_ARMOR";
-  const c=/_HEAD_(PLATE|LEATHER|CLOTH)/.exec(s);
-  if(c) return c[1]+(c[1]==="PLATE"?"_HELMET":c[1]==="LEATHER"?"_HOOD":"_COWL");
-  const p=/_SHOES_(PLATE|LEATHER|CLOTH)/.exec(s);
-  if(p) return p[1]+(p[1]==="PLATE"?"_BOOTS":p[1]==="LEATHER"?"_SHOES":"_SANDALS");
-  const r=/(PLANKS|METALBAR|LEATHER|CLOTH|STONEBLOCK)(_LEVEL|@|$)/.exec(s); if(r) return r[1];
-  for(const par of BONUS_LINHAS){ if(par[0].test(s)) return par[1]; }
+  if(!id) return null; const code=String(id).replace(/^T\d_/,"").replace(/@\d$/,"").replace(/_LEVEL\d$/,"");
+  if(BONUS_CAT&&BONUS_CAT[code]) return bonusCanon(BONUS_CAT[code]);
+  const a=/^(ARMOR|HEAD|SHOES)_(PLATE|LEATHER|CLOTH)/.exec(code); if(a) return a[2]+(a[1]==="ARMOR"?"ARMOR":a[1]==="HEAD"?"HELMET":"SHOES");
+  const r=/^(PLANKS|METALBAR|LEATHER|CLOTH|STONEBLOCK)$/.exec(code); if(r) return bonusCanon(r[1]);
+  for(const par of BONUS_LINHAS){ if(par[0].test(code)) return par[1]; }
   return null;
 }
+const bdItem=id=>bonusDia(bonusLinhaItem(id));
 const taxOf=()=> (st.prem?0.04:0.08)+(st.sell==="order"?0.025:0);
 const feeVal=()=>+$("fee").value||0;
 function model(res,t,e,o={}){
@@ -1192,7 +1206,7 @@ async function renderCook(){
   ganhoTop($("ckSum"),rows.filter(m=>!m.miss),m=>ckTot(m),m=>{ const n=ckNFor(m), mx=ckMix(m); return `${m.name}: você ganha ${fmt(Math.round(mx.tot))} de prata em ${n>1?fmt(n)+" fornadas":"uma fornada"}${AUTO&&ckLotsPerBatch(m)>0?`, o máximo que os seus ${fmt(ilhaL())} lotes dão por colheita`:""} (${fmt(m.q*n)} ${m.kind==="f"?"porções":"poções"}, ${fmt(mx.foc)} de foco${mx.parcial?`; ${mixTxt(mx)}`:""}). Já descontados ingredientes, taxa da estação e taxas de venda.`; },"Com os preços de agora, nada desta lista dá lucro.");
   if(!rows.length){ const td=body.insertRow().insertCell(); td.colSpan=NC; td.className="muted"; td.textContent=nAll?"Nada passa pelos filtros. Afrouxe um deles ou clique em Limpar filtros.":"Nada para mostrar aqui."; }
   for(const m of rows){ const tr=body.insertRow(); tr.dataset.fav=m.id; tr.tabIndex=0; tr.className="clickrow";
-    const a=tr.insertCell(); const an=el("span"); an.append(m.name); if(BUILD_FOOD.includes(m.id)) an.append(" ",el("span",{class:"spec",text:"build"})); a.append(withIcon(m.id,an));
+    const a=tr.insertCell(); const an=el("span"); an.append(m.name); if(BUILD_FOOD.includes(m.id)) an.append(" ",el("span",{class:"spec",text:"build"})); { const bd=bonusDia(bonusCozinha(m)); if(bd>0) an.append(el("span",{class:"bd-hoje",text:`+${Math.round(bd*100)}% hoje`,title:"Bônus diário de produção do jogo: hoje esta categoria rende mais retorno de recursos. A conta já usa."})); } a.append(withIcon(m.id,an));
     tr.insertCell().textContent=`${m.q} ${m.kind==="f"?(m.q>1?"porções":"porção"):(m.q>1?"poções":"poção")}`;
     if(m.miss){ const td=tr.insertCell(); td.colSpan=4; td.className="muted"; td.textContent=`Sem preço: ${m.miss}`; lfVolCell(tr,m.id); tr.insertCell(); continue; }
     const Nm=ckNFor(m), lpb=ilhaL()>0?ckLotsPerBatch(m):0;

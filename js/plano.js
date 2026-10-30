@@ -21,7 +21,7 @@ function plOfItem(it){
   const fc1=Math.max(1,Math.round(it.focus*Math.pow(0.5,(it.fce||0)/10000)));
   let mat=0, art=0; for(const g of it.ing){ const p=typical(g.id,0); if(!p) return null; if(g.art) art+=g.n*p.p; else mat+=g.n*p.p; }
   const sale=typical(it.id,plField()); if(!sale) return null;
-  const rN=rrr(it.bonus,false,st.daily), rF=rrr(it.bonus,true,st.daily), fee=it.fee*feeVal()/100;
+  const bd=bdItem(it.id), rN=rrr(it.bonus,false,st.daily+bd), rF=rrr(it.bonus,true,st.daily+bd), fee=it.fee*feeVal()/100;
   const profitF=it.q*sale.p*plTax()-mat*(1-rF)-art-fee; if(!(profitF>0)) return null;
   const gain=(rF-rN)*mat; return {id:it.id,name:it.name,city:it.city,q:it.q,t:it.t,e:it.e,fc1,gain,spf:gain/fc1,profitF,thin:sale.n<2,invest:mat*(1-rF)+art+fee,sale:sale.p};
 }
