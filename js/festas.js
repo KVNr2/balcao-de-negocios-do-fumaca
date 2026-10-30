@@ -73,6 +73,8 @@
     try{ if((aba("p-craft") || aba("p-refino")) && window.renderOf) renderOf(); }catch(e){}
     try{ if(aba("p-cozinha") && window.renderCook) renderCook(); }catch(e){}
     try{ if(aba("p-mercado") && window.renderBM) renderBM(); }catch(e){}
+    try{ var pp = document.getElementById("plProd"), go = document.getElementById("ppGo");
+         if(aba("p-plano") && pp && pp.children.length && go) go.click(); }catch(e){}
   }
 
   /* ---- cache ---- */
