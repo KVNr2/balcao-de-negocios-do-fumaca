@@ -5,7 +5,7 @@
    "titulo": "Hoje no Albion: bônus do dia no topo e marcado nos itens",
    "itens": [
     "A faixa \"Hoje no Albion\" fica logo abaixo do título de cada página (antes ela caía no fim da página) e mostra a produção com bônus do dia, as atividades e o evento sazonal, com o horário em que cada um acaba.",
-    "Correção: o bônus de produção não entrava nas contas, porque o jogo manda o nome da categoria sem separação (ARCANESTAFF) e o site procurava com separação (ARCANE_STAFF). Agora cada item acha a sua categoria pelos arquivos do jogo, e o bônus entra no Craft, Refino, Cozinha, Mercado Negro e Plano do dia.",
+    "Correção: o bônus de produção não entrava nas contas, porque o jogo manda o nome da categoria sem separação (ARCANESTAFF) e o site procurava com separação (ARCANE_STAFF). Agora cada item acha a sua categoria pelos arquivos do jogo, e o bônus entra no Craft, Refino, Cozinha, Mercado Negro e Plano do dia (o plano já montado é refeito sozinho quando o bônus muda).",
     "Os itens com bônus aparecem marcados com \"+10% hoje\" (ou +20%, se você trocar na faixa conforme o jogo mostra na aba Atividades).",
     "Com o bônus automático funcionando, o botão manual Bônus diário (+10% em tudo) some, para o bônus não contar em dobro."
    ],
