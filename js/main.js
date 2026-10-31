@@ -1,12 +1,27 @@
 /* ================= wiring ================= */
 const tabs=[...document.querySelectorAll("nav.tabs [role=tab]")];
 function setPageHead(btn){ if(!btn) return; let g=btn.previousElementSibling; while(g&&!g.classList.contains("grp")) g=g.previousElementSibling;
-  const fl=(btn.querySelector(".fl")||{}).textContent||""; $("phKick").textContent=g?g.textContent:"";
+  const fl=(btn.querySelector(".fl")||{}).textContent||""; $("phKick").textContent=(typeof GRUPO_DE!=="undefined"&&GRUPO_DE[btn.id])?GRUPO_DE[btn.id].nome:g?g.textContent:"";
   $("phTitle").textContent=btn.querySelector(".tl").textContent; const gd=(typeof GUIA!=="undefined"&&GUIA[btn.getAttribute("aria-controls")])||[]; $("phDesc").textContent=gd[0]||""; document.title=`${btn.querySelector(".tl").textContent} · Balcão de Negócios do Fumaça`; }
+/* Menu agrupado: Combate (Builds, Build ZvZ, PVP, Matchups) e Sobre o site (Patch, Fontes, Versão) viram uma entrada só no menu,
+   com as páginas como sub-abas no alto. As abas continuam existindo (links, atalhos e #endereços seguem funcionando). */
+const GRUPOS=[{k:"combate",nome:"Combate",ids:["t-builds","t-zvz","t-pvp","t-matchup"]},{k:"sobre",nome:"Sobre o site",ids:["t-patch","t-fontes","t-versao"]}];
+const GRUPO_DE={}; for(const g of GRUPOS){ g.ids=g.ids.filter(i=>$(i)); if(g.ids.length<2) continue;
+  const first=$(g.ids[0]), rep=first.cloneNode(true); rep.id="tg-"+g.k; rep.removeAttribute("aria-controls"); rep.setAttribute("aria-selected","false"); rep.dataset.rep=g.k;
+  const tl=rep.querySelector(".tl"); if(tl) tl.textContent=g.nome; const fl=rep.querySelector(".fl"); if(fl) fl.textContent=`${g.ids.length} páginas`;
+  first.before(rep); g.rep=rep; for(const i of g.ids){ GRUPO_DE[i]=g; $(i).classList.add("tab-sub"); }
+  let ultimo=g.ids[0]; try{ ultimo=localStorage.getItem("grupo:"+g.k)||ultimo; }catch(e){} if(!g.ids.includes(ultimo)) ultimo=g.ids[0];
+  rep.addEventListener("click",()=>{ let u=g.ids[0]; try{ u=localStorage.getItem("grupo:"+g.k)||u; }catch(e){} showTab(g.ids.includes(u)?u:g.ids[0]); }); }
+function subTabs(id){ let bar=$("subTabs"); const g=GRUPO_DE[id];
+  if(!g){ if(bar) bar.hidden=true; GRUPOS.forEach(x=>x.rep&&x.rep.setAttribute("aria-selected","false")); return; }
+  if(!bar){ bar=el("div",{id:"subTabs",class:"seg subtabs",role:"group","aria-label":"Páginas deste grupo"}); const ph=$("pagehead"); ph.after(bar); }
+  bar.hidden=false; bar.textContent="";
+  for(const i of g.ids){ const t=$(i), b=el("button",{type:"button",text:t.querySelector(".tl").textContent}); b.setAttribute("aria-pressed",String(i===id)); b.addEventListener("click",()=>showTab(i)); bar.append(b); }
+  GRUPOS.forEach(x=>x.rep&&x.rep.setAttribute("aria-selected",String(x===g))); try{ localStorage.setItem("grupo:"+g.k,id); }catch(e){} }
 function showTab(id, quiet){ setPageHead(tabs.find(b=>b.id===id)); tabs.forEach(b=>b.tabIndex=b.id===id?0:-1);
-  { const sel=tabs.find(b=>b.id===id); if(sel&&matchMedia("(max-width:900px)").matches) sel.scrollIntoView({block:"nearest",inline:"center",behavior:quiet||RM?"auto":"smooth"}); } let panel=null; tabs.forEach(b=>{const on=b.id===id; b.setAttribute("aria-selected",String(on)); const p=$(b.getAttribute("aria-controls")); p.hidden=!on; if(on) panel=p;}); tip.hidden=true; store.set("tab",id); if(id==="t-craft") renderCraft();
+  { const sel=(GRUPO_DE[id]&&GRUPO_DE[id].rep)||tabs.find(b=>b.id===id); if(sel&&matchMedia("(max-width:900px)").matches) sel.scrollIntoView({block:"nearest",inline:"center",behavior:quiet||RM?"auto":"smooth"}); } let panel=null; tabs.forEach(b=>{const on=b.id===id; b.setAttribute("aria-selected",String(on)); const p=$(b.getAttribute("aria-controls")); p.hidden=!on; if(on) panel=p;}); tip.hidden=true; store.set("tab",id); if(id==="t-craft") renderCraft();
   if(id==="t-cozinha") renderCook(); if(id==="t-avalon") renderAv(); if(id==="t-mapas") renderMaps(); if(id==="t-mercado") renderBM(); if(id==="t-transp") renderTransp(); if(id==="t-rot") renderRot(); if(id==="t-compras") renderCompras(); if(id==="t-trab") renderWK(); if(id==="t-matchup") renderMU(); if(id==="t-craft"||id==="t-refino") renderOf(); if(id==="t-mk") renderMk(); if(id==="t-encantar") renderEN(); if(id==="t-fazenda") renderFZ(); if(id==="t-pesca") renderPesca(); if(id==="t-plano") renderPlano(); if(id==="t-craft"||id==="t-refino"||id==="t-plano") fichaLembrete(id.replace("t-","p-")); if(id==="t-zvz") renderZvz(); if(id==="t-pvp") renderPvp(); if(id==="t-versao") renderVersao();
-  moveTabLamp(tabs.find(b=>b.id===id), quiet); addFlourishes(panel||document);
+  subTabs(id); { const t=tabs.find(b=>b.id===id), g=GRUPO_DE[id]; moveTabLamp(g&&g.rep?g.rep:t, quiet); } addFlourishes(panel||document);
   if(!quiet&&panel){ animatePanel(panel); if(FX.ok&&!RM){ revealOnScroll(); tiltCards(); if(window.ScrollTrigger) ScrollTrigger.refresh(); } } }
 function animatePanel(panel){
   if(!window.gsap||RM) return;
@@ -18,9 +33,9 @@ function animatePanel(panel){
 }
 tabs.forEach(b=>b.addEventListener("click",()=>showTab(b.id)));
 // teclado no menu: setas sobem e descem entre as páginas, Home e End vão para a primeira e a última
-document.querySelector("nav.tabs").addEventListener("keydown",ev=>{ const i=tabs.indexOf(document.activeElement); if(i<0) return;
+document.querySelector("nav.tabs").addEventListener("keydown",ev=>{ const vis=[...document.querySelectorAll("nav.tabs [role=tab]")].filter(b=>b.offsetParent); const i=vis.indexOf(document.activeElement); if(i<0) return;
   const k=ev.key, n=k==="ArrowDown"||k==="ArrowRight"?i+1:k==="ArrowUp"||k==="ArrowLeft"?i-1:k==="Home"?0:k==="End"?tabs.length-1:null; if(n==null) return;
-  ev.preventDefault(); const b=tabs[(n+tabs.length)%tabs.length]; b.focus(); showTab(b.id); });
+  ev.preventDefault(); const b=vis[(n+vis.length)%vis.length]; b.focus(); b.click(); });
 document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.goto)));
 document.querySelectorAll("[data-res]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-res]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); st.res=b.dataset.res; $("resNote").textContent=RES[st.res].note; renderHeat(); calc(true); }));
 document.querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click",()=>{ const g=b.dataset.g; document.querySelectorAll(`[data-g="${g}"]`).forEach(x=>x.setAttribute("aria-pressed",String(x===b))); st[g]= g==="sell"?b.dataset.v:parseFloat(b.dataset.v); recompute(g==="sell"); }));
