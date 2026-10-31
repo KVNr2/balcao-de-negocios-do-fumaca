@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T20:50",
+   "titulo": "Rotação: sugestão pelo que dá para vender rápido",
+   "itens": [
+    "A sugestão de quantas peças fazer agora não passa do que você vende no prazo que escolher: vendas por dia × a sua parte delas × dias. Antes ela usava o ciclo inteiro da rotação e as vendas todas do dia.",
+    "Dois campos novos: \"Vender tudo em até (dias)\" (começa em 3) e \"Sua parte das vendas (%)\" (começa em 50%, porque há outros vendedores no mesmo item).",
+    "Cada item mostra em quantos dias as peças que você escolheu devem vender, com aviso quando passa do seu prazo. Item caro que vende uma por semana fica em no máximo 1 peça."
+   ],
+   "como": "Na Rotação de craft, ajuste os dois campos nos filtros. O número que você escreveu em \"Fazer\" continua valendo; só a sugestão muda.",
+   "impacto": "Menos prata parada em itens que demoram para vender."
+  },
+  {
    "t": "2026-10-31T20:39",
    "titulo": "Rotação: você escolhe quantas peças fazer, e materiais na cidade mais barata",
    "itens": [
