@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="5a4ab965">
+<html lang="pt-BR" data-v="037497f8">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=5a4ab965">
-<link rel="stylesheet" href="css/vip.css?v=5a4ab965">
-<link rel="stylesheet" href="css/avicons.css?v=5a4ab965">
-<link rel="stylesheet" href="css/souk.css?v=5a4ab965">
+<link rel="stylesheet" href="css/balcao.css?v=037497f8">
+<link rel="stylesheet" href="css/vip.css?v=037497f8">
+<link rel="stylesheet" href="css/avicons.css?v=037497f8">
+<link rel="stylesheet" href="css/souk.css?v=037497f8">
 </head>
 <body>
 <div class="wrap app">
@@ -61,6 +61,7 @@ html.em-atual .av-card{margin:0}
       <span class="grp" aria-hidden="true">Ofícios</span>
       <button role="tab" id="t-refino" aria-controls="p-refino" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.5 3 5 5.2 5 10a5 5 0 0 1-10 0c0-2.6 1.4-4 2.2-6 .8 1.2 1.6 1.9 2.6 2.2C12.3 7.4 12 5 12 3z"/></svg><span class="tl">Refino</span><em class="fl">fl. 3</em></button>
       <button role="tab" id="t-craft" aria-controls="p-craft" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 4.5l5.5 5.5-2.5 2.5L10.5 7z"/><path d="M12 9.5l-7.5 7.5a1.8 1.8 0 0 0 2.5 2.5l7.5-7.5"/></svg><span class="tl">Craft</span><em class="fl">fl. 4</em></button>
+      <button role="tab" id="t-rot" aria-controls="p-rot" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/><path d="M9 12l2 2 4-4"/></svg><span class="tl">Rotação de craft</span><em class="fl">Cidades</em></button>
       <button role="tab" id="t-encantar" aria-controls="p-encantar" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 9-7 9-7-9z"/><path d="M12 8v8M9 11l3-3 3 3"/></svg><span class="tl">Encantar</span><em class="fl">fl. 5</em></button>
       <button role="tab" id="t-cozinha" aria-controls="p-cozinha" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10h17"/><path d="M5 10l1 6a4 4 0 0 0 4 3.5h4a4 4 0 0 0 4-3.5l1-6"/><path d="M9.5 7c-.6-1 .6-1.8 0-3M14.5 7c-.6-1 .6-1.8 0-3"/></svg><span class="tl">Cozinha e alquimia</span><em class="fl">fl. 6</em></button>
       <button role="tab" id="t-fazenda" aria-controls="p-fazenda" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-9"/><path d="M12 12C12 8 9 6 5 6c0 4 3 6 7 6z"/><path d="M12 14c0-3.5 2.5-5.5 7-5.5 0 3.5-2.5 5.5-7 5.5z"/><path d="M7 21h10"/></svg><span class="tl">Ilha e fazenda</span><em class="fl">fl. 7</em></button>
@@ -536,6 +537,23 @@ html.em-atual .av-card{margin:0}
     <div id="vBox" class="vbox"><p class="muted small">Carregando…</p></div>
   </section>
 
+  <section class="panel" id="p-rot" role="tabpanel" aria-labelledby="t-rot" hidden>
+    <p class="aside">Um craft fixo por cidade, uma cidade por visita. Entre uma visita e outra, ordens de compra juntam o material mais barato. Na visita, o foco vai primeiro no item que mais rende por ponto de foco.</p>
+    <div id="rotCtl" class="row-ctl">
+      <label class="f">Cidades da rotação<div id="rotCidades"></div></label>
+      <label class="f" title="Você visita uma cidade por vez. Com 1, uma cidade por dia; com 3, uma a cada 3 dias. O foco de cada visita é o que encheu desde a anterior.">Dias entre visitas<input type="number" id="rotDias" min="1" max="7" value="3" style="width:80px"></label>
+      <label class="f" title="Dividido igualmente entre as cidades. Deixe vazio para não limitar.">Dinheiro para os crafts<input type="text" inputmode="numeric" id="rotCash" placeholder="sem limite" style="width:140px"></label>
+    </div>
+    <p class="small muted" id="rotNote"></p>
+    <div id="rotBox">
+      <div id="rotHoje"></div>
+      <h3 class="orn">Minha rotação</h3>
+      <div id="rotCid" class="rot-grid"></div>
+      <h3 class="orn">Ordens de compra para pôr</h3>
+      <div id="rotOrd"></div>
+    </div>
+  </section>
+
   <section class="panel" id="p-transp" role="tabpanel" aria-labelledby="t-transp" hidden>
     <p class="aside">Compre numa cidade, leve e venda em outra. A lista mostra as rotas que dão lucro agora, já descontadas as taxas, com quanto cabe na sua montaria e quanto o destino consegue comprar.</p>
     <div id="trCtl" class="tr-ctl">
@@ -849,28 +867,29 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=5a4ab965"></script>
-<script src="js/base.js?v=5a4ab965"></script>
-<script src="js/fx.js?v=5a4ab965"></script>
-<script src="js/biz.js?v=5a4ab965"></script>
-<script src="js/builds.js?v=5a4ab965"></script>
-<script src="js/nossas.js?v=5a4ab965"></script>
-<script src="js/ip.js?v=5a4ab965"></script>
-<script src="js/zvz.js?v=5a4ab965"></script>
-<script src="js/pvp.js?v=5a4ab965"></script>
-<script src="js/novos.js?v=5a4ab965"></script>
-<script src="js/guia.js?v=5a4ab965"></script>
-<script src="js/ui.js?v=5a4ab965"></script>
-<script src="js/avalon.js?v=5a4ab965"></script>
-<script src="js/oficina.js?v=5a4ab965"></script>
-<script src="js/versao.js?v=5a4ab965"></script>
-<script src="js/bag.js?v=5a4ab965"></script>
-<script src="js/plano.js?v=5a4ab965"></script>
-<script src="js/pesca.js?v=5a4ab965"></script>
-<script src="js/listfil.js?v=5a4ab965"></script>
-<script src="js/fav.js?v=5a4ab965"></script>
-<script src="js/festas.js?v=5a4ab965"></script>
-<script src="js/transporte.js?v=5a4ab965"></script>
-<script src="js/main.js?v=5a4ab965"></script>
+<script src="js/icons.js?v=037497f8"></script>
+<script src="js/base.js?v=037497f8"></script>
+<script src="js/fx.js?v=037497f8"></script>
+<script src="js/biz.js?v=037497f8"></script>
+<script src="js/builds.js?v=037497f8"></script>
+<script src="js/nossas.js?v=037497f8"></script>
+<script src="js/ip.js?v=037497f8"></script>
+<script src="js/zvz.js?v=037497f8"></script>
+<script src="js/pvp.js?v=037497f8"></script>
+<script src="js/novos.js?v=037497f8"></script>
+<script src="js/guia.js?v=037497f8"></script>
+<script src="js/ui.js?v=037497f8"></script>
+<script src="js/avalon.js?v=037497f8"></script>
+<script src="js/oficina.js?v=037497f8"></script>
+<script src="js/versao.js?v=037497f8"></script>
+<script src="js/bag.js?v=037497f8"></script>
+<script src="js/plano.js?v=037497f8"></script>
+<script src="js/pesca.js?v=037497f8"></script>
+<script src="js/listfil.js?v=037497f8"></script>
+<script src="js/fav.js?v=037497f8"></script>
+<script src="js/festas.js?v=037497f8"></script>
+<script src="js/transporte.js?v=037497f8"></script>
+<script src="js/rotacao.js?v=037497f8"></script>
+<script src="js/main.js?v=037497f8"></script>
 </body>
 </html>

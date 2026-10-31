@@ -1,6 +1,19 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T04:20:00Z",
+   "titulo": "Nova página: Rotação de craft",
+   "itens": [
+    "Em Ofícios, a Rotação de craft deixa escolher um ou mais crafts fixos para cada cidade (Lymhurst, Fort Sterling, Bridgewatch, Martlock e Thetford) e visitar uma cidade por vez.",
+    "Hoje: diz qual cidade visitar e quanto fabricar de cada item. O foco que encheu desde a última visita vai primeiro no item que mais rende por ponto de foco, e cada item fica limitado ao que a melhor cidade de venda absorve até você voltar. Mostra também onde vender, quanto gastar em material e quanto a visita rende. Depois do craft, clique em Fiz a visita.",
+    "Ordens de compra para pôr: os materiais da próxima visita de cada cidade, com o preço da ordem (logo acima da maior ordem aberta) e quanto você economiza em relação a comprar na hora. Avisa quando outra cidade está mais de 10% mais barata.",
+    "Sugestões pela sua spec: em cada cidade, procura os itens com bônus ali nas linhas em que a sua ficha tem mais spec e mostra os que mais rendem por visita, com um botão para pôr na rotação.",
+    "O bônus da cidade (+15%) só conta quando o item é fabricado na cidade dele, e o bônus do dia entra quando a categoria está em alta."
+   ],
+   "como": "Ofícios > Rotação de craft. Escolha as cidades e os dias entre visitas, e ponha os itens em cada cidade (ou use Sugestões pela sua spec).",
+   "impacto": "Um plano de craft que aproveita todo o foco, compra o material mais barato por ordem e não fabrica mais do que dá para vender."
+  },
+  {
    "t": "2026-10-31T03:50:00Z",
    "titulo": "Mercado: vendas por dia de cada item",
    "itens": [

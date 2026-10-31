@@ -1967,3 +1967,24 @@ td.gv-cell .gv-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:400
 .tr-ft{display:flex;justify-content:space-between;align-items:center;gap:10px}
 @media (max-width:640px){ .tr-n{grid-template-columns:repeat(2,1fr)} .tr-rota{grid-template-columns:1fr} .tr-seta{display:none} .tr-hearts{overflow-x:auto} }
 .tr-alt summary{cursor:pointer;color:var(--parch-2);font-size:.85rem}.tr-alt ul{margin:6px 0 0;padding-left:18px;display:grid;gap:2px}
+/* Rotação de craft */
+.rot-hoje{border:1px solid var(--saffron);border-radius:16px;padding:16px 18px;margin:6px 0 18px;background:linear-gradient(180deg,var(--cloth-2),var(--cloth));display:grid;gap:6px;max-width:900px}
+.rot-hoje h3{margin:0;font:700 1.5rem var(--f-display)}.rot-hoje p{margin:0}.rot-hoje .btn{justify-self:start;margin-top:6px}
+.rot-todo{margin:4px 0;padding-left:18px;display:grid;gap:4px}
+.rot-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));margin-bottom:18px}
+.rot-c{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--cloth);display:grid;gap:8px;align-content:start}
+.rot-ch{display:flex;justify-content:space-between;align-items:center}.rot-ch h4{margin:0;font:700 1.15rem var(--f-display)}
+.rot-i{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-soft)}
+.rot-it{display:grid;gap:1px;min-width:0}.rot-it small{line-height:1.3}
+.rot-add{display:grid;gap:6px}.rot-add input[type=search]{width:100%}
+.rot-res{display:grid;gap:4px}
+.rot-op{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;text-align:left;background:var(--night-2);border:1px solid var(--line-soft);border-radius:8px;padding:5px 8px;color:var(--parch);cursor:pointer}
+.rot-op:hover{border-color:var(--saffron)}
+.rot-ob h4{margin:12px 0 6px}
+.rot-ot{width:100%;border-collapse:collapse}.rot-ot th,.rot-ot td{padding:6px 8px;border-bottom:1px solid var(--line-soft);text-align:right}.rot-ot th:first-child,.rot-ot td:first-child{text-align:left}
+.rot-sug summary{cursor:pointer;color:var(--saffron);font-size:.9rem}.rot-sb{display:grid;gap:4px;margin-top:6px}
+.rot-sg{cursor:default}.rot-sg span{min-width:0}
+.rot-c,.rot-i,.rot-it{min-width:0}.rot-it b,.rot-it small{overflow-wrap:anywhere}
+#rotOrd .tbl-wrap{overflow-x:auto}
+@media (max-width:640px){ .rot-ot th:nth-child(4),.rot-ot td:nth-child(4),.rot-ot th:nth-child(5),.rot-ot td:nth-child(5){display:none} }
+.rot-op img,.rot-op .ico{width:28px!important;height:28px!important}.rot-i img,.rot-i .ico{width:40px!important;height:40px!important}
