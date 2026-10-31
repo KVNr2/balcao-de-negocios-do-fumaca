@@ -192,6 +192,10 @@ async function simular(p) {
     return { ...o, cMart: o.cMart.mode, venda: [a, b, c, d].map(x => x && x.c + ":" + x.mode + ":" + x.p), compra: e && e.c + ":" + e.mode + ":" + e.p }; });
   conf("motor único: teto, lance perdido, Mercado Negro e as quatro páginas iguais", px.teto === 1313 && px.cMart === "inst" && px.cLance === 951 && px.vBM === "inst" && new Set(px.venda).size === 1 && px.venda[0] === "Thetford:ordem:1020" && px.compra === "Lymhurst:ordem:950", px);
 
+  /* 15. qualidade pela spec: confere com o exemplo do Albion Free Market (750 pontos: Excelente ou melhor 8,97%, Obra-prima 0,847%) */
+  const ql = await p.evaluate(() => { const c = qualChances(750), z = qualChances(0); return { exc: (c[4] + c[5]) * 100, op: c[5] * 100, soma: c.slice(1).reduce((a, b) => a + b, 0), n0: z[1] }; });
+  conf("chances de qualidade pela spec", Math.abs(ql.exc - 8.972) < 0.01 && Math.abs(ql.op - 0.8468) < 0.005 && Math.abs(ql.soma - 1) < 1e-9 && Math.abs(ql.n0 - 0.689) < 1e-9, ql);
+
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
   console.log(ok.map(x => "ok   " + x).join("\n")); if (falhas.length) { console.log(falhas.map(x => "FALHOU " + x).join("\n")); process.exit(1); }

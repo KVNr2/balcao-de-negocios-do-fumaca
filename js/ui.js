@@ -234,6 +234,10 @@ async function itemMenu(id,q,x,y,origem){
       const lst=ids.map(i=>({i,r:pr[i]})).sort((a,b)=>(a.r?a.r.p:Infinity)-(b.r?b.r.p:Infinity));
       for(const {i,r} of lst){ const mm=/^T(\d)_.+?(?:@(\d))?$/.exec(i); const li=el("div",{class:"imenu-eqr"+(i===id?" cur":"")}); li.append(iconImg(i,24,q),el("span",{text:`${mm[1]}.${mm[2]||0}${i===id?" (este)":""}`}),el("span",{class:"muted",text:r?r.c:"sem anúncio"}),el("b",{text:r?fmtS(r.p):"—"})); eqBox.append(li); } });
     menu.append(b,eqBox); itens.push(b); }
+  /* fabricação: qualidade esperada pela spec e fabricar .0 e encantar (calcula só ao abrir) */
+  if(gear&&t>=4&&typeof mcBox==="function"){ const b=el("button",{type:"button",class:"imenu-i",role:"menuitem","aria-expanded":"false"}); b.append(el("span",{text:"Fabricar: qualidade e encantar"}),el("small",{text:e?"chance de cada qualidade e se vale fabricar .0 e encantar":"chance de cada qualidade com a sua spec"}));
+    let aberto=null; b.addEventListener("click",async()=>{ if(aberto){ aberto.remove(); aberto=null; b.setAttribute("aria-expanded","false"); return; } aberto=await mcBox(id,q); b.after(aberto); b.setAttribute("aria-expanded","true"); });
+    menu.append(b); itens.push(b); }
   if(typeof bagAdd==="function") add("bag","Pôr na bag");
   add("copy","Copiar o nome");
   /* de olho: guarda o item com um preço-alvo; o site confere de tempos em tempos e avisa quando o menor anúncio chega no alvo */
