@@ -180,6 +180,18 @@ async function simular(p) {
     return { origens: [...new Set(rs.map(r => r.a))], custo: rs.every(r => r.buy.k === 0), n: rs.map(r => r.n), mesma: rs.some(r => r.b === "Lymhurst"), tem }; });
   conf("transporte: corações por pontos de facção saem sem custo da cidade da facção", String(pts.origens) === "Lymhurst" && pts.custo && pts.n.every(n => n <= 50) && pts.mesma && pts.tem, pts);
 
+  /* 14. motor único de preços: as quatro páginas dão o mesmo resultado para o mesmo preço */
+  const px = await p.evaluate(() => { const id = "T9_PXTESTE"; DATA.itens[id] = { Lymhurst: [1000, 950, 1, 1], Martlock: [980, 600, 1, 1], Thetford: [1020, 0, 1, 0], Caerleon: [1800, 0, 1, 0], "Black Market": [0, 1100, 0, 1] };
+    const o = { teto: Math.round(PX.teto(DATA.itens[id])) };
+    o.cMart = PX.compra(DATA.itens[id], "Martlock", "ordem"); o.cLance = PX.compra(DATA.itens[id], "Lymhurst", "ordem", { lance: 1 }).p; o.vBM = PX.venda(DATA.itens[id], "Black Market", "ordem", Infinity).mode;
+    OF.sellS = "auto"; OF.sellC = new Set(["Lymhurst", "Martlock", "Thetford", "Caerleon"]); const a = pickSell(id); OF.sellC = new Set();
+    CKV.s = "auto"; CKV.c = new Set(["Lymhurst", "Martlock", "Thetford", "Caerleon"]); const b = ckSale(id); CKV.c = new Set();
+    TR.sell = "auto"; const tt = PX.teto(DATA.itens[id]); const c = ["Lymhurst", "Martlock", "Thetford", "Caerleon"].map(x => trSell(DATA.itens[id], x, tt)).filter(Boolean).sort((x, y) => y.k - x.k)[0];
+    ROT.venda = "auto"; ROT.vendaC = ["Lymhurst", "Martlock", "Thetford", "Caerleon"]; ROT.bm = false; const d = rotVenda(id); ROT.vendaC = []; ROT.bm = true;
+    OF.buyS = "auto"; const e = pickBuy(id); OF.buyS = "auto"; delete DATA.itens[id];
+    return { ...o, cMart: o.cMart.mode, venda: [a, b, c, d].map(x => x && x.c + ":" + x.mode + ":" + x.p), compra: e && e.c + ":" + e.mode + ":" + e.p }; });
+  conf("motor único: teto, lance perdido, Mercado Negro e as quatro páginas iguais", px.teto === 1313 && px.cMart === "inst" && px.cLance === 951 && px.vBM === "inst" && new Set(px.venda).size === 1 && px.venda[0] === "Thetford:ordem:1020" && px.compra === "Lymhurst:ordem:950", px);
+
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
   console.log(ok.map(x => "ok   " + x).join("\n")); if (falhas.length) { console.log(falhas.map(x => "FALHOU " + x).join("\n")); process.exit(1); }

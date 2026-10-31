@@ -1167,18 +1167,11 @@ const ckVSave=()=>{ try{ store.set("ckVenda",JSON.stringify({s:CKV.s,c:[...CKV.c
 const CKV_PILL={ordem:"ORDEM VENDA",inst:"VENDA INST",tipico:"PREÇO TÍPICO"};
 const CKV_SUB={ordem:"anúncio no preço do menor anúncio",inst:"vende na hora para a maior ordem de compra",tipico:"mediana dos anúncios das cidades"};
 function ckSale(id){
-  const r=DATA.itens[id]||{}, locs=CKV.c.size?[...CKV.c]:Object.keys(r).filter(c=>c!=="Black Market"), tx=taxBase();
+  const r=DATA.itens[id]||{}, locs=CKV.c.size?[...CKV.c]:Object.keys(r).filter(c=>c!=="Black Market");
   const comPreco=locs.filter(c=>r[c]&&(r[c][0]>0||r[c][1]>0)).length;
   if(CKV.s==="tipico"){ const sub={}; for(const c of locs) if(r[c]) sub[c]=r[c]; const t=typical(id,0,{[id]:sub}); return t?{p:t.p,n:t.n,c:locs.length===1?locs[0]:"cidades",mode:"tipico",t:t.t}:null; }
-  const ps=locs.map(c=>r[c]&&r[c][0]).filter(x=>x>0).sort((a,b)=>a-b);
-  const teto=ps.length>=3?(ps.length%2?ps[(ps.length-1)/2]:(ps[ps.length/2-1]+ps[ps.length/2])/2)*1.3:Infinity;
-  let best=null, bk=0;
-  for(const c of locs){ const v=r[c]; if(!v) continue; const lista=v[0]>0&&v[0]<=teto?v[0]:0, inst=v[1]>0?v[1]:0; let p=0,mode="ordem",t=0;
-    if(CKV.s==="inst"){ p=inst; mode="inst"; t=v[3]; }
-    else if(CKV.s==="ordem"){ p=lista; t=v[2]; }
-    else if(inst&&(!lista||inst*(1-tx)>=lista*(1-tx-0.025))){ p=inst; mode="inst"; t=v[3]; } else { p=lista; t=v[2]; }
-    const k=p*(1-tx-(mode==="ordem"?0.025:0)); if(p>0&&(!best||k>bk)){ best={p,c,mode,t:t||0,n:comPreco}; bk=k; } }
-  return best; }
+  const x=PX.melhorVenda(r,locs,CKV.s);   // motor único (js/precos.js)
+  return x?{p:x.p,c:x.c,mode:x.mode,t:x.t||0,n:comPreco}:null; }
 const ckNeedsFarm=()=>SRC.ck==="planto"||Object.values(SRC.ckO||{}).includes("planto");
 /* ingredientes que o retorno de recursos não devolve (no jogo, maxreturnamount 0): os ingredientes raros de alquimia e o token de Avalon */
 const ckNoRet=iid=>/_ALCHEMY_RARE_|^QUESTITEM_TOKEN_AVALON/.test(iid);

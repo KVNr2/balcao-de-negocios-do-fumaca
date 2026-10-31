@@ -22,12 +22,8 @@ function trItems(){
   }
   return out;
 }
-const trOrdemOk=v=>v&&v[1]>0&&(!v[0]||v[1]>=v[0]*0.7);
-function trBuy(r,c){ const v=r[c]; if(!v) return null; const a=v[0]>0?{p:v[0],k:v[0],mode:"inst",t:v[2]}:null, o=trOrdemOk(v)?{p:v[1],k:v[1]*1.025,mode:"ordem",t:v[3]}:null;
-  if(TR.buy==="inst") return a; if(TR.buy==="ordem") return o||a; return a&&o?(o.k<a.k?o:a):(a||o); }
-function trSell(r,c,teto){ const v=r[c]; if(!v) return null; const tx=taxBase();
-  const l=v[0]>0&&v[0]<=teto?{p:v[0],k:v[0]*(1-tx-0.025),mode:"ordem",t:v[2]}:null, i=v[1]>0?{p:v[1],k:v[1]*(1-tx),mode:"inst",t:v[3]}:null;
-  if(TR.sell==="inst") return i; if(TR.sell==="ordem") return l; return l&&i?(i.k>=l.k?i:l):(l||i); }
+function trBuy(r,c){ return PX.compra(r,c,TR.buy); }                   // motor único (js/precos.js)
+function trSell(r,c,teto){ return PX.venda(r,c,TR.sell,teto); }
 const TR_RISCO=c=>c==="Caerleon"?2:c==="Brecilien"?1:0;
 const trRiscoTxt=(a,b)=>{ if(a===b) return ["Sem viagem","Vende na mesma cidade onde resgata."]; const r=Math.max(TR_RISCO(a),TR_RISCO(b)); return r===2?["Zona vermelha","Caerleon fica no meio das zonas vermelhas: quem morre perde a carga e a montaria."]:r===1?["Névoas","Brecilien só se alcança pelas Névoas, onde dá para ser atacado e perder a carga."]:["Segura","Entre cidades reais dá para ir só por zonas azuis e amarelas, sem perda total."]; };
 const trMount=()=>(CARGA&&CARGA.mounts.find(m=>m.id===TR.mount))||null;
@@ -36,8 +32,7 @@ function trRoutes(items){
   const locs=SHOP_LOCS, de=TR.de.size?[...TR.de]:locs, para=TR.para.size?[...TR.para]:locs, cap=trCap(), cash=+String(TR.cash).replace(/\D/g,"")||0, tx=taxBase();
   const out=[];
   for(const it of items){ const r=DATA.itens[it.id]; if(!r) continue; const w=bagW(it.id), pontos=TR.pontos&&it.kind==="Coração";
-    const ps=locs.map(c=>r[c]&&r[c][0]).filter(x=>x>0).sort((a,b)=>a-b);
-    const teto=ps.length>=3?(ps.length%2?ps[(ps.length-1)/2]:(ps[ps.length/2-1]+ps[ps.length/2])/2)*1.3:Infinity;
+    const teto=PX.teto(r);
     /* corações por pontos de facção: saem de graça da cidade da facção (o custo é só o ponto, que não é prata) */
     const origens=pontos?[it.home].filter(c=>!TR.de.size||TR.de.has(c)):de;
     for(const a of origens){ const b0=pontos?{p:0,k:0,mode:"pontos",t:Date.now()}:trBuy(r,a); if(!b0) continue;
