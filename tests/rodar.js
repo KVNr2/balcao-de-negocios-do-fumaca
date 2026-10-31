@@ -158,6 +158,11 @@ async function simular(p) {
     return { f1: fora.fora && fora.nF + fora.nN === 0, f2: fora2.fora && fora2.nF + fora2.nN === 0, tem: ROT.cidades.includes("Thetford") }; });
   conf("rotação: filtros de lucro % e vendas tiram o item do plano; Thetford na lista", rf2.f1 && rf2.f2 && rf2.tem, rf2);
 
+  const e0 = await p.evaluate(async () => { const box = document.getElementById("rotSoE0"); box.checked = true; box.dispatchEvent(new Event("change")); await new Promise(f => setTimeout(f, 500));
+    await rotSugCalc("Fort Sterling", () => {}, "spec"); const k = Object.keys(ROT_SUG).find(x => x.startsWith("Fort Sterling")); const l = (ROT_SUG[k] && ROT_SUG[k].lista) || [];
+    box.checked = false; box.dispatchEvent(new Event("change")); return { n: l.length, enc: l.map(x => x.m.it.e) }; });
+  conf("rotação: só sem encantamento", e0.enc.every(e => e === 0), e0);
+
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
   console.log(ok.map(x => "ok   " + x).join("\n")); if (falhas.length) { console.log(falhas.map(x => "FALHOU " + x).join("\n")); process.exit(1); }

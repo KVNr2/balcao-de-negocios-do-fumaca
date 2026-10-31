@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T04:45:00Z",
+   "titulo": "Rotação de craft: só itens sem encantamento",
+   "itens": [
+    "Nova caixa Só sem encantamento: as sugestões e a busca de itens mostram só peças .0. O material é mais barato, a ordem de compra enche mais rápido e sobra menos dinheiro preso."
+   ],
+   "como": "Ofícios > Rotação de craft > marque Só sem encantamento.",
+   "impacto": "Uma rotação mais simples e mais barata de manter."
+  },
+  {
    "t": "2026-10-31T04:50:00Z",
    "titulo": "Rotação de craft: sugestões de mais lucro com boas vendas",
    "itens": [

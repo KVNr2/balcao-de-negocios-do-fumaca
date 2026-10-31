@@ -128,7 +128,7 @@ function rotBusca(city){
   const so=el("label",{class:"chk small"}); const cb=el("input",{type:"checkbox"}); cb.checked=true; so.append(cb," Só com bônus nesta cidade");
   const busca=()=>{ res.textContent=""; const q=inp.value.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); const cat=rotCatalogo()||[]; if(q.length<2&&!cb.checked) return;
     const toks=q.split(/\s+/).filter(Boolean); const tem=new Set(ROT.itens[city]||[]);
-    const l=cat.filter(it=>(!cb.checked||it.city===city)&&!tem.has(it.id)&&toks.every(t=>it.busca.includes(t))).slice(0,q?8:0);
+    const l=cat.filter(it=>(!cb.checked||it.city===city)&&(!ROT.soE0||it.e===0)&&!tem.has(it.id)&&toks.every(t=>it.busca.includes(t))).slice(0,q?8:0);
     for(const it of l){ const b=el("button",{type:"button",class:"rot-op"}); b.append(iconImg(it.id,28),el("span",{text:it.nm}),el("small",{class:"muted",text:it.city===city?`+15% aqui`:`bônus em ${it.city}`}));
       b.addEventListener("click",()=>{ (ROT.itens[city]=ROT.itens[city]||[]).push(it.id); rotSave(); renderRot(); }); res.append(b); } };
   let tm; inp.addEventListener("input",()=>{ clearTimeout(tm); tm=setTimeout(busca,200); }); cb.addEventListener("change",busca);
@@ -160,6 +160,7 @@ function rotUI(){
   mselUI("rotCidades",ROT_CIDADES.map(c=>[c,c]),cs,"Nenhuma","cidades",()=>{ ROT.cidades=ROT_CIDADES.filter(c=>cs.has(c)); rotSave(); renderRot(); });
   const d=$("rotDias"); d.value=String(ROT.dias); d.addEventListener("change",()=>{ ROT.dias=Math.max(1,Math.min(7,Math.round(+d.value)||3)); d.value=String(ROT.dias); rotSave(); renderRot(); });
   for(const [id,k] of [["rotMinPct","minPct"],["rotMinVol","minVol"]]){ const i=$(id); i.value=ROT[k]; let t2; i.addEventListener("input",()=>{ ROT[k]=i.value.trim(); rotSave(); for(const c in ROT_SUG) delete ROT_SUG[c]; clearTimeout(t2); t2=setTimeout(renderRot,400); }); }
+  { const e0=$("rotSoE0"); e0.checked=!!ROT.soE0; e0.addEventListener("change",()=>{ ROT.soE0=e0.checked; rotSave(); for(const c in ROT_SUG) delete ROT_SUG[c]; renderRot(); }); }
   const m=$("rotCash"); m.value=ROT.cash; let tm; m.addEventListener("input",()=>{ ROT.cash=m.value; rotSave(); clearTimeout(tm); tm=setTimeout(renderRot,400); });
 }
 
@@ -190,7 +191,7 @@ function rotSugBox(city,plano){
 async function rotSugCalc(city,redraw,modo="spec"){
   const key=city+"|"+modo, set=v=>{ ROT_SUG[key]=v; redraw(); };
   set({loading:modo==="spec"?"Procurando as linhas com mais spec…":"Separando os itens com bônus aqui…"});
-  const cat=rotCatalogo()||[], comBonus=cat.filter(it=>it.city===city&&it.e<=3); comBonus.forEach(it=>{ it.fce=bmFCE(it.key); });
+  const cat=rotCatalogo()||[], comBonus=cat.filter(it=>it.city===city&&(ROT.soE0?it.e===0:it.e<=3)); comBonus.forEach(it=>{ it.fce=bmFCE(it.key); });
   let cands=comBonus;
   if(modo==="spec"){ const porLinha=new Map(); for(const it of comBonus){ const v=porLinha.get(it.key); if(!v||it.fce>v) porLinha.set(it.key,it.fce||0); }
     const linhas=[...porLinha.entries()].filter(([,f])=>f>0).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k])=>k);
