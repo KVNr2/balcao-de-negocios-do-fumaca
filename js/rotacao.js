@@ -36,7 +36,7 @@ function rotMat(id,city){ const r=DATA.itens[rotDKey(id)]||{}, v=r[city];
   return {ordem,inst,use:ordem||inst,fora}; }
 /* melhor venda líquida entre as cidades reais, Caerleon e o Mercado Negro (equipamento) */
 function rotVenda(id){ const r=DATA.itens[rotDKey(id)]||{}, tx=taxBase(); let best=null;
-  for(const c of [...ROT_CIDADES,"Caerleon","Black Market"]){ const v=r[c]; if(!v) continue; const op=[];
+  for(const c of [...ROT_CIDADES,"Caerleon",...(ROT.bm===false?[]:["Black Market"])]){ const v=r[c]; if(!v) continue; const op=[];
     if(c==="Black Market"){ if(v[1]>0) op.push({p:v[1],k:v[1]*(1-tx),mode:"inst"}); }
     else { if(v[0]>0) op.push({p:v[0],k:v[0]*(1-tx-0.025),mode:"ordem"}); if(v[1]>0) op.push({p:v[1],k:v[1]*(1-tx),mode:"inst"}); }
     for(const o of op) if(!best||o.k>best.k) best={...o,c}; }
@@ -160,6 +160,7 @@ function rotUI(){
   mselUI("rotCidades",ROT_CIDADES.map(c=>[c,c]),cs,"Nenhuma","cidades",()=>{ ROT.cidades=ROT_CIDADES.filter(c=>cs.has(c)); rotSave(); renderRot(); });
   const d=$("rotDias"); d.value=String(ROT.dias); d.addEventListener("change",()=>{ ROT.dias=Math.max(1,Math.min(7,Math.round(+d.value)||3)); d.value=String(ROT.dias); rotSave(); renderRot(); });
   for(const [id,k] of [["rotMinPct","minPct"],["rotMinVol","minVol"]]){ const i=$(id); i.value=ROT[k]; let t2; i.addEventListener("input",()=>{ ROT[k]=i.value.trim(); rotSave(); for(const c in ROT_SUG) delete ROT_SUG[c]; clearTimeout(t2); t2=setTimeout(renderRot,400); }); }
+  { const bm=$("rotBM"); bm.checked=ROT.bm!==false; bm.addEventListener("change",()=>{ ROT.bm=bm.checked; rotSave(); for(const c in ROT_SUG) delete ROT_SUG[c]; renderRot(); }); }
   { const e0=$("rotSoE0"); e0.checked=!!ROT.soE0; e0.addEventListener("change",()=>{ ROT.soE0=e0.checked; rotSave(); for(const c in ROT_SUG) delete ROT_SUG[c]; renderRot(); }); }
   const m=$("rotCash"); m.value=ROT.cash; let tm; m.addEventListener("input",()=>{ ROT.cash=m.value; rotSave(); clearTimeout(tm); tm=setTimeout(renderRot,400); });
 }

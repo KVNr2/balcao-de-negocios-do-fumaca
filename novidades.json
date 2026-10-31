@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T05:00:00Z",
+   "titulo": "Rotação de craft: liga e desliga o Mercado Negro",
+   "itens": [
+    "Nova caixa Vender no Mercado Negro. Marcada, como antes, o Mercado Negro de Caerleon entra como lugar de venda. Desmarcada, o plano, as sugestões e as vendas por dia consideram só as cidades."
+   ],
+   "como": "Ofícios > Rotação de craft > caixa Vender no Mercado Negro.",
+   "impacto": "Quem não quer levar as peças até Caerleon vê o lucro de vender nas cidades."
+  },
+  {
    "t": "2026-10-31T04:45:00Z",
    "titulo": "Rotação de craft: só itens sem encantamento",
    "itens": [
