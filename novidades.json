@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T16:50:00Z",
+   "titulo": "Rotação de craft: refinar você mesmo",
+   "itens": [
+    "Nova caixa Refinar você mesmo. Barras, tecido, couro, tábuas e blocos entram pelo custo de refinar na cidade com bônus de refino (+40%), comprando a matéria-prima e o refinado de baixo, sempre que sair mais barato que comprar pronto.",
+    "As ordens de compra passam a ser da matéria-prima, marcadas com a cidade do refino.",
+    "Cada item mostra quanto economiza por peça e quanto rende o foco gasto refinando, comparado com o foco gasto no craft, para você ver onde o foco rende mais."
+   ],
+   "como": "Ofícios > Rotação de craft > marque Refinar você mesmo.",
+   "impacto": "Mostra quanto rende a cadeia completa, da matéria-prima à peça, e onde vale gastar o foco."
+  },
+  {
    "t": "2026-10-31T16:20:00Z",
    "titulo": "Menu do item: qualidade pela sua spec e fabricar .0 e encantar",
    "itens": [
