@@ -241,7 +241,7 @@ function ofDetail(m){
   const hd=el("div",{class:"of-xr of-xhd"}); ["Stats","Item","Valor","Tempo","Cidade","Qtd"].forEach(x=>hd.append(el("span",{text:x}))); left.append(hd);
   const row=(kind,id,nmText,pr,locs,onPick,qty,sub,q)=>{
     const r=el("div",{class:"of-xr "+kind});
-    const lab=kind==="sale"?({ordem:"ORDEM VENDA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"VENDA INST"):({ordem:"ORDEM COMPRA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL",refino:"VOCÊ REFINA"}[pr.mode]||"COMPRA INST");
+    const lab=kind==="sale"?({ordem:"ANÚNCIO",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"VENDA NA HORA"):({ordem:"ORDEM DE COMPRA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL",refino:"VOCÊ REFINA"}[pr.mode]||"COMPRA NA HORA");
     r.append(el("span",{class:"of-pill "+kind,text:lab}));
     const it_=el("span",{class:"of-xi"}); it_.append(el("i",{class:"of-dot"+(kind==="buy"?" red":"")}),iconImg(nk(id),34,q||1)); const nm=el("span",{class:"of-xn"}); nm.append(el("b",{text:nmText})); if(sub) nm.append(el("small",{text:sub})); it_.append(nm); r.append(it_);
     r.append(el("b",{class:"of-xv",text:fmt(pr.p)}),el("span",{class:"of-xt"},ageSpan(pr.t)||"—"));
@@ -304,7 +304,11 @@ async function renderOf(){
   const FAVON=!!(window.FAV&&FAV.on(OF.mode==="refine"?"refine":"craft"));
   const isG=!FAVON&&cat.startsWith("g:"), agg=!FAVON&&cat.startsWith("g:*");
   $("ofPrem").checked=!!st.prem; $("ofDaily").checked=st.daily>0;
-  if(agg&&!OF.tiers.size){ tb.textContent=""; $("ofCount").textContent="—"; note.textContent="Para comparar todos os itens do grupo, escolha pelo menos um tier (de T2 a T8) no campo Tier, no painel à esquerda; pode marcar mais de um. O encantamento pode ficar em Todos."; return; }
+  if(agg&&!OF.tiers.size){ tb.textContent=""; $("ofCount").textContent="—"; note.textContent="";
+    /* com "Todas as armas/armaduras" a lista é grande demais sem tier: em vez de só um aviso, botões para escolher na hora */
+    const box=el("div",{class:"of-vazio"}); box.append(el("p",{text:"Com todos os itens do grupo, escolha um tier para ver a lista (dá para marcar mais de um no campo Tier, à esquerda)."}));
+    const g=el("div",{class:"seg"}); for(const t of [4,5,6,7,8]){ const b=el("button",{type:"button",text:`T${t}`}); b.addEventListener("click",()=>{ OF.tiers.clear(); OF.tiers.add(t); const ms=$("ofTier"); if(ms&&ms._msel) ms._msel.paint(); renderOf(); }); g.append(b); }
+    box.append(g); note.append(box); return; }
   const fk=()=>ofFiltSave().map(a=>a.slice().sort().join(",")).join("|"), sellKey=ofSig(), filtKey=fk(), qKey=OF2.qual;
   const stale=()=>$("ofCat").value!==cat||ofSig()!==sellKey||fk()!==filtKey||OF2.qual!==qKey;
   let items;
@@ -367,7 +371,7 @@ function ofBlock(id,q,pr,kind,qty,m,g){
   const w=el("div",{class:"of-blk"}); const tile=el("span",{class:"of-tile"}); tile.append(iconImg(nk(id),48,q)); const bd=el("span",{class:"of-badge",text:fmt(qty)}); tile.append(bd);
   const inf=el("div",{class:"of-bi"}); const red=RED_CITIES.has(pr.c);
   inf.append(el("div",{class:"of-city"},el("i",{class:"of-dot"+(red?" red":"")}),pr.c));
-  const lab=kind==="sale"?({ordem:"ORDEM VENDA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"VENDA INST"):({ordem:"ORDEM COMPRA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL",refino:"VOCÊ REFINA"}[pr.mode]||"COMPRA INST");
+  const lab=kind==="sale"?({ordem:"ANÚNCIO",medio:"VALOR MÉDIO",manual:"VALOR MANUAL"}[pr.mode]||"VENDA NA HORA"):({ordem:"ORDEM DE COMPRA",medio:"VALOR MÉDIO",manual:"VALOR MANUAL",refino:"VOCÊ REFINA"}[pr.mode]||"COMPRA NA HORA");
   inf.append(el("div",{class:"of-pr"},el("span",{class:"of-pill "+kind,text:lab}),el("b",{text:fmt(pr.p)}),ageSpan(pr.t)||""));
   const hs=el("div",{class:"of-hs"},"VALOR MÉDIO: ",el("b",{class:"hs-avg",text:"…"})," | UND: ",el("b",{class:"hs-vol",text:"…"}));
   w.dataset.hk=nk(id)+"|"+pr.c; inf.append(hs); w.append(tile,inf);
@@ -401,8 +405,8 @@ async function fillVolumes(shown){
   ofUpdateQty();
 }
 /* cartões de cidade e estratégia, como no albionvip */
-const OF_SS=[["auto","Automático"],["ordem","Ordem de Venda"],["medio","Valor Médio"],["inst","Venda Inst."],["manual","Valor Manual"]];
-const OF_BS=[["auto","Automático"],["inst","Compra Inst."],["medio","Valor Médio"],["ordem","Ordem de Compra"],["manual","Valor Manual"]];
+const OF_SS=[["auto","Automático"],["ordem","Anunciar"],["medio","Valor Médio"],["inst","Vender na hora"],["manual","Valor Manual"]];
+const OF_BS=[["auto","Automático"],["inst","Comprar na hora"],["medio","Valor Médio"],["ordem","Ordem de Compra"],["manual","Valor Manual"]];
 function ofOpt(text,on,cls,fn){ const b=el("button",{type:"button",class:"of-opt "+cls+(on?" on":"")}); b.append(text); if(on) b.append(el("span",{class:"of-ck",text:"✓"})); b.addEventListener("click",fn); return b; }
 function ofCards(){
   const sl=$("ofSellList"); if(!sl) return;

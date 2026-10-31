@@ -65,7 +65,7 @@ function bagRank(){
 /* ---------- interface ---------- */
 function bagFab(){
   let f=$("bagFab"); if(!f){ f=el("button",{type:"button",id:"bagFab",class:"bag-fab","aria-controls":"bagDrawer","aria-expanded":"false"}); document.body.append(f); f.addEventListener("click",()=>bagToggle()); }
-  const n=BAG.items.length; f.hidden=false; f.textContent="";
+  const n=BAG.items.length; f.hidden=false; f.textContent=""; f.classList.toggle("vazia",!n); f.title=n?"Abrir a bag":"Bag vazia: abrir para montar a carga"; f.setAttribute("aria-label",n?`Bag: ${n} ${n===1?"item":"itens"}`:"Bag vazia");
   f.insertAdjacentHTML("beforeend",'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>');
   f.append(el("span",{class:"bf-t",text:"Bag"}),el("b",{text:n?`${fmt(n)} ${n===1?"item":"itens"}${CARGA?` · ${fmt(Math.round(bagTotW()))} kg`:""}`:"vazia"}));
 }

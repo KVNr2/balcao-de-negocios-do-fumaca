@@ -1,6 +1,23 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T17:50:00Z",
+   "titulo": "Revisão de usabilidade: correções e menu do item mais útil",
+   "itens": [
+    "Testei todos os botões de todas as abas, e nenhum deu erro. Os que pareciam não fazer nada eram opções que já estavam marcadas ou que dependem de dados que você ainda não pôs (por exemplo, Trabalhadores sem nenhum trabalhador).",
+    "Craft e Refino: o detalhe da receita invadia os cartões de custo em telas até 1500px de largura, e o nome do material sumia em telas menores. Agora os cartões descem para baixo da lista de materiais, e no celular cada material ocupa duas linhas.",
+    "Cabeçalho: entre 901 e 1280px de largura (como na janela do overlay), ele passava da tela e criava rolagem para o lado. Agora o selo do patch some nessa faixa e a ficha encolhe.",
+    "Craft com Todas as armas/armaduras: no lugar do aviso cinza para escolher um tier, aparecem botões T4 a T8 que já mostram a lista.",
+    "Mercado Negro: enquanto ainda consulta, a página dizia que não havia nenhuma ordem. Agora diz que ainda está consultando.",
+    "Bag vazia: vira só o ícone, sem cobrir a página.",
+    "Os mesmos nomes de compra e venda em todo o site: Anunciar, Vender na hora, Comprar na hora e Ordem de compra (antes o Craft dizia Ordem de Venda, Venda Inst. e Compra Inst.).",
+    "Menu do botão direito: mostra quantas unidades o item vende por dia e a média de 7 dias, e avisa quando o preço de agora está 15% ou mais longe da média. Ganhou Pôr na lista de compras, com quantidade, e Pôr na Rotação de craft, na cidade com bônus.",
+    "Menu do botão direito: a Substituição de mesmo IP repetia o próprio item na lista. Corrigido."
+   ],
+   "como": "Nada muda no uso. No botão direito sobre qualquer ícone de item aparecem as informações novas.",
+   "impacto": "Menos coisa quebrada em tela pequena e no overlay, e mais informação útil num clique."
+  },
+  {
    "t": "2026-10-31T17:20:00Z",
    "titulo": "Nova página: Lista de compras",
    "itens": [
