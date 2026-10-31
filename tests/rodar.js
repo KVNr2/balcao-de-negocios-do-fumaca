@@ -163,6 +163,10 @@ async function simular(p) {
     box.checked = false; box.dispatchEvent(new Event("change")); return { n: l.length, enc: l.map(x => x.m.it.e) }; });
   conf("rotação: só sem encantamento", e0.enc.every(e => e === 0), e0);
 
+  const bmr = await p.evaluate(() => { const id = "T9_BMTESTE"; DATA.itens[id] = { Lymhurst: [100000, 0, 1, 0], "Black Market": [0, 150000, 0, 1] };
+    ROT.bm = true; const a = rotVenda(id); ROT.bm = false; const b = rotVenda(id); ROT.bm = true; delete DATA.itens[id]; return { a: a && a.c, b: b && b.c }; });
+  conf("rotação: venda no Mercado Negro liga e desliga", bmr.a === "Black Market" && bmr.b === "Lymhurst", bmr);
+
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
   console.log(ok.map(x => "ok   " + x).join("\n")); if (falhas.length) { console.log(falhas.map(x => "FALHOU " + x).join("\n")); process.exit(1); }
