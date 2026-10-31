@@ -162,6 +162,9 @@ async function renderPlanoProd(run){
   finally{ PP_BUSY=false; }
 }
 { const pt=$("ppParte"), sp=$("ppSpec"), f=$("ppFoc"), d=$("ppDias"), go=$("ppGo");
+  /* os campos já abrem preenchidos (antes ficavam vazios até as receitas carregarem) */
+  if(f&&!f.value) f.value=String(PP.foc); if(d&&!d.value) d.value=String(PP.dias); if(pt&&!pt.value) pt.value=String(PP.parte); if(sp) sp.checked=!!PP.spec;
+  { const cp=$("ppCap"); if(cp&&!cp.value&&PP.cap>0) cp.value=String(PP.cap); }
   if(pt) pt.addEventListener("change",()=>{ const v=Math.round(+pt.value); PP.parte=v>0?Math.min(100,v):80; ppSave(); });
   if(sp) sp.addEventListener("change",()=>{ PP.spec=sp.checked; ppSave(); });
   /* um campo de foco só: vale para o plano e para a ilha (é o mesmo teto da Cozinha e da Fazenda) */

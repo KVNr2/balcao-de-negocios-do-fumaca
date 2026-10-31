@@ -1,6 +1,21 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T19:40:00Z",
+   "titulo": "Menu do item com refino e cozinha, páginas mais limpas",
+   "itens": [
+    "Menu do botão direito em recursos e refinados: Refinar mostra onde tem bônus de refino (+40%), o custo de refinar uma unidade com e sem foco, onde vender e o lucro por unidade, com a prata por ponto de foco.",
+    "Menu do botão direito em comidas e poções: o efeito do item e o lucro de uma fornada com e sem foco.",
+    "Na primeira vez que você passa o mouse num ícone de item, uma dica avisa que o botão direito (ou segurar o dedo, no celular) abre o menu.",
+    "Craft: a nota longa embaixo da lista virou \"Como a conta é feita\", que abre ao clicar. O Mapa de lucro das armaduras virou uma seção que abre e fecha e lembra como você deixou.",
+    "Mercado Negro: a explicação embaixo da tabela virou \"Como ler esta tabela\".",
+    "Mercado: a coluna Atualizado saiu. A idade do preço agora fica junto do nome do item, e o nome ganhou espaço.",
+    "Plano do dia: os campos já abrem preenchidos (foco, dias, parte das vendas e dinheiro), em vez de vazios até carregar."
+   ],
+   "como": "Botão direito em qualquer ícone de item.",
+   "impacto": "Mais informação onde você já está olhando, e menos texto atrapalhando as listas."
+  },
+  {
    "t": "2026-10-31T17:50:00Z",
    "titulo": "Revisão de usabilidade: correções e menu do item mais útil",
    "itens": [
