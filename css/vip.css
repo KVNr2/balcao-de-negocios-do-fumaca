@@ -1943,3 +1943,27 @@ td.gv-cell .gv-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:400
 @media (max-width:640px){ .cj-top{grid-template-columns:1fr}.cj-top .btn{grid-row:auto;grid-column:1;justify-self:start} .cj-vaga{grid-template-columns:22px 40px 1fr}.cj-va{grid-column:2/-1;justify-content:flex-start} }
 .ck-venda b{display:block}.ck-venda small{display:block;font-size:.78em;white-space:nowrap}
 .ck-vctl{gap:12px 18px}
+/* Transporte */
+.tr-ctl{display:grid;gap:10px;margin-bottom:14px}
+.tr-hearts{margin-bottom:14px}.tr-hearts h3{margin:0 0 4px}
+.tr-ht{width:100%;border-collapse:collapse}.tr-ht th,.tr-ht td{padding:6px 8px;border-bottom:1px solid var(--line-soft);text-align:right;white-space:nowrap}
+.tr-ht th:first-child,.tr-ht td:first-child{text-align:left}
+.tr-ht td.tr-lo{color:var(--gain);font-weight:700}.tr-ht td.tr-hi{color:var(--gold,#e0b050);font-weight:700}
+.tr-ht td.tr-home{box-shadow:inset 0 0 0 1px var(--line)}
+.tr-list{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr))}
+.tr-card{background:linear-gradient(180deg,var(--cloth-2),var(--cloth));border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:12px}
+.tr-h{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center}
+.tr-nm{display:grid}.tr-nm b{font-size:1.05rem}
+.tr-risk{font-size:.78rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.tr-risk.r0{color:var(--gain);border-color:color-mix(in srgb,var(--gain) 40%,transparent)}
+.tr-risk.r1{color:var(--gold,#e0b050);border-color:color-mix(in srgb,var(--gold,#e0b050) 40%,transparent)}
+.tr-risk.r2{color:var(--loss);border-color:color-mix(in srgb,var(--loss) 45%,transparent)}
+.tr-rota{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+.tr-p{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:var(--night-2);border:1px solid var(--line-soft)}
+.tr-p.buy{border-left:3px solid var(--loss)}.tr-p.sell{border-left:3px solid var(--gain)}
+.tr-seta{font-size:1.3rem;color:var(--smoke)}
+.tr-n{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 12px}
+.tr-n>div{display:grid}.tr-n small{font-size:.75rem}.tr-n .gain b{color:var(--gain)}.tr-n .big b{font-size:1.15rem}
+.tr-ft{display:flex;justify-content:space-between;align-items:center;gap:10px}
+@media (max-width:640px){ .tr-n{grid-template-columns:repeat(2,1fr)} .tr-rota{grid-template-columns:1fr} .tr-seta{display:none} .tr-hearts{overflow-x:auto} }
+.tr-alt summary{cursor:pointer;color:var(--parch-2);font-size:.85rem}.tr-alt ul{margin:6px 0 0;padding-left:18px;display:grid;gap:2px}

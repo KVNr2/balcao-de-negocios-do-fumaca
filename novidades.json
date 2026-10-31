@@ -1,6 +1,28 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T03:40:00Z",
+   "titulo": "Nova página: Transporte",
+   "itens": [
+    "Em Mercadorias, a página Transporte mostra o que vale comprar numa cidade e vender em outra: corações de facção, recursos refinados e matéria-prima (T4 a T8).",
+    "Cada cartão traz onde comprar e onde vender, se é na hora, por ordem ou por anúncio, o lucro por unidade já com as taxas e quanto você ganha na viagem.",
+    "A carga de cada viagem é o que cabe na montaria escolhida. Ela também é limitada pelo seu dinheiro, se você informar, e pelo que a cidade de destino vende nos dias que você escolher. Assim a conta não manda levar mais do que dá para vender.",
+    "Cada rota mostra o risco: segura entre cidades reais, Névoas para Brecilien e zona vermelha para Caerleon. Dá para marcar Só rotas seguras.",
+    "A tabela Corações de facção agora mostra o preço de cada coração em cada cidade, com a mais barata e a mais cara marcadas.",
+    "O botão da sacola põe a carga na bag, para conferir peso e montaria."
+   ],
+   "como": "Mercadorias > Transporte. Escolha o que levar, as cidades e a montaria.",
+   "impacto": "Achar uma rota de transporte que dá lucro sem ficar comparando cidade por cidade no jogo."
+  },
+  {
+   "t": "2026-10-31T03:39:00Z",
+   "titulo": "Correção: taxa do anúncio na Cozinha",
+   "itens": [
+    "Com a opção geral de vender por anúncio ligada, a Cozinha descontava os 2,5% do anúncio duas vezes. Agora desconta uma vez só."
+   ],
+   "discord": false
+  },
+  {
    "t": "2026-10-31T03:20:00Z",
    "titulo": "Cozinha e alquimia: escolha como e onde vender",
    "itens": [
