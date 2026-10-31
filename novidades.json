@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T04:50:00Z",
+   "titulo": "Rotação de craft: sugestões de mais lucro com boas vendas",
+   "itens": [
+    "As sugestões de cada cidade agora têm dois modos. Pela minha spec continua como era.",
+    "Mais lucro com boas vendas olha todos os itens com bônus na cidade, mesmo sem spec, e mostra os que mais rendem numa visita. Só entram os que vendem ao menos 5 por dia na melhor cidade de venda, ou o número do filtro Vende por dia, se você preencher.",
+    "Cada sugestão mostra o lucro %, a prata por ponto de foco, quanto rende numa visita e quanto vende por dia, com o botão Pôr."
+   ],
+   "como": "Ofícios > Rotação de craft > em cada cidade, abra Sugestões de craft e escolha Mais lucro com boas vendas.",
+   "impacto": "A rotação pode mirar o que dá mais dinheiro e tem saída, não só o que você já tem spec."
+  },
+  {
    "t": "2026-10-31T04:35:00Z",
    "titulo": "Rotação de craft: Thetford e filtros de lucro e vendas",
    "itens": [
