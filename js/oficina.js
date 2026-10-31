@@ -481,11 +481,12 @@ const MK_SEEN = new Set(); let MK_TOK=0;
    o botão Pesquisar consulta os preços que ainda faltam para o filtro atual. */
 function mkGatilho(){ if(MK.consultou){ MK_TOK++; MK.busy=false; lpHide($("mkNote")); renderMk(true); } else renderMk(); }
 /* ordenação local (clique no cabeçalho): nome, preço de uma cidade, mediana, diferença ou atualização; sem preço vai sempre para o fim */
-const MK_ORD_ROT={nome:"nome",med:"preço médio",dif:"diferença entre cidades",upd:"atualização"};
+const MK_ORD_ROT={nome:"nome",med:"preço médio",dif:"diferença entre cidades",upd:"atualização",vol:"vendas por dia"};
 function mkValOrd(x,k){ const rec=x.rec||{};
   if(k==="nome") return mkName(x.r).toLowerCase();
   if(k==="dif") return x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:null;
   if(k==="med"){ const pts=Object.values(rec).map(v=>v[0]).filter(v=>v>0); return pts.length?median(pts):null; }
+  if(k==="vol"){ const v=lfVol(x.id); return v!=null&&v>=0?v:null; }
   if(k==="upd"){ const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean); return ts.length?Math.max(...ts):null; }
   if(k.startsWith("c:")){ const v=rec[k.slice(2)]; return v&&v[0]>0?v[0]:null; }
   return null; }
@@ -507,7 +508,7 @@ function mkAtualizaLinhas(set){
     const k=1+cs.length, pts=cs.map(c=>rec[c]&&rec[c][0]).filter(v=>v>0), pm=tr.cells[k];
     if(pm){ pm.textContent=pts.length?m.fmtC(Math.round(median(pts))):"—"; pm.classList.toggle("none",!pts.length); pm.title="Mediana dos preços de venda nas cidades desta linha"+(pts.length?` (${pts.length} ${pts.length===1?"cidade":"cidades"})`:""); }
     const d=tr.cells[k+1]; if(d){ d.className="num bm-profit "+(sp>0?"gain":tone==="is-warn"?"warn":""); d.textContent=ex.smax&&ex.smin?fmt(sp):"—"; if(ex.smax&&ex.smin) d.append(el("small",{text:`${sp>=0?"+":""}${dec(spp*100)}%`})); }
-    const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean), u=tr.cells[k+2]; if(u){ u.textContent=""; u.append(ts.length?(ageSpan(Math.max(...ts))||"—"):"—"); }
+    const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean), u=tr.cells[k+3]; if(u){ u.textContent=""; u.append(ts.length?(ageSpan(Math.max(...ts))||"—"):"—"); }
     tr.classList.remove("is-flat","is-gain","is-warn"); tr.classList.add(tone); }
 }
 async function renderMk(partial=false,forcar=false){
@@ -551,6 +552,7 @@ async function renderMk(partial=false,forcar=false){
         if(i<lotes.length-1){ await parcial(); if(tok!==MK_TOK) return; } }
       lpHide(note); MK.busy=false; }catch(e){ lpHide(note); MK.busy=false; if(tok===MK_TOK) note.textContent="Não consegui consultar os preços agora."; return; } finally{ FORCE=ff; }
     if(tok!==MK_TOK||MK.qual!==mq) return; }
+  if(MK.ord.k==="vol"){ const ids=slice.filter(x=>MK_SEEN.has(seen(x.id))).slice(0,400).map(x=>x.id); try{ await lfEnsureVol(ids,true,null,note); }catch(e){} if(tok!==MK_TOK) return; }   // ordenar por vendas precisa do número antes
   const spr=x=>x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0; let rows=slice.filter(x=>MK_SEEN.has(seen(x.id))||FAVON).map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>FAVON||!MK.only||x.x.smin||x.x.bmax).sort(mkCmp(mq)); const achados=rows.length; if(!FAVON&&rows.length>SHOWN) rows=rows.slice(0,SHOWN);
   const cities=MK.city?[MK.city]:SHOP_LOCS;
   /* tela estreita: preço das cidades encurtado (7,98M, 187,2 mil); o valor inteiro fica no título */
@@ -560,7 +562,7 @@ async function renderMk(partial=false,forcar=false){
   const hsort=(th,k)=>{ th.className="bm-sort"; th.tabIndex=0; th.setAttribute("role","button"); const on=MK.ord.k===k; th.setAttribute("aria-sort",on?(MK.ord.d>0?"ascending":"descending"):"none"); th.title="Ordenar por esta coluna (não refaz a consulta)"; if(on) th.append(" "+(MK.ord.d>0?"▲":"▼")); th.addEventListener("click",()=>mkOrdenar(k)); th.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); mkOrdenar(k); } }); return th; };
   hr.append(hsort(el("th",{text:"Item"}),"nome"));
   cities.forEach(c=>{ const th=el("th",{}); th.append(el("span",{class:"dot",style:`background:${CITY_COLOR[c]||"#999"}`}),c); hr.append(hsort(th,"c:"+c)); });
-  [["Preço médio","med"],["Diferença","dif"],["Atualizado","upd"]].forEach(([h,k])=>hr.append(hsort(el("th",{text:h}),k))); hr.append(el("th",{text:""}));
+  [["Preço médio","med"],["Diferença","dif"],["Vende por dia","vol"],["Atualizado","upd"]].forEach(([h,k])=>{ const th=hsort(el("th",{text:h}),k); if(k==="vol") th.title="Média de unidades vendidas por dia nos últimos 7 dias, somando as cidades e as qualidades. Clique para ordenar."; hr.append(th); }); hr.append(el("th",{text:""}));
   const body=tb.createTBody(), src=mq>1?(PQ[mq]||{}):DATA.itens;
   for(const x of rows){ const rec=src[mkKey(x.id)]||{}; const sp=x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0, spp=x.x.smin?sp/x.x.smin.p:0, hot=sp>0, tone=!(x.x.smax&&x.x.smin)?"is-flat":sp>0?"is-gain":"is-warn";
     const tr=body.insertRow(); tr.dataset.fav=x.id; tr.className="clickrow bm-row mk-row "+tone; tr.tabIndex=0; const nm_=mkName(x.r);
@@ -570,6 +572,7 @@ async function renderMk(partial=false,forcar=false){
       const b=el("b",{class:"mk-pr"+(x.x.smin&&v[0]===x.x.smin.p?" low":x.x.smax&&v[0]===x.x.smax.p&&sp>0?" high":""),text:fmtC(v[0]),title:fmt(v[0])}); td.append(b); }
     { const pts=cities.map(c=>rec[c]&&rec[c][0]).filter(v=>v>0), pm=tr.insertCell(); pm.className="num mk-avg"; pm.textContent=pts.length?fmtC(Math.round(median(pts))):"—"; pm.title="Mediana dos preços de venda nas cidades desta linha"+(pts.length?` (${pts.length} ${pts.length===1?"cidade":"cidades"})`:""); if(!pts.length) pm.classList.add("none"); }
     const d=tr.insertCell(); d.className="num bm-profit "+(hot?"gain":tone==="is-warn"?"warn":""); d.textContent=x.x.smax&&x.x.smin?fmt(sp):"—"; if(x.x.smax&&x.x.smin) d.append(el("small",{text:`${sp>=0?"+":""}${dec(spp*100)}%`})); d.title="Maior venda menos menor venda: o espaço para comprar numa cidade e vender em outra";
+    lfVolCell(tr,x.id);
     const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean); const tu=tr.insertCell(); tu.className="num"; tu.append(ts.length?(ageSpan(Math.max(...ts))||"—"):"—");
     const ac=tr.insertCell(); const bt=el("button",{type:"button",class:"btn mn-craft",text:NARROW?"Ver":"Detalhe",title:"Ver detalhe"}); ac.append(bt,bagBtn(()=>[{id:x.id,q:1,nm:`${nm_}${x.r[3]?` T${x.r[3]}.${x.e}`:""}`,buy:x.x.smin?x.x.smin.p:0,buyC:x.x.smin?x.x.smin.c:"",sell:x.x.smax?x.x.smax.p:0,sellC:x.x.smax?x.x.smax.c:""}],"Pôr na bag: compra na cidade mais barata, vende na mais cara"));
     const op=()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`,mq); tr.addEventListener("click",op); tr.addEventListener("keydown",ev=>{ if(ev.key==="Enter"&&ev.target===tr) op(); }); }
@@ -580,6 +583,8 @@ async function renderMk(partial=false,forcar=false){
   note.textContent = !total ? "Nenhum item com esse filtro." : `${fmt(shownN)} ${shownN===1?"registro exibido":"registros exibidos"} de ${fmt(total)} ${search?`com "${q}"`:MK.cat?`em ${CATALOG.c[MK.cat]}${MK.sub?` · ${subName(MK.sub)}`:""}`:"em todas as categorias"}, ordenados por ${MK_ORD_ROT[MK.ord.k]||"preço em "+MK.ord.k.slice(2)}${MK.ord.d>0?" (crescente)":" (decrescente)"}${cortado?` (as ${fmt(shownN)} maiores de ${fmt(achados)} com anúncio)`:""}. ${MK.busy&&naoVistos?`Ainda consultando: faltam ${fmt(naoVistos)} itens. `:!MK.busy&&naoVistos&&MK.consultou?`Faltam ${fmt(naoVistos)} itens deste filtro sem preço consultado: clique em Pesquisar. `:achados<slice.length&&!FAVON?`${fmt(slice.length-achados)} sem anúncio nos últimos 3 dias ficaram de fora. `:""}${mq>1?`Qualidade ${QNAME[mq].toLowerCase()}: só entram itens com anúncio nessa qualidade (recursos e comida só existem na Normal). `:""}Linha verde: tem diferença para lucrar; amarela: diferença zero. Na linha, o menor preço fica em verde e o maior em âmbar. Clique num item para ver as ofertas e o histórico.`;
   if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.2,stagger:.006,clearProps:"opacity,transform"});
   const wr=tb.parentNode; wr.id="mkWrap"; hbar(wr);
+  /* vendas por dia: busca o histórico das linhas mostradas e preenche as células quando chega */
+  if(rows.length) lfEnsureVol(rows.map(x=>x.id),false,tb,null).catch(()=>{});
 }
 
 /* quadro de detalhe de um item */

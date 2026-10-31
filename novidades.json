@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T03:50:00Z",
+   "titulo": "Mercado: vendas por dia de cada item",
+   "itens": [
+    "A tabela do Mercado ganhou a coluna Vende por dia: a média de unidades vendidas por dia nos últimos 7 dias, somando as cidades e as qualidades.",
+    "O número aparece logo depois dos preços, quando o histórico chega. Clique no título da coluna para ordenar pelos itens que mais vendem."
+   ],
+   "como": "Mercado > faça a busca > coluna Vende por dia.",
+   "impacto": "Dá para ver na hora se um item tem saída, antes de comprar ou fabricar."
+  },
+  {
    "t": "2026-10-31T03:40:00Z",
    "titulo": "Nova página: Transporte",
    "itens": [
