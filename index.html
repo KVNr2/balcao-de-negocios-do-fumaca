@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="3d0666a2">
+<html lang="pt-BR" data-v="2d24b352">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=3d0666a2">
-<link rel="stylesheet" href="css/vip.css?v=3d0666a2">
-<link rel="stylesheet" href="css/avicons.css?v=3d0666a2">
-<link rel="stylesheet" href="css/souk.css?v=3d0666a2">
+<link rel="stylesheet" href="css/balcao.css?v=2d24b352">
+<link rel="stylesheet" href="css/vip.css?v=2d24b352">
+<link rel="stylesheet" href="css/avicons.css?v=2d24b352">
+<link rel="stylesheet" href="css/souk.css?v=2d24b352">
 </head>
 <body>
 <div class="wrap app">
@@ -376,7 +376,7 @@ html.em-atual .av-card{margin:0}
         </aside>
         <div class="of2-main">
           <div class="of-sortw"><span class="of-ct">Ordenar por</span><div class="seg sm of-sort" role="group" aria-label="Ordenar a lista"><button type="button" data-sort="profit" aria-pressed="true">Lucro</button><button type="button" data-sort="pct" aria-pressed="false">Lucro %</button><button type="button" data-sort="day" aria-pressed="false" title="Ordena pelo lucro que dá para realizar em 1 dia, limitado pelas unidades que o mercado vende por dia">Lucro por dia</button><button type="button" data-sort="vol" aria-pressed="false" title="Ordena pelas unidades que o mercado vende por dia na cidade de venda (média de 7 dias)">Vendas por dia</button><button type="button" data-sort="focus" aria-pressed="false" title="Quanto o foco rende a mais por ponto gasto">Ganho por foco</button></div></div>
-          <div class="of-filw" role="group" aria-label="Filtros da lista"><span class="of-ct">Filtrar</span><label class="of-fil">Lucro mínimo<input id="ofFP" type="number" step="1000" placeholder="qualquer"></label><label class="of-fil">Lucro % mínimo<input id="ofFPct" type="number" step="1" placeholder="qualquer"></label><label class="of-fil">Vende por dia, no mínimo<input id="ofFV" type="number" min="0" step="1" placeholder="qualquer"></label><button type="button" class="linkbtn of-fclr" id="ofFClear" hidden>Limpar filtros</button><small class="muted" id="ofFCount"></small></div>
+          <div class="of-filw" role="group" aria-label="Filtros da lista"><span class="of-ct">Filtrar</span><label class="of-fil">Lucro mínimo<input id="ofFP" type="text" inputmode="decimal" placeholder="qualquer (ex.: 10k)" title="Aceita 10.000, 10k ou 1,5m"></label><label class="of-fil">Lucro % mínimo<input id="ofFPct" type="number" step="1" placeholder="qualquer"></label><label class="of-fil">Vende por dia, no mínimo<input id="ofFV" type="number" min="0" step="1" placeholder="qualquer"></label><button type="button" class="linkbtn of-fclr" id="ofFClear" hidden>Limpar filtros</button><small class="muted" id="ofFCount"></small></div>
           <p class="small muted" id="ofNote"></p>
           <div class="tbl"><div id="ofTable" class="oflist"></div></div>
           <p class="tiny muted" id="ofFoot">Os atalhos de retorno são 15,2% (sem bônus), 24,8% (cidade com bônus) e 47,9% (cidade com bônus e foco). Em Categoria, "Todas as armas/armaduras" compara tudo de uma vez, com um tier escolhido. Vendendo ao Mercado Negro vale a melhor ordem de compra de lá, só com a taxa de venda. Taxas de criação de ordem: 2,5%. O artefato não volta no retorno. Qualidade só muda o preço de venda; a fabricação dá a qualidade ao acaso. Vendas por dia: média dos últimos 7 dias na cidade de venda. Os controles de Premium, bônus diário e taxa valem para o site todo.</p>
@@ -814,27 +814,27 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=3d0666a2"></script>
-<script src="js/base.js?v=3d0666a2"></script>
-<script src="js/fx.js?v=3d0666a2"></script>
-<script src="js/biz.js?v=3d0666a2"></script>
-<script src="js/builds.js?v=3d0666a2"></script>
-<script src="js/nossas.js?v=3d0666a2"></script>
-<script src="js/ip.js?v=3d0666a2"></script>
-<script src="js/zvz.js?v=3d0666a2"></script>
-<script src="js/pvp.js?v=3d0666a2"></script>
-<script src="js/novos.js?v=3d0666a2"></script>
-<script src="js/guia.js?v=3d0666a2"></script>
-<script src="js/ui.js?v=3d0666a2"></script>
-<script src="js/avalon.js?v=3d0666a2"></script>
-<script src="js/oficina.js?v=3d0666a2"></script>
-<script src="js/versao.js?v=3d0666a2"></script>
-<script src="js/bag.js?v=3d0666a2"></script>
-<script src="js/plano.js?v=3d0666a2"></script>
-<script src="js/pesca.js?v=3d0666a2"></script>
-<script src="js/listfil.js?v=3d0666a2"></script>
-<script src="js/fav.js?v=3d0666a2"></script>
-<script src="js/festas.js?v=3d0666a2"></script>
-<script src="js/main.js?v=3d0666a2"></script>
+<script src="js/icons.js?v=2d24b352"></script>
+<script src="js/base.js?v=2d24b352"></script>
+<script src="js/fx.js?v=2d24b352"></script>
+<script src="js/biz.js?v=2d24b352"></script>
+<script src="js/builds.js?v=2d24b352"></script>
+<script src="js/nossas.js?v=2d24b352"></script>
+<script src="js/ip.js?v=2d24b352"></script>
+<script src="js/zvz.js?v=2d24b352"></script>
+<script src="js/pvp.js?v=2d24b352"></script>
+<script src="js/novos.js?v=2d24b352"></script>
+<script src="js/guia.js?v=2d24b352"></script>
+<script src="js/ui.js?v=2d24b352"></script>
+<script src="js/avalon.js?v=2d24b352"></script>
+<script src="js/oficina.js?v=2d24b352"></script>
+<script src="js/versao.js?v=2d24b352"></script>
+<script src="js/bag.js?v=2d24b352"></script>
+<script src="js/plano.js?v=2d24b352"></script>
+<script src="js/pesca.js?v=2d24b352"></script>
+<script src="js/listfil.js?v=2d24b352"></script>
+<script src="js/fav.js?v=2d24b352"></script>
+<script src="js/festas.js?v=2d24b352"></script>
+<script src="js/main.js?v=2d24b352"></script>
 </body>
 </html>
