@@ -42,7 +42,7 @@ async function simular(p) {
   await simular(p); await p.goto(BASE); await p.waitForTimeout(3000);
 
   /* 1. as páginas abrem sem erro */
-  for (const t of ["t-voce", "t-plano", "t-refino", "t-craft", "t-encantar", "t-cozinha", "t-fazenda", "t-pesca", "t-trab", "t-mk", "t-mercado", "t-transp", "t-builds", "t-pvp", "t-versao"]) {
+  for (const t of ["t-voce", "t-plano", "t-refino", "t-craft", "t-encantar", "t-cozinha", "t-fazenda", "t-pesca", "t-trab", "t-mk", "t-mercado", "t-transp", "t-rot", "t-builds", "t-pvp", "t-versao"]) {
     await p.evaluate(t => { const x = document.getElementById(t); if (x) x.click(); }, t); await p.waitForTimeout(2500); }
   conf("páginas abrem sem erro de script", erros.length === 0, erros.slice(0, 5));
 
@@ -143,6 +143,14 @@ async function simular(p) {
     const rs = trRoutes([{ api: id, id, nm: "x", t: 1, e: 0, kind: "Coração" }]); TR.de = new Set(); TR.para = new Set();
     return { n: rs.length, r: rs.map(r => [r.b, Math.round(r.lucro), r.n, r.lim.join("+"), r.buy.mode, r.sell.mode]), cards: document.querySelectorAll(".tr-card").length }; });
   conf("transporte calcula rota, carga e limite de vendas", tr.n === 2 && tr.r[0][0] === "Martlock" && tr.r[0][2] === 300 && tr.r[1][2] === 30 && tr.r[1][3] === "vendas", tr);
+
+  /* 13. Rotação de craft: bônus só na cidade certa, foco da visita respeitado, ordens por cidade */
+  const rot = await p.evaluate(async () => { localStorage.removeItem("rotacao"); document.getElementById("t-rot").click(); await new Promise(f => setTimeout(f, 5000));
+    const it = rotCatalogo().find(x => x.city === "Martlock" && x.t === 6 && x.e === 0); ROT.itens = { Martlock: [it.id] }; await rotEnsure(document.getElementById("rotNote"));
+    const a = rotModel(it, "Martlock"), b = rotModel(it, "Lymhurst"), pl = rotPlano("Martlock", rotFocoVisita(), 0);
+    renderRot(); await new Promise(f => setTimeout(f, 3000));
+    return { cat: rotCatalogo().length, rA: a.rF, rB: b.rF, foco: pl.foco, max: rotFocoVisita(), n: pl.linhas[0] && (pl.linhas[0].nF + pl.linhas[0].nN), hoje: /Martlock/.test(document.getElementById("rotHoje").textContent), ord: document.querySelectorAll("#rotOrd table").length }; });
+  conf("rotação aplica bônus da cidade, respeita o foco e lista as ordens", rot.cat > 1000 && rot.rA > rot.rB && rot.foco <= rot.max && rot.n > 0 && rot.hoje && rot.ord === 1, rot);
 
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
