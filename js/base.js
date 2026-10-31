@@ -1298,6 +1298,7 @@ function cookPanel(m){
   if(window.bagBtn){ const bg=el("div",{class:"ck-bag"}), sc0={c:m.item.c};
     const mats=()=>m.parts.map(x=>({id:x.iid,q:x.c*N,nm:COOK.n[x.iid]||x.iid,buy:x.p.p,buyC:city}));
     const prod=()=>[{id:m.id,q:m.q*N,nm:m.name,sell:m.item.p,sellC:sc0?sc0.c:city}];
+    if(typeof lcBtn==="function") bg.append(lcBtn(()=>m.parts.filter(x=>x.p.src==="inst"||x.p.src==="ordem").map(x=>({id:x.iid,q:x.c*N,nm:COOK.n[x.iid]||x.iid,c:city,p:x.p.p,modo:x.p.src})),`Cozinha: ${m.name}`,"Pôr na lista de compras"));
     bg.append(bagBtn(mats,"Pôr os ingredientes na bag"),el("span",{text:`Ingredientes de ${fmt(N)} fornada${N>1?"s":""}`}),bagBtn(prod,"Pôr o que sai na bag"),el("span",{text:`${fmt(m.q*N)} ${m.kind==="f"?"porções":"poções"} prontas`}));
     left.append(bg); }
   const hist=el("div",{class:"hist"}), hh=el("div",{class:"hist-h"}); hh.append(el("span",{text:"Histórico de 30 dias"})); const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("viewBox","0 0 520 150"); svg.setAttribute("role","img"); const hn=el("p",{class:"tiny muted"}); hist.append(hh,svg,hn); left.append(hist);

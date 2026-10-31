@@ -42,7 +42,7 @@ async function simular(p) {
   await simular(p); await p.goto(BASE); await p.waitForTimeout(3000);
 
   /* 1. as páginas abrem sem erro */
-  for (const t of ["t-voce", "t-plano", "t-refino", "t-craft", "t-encantar", "t-cozinha", "t-fazenda", "t-pesca", "t-trab", "t-mk", "t-mercado", "t-transp", "t-rot", "t-builds", "t-pvp", "t-versao"]) {
+  for (const t of ["t-voce", "t-plano", "t-refino", "t-craft", "t-encantar", "t-cozinha", "t-fazenda", "t-pesca", "t-trab", "t-mk", "t-mercado", "t-transp", "t-rot", "t-compras", "t-builds", "t-pvp", "t-versao"]) {
     await p.evaluate(t => { const x = document.getElementById(t); if (x) x.click(); }, t); await p.waitForTimeout(2500); }
   conf("páginas abrem sem erro de script", erros.length === 0, erros.slice(0, 5));
 
@@ -203,6 +203,18 @@ async function simular(p) {
     const ord = document.getElementById("rotOrd").textContent; ROT.refinar = false;
     return { ok: !!ref, menorComFoco: refF && ref && refF.k < ref.k, usa, ordRaw: usa ? /para refinar em/.test(ord) : true, spf: m.refSpf }; });
   conf("rotação: refinar você mesmo entra no custo e nas ordens", rref.ok && rref.menorComFoco && rref.ordRaw, rref);
+
+  /* 16. Lista de compras: soma o mesmo material na mesma cidade, separa por cidade e marca comprado */
+  const lc = await p.evaluate(async () => { localStorage.removeItem("compras"); LC = [];
+    lcAdd([{ id: "T5_PLANKS", q: 10, nm: "Tábua T5", c: "Lymhurst", p: 1000, modo: "ordem" }, { id: "T5_METALBAR", q: 4, nm: "Barra T5", c: "Martlock", p: 2000, modo: "inst" }], "Craft: A");
+    lcAdd([{ id: "T5_PLANKS", q: 5.2, nm: "Tábua T5", c: "Lymhurst", p: 1100, modo: "ordem" }], "Rotação: Lymhurst");
+    document.getElementById("t-compras").click(); await new Promise(f => setTimeout(f, 800));
+    const cards = document.querySelectorAll("#lcBox .lc-c").length, linhas = document.querySelectorAll("#lcBox .lc-i").length;
+    document.querySelector("#lcBox .lc-i input").click(); await new Promise(f => setTimeout(f, 300));
+    const salvo = JSON.parse(localStorage.getItem("compras")); const t = salvo.find(i => i.id === "T5_PLANKS");
+    const badge = document.querySelector("#t-compras .fl").textContent; localStorage.removeItem("compras"); LC = [];
+    return { cards, linhas, q: t.q, origem: t.origem.length, feito: salvo.some(i => i.feito), badge }; });
+  conf("lista de compras soma, separa por cidade e marca comprado", lc.cards === 2 && lc.linhas === 2 && lc.q === 16 && lc.origem === 2 && lc.feito && /1 item/.test(lc.badge), lc);
 
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
