@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T02:30:00Z",
+   "titulo": "Correção: estratégia Ordem de Compra no Craft e no Refino",
+   "itens": [
+    "Com Ordem de Compra, o site pegava a cidade com a menor ordem aberta. Às vezes era um lance perdido muito abaixo do mercado, como 1.805 por uma barra T6 que custa 2.850 na mesma cidade. Esse lance não enche, e o custo saía baixo demais.",
+    "Agora ordens abaixo de 70% do anúncio da mesma cidade são ignoradas.",
+    "Quando uma cidade não tem ordem de compra para o material, a conta usa a compra na hora naquela cidade, em vez de tirar o item da lista. Antes uns 30 itens sumiam por isso. O material aparece marcado como COMPRA INST."
+   ],
+   "como": "Craft ou Refino > Estratégia > Compra > Ordem de Compra.",
+   "impacto": "O custo com ordem de compra fica realista e a lista não perde itens."
+  },
+  {
    "t": "2026-10-31T02:10:00Z",
    "titulo": "Compra em mais de uma cidade",
    "itens": [

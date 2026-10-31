@@ -104,7 +104,8 @@ function pickBuy(id,ov){
   if(OF.buyS==="manual"&&OF2.manB>0) return {p:OF2.manB,c:OF.buyC.size===1?[...OF.buyC][0]:"Manual",t:0,mode:"manual"};
   const r=DATA.itens[id.includes("_LEVEL")?id.split("@")[0]:id]||{}; let best=null;
   for(const c of (ov?[ov]:buyLocs())){ const v=r[c]; let p=0,t=0,mode="inst";
-    if(OF.buyS==="medio"){ p=avgOf(id,c); mode="medio"; } else if(OF.buyS==="ordem"){ p=v?v[1]:0; t=v?v[3]:0; mode="ordem"; } else { p=v?v[0]:0; t=v?v[2]:0; }
+    if(OF.buyS==="medio"){ p=avgOf(id,c); mode="medio"; } else if(OF.buyS==="ordem"){   // ordem de compra: a maior ordem aberta na cidade. Ordem muito abaixo do anúncio (menos de 70%) é lance perdido e não enche; sem ordem boa, vale comprar na hora ali
+      if(v&&v[1]>0&&(!v[0]||v[1]>=v[0]*0.7)){ p=v[1]; t=v[3]; mode="ordem"; } else if(v&&v[0]>0){ p=v[0]; t=v[2]; mode="inst"; } } else { p=v?v[0]:0; t=v?v[2]:0; }
     if(p>0&&(!best||p<best.p)) best={p,c,t:t||snapTime(),mode}; }
   return best; }
 function pickSell(id,ov){
