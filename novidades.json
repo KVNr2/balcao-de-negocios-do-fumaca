@@ -1,6 +1,20 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T05:15:00Z",
+   "titulo": "Rotação de craft: filtros como os do Craft",
+   "itens": [
+    "Tier e Encantamento: dá para marcar mais de um. Sem nada marcado, valem T4 a T8 e .0 a .3. Eles substituem a caixa Só sem encantamento: para ficar só com .0, marque .0 no Encantamento.",
+    "Tipo: Tudo, Armas, Armaduras ou Mão secundária.",
+    "Estes três filtros valem para as sugestões e para a busca de itens de cada cidade.",
+    "Compra do material: Ordem de compra (como antes), Automático (o mais barato entre ordem e compra na hora) ou Na hora.",
+    "Venda: Automático, Anunciar ou Na hora. Cidades de venda: marque onde você vende. A caixa do Mercado Negro continua.",
+    "Anúncios de venda mais de 30% acima da mediana das cidades não contam mais, porque não vendem."
+   ],
+   "como": "Ofícios > Rotação de craft > filtros no topo.",
+   "impacto": "As sugestões e o plano seguem o jeito que você compra e vende de verdade."
+  },
+  {
    "t": "2026-10-31T05:00:00Z",
    "titulo": "Rotação de craft: liga e desliga o Mercado Negro",
    "itens": [

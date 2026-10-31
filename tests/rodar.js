@@ -158,14 +158,20 @@ async function simular(p) {
     return { f1: fora.fora && fora.nF + fora.nN === 0, f2: fora2.fora && fora2.nF + fora2.nN === 0, tem: ROT.cidades.includes("Thetford") }; });
   conf("rotação: filtros de lucro % e vendas tiram o item do plano; Thetford na lista", rf2.f1 && rf2.f2 && rf2.tem, rf2);
 
-  const e0 = await p.evaluate(async () => { const box = document.getElementById("rotSoE0"); box.checked = true; box.dispatchEvent(new Event("change")); await new Promise(f => setTimeout(f, 500));
+  const e0 = await p.evaluate(async () => { ROT.enchs = [0];
     await rotSugCalc("Fort Sterling", () => {}, "spec"); const k = Object.keys(ROT_SUG).find(x => x.startsWith("Fort Sterling")); const l = (ROT_SUG[k] && ROT_SUG[k].lista) || [];
-    box.checked = false; box.dispatchEvent(new Event("change")); return { n: l.length, enc: l.map(x => x.m.it.e) }; });
+    ROT.enchs = []; return { n: l.length, enc: l.map(x => x.m.it.e) }; });
   conf("rotação: só sem encantamento", e0.enc.every(e => e === 0), e0);
 
   const bmr = await p.evaluate(() => { const id = "T9_BMTESTE"; DATA.itens[id] = { Lymhurst: [100000, 0, 1, 0], "Black Market": [0, 150000, 0, 1] };
     ROT.bm = true; const a = rotVenda(id); ROT.bm = false; const b = rotVenda(id); ROT.bm = true; delete DATA.itens[id]; return { a: a && a.c, b: b && b.c }; });
   conf("rotação: venda no Mercado Negro liga e desliga", bmr.a === "Black Market" && bmr.b === "Lymhurst", bmr);
+
+  const rfl = await p.evaluate(() => { const id = "T9_VTESTE"; DATA.itens[id] = { Lymhurst: [100000, 90000, 1, 1], Martlock: [98000, 0, 1, 0], Thetford: [99000, 0, 1, 0], Caerleon: [250000, 0, 1, 0] };
+    const o = {}; ROT.vendaC = []; ROT.venda = "auto"; o.auto = rotVenda(id); ROT.venda = "inst"; o.inst = rotVenda(id); ROT.venda = "auto"; ROT.vendaC = ["Martlock"]; o.mart = rotVenda(id); ROT.vendaC = [];
+    const t6 = rotCatalogo().filter(it => { ROT.tiers = [6]; ROT.grupo = "armaduras"; return rotCatOk(it); }); ROT.tiers = []; ROT.grupo = ""; delete DATA.itens[id];
+    return { auto: o.auto && [o.auto.c, o.auto.mode], inst: o.inst && [o.inst.c, o.inst.mode], mart: o.mart && o.mart.c, t6: t6.length, ok6: t6.every(it => it.t === 6 && it.grp === "armaduras") }; });
+  conf("rotação: filtros de venda, cidade, tier e tipo", rfl.auto[0] !== "Caerleon" && rfl.inst[1] === "inst" && rfl.mart === "Martlock" && rfl.t6 > 0 && rfl.ok6, rfl);
 
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
