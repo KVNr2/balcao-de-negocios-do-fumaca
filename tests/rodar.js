@@ -151,10 +151,13 @@ async function simular(p) {
     renderRot(); await new Promise(f => setTimeout(f, 3000));
     return { cat: rotCatalogo().length, rA: a.rF, rB: b.rF, foco: pl.foco, max: rotFocoVisita(), n: pl.linhas[0] && (pl.linhas[0].nF + pl.linhas[0].nN), hoje: /Martlock/.test(document.getElementById("rotHoje").textContent), ord: document.querySelectorAll("#rotOrd table").length }; });
   conf("rotação aplica bônus da cidade, respeita o foco e lista as ordens", rot.cat > 1000 && rot.rA > rot.rB && rot.foco <= rot.max && rot.n > 0 && rot.hoje && rot.ord === 1, rot);
-  const rdet = await p.evaluate(async () => { renderRot(); await new Promise(f => setTimeout(f, 2500));
-    const d = document.querySelector("#rotCid .rot-det"); if (!d) return { d: false }; d.open = true;
-    return { d: true, stats: document.querySelectorAll("#rotCid .rot-i .rot-st").length, mats: d.querySelectorAll(".rot-dx .rot-tb:not(.rot-cmp) tbody tr").length, cmp: d.querySelectorAll(".rot-cmp tbody tr").length, txt: /Lucro esperado/.test(d.textContent) && /Com foco/.test(d.textContent) }; });
-  conf("rotação: cidade abre com receita, custos, com e sem foco e lucro", rdet.d && rdet.stats === 4 && rdet.mats > 0 && rdet.cmp === 6 && rdet.txt, rdet);
+  const rdet = await p.evaluate(async () => { const it = rotCatalogo().find(x => x.city === "Martlock" && x.t === 6 && x.e === 0); ROT.itens = { Martlock: [it.id] }; ROT.qtd = {};
+    await renderRot(); const inp = document.querySelector("#rotCid .rot-q input"); const sug = inp && +inp.value;
+    inp.value = "12"; inp.dispatchEvent(new Event("change")); await new Promise(f => setTimeout(f, 1500));
+    const l = rotPlano("Martlock", rotFocoVisita(), 0).linhas[0], d = document.querySelector("#rotCid .rot-det");
+    const r = { sug, n: l.nF + l.nN, salvo: ROT.qtd.Martlock && ROT.qtd.Martlock[it.id], mats: d.querySelectorAll(".rot-mt tbody tr img, .rot-mt tbody tr .ico").length, cmp: d.querySelectorAll(".rot-det2 .rot-cmp tbody tr").length, linhas: d.querySelectorAll(".rot-plf").length };
+    ROT.qtd = {}; rotSave(); return r; });
+  conf("rotação: quantidade escolhida vale e fica salva; cidade mostra materiais com imagem e detalhes", rdet.sug > 0 && rdet.n === 12 && rdet.salvo === 12 && rdet.mats > 0 && rdet.cmp === 6 && rdet.linhas === 2, rdet);
 
   const rf2 = await p.evaluate(() => { const it = rotCatalogo().find(x => x.city === "Martlock" && x.t === 6 && x.e === 0); ROT.itens = { Martlock: [it.id] };
     const m = rotModel(it, "Martlock"); ROT.minPct = String(Math.ceil(m.pct * 100) + 5); const fora = rotPlano("Martlock", rotFocoVisita(), 0).linhas[0];
