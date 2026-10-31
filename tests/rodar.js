@@ -173,6 +173,13 @@ async function simular(p) {
     return { auto: o.auto && [o.auto.c, o.auto.mode], inst: o.inst && [o.inst.c, o.inst.mode], mart: o.mart && o.mart.c, t6: t6.length, ok6: t6.every(it => it.t === 6 && it.grp === "armaduras") }; });
   conf("rotação: filtros de venda, cidade, tier e tipo", rfl.auto[0] !== "Caerleon" && rfl.inst[1] === "inst" && rfl.mart === "Martlock" && rfl.t6 > 0 && rfl.ok6, rfl);
 
+  const pts = await p.evaluate(() => { const id = "T1_FACTION_FOREST_TOKEN_1"; DATA.itens[id] = { Lymhurst: [3000, 2900, 1, 1], Martlock: [4000, 3500, 1, 1], Thetford: [4100, 0, 1, 0] };
+    Object.assign(TR, { pontos: true, qtdPontos: "50", seguro: false, sell: "auto" }); TR.de = new Set(); TR.para = new Set();
+    const rs = trRoutes([{ api: id, id, nm: "x", home: "Lymhurst", t: 1, e: 0, kind: "Coração" }]); TR.pontos = false; TR.qtdPontos = "";
+    const lo = TR_LOADED; lo.add("X"); const tem = lo.has("X");
+    return { origens: [...new Set(rs.map(r => r.a))], custo: rs.every(r => r.buy.k === 0), n: rs.map(r => r.n), mesma: rs.some(r => r.b === "Lymhurst"), tem }; });
+  conf("transporte: corações por pontos de facção saem sem custo da cidade da facção", String(pts.origens) === "Lymhurst" && pts.custo && pts.n.every(n => n <= 50) && pts.mesma && pts.tem, pts);
+
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
   console.log(ok.map(x => "ok   " + x).join("\n")); if (falhas.length) { console.log(falhas.map(x => "FALHOU " + x).join("\n")); process.exit(1); }

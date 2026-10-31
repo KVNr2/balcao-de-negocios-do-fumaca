@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="aef4bf5a">
+<html lang="pt-BR" data-v="2451f434">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=aef4bf5a">
-<link rel="stylesheet" href="css/vip.css?v=aef4bf5a">
-<link rel="stylesheet" href="css/avicons.css?v=aef4bf5a">
-<link rel="stylesheet" href="css/souk.css?v=aef4bf5a">
+<link rel="stylesheet" href="css/balcao.css?v=2451f434">
+<link rel="stylesheet" href="css/vip.css?v=2451f434">
+<link rel="stylesheet" href="css/avicons.css?v=2451f434">
+<link rel="stylesheet" href="css/souk.css?v=2451f434">
 </head>
 <body>
 <div class="wrap app">
@@ -588,6 +588,8 @@ html.em-atual .av-card{margin:0}
         <label class="f" title="Deixe vazio para não limitar">Dinheiro para a carga<input type="text" inputmode="numeric" id="trCash" placeholder="sem limite" style="width:140px"></label>
         <label class="f" title="A carga de cada rota não passa do que a cidade de destino vende nesses dias">Vender em até (dias)<input type="number" id="trDias" min="1" max="14" value="3" style="width:80px"></label>
         <label class="chk"><input type="checkbox" id="trSeguro"> Só rotas seguras (sem Caerleon e Brecilien)</label>
+        <label class="chk" title="Você resgata os corações com pontos de facção na cidade da facção: eles entram sem custo em prata, e a conta mostra onde vender cada um."><input type="checkbox" id="trPontos"> Corações por pontos de facção (sem custo)</label>
+        <label class="f" title="Quantos corações você vai resgatar de cada tipo. Vazio: o limite é a carga e as vendas do destino.">Corações por tipo<input type="text" inputmode="numeric" id="trQtdPontos" placeholder="sem limite" style="width:110px"></label>
       </div>
     </div>
     <div id="trHearts" class="block tr-hearts"></div>
@@ -882,29 +884,29 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=aef4bf5a"></script>
-<script src="js/base.js?v=aef4bf5a"></script>
-<script src="js/fx.js?v=aef4bf5a"></script>
-<script src="js/biz.js?v=aef4bf5a"></script>
-<script src="js/builds.js?v=aef4bf5a"></script>
-<script src="js/nossas.js?v=aef4bf5a"></script>
-<script src="js/ip.js?v=aef4bf5a"></script>
-<script src="js/zvz.js?v=aef4bf5a"></script>
-<script src="js/pvp.js?v=aef4bf5a"></script>
-<script src="js/novos.js?v=aef4bf5a"></script>
-<script src="js/guia.js?v=aef4bf5a"></script>
-<script src="js/ui.js?v=aef4bf5a"></script>
-<script src="js/avalon.js?v=aef4bf5a"></script>
-<script src="js/oficina.js?v=aef4bf5a"></script>
-<script src="js/versao.js?v=aef4bf5a"></script>
-<script src="js/bag.js?v=aef4bf5a"></script>
-<script src="js/plano.js?v=aef4bf5a"></script>
-<script src="js/pesca.js?v=aef4bf5a"></script>
-<script src="js/listfil.js?v=aef4bf5a"></script>
-<script src="js/fav.js?v=aef4bf5a"></script>
-<script src="js/festas.js?v=aef4bf5a"></script>
-<script src="js/transporte.js?v=aef4bf5a"></script>
-<script src="js/rotacao.js?v=aef4bf5a"></script>
-<script src="js/main.js?v=aef4bf5a"></script>
+<script src="js/icons.js?v=2451f434"></script>
+<script src="js/base.js?v=2451f434"></script>
+<script src="js/fx.js?v=2451f434"></script>
+<script src="js/biz.js?v=2451f434"></script>
+<script src="js/builds.js?v=2451f434"></script>
+<script src="js/nossas.js?v=2451f434"></script>
+<script src="js/ip.js?v=2451f434"></script>
+<script src="js/zvz.js?v=2451f434"></script>
+<script src="js/pvp.js?v=2451f434"></script>
+<script src="js/novos.js?v=2451f434"></script>
+<script src="js/guia.js?v=2451f434"></script>
+<script src="js/ui.js?v=2451f434"></script>
+<script src="js/avalon.js?v=2451f434"></script>
+<script src="js/oficina.js?v=2451f434"></script>
+<script src="js/versao.js?v=2451f434"></script>
+<script src="js/bag.js?v=2451f434"></script>
+<script src="js/plano.js?v=2451f434"></script>
+<script src="js/pesca.js?v=2451f434"></script>
+<script src="js/listfil.js?v=2451f434"></script>
+<script src="js/fav.js?v=2451f434"></script>
+<script src="js/festas.js?v=2451f434"></script>
+<script src="js/transporte.js?v=2451f434"></script>
+<script src="js/rotacao.js?v=2451f434"></script>
+<script src="js/main.js?v=2451f434"></script>
 </body>
 </html>

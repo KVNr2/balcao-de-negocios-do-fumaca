@@ -5,10 +5,11 @@
    Quanto levar: o que cabe na montaria escolhida, limitado pelo dinheiro e pelo que o destino vende em alguns dias. */
 const TR_HEARTS=[["T1_FACTION_FOREST_TOKEN_1","Lymhurst"],["T1_FACTION_HIGHLAND_TOKEN_1","Martlock"],["T1_FACTION_STEPPE_TOKEN_1","Bridgewatch"],["T1_FACTION_MOUNTAIN_TOKEN_1","Fort Sterling"],["T1_FACTION_SWAMP_TOKEN_1","Thetford"],["T1_FACTION_CAERLEON_TOKEN_1","Caerleon"]];
 const TR_HEART_PT={T1_FACTION_FOREST_TOKEN_1:"Coração Arbóreo",T1_FACTION_HIGHLAND_TOKEN_1:"Coração Empedrado",T1_FACTION_STEPPE_TOKEN_1:"Coração Bestial",T1_FACTION_MOUNTAIN_TOKEN_1:"Coração Montanhoso",T1_FACTION_SWAMP_TOKEN_1:"Coração Videira",T1_FACTION_CAERLEON_TOKEN_1:"Coração Sombrio"};
-const TR=(()=>{ const d={grp:"hearts",tiers:[],enchs:[],de:[],para:[],buy:"auto",sell:"auto",mount:"T8_MOUNT_OX",cash:"",dias:3,seguro:false};
+const TR=(()=>{ const d={grp:"hearts",tiers:[],enchs:[],de:[],para:[],buy:"auto",sell:"auto",mount:"T8_MOUNT_OX",cash:"",dias:3,seguro:false,pontos:false,qtdPontos:""};
   try{ const o=JSON.parse(store.get("transp")||"{}"); return {...d,...o,tiers:new Set(o.tiers||[]),enchs:new Set(o.enchs||[]),de:new Set(o.de||[]),para:new Set(o.para||[])}; }catch(e){ return {...d,tiers:new Set(),enchs:new Set(),de:new Set(),para:new Set()}; } })();
 const trSave=()=>{ try{ store.set("transp",JSON.stringify({...TR,tiers:[...TR.tiers],enchs:[...TR.enchs],de:[...TR.de],para:[...TR.para]})); }catch(e){} };
-const TR_LOADED=new Set();
+const TR_LOADED=tSet(5*60e3);   // preço buscado vale 5 minutos; depois busca de novo
+setInterval(()=>{ const p=$("p-transp"); if(p&&!p.hidden&&!document.hidden) renderTransp(); },5*60e3);   // página aberta (no overlay, por exemplo): atualiza sozinha
 const trKey=id=>id.split("@")[0];   // T4_PLANKS_LEVEL1@1 -> T4_PLANKS_LEVEL1 (como fica guardado)
 function trItems(){
   const out=[];
@@ -28,24 +29,27 @@ function trSell(r,c,teto){ const v=r[c]; if(!v) return null; const tx=taxBase();
   const l=v[0]>0&&v[0]<=teto?{p:v[0],k:v[0]*(1-tx-0.025),mode:"ordem",t:v[2]}:null, i=v[1]>0?{p:v[1],k:v[1]*(1-tx),mode:"inst",t:v[3]}:null;
   if(TR.sell==="inst") return i; if(TR.sell==="ordem") return l; return l&&i?(i.k>=l.k?i:l):(l||i); }
 const TR_RISCO=c=>c==="Caerleon"?2:c==="Brecilien"?1:0;
-const trRiscoTxt=(a,b)=>{ const r=Math.max(TR_RISCO(a),TR_RISCO(b)); return r===2?["Zona vermelha","Caerleon fica no meio das zonas vermelhas: quem morre perde a carga e a montaria."]:r===1?["Névoas","Brecilien só se alcança pelas Névoas, onde dá para ser atacado e perder a carga."]:["Segura","Entre cidades reais dá para ir só por zonas azuis e amarelas, sem perda total."]; };
+const trRiscoTxt=(a,b)=>{ if(a===b) return ["Sem viagem","Vende na mesma cidade onde resgata."]; const r=Math.max(TR_RISCO(a),TR_RISCO(b)); return r===2?["Zona vermelha","Caerleon fica no meio das zonas vermelhas: quem morre perde a carga e a montaria."]:r===1?["Névoas","Brecilien só se alcança pelas Névoas, onde dá para ser atacado e perder a carga."]:["Segura","Entre cidades reais dá para ir só por zonas azuis e amarelas, sem perda total."]; };
 const trMount=()=>(CARGA&&CARGA.mounts.find(m=>m.id===TR.mount))||null;
 const trCap=()=>{ const m=trMount(); return CARGA?(CARGA.base+(m?m.kg:0)):0; };
 function trRoutes(items){
   const locs=SHOP_LOCS, de=TR.de.size?[...TR.de]:locs, para=TR.para.size?[...TR.para]:locs, cap=trCap(), cash=+String(TR.cash).replace(/\D/g,"")||0, tx=taxBase();
   const out=[];
-  for(const it of items){ const r=DATA.itens[it.id]; if(!r) continue; const w=bagW(it.id);
+  for(const it of items){ const r=DATA.itens[it.id]; if(!r) continue; const w=bagW(it.id), pontos=TR.pontos&&it.kind==="Coração";
     const ps=locs.map(c=>r[c]&&r[c][0]).filter(x=>x>0).sort((a,b)=>a-b);
     const teto=ps.length>=3?(ps.length%2?ps[(ps.length-1)/2]:(ps[ps.length/2-1]+ps[ps.length/2])/2)*1.3:Infinity;
-    for(const a of de){ const b0=trBuy(r,a); if(!b0) continue;
-      for(const b of para){ if(a===b) continue; if(TR.seguro&&(TR_RISCO(a)||TR_RISCO(b))) continue; const s0=trSell(r,b,teto); if(!s0) continue;
+    /* corações por pontos de facção: saem de graça da cidade da facção (o custo é só o ponto, que não é prata) */
+    const origens=pontos?[it.home].filter(c=>!TR.de.size||TR.de.has(c)):de;
+    for(const a of origens){ const b0=pontos?{p:0,k:0,mode:"pontos",t:Date.now()}:trBuy(r,a); if(!b0) continue;
+      for(const b of para){ if(a===b&&!pontos) continue; if(TR.seguro&&(TR_RISCO(a)||TR_RISCO(b))) continue; const s0=trSell(r,b,teto); if(!s0) continue;
         const lucro=s0.k-b0.k; if(!(lucro>0)) continue;
         const h=typeof OF2!=="undefined"?OF2.hs[nk(it.api)+"|"+b]:null, vol=h&&h.vol>=0?h.vol:null;
         let n=w>0&&cap>0?Math.floor(cap/w):Infinity; const lim=[];
-        if(cash>0){ const nc=Math.floor(cash/b0.k); if(nc<n){ n=nc; lim.push("dinheiro"); } }
+        if(cash>0&&b0.k>0){ const nc=Math.floor(cash/b0.k); if(nc<n){ n=nc; lim.push("dinheiro"); } }
+        if(pontos){ const q=Math.floor(+String(TR.qtdPontos).replace(/\D/g,"")||0); if(q>0&&q<n){ n=q; lim.push("corações"); } }
         if(vol!=null){ const nv=Math.max(1,Math.round(vol*TR.dias)); if(nv<n){ n=nv; lim.push("vendas"); } }
         if(!isFinite(n)) n=0; else if(n===Math.floor(cap/w)&&!lim.length) lim.push("carga");
-        out.push({it,a,b,buy:b0,sell:s0,lucro,pct:lucro/b0.k,w,vol,n,total:lucro*n,peso:n*(w||0),lim,idade:Math.min(b0.t||Infinity,s0.t||Infinity)});
+        out.push({it,a,b,buy:b0,sell:s0,lucro,pct:b0.k>0?lucro/b0.k:null,w,vol,n,total:lucro*n,peso:n*(w||0),lim,idade:Math.min(b0.t||Infinity,s0.t||Infinity)});
       } }
   }
   return out.sort((x,y)=>y.total-x.total||y.lucro-x.lucro);
@@ -83,13 +87,13 @@ function trCard(r,alt=[]){
   const head=el("div",{class:"tr-h"}); head.append(iconImg(r.it.api,48),el("div",{class:"tr-nm"},el("b",{text:r.it.nm}),el("small",{class:"muted",text:`${r.it.kind}${r.w?` · ${dec(r.w)} kg cada`:""}`})),el("span",{class:"tr-risk r"+Math.max(TR_RISCO(r.a),TR_RISCO(r.b)),text:rk,title:rt}));
   const rota=el("div",{class:"tr-rota"});
   const ponta=(lab,cid,p,modo,cls)=>el("div",{class:"tr-p "+cls},el("small",{class:"muted",text:lab}),el("b",{text:bagCityPT(cid)}),el("span",{text:`${fmt(p)} · ${modo}`}));
-  rota.append(ponta("Compra em",r.a,r.buy.p,TR_BUYL[r.buy.mode],"buy"),el("span",{class:"tr-seta","aria-hidden":"true",text:"→"}),ponta("Vende em",r.b,r.sell.p,TR_SELLL[r.sell.mode],"sell"));
+  rota.append(r.buy.mode==="pontos"?el("div",{class:"tr-p buy"},el("small",{class:"muted",text:"Resgata em"}),el("b",{text:bagCityPT(r.a)}),el("span",{text:"com pontos de facção"})):ponta("Compra em",r.a,r.buy.p,TR_BUYL[r.buy.mode],"buy"),el("span",{class:"tr-seta","aria-hidden":"true",text:"→"}),ponta("Vende em",r.b,r.sell.p,TR_SELLL[r.sell.mode],"sell"));
   const nums=el("div",{class:"tr-n"});
   const n=(lab,v,cls,tit)=>{ const d=el("div",{class:cls||""},el("small",{class:"muted",text:lab}),el("b",{text:v})); if(tit) d.title=tit; return d; };
-  nums.append(n("Lucro por unidade",sgn(Math.round(r.lucro)),"gain",`Venda líquida ${fmt(Math.round(r.sell.k))} − custo ${fmt(Math.round(r.buy.k))}`),n("Lucro %",dec(r.pct*100)+"%"),
+  nums.append(n("Lucro por unidade",sgn(Math.round(r.lucro)),"gain",`Venda líquida ${fmt(Math.round(r.sell.k))} − custo ${fmt(Math.round(r.buy.k))}`),n("Lucro %",r.pct==null?"—":dec(r.pct*100)+"%","",r.pct==null?"Sem custo em prata: o coração veio dos pontos de facção":""),
     n("Vende por dia no destino",r.vol==null?"—":fmtU(r.vol)),
     n("Leva por viagem",r.n?`${fmt(r.n)} un.`:"—","",r.lim.length?`Limitado por: ${r.lim.join(", ")}`:""),
-    n("Investe",fmtS(r.n*r.buy.k)),n("Ganha na viagem",sgn(Math.round(r.total)),"gain big"));
+    n(r.buy.mode==="pontos"?"Vale em prata":"Investe",r.buy.mode==="pontos"?fmtS(r.n*r.sell.k):fmtS(r.n*r.buy.k),"",r.buy.mode==="pontos"?"O que esses corações rendem vendidos, depois das taxas":""),n("Ganha na viagem",sgn(Math.round(r.total)),"gain big"));
   c.append(head,rota,nums);
   const ft=el("div",{class:"tr-ft"});
   ft.append(el("small",{class:"muted",text:`${r.n?`${fmt(Math.round(r.peso))} kg · `:""}${r.lim.includes("vendas")?`só o que ${bagCityPT(r.b)} vende em ${TR.dias} ${TR.dias>1?"dias":"dia"} · `:""}${r.lim.includes("dinheiro")?"limitado pelo seu dinheiro · ":""}preços de ${fmtAge(r.idade===Infinity?0:r.idade)||"agora"}`}));
@@ -108,8 +112,8 @@ function trHearts(){
   const tb=tbl.createTBody();
   for(const [id,home] of TR_HEARTS){ const r=DATA.itens[id]||{}, tr=tb.insertRow(); const c0=tr.insertCell(); c0.append(withIcon(id,el("span",{text:TR_HEART_PT[id]})));
     const vals=SHOP_LOCS.map(c=>r[c]&&r[c][0]>0?r[c][0]:0), ok=vals.filter(x=>x>0), mn=Math.min(...ok), mx=Math.max(...ok);
-    SHOP_LOCS.forEach((c,i)=>{ const td=tr.insertCell(); td.className="num"+(vals[i]&&vals[i]===mn?" tr-lo":vals[i]&&vals[i]===mx?" tr-hi":""); td.textContent=vals[i]?fmt(vals[i]):"—"; if(c===home) td.title="Cidade da facção deste coração"; if(c===home) td.classList.add("tr-home"); }); }
-  box.append(el("h3",{class:"orn",text:"Corações de facção agora"}),el("p",{class:"small muted",text:"Menor anúncio de cada coração em cada cidade. Verde é onde está mais barato, dourado onde está mais caro. A borda marca a cidade da facção de cada coração."}),el("div",{class:"tbl-wrap"},tbl));
+    SHOP_LOCS.forEach((c,i)=>{ const td=tr.insertCell(); td.className="num"+(vals[i]&&vals[i]===mn?" tr-lo":vals[i]&&vals[i]===mx?" tr-hi":""); td.textContent=vals[i]?fmt(vals[i]):"—"; if(vals[i]&&r[c][2]){ const ag=fmtAge(r[c][2]); td.append(el("small",{class:"tr-age"+((Date.now()-r[c][2])>6*3600e3?" old":""),text:ag})); } if(c===home) td.title="Cidade da facção deste coração"; if(c===home) td.classList.add("tr-home"); }); }
+  box.append(el("h3",{class:"orn",text:"Corações de facção agora"}),el("p",{class:"small muted",text:"Menor anúncio de cada coração em cada cidade, com quanto tempo faz que o preço foi visto (em vermelho, mais de 6 horas). A página busca de novo a cada 5 minutos. Verde é onde está mais barato, dourado onde está mais caro. A borda marca a cidade da facção de cada coração."}),el("div",{class:"tbl-wrap"},tbl));
 }
 function trUI(){
   const box=$("trCtl"); if(!box||box.dataset.ok) { trPaint(); return; } box.dataset.ok="1";
@@ -124,6 +128,9 @@ function trUI(){
   mselUI("trPara",SHOP_LOCS.map(c=>[c,c]),TR.para,"Todas","cidades",go);
   const cash=$("trCash"); cash.value=TR.cash; let tm; cash.addEventListener("input",()=>{ TR.cash=cash.value; clearTimeout(tm); tm=setTimeout(go,400); });
   const dias=$("trDias"); dias.value=String(TR.dias); dias.addEventListener("change",()=>{ TR.dias=Math.max(1,Math.min(14,Math.round(+dias.value)||3)); dias.value=String(TR.dias); go(); });
+  const pts=$("trPontos"), qp=$("trQtdPontos"); pts.checked=!!TR.pontos; qp.value=TR.qtdPontos||""; qp.closest("label").hidden=!TR.pontos;
+  pts.addEventListener("change",()=>{ TR.pontos=pts.checked; qp.closest("label").hidden=!TR.pontos; go(); });
+  { let t3; qp.addEventListener("input",()=>{ TR.qtdPontos=qp.value; clearTimeout(t3); t3=setTimeout(go,400); }); }
   const seguro=$("trSeguro"); seguro.checked=!!TR.seguro; seguro.addEventListener("change",()=>{ TR.seguro=seguro.checked; go(); });
   const ms=$("trMount"); bagData().then(()=>{ ms.textContent=""; ms.append(el("option",{value:"",text:"A pé"})); for(const m of CARGA.mounts) ms.append(el("option",{value:m.id,text:`${mtNm(m)} · ${fmt(m.kg)} kg`})); ms.value=TR.mount; if(ms.selectedIndex<0) ms.value="T8_MOUNT_OX"; }).catch(()=>{});
   ms.addEventListener("change",()=>{ TR.mount=ms.value; go(); });

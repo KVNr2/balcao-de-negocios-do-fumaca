@@ -317,6 +317,8 @@ function bonusLinhaItem(id){
 }
 const bdItem=id=>bonusDia(bonusLinhaItem(id));
 const taxOf=()=> (st.prem?0.04:0.08)+(st.sell==="order"?0.025:0);
+/* conjunto que "esquece" depois de um tempo: guarda o que já foi buscado e deixa buscar de novo quando o preço fica velho */
+const tSet=ms=>{ const m=new Map(); return {has:k=>{ const t=m.get(k); return t!=null&&Date.now()-t<ms; },add:k=>{ m.set(k,Date.now()); },clear:()=>m.clear()}; };
 const taxBase=()=> st.prem?0.04:0.08;   // só a taxa de venda; os 2,5% do anúncio entram à parte quando a venda é por anúncio
 const feeVal=()=>+$("fee").value||0;
 function model(res,t,e,o={}){
@@ -686,7 +688,7 @@ async function loadLive(force){
     const hh=when.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
     if(!force){ const o=DATA.itens||{}; for(const k in o) if(!(k in itens)) itens[k]=o[k]; }   /* atualização automática: mantém o que o Mercado já consultou */
     DATA={geradoEm:new Date().toISOString(),janela:`ao vivo, ${hh}`,ouro,itens}; LIVE_GEN++; LIVE=true; loadedFam.clear();
-    COOK_LOADED=false; BM_LOADED.clear(); PLANKS_LOADED=false; WK_LOADED=false; FZ_LOADED=false; EN_LOADED.clear(); OF.loaded.clear(); if(force){ MK_SEEN.clear(); for(const q in PQ) PQ[q]={}; } if(typeof BMQ!=="undefined") for(const k in BMQ) delete BMQ[k]; applyMeta(); recompute(true); btn.classList.remove("busy"); btnTxt("Atualizar preços"); setTimeout(()=>{ try{ warmBM(!!force); }catch(e){} },400); if(!$("p-cozinha").hidden) renderCook(); if(!$("p-mapas").hidden) renderMaps(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-trab").hidden) renderWK(); if(!$("p-fazenda").hidden) renderFZ(); if(!$("p-encantar").hidden) renderEN(); if(!$("p-craft").hidden) renderOf(); if(!$("p-mk").hidden) renderMk();
+    COOK_LOADED=false; BM_LOADED.clear(); if(typeof TR_LOADED!=="undefined") TR_LOADED.clear(); if(typeof ROT_LOADED!=="undefined") ROT_LOADED.clear(); PLANKS_LOADED=false; WK_LOADED=false; FZ_LOADED=false; EN_LOADED.clear(); OF.loaded.clear(); if(force){ MK_SEEN.clear(); for(const q in PQ) PQ[q]={}; } if(typeof BMQ!=="undefined") for(const k in BMQ) delete BMQ[k]; applyMeta(); recompute(true); btn.classList.remove("busy"); btnTxt("Atualizar preços"); setTimeout(()=>{ try{ warmBM(!!force); }catch(e){} },400); if(!$("p-cozinha").hidden) renderCook(); if($("p-transp")&&!$("p-transp").hidden) renderTransp(); if($("p-rot")&&!$("p-rot").hidden) renderRot(); if(!$("p-mapas").hidden) renderMaps(); if(!$("p-mercado").hidden) renderBM(); if(!$("p-trab").hidden) renderWK(); if(!$("p-fazenda").hidden) renderFZ(); if(!$("p-encantar").hidden) renderEN(); if(!$("p-craft").hidden) renderOf(); if(!$("p-mk").hidden) renderMk();
   }catch(e){ FORCE=false; $("when").textContent="sem conexão, usando os salvos"; $("whenBox").classList.add("off"); $("whenBox").title="Não consegui puxar os preços ao vivo agora. "+(DATA.janela?"Usando os preços salvos no site: "+DATA.janela:""); btn.classList.remove("busy"); btnTxt("Tentar de novo"); }
   btn.disabled=false;
 }

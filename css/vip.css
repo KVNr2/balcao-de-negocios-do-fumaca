@@ -1993,3 +1993,4 @@ td.gv-cell .gv-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:400
 .rot-op img,.rot-op .ico{width:28px!important;height:28px!important}.rot-i img,.rot-i .ico{width:40px!important;height:40px!important}
 .rot-sm{margin-bottom:4px;flex-wrap:wrap}.rot-sm button{font-size:.82rem;padding:4px 10px}
 .rot-ctl{display:grid;gap:10px;margin-bottom:12px}
+.tr-ht small.tr-age{display:block;font-size:.7rem;font-weight:400;color:var(--smoke)}.tr-ht small.tr-age.old{color:var(--loss)}

@@ -1,6 +1,19 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T14:55:00Z",
+   "titulo": "Transporte: corações por pontos de facção e preços que se atualizam",
+   "itens": [
+    "Correção: na página Transporte (e na Rotação de craft), os preços buscados ficavam guardados até fechar o site. Quem deixava a página aberta, como no overlay, via preços velhos, e o botão Atualizar preços não refazia essas páginas.",
+    "Agora o preço vale 5 minutos e a página busca de novo sozinha enquanto está aberta. Atualizar preços também refaz Transporte e Rotação.",
+    "A tabela dos corações mostra há quanto tempo cada preço foi visto. Em vermelho, mais de 6 horas.",
+    "Nova caixa Corações por pontos de facção (sem custo): o coração sai de graça da cidade da facção, e a conta mostra onde vender cada um e quanto rende. Isso inclui vender na própria cidade, sem viagem.",
+    "O campo Corações por tipo limita quantos você vai resgatar."
+   ],
+   "como": "Mercadorias > Transporte > O que levar: Corações > marque Corações por pontos de facção.",
+   "impacto": "Preço de coração atual e a conta certa para quem troca pontos de facção por corações."
+  },
+  {
    "t": "2026-10-31T13:00:00Z",
    "titulo": "Hoje no Albion foi para o cabeçalho",
    "itens": [
