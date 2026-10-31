@@ -8,7 +8,8 @@
     "Agora o Automático escolhe, em cada cidade, o que deixa mais prata no seu bolso depois das taxas: anunciar no preço do menor anúncio (com os 2,5% da ordem) ou vender na hora para a maior ordem de compra.",
     "Compra Automático faz o mesmo ao contrário: compara comprar na hora com pôr ordem de compra (com os 2,5% da ordem) e fica com o mais barato.",
     "Anúncios de venda mais de 30% acima da mediana das cidades ficam de fora no Automático e na Ordem de Venda, porque não vendem. Isso só vale quando 3 cidades ou mais têm anúncio.",
-    "A escolha entre cidades também passou a considerar a taxa da ordem."
+    "A escolha entre cidades também passou a considerar a taxa da ordem.",
+    "O filtro Lucro mínimo agora entende números do jeito brasileiro. Antes, 10.000 virava 10. Agora aceita 10.000, 10k ou 1,5m."
    ],
    "como": "Craft ou Refino > cartão Estratégia. O selo de cada preço (ORDEM VENDA, VENDA INST, COMPRA INST, ORDEM COMPRA) mostra o que foi escolhido.",
    "impacto": "O preço de venda deixa de ser inflado por anúncios que ninguém compra, e o lucro mostrado fica mais perto do real."

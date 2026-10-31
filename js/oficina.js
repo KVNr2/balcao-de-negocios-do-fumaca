@@ -237,7 +237,7 @@ function setupOf(){
   try{ Object.assign(OF2,JSON.parse(store.get("ofFil")||"{}")); }catch(e){}
   const fil=[["ofFP","fMinP"],["ofFPct","fMinPct"],["ofFV","fMinVol"]];
   for(const [id,k] of fil){ const i=$(id); if(!i) continue; i.value=OF2[k]!=null&&OF2[k]!==""?String(OF2[k]):""; let tm;
-    i.addEventListener("input",()=>{ const v=i.value.trim(); OF2[k]=v===""?null:+v.replace(",","."); store.set("ofFil",JSON.stringify({fMinP:OF2.fMinP,fMinPct:OF2.fMinPct,fMinVol:OF2.fMinVol})); clearTimeout(tm); tm=setTimeout(renderOf,350); }); }
+    i.addEventListener("input",()=>{ const v=i.value.trim(); OF2[k]=v===""?null:numBR(v); store.set("ofFil",JSON.stringify({fMinP:OF2.fMinP,fMinPct:OF2.fMinPct,fMinVol:OF2.fMinVol})); clearTimeout(tm); tm=setTimeout(renderOf,350); }); }
   { const c=$("ofFClear"); if(c) c.addEventListener("click",()=>{ for(const [id,k] of fil){ OF2[k]=null; const i=$(id); if(i) i.value=""; } store.set("ofFil","{}"); renderOf(); }); }
   $("ofFind").addEventListener("input",()=>{ OF.q=$("ofFind").value.trim().toLowerCase(); renderOf(); });
   $("ofPrices").addEventListener("click",async()=>{ const b=$("ofPrices"); b.disabled=true; b.textContent="Atualizando…"; try{ await loadLive(true); }catch(e){} b.disabled=false; b.textContent="Atualizar preços"; });
@@ -747,3 +747,11 @@ function ofRefQtyUI(){ const f=OF2.refFoc, q=$("ofQty");
   $("ofRcT").textContent=f?"Foco a gastar":"Unidades a refinar";
   $("ofRcS").textContent=f?"cada item mostra quantas unidades esse foco refina, o lucro, onde comprar e onde vender":"quantas unidades refinar de cada item, sem gastar foco";
   q.setAttribute("aria-label",f?"Foco a gastar no refino":"Unidades a refinar"); q.step=f?"500":"1"; q.value=String(f?focBud():OF2.refQty); }
+
+/* número digitado do jeito brasileiro: 10.000, 1,5 mil, 10k, 2,5m */
+function numBR(v){ let t=String(v).trim().toLowerCase().replace(/\s+/g,"").replace(/mil$/,"k"); let mult=1;
+  if(/[km]$/.test(t)){ mult=t.endsWith("k")?1e3:1e6; t=t.slice(0,-1); }
+  if(t.includes(".")&&t.includes(",")) t=t.replace(/\./g,"").replace(",",".");
+  else if(/^-?\d{1,3}(\.\d{3})+$/.test(t)) t=t.replace(/\./g,"");
+  else t=t.replace(",",".");
+  const n=parseFloat(t); return isFinite(n)?n*mult:null; }
