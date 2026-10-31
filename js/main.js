@@ -32,6 +32,9 @@ $("bRefresh").addEventListener("click",async()=>{ const bt=$("bRefresh"); if(bt.
 $("bOnlyMine").addEventListener("change",renderBuilds);
 document.querySelectorAll("[data-ck]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-ck]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); ckKind=b.dataset.ck; ckSel=null; renderCook(); }));
 $("ckBuilds").addEventListener("change",renderCook);
+{ const vs=$("ckVS"), pinta=()=>vs.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===CKV.s)));
+  pinta(); vs.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; CKV.s=b.dataset.v; ckVSave(); pinta(); renderCook(); });
+  mselUI("ckVC",SHOP_LOCS.map(c=>[c,c]),CKV.c,"Melhor cidade","cidades",()=>{ ckVSave(); renderCook(); }); }
 { const l=$("ckLotes"), au=$("ckAuto"); if(l){ if(SRC.lotes>0) l.value=String(SRC.lotes); let tm; l.addEventListener("input",()=>{ const v=Math.round(+l.value); SRC.lotes=v>0?v:0; srcSave(); const fp=$("fzPlots"); if(fp&&v>0) fp.value=String(v); clearTimeout(tm); tm=setTimeout(renderCook,300); }); }
   if(au){ au.checked=!!SRC.ckAuto; au.addEventListener("change",()=>{ SRC.ckAuto=au.checked; srcSave(); if(au.checked&&!(ilhaL()>0)&&l) l.focus(); renderCook(); }); } }
 { const n=$("ckN"); if(n){ if(SRC.ckN) n.value=String(SRC.ckN); let tm; n.addEventListener("input",()=>{ const v=Math.round(+n.value); SRC.ckN=v>0?v:1; srcSave(); clearTimeout(tm); tm=setTimeout(renderCook,300); }); } }

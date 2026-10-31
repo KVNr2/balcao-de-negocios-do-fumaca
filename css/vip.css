@@ -1941,3 +1941,5 @@ td.gv-cell .gv-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:400
 .btn.sm{padding:5px 10px;font-size:13px}
 .cj-add{white-space:nowrap}
 @media (max-width:640px){ .cj-top{grid-template-columns:1fr}.cj-top .btn{grid-row:auto;grid-column:1;justify-self:start} .cj-vaga{grid-template-columns:22px 40px 1fr}.cj-va{grid-column:2/-1;justify-content:flex-start} }
+.ck-venda b{display:block}.ck-venda small{display:block;font-size:.78em;white-space:nowrap}
+.ck-vctl{gap:12px 18px}
