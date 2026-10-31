@@ -1988,3 +1988,4 @@ td.gv-cell .gv-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:400
 #rotOrd .tbl-wrap{overflow-x:auto}
 @media (max-width:640px){ .rot-ot th:nth-child(4),.rot-ot td:nth-child(4),.rot-ot th:nth-child(5),.rot-ot td:nth-child(5){display:none} }
 .rot-op img,.rot-op .ico{width:28px!important;height:28px!important}.rot-i img,.rot-i .ico{width:40px!important;height:40px!important}
+.rot-sm{margin-bottom:4px;flex-wrap:wrap}.rot-sm button{font-size:.82rem;padding:4px 10px}

@@ -167,39 +167,49 @@ function rotUI(){
    ordenados pelo que uma visita rende com o foco de uma visita, respeitando o que a venda absorve no ciclo. */
 const ROT_SUG={};
 const rotSpecPct=fce=>Math.round((1-Math.pow(0.5,(fce||0)/10000))*100);
+const ROT_BOA_VENDA=5;   // "boas vendas" quando o filtro de vendas por dia está vazio
+const ROT_SUG_MODO={};
 function rotSugBox(city,plano){
-  const w=el("details",{class:"rot-sug"}); w.append(el("summary",{text:"Sugestões pela sua spec"}));
+  const w=el("details",{class:"rot-sug"}); w.append(el("summary",{text:"Sugestões de craft"}));
   const body=el("div",{class:"rot-sb"}); w.append(body);
-  const desenha=()=>{ body.textContent=""; const s=ROT_SUG[city];
-    if(!s){ body.append(el("p",{class:"tiny muted",text:"Procura, entre os itens com bônus aqui, os das linhas em que você tem mais spec, e mostra os que mais rendem por visita."})); const b=el("button",{type:"button",class:"btn sm",text:"Procurar"}); b.addEventListener("click",()=>rotSugCalc(city,desenha)); body.append(b); return; }
+  const desenha=()=>{ body.textContent=""; const modo=ROT_SUG_MODO[city]||"spec", key=city+"|"+modo, s=ROT_SUG[key];
+    const seg=el("div",{class:"seg rot-sm",role:"group","aria-label":"Tipo de sugestão"});
+    for(const [v,t,tt] of [["spec","Pela minha spec","Itens com bônus aqui nas linhas em que a sua ficha tem mais spec"],["lucro","Mais lucro com boas vendas",`Todos os itens com bônus aqui, os que mais rendem por visita entre os que vendem ao menos ${rotNum(ROT.minVol)||ROT_BOA_VENDA} por dia`]]){
+      const b=el("button",{type:"button",text:t,title:tt}); b.setAttribute("aria-pressed",String(v===modo)); b.addEventListener("click",()=>{ ROT_SUG_MODO[city]=v; desenha(); }); seg.append(b); }
+    body.append(seg);
+    if(!s){ body.append(el("p",{class:"tiny muted",text:modo==="spec"?"Procura, entre os itens com bônus aqui, os das linhas em que você tem mais spec, e mostra os que mais rendem por visita.":`Olha todos os itens com bônus aqui (T4 a T8, .0 a .3) e mostra os que mais rendem por visita entre os que vendem ao menos ${fmtU(rotNum(ROT.minVol)||ROT_BOA_VENDA)} por dia. Faz bem mais consultas: pode levar meio minuto.`})); const b=el("button",{type:"button",class:"btn sm",text:"Procurar"}); b.addEventListener("click",()=>rotSugCalc(city,desenha,modo)); body.append(b); return; }
     if(s.loading){ body.append(el("p",{class:"tiny muted",text:s.loading})); return; }
-    if(!s.lista.length){ body.append(el("p",{class:"tiny muted",text:s.vazio||(ROT.minPct||ROT.minVol?"Nada passa pelos filtros de lucro % e vendas por dia entre as suas linhas com bônus aqui. Afrouxe um deles.":"Nada com lucro agora entre as suas linhas com bônus aqui.")})); return; }
+    if(!s.lista.length){ body.append(el("p",{class:"tiny muted",text:s.vazio||(ROT.minPct||ROT.minVol?"Nada passa pelos filtros de lucro % e vendas por dia aqui. Afrouxe um deles.":"Nada com lucro e boas vendas agora aqui.")})); return; }
     const tem=new Set(ROT.itens[city]||[]);
     for(const x of s.lista){ const m=x.m, it=m.it, r=el("div",{class:"rot-op rot-sg"});
-      r.append(iconImg(it.id,28),el("span",{},el("b",{text:it.nm}),el("small",{class:"muted",text:` · spec ${rotSpecPct(it.fce)}% menos foco · lucro ${dec(m.pct*100)}% · ${dec(m.spf)} por foco · ${sgn(Math.round(x.visita))} numa visita${m.vol!=null?` · vende ${fmtU(m.vol)}/dia`:""}`})));
+      r.append(iconImg(it.id,28),el("span",{},el("b",{text:it.nm}),el("small",{class:"muted",text:` · ${it.fce>0?`spec ${rotSpecPct(it.fce)}% menos foco · `:modo==="lucro"?"sem spec · ":""}lucro ${dec(m.pct*100)}% · ${dec(m.spf)} por foco · ${sgn(Math.round(x.visita))} numa visita${m.vol!=null?` · vende ${fmtU(m.vol)}/dia em ${bagCityPT(m.venda.c)}`:""}`})));
       const b=el("button",{type:"button",class:"btn sm",text:tem.has(it.id)?"Já está":"Pôr"}); b.disabled=tem.has(it.id);
       b.addEventListener("click",()=>{ (ROT.itens[city]=ROT.itens[city]||[]).push(it.id); rotSave(); renderRot(); }); r.append(b); body.append(r); } };
-  desenha(); if(ROT_SUG[city]&&!ROT_SUG[city].loading) w.open=true; return w;
+  desenha(); const s0=ROT_SUG[city+"|"+(ROT_SUG_MODO[city]||"spec")]; if(s0&&!s0.loading) w.open=true; return w;
 }
-async function rotSugCalc(city,redraw){
-  ROT_SUG[city]={loading:"Procurando as linhas com mais spec…"}; redraw();
-  const cat=rotCatalogo()||[], comBonus=cat.filter(it=>it.city===city); comBonus.forEach(it=>{ it.fce=bmFCE(it.key); });
-  const porLinha=new Map(); for(const it of comBonus){ const v=porLinha.get(it.key); if(!v||it.fce>v) porLinha.set(it.key,it.fce||0); }
-  const linhas=[...porLinha.entries()].filter(([,f])=>f>0).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k])=>k);
-  if(!linhas.length){ ROT_SUG[city]={lista:[],vazio:"A sua ficha não tem spec de craft nas linhas com bônus aqui. Preencha a Minha ficha (ou sincronize pelo overlay) para ver sugestões."}; redraw(); return; }
-  const cands=comBonus.filter(it=>linhas.includes(it.key)&&it.e<=3);
-  ROT_SUG[city]={loading:`Buscando preços de ${fmt(cands.length)} itens…`}; redraw();
+async function rotSugCalc(city,redraw,modo="spec"){
+  const key=city+"|"+modo, set=v=>{ ROT_SUG[key]=v; redraw(); };
+  set({loading:modo==="spec"?"Procurando as linhas com mais spec…":"Separando os itens com bônus aqui…"});
+  const cat=rotCatalogo()||[], comBonus=cat.filter(it=>it.city===city&&it.e<=3); comBonus.forEach(it=>{ it.fce=bmFCE(it.key); });
+  let cands=comBonus;
+  if(modo==="spec"){ const porLinha=new Map(); for(const it of comBonus){ const v=porLinha.get(it.key); if(!v||it.fce>v) porLinha.set(it.key,it.fce||0); }
+    const linhas=[...porLinha.entries()].filter(([,f])=>f>0).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k])=>k);
+    if(!linhas.length){ set({lista:[],vazio:"A sua ficha não tem spec de craft nas linhas com bônus aqui. Preencha a Minha ficha (ou sincronize pelo overlay), ou use Mais lucro com boas vendas."}); return; }
+    cands=comBonus.filter(it=>linhas.includes(it.key)); }
+  set({loading:`Buscando preços de ${fmt(cands.length)} itens…`});
   try{
     const ids=[...new Set(cands.map(it=>rotApi(it.id)))].filter(x=>!ROT_LOADED.has(x)), mats=[...new Set(cands.flatMap(it=>it.ing.map(g=>rotApi(g.id))))].filter(x=>!ROT_LOADED.has(x));
-    if(ids.length) await fetchIds(ids,DATA.itens,[...SHOP_LOCS,"Black Market"]); if(mats.length) await fetchIds(mats,DATA.itens,SHOP_LOCS); [...ids,...mats].forEach(x=>ROT_LOADED.add(x));
+    if(mats.length) await fetchIds(mats,DATA.itens,SHOP_LOCS); mats.forEach(x=>ROT_LOADED.add(x));
+    for(let i=0;i<ids.length;i+=150){ const part=ids.slice(i,i+150); await fetchIds(part,DATA.itens,[...SHOP_LOCS,"Black Market"]); part.forEach(x=>ROT_LOADED.add(x)); if(ids.length>150) set({loading:`Buscando preços: ${fmt(Math.min(ids.length,i+150))} de ${fmt(ids.length)}…`}); }
     const F=rotFocoVisita(), visita=m=>{ const teto=m.vol!=null?Math.max(1,Math.floor(m.vol*rotCiclo())):Infinity, nF=m.pF>0?Math.min(teto,F>0?Math.floor(F/m.fc1):0):0, nN=m.pN>0?Math.min(teto-nF,isFinite(teto)?teto:0):0; return nF*m.pF+nN*m.pN; };
-    const mp=rotNum(ROT.minPct);
-    let ms=cands.map(it=>rotModel(it,city)).filter(m=>!m.miss&&m.pF>0&&(mp==null||m.pct*100>=mp)).sort((a,b)=>b.spf-a.spf).slice(0,40);   // o filtro de lucro % já entra aqui; o de vendas, depois de consultar
-    ROT_SUG[city]={loading:"Consultando quanto cada um vende por dia…"}; redraw();
+    const mp=rotNum(ROT.minPct), mv=rotNum(ROT.minVol)||(modo==="lucro"?ROT_BOA_VENDA:null);
+    let ms=cands.map(it=>rotModel(it,city)).filter(m=>!m.miss&&m.pF>0&&(mp==null||m.pct*100>=mp));
+    /* spec: os que mais rendem por foco; lucro: os de maior lucro por peça (as vendas decidem depois) */
+    ms=ms.sort(modo==="spec"?(a,b)=>b.spf-a.spf:(a,b)=>b.pF-a.pF).slice(0,modo==="spec"?40:80);
+    set({loading:`Consultando quanto ${fmt(ms.length)} itens vendem por dia…`});
     const keys=ms.map(m=>rotApi(m.it.id)+"|"+m.venda.c).filter(k=>OF2.hs[k]==null); if(keys.length) await histFetch(keys);
-    ms=ms.map(m=>rotModel(m.it,city)).filter(rotPassa);
-    const lista=ms.map(m=>({m,visita:visita(m)})).filter(x=>x.visita>0).sort((a,b)=>b.visita-a.visita).slice(0,6);
-    ROT_SUG[city]={lista};
-  }catch(e){ ROT_SUG[city]={lista:[],vazio:"Não consegui buscar os preços agora."}; }
-  redraw();
+    ms=ms.map(m=>rotModel(m.it,city)).filter(m=>rotPassa(m)&&(mv==null||(m.vol!=null&&m.vol>=mv)));
+    const lista=ms.map(m=>({m,visita:visita(m)})).filter(x=>x.visita>0).sort((a,b)=>b.visita-a.visita).slice(0,modo==="spec"?6:8);
+    set({lista});
+  }catch(e){ set({lista:[],vazio:"Não consegui buscar os preços agora."}); }
 }
