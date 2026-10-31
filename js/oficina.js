@@ -100,24 +100,41 @@ const sellLocs = () => { const l=[]; if(!OF.sellC.size||[...OF.sellC].some(c=>c!
 const ofSig = () => [...OF.sellC].sort().join(",")+"|"+OF.sellS+"|"+OF.buyS+"|"+[...OF.buyC].sort().join(",");
 const buyLocs = () => OF.buyC.size?[...OF.buyC]:SHOP_LOCS;   // cidades de compra marcadas (vazio = todas)
 const avgOf = (id,c) => { const h=OF2.hs[nk(id)+"|"+c]; return h&&h.avg>0?h.avg:0; };
+/* Estratégias de compra e venda (Craft e Refino)
+   Compra Inst. = menor anúncio da cidade (compra na hora). Ordem de Compra = maior ordem aberta + 2,5% da ordem; ordem abaixo de 70% do anúncio é lance perdido.
+   Venda Inst. = vende na hora para a maior ordem de compra. Ordem de Venda = anuncia no preço do menor anúncio (+2,5% da ordem).
+   Automático = em cada cidade, o que sai melhor depois das taxas (o menor custo na compra, o maior líquido na venda).
+   Anúncio de venda muito acima das outras cidades (mais de 30% acima da mediana, com 3 cidades ou mais) não vende e fica de fora. */
+const ofTaxV=()=>st.prem?0.04:0.08;
+function ofOrdemOk(v){ return v&&v[1]>0&&(!v[0]||v[1]>=v[0]*0.7); }
 function pickBuy(id,ov){
   if(OF.buyS==="manual"&&OF2.manB>0) return {p:OF2.manB,c:OF.buyC.size===1?[...OF.buyC][0]:"Manual",t:0,mode:"manual"};
-  const r=DATA.itens[id.includes("_LEVEL")?id.split("@")[0]:id]||{}; let best=null;
+  const r=DATA.itens[id.includes("_LEVEL")?id.split("@")[0]:id]||{}; let best=null, bestK=0;
   for(const c of (ov?[ov]:buyLocs())){ const v=r[c]; let p=0,t=0,mode="inst";
-    if(OF.buyS==="medio"){ p=avgOf(id,c); mode="medio"; } else if(OF.buyS==="ordem"){   // ordem de compra: a maior ordem aberta na cidade. Ordem muito abaixo do anúncio (menos de 70%) é lance perdido e não enche; sem ordem boa, vale comprar na hora ali
-      if(v&&v[1]>0&&(!v[0]||v[1]>=v[0]*0.7)){ p=v[1]; t=v[3]; mode="ordem"; } else if(v&&v[0]>0){ p=v[0]; t=v[2]; mode="inst"; } } else { p=v?v[0]:0; t=v?v[2]:0; }
-    if(p>0&&(!best||p<best.p)) best={p,c,t:t||snapTime(),mode}; }
+    if(OF.buyS==="medio"){ p=avgOf(id,c); mode="medio"; }
+    else if(OF.buyS==="ordem"){ if(ofOrdemOk(v)){ p=v[1]; t=v[3]; mode="ordem"; } else if(v&&v[0]>0){ p=v[0]; t=v[2]; } }   // sem ordem boa na cidade, compra na hora ali
+    else if(OF.buyS==="auto"){ const a=v&&v[0]>0?v[0]:0, o=ofOrdemOk(v)?v[1]*1.025:0;
+      if(o&&(!a||o<a)){ p=v[1]; t=v[3]; mode="ordem"; } else if(a){ p=a; t=v[2]; } }
+    else { p=v?v[0]:0; t=v?v[2]:0; }
+    const k=mode==="ordem"?p*1.025:p;   // compara pelo custo com a taxa da ordem
+    if(p>0&&(!best||k<bestK)){ best={p,c,t:t||snapTime(),mode}; bestK=k; } }
   return best; }
+function ofListaTeto(r,cands){ const ps=cands.filter(c=>c!=="Black Market").map(c=>r[c]&&r[c][0]).filter(x=>x>0).sort((a,b)=>a-b);
+  if(ps.length<3) return Infinity; const m=ps.length%2?ps[(ps.length-1)/2]:(ps[ps.length/2-1]+ps[ps.length/2])/2; return m*1.3; }
 function pickSell(id,ov){
   const cands=ov?[ov]:OF.sellC.size?[...OF.sellC]:SHOP_LOCS;
   if(OF.sellS==="manual"&&OF2.manS>0) return {p:OF2.manS,c:cands[0]||"Manual",t:0,mode:"manual"};
-  const tbl=OF2.qual>1?PQ[OF2.qual]:DATA.itens, r=tbl[id.includes("_LEVEL")?id.split("@")[0]:id]||{}; let best=null;
+  const tbl=OF2.qual>1?PQ[OF2.qual]:DATA.itens, r=tbl[id.includes("_LEVEL")?id.split("@")[0]:id]||{}; let best=null, bestK=0;
+  const teto=ov?Infinity:ofListaTeto(r,OF.sellC.size?cands:SHOP_LOCS), tx=ofTaxV();
   for(const c of cands){ const v=r[c]; let p=0,t=0,mode="ordem";
-    if(c==="Black Market"){ p=v?v[1]:0; t=v?v[3]:0; mode="inst"; }
+    const lista=v&&v[0]>0&&v[0]<=teto?v[0]:0, inst=v&&v[1]>0?v[1]:0;
+    if(c==="Black Market"){ p=inst; t=v?v[3]:0; mode="inst"; }
     else if(OF.sellS==="medio"){ p=avgOf(id,c); mode="medio"; }
-    else if(OF.sellS==="inst"){ p=v?v[1]:0; t=v?v[3]:0; mode="inst"; }
-    else { p=v?v[0]:0; t=v?v[2]:0; }
-    if(p>0&&(!best||p>best.p)) best={p,c,t:t||snapTime(),mode}; }
+    else if(OF.sellS==="inst"){ p=inst; t=v?v[3]:0; mode="inst"; }
+    else if(OF.sellS==="auto"){ if(inst&&(!lista||inst*(1-tx)>=lista*(1-tx-0.025))){ p=inst; t=v[3]; mode="inst"; } else if(lista){ p=lista; t=v[2]; } }
+    else { p=lista; t=v?v[2]:0; }
+    const k=p*(1-tx-(mode==="ordem"?0.025:0));   // compara pelo líquido, depois das taxas
+    if(p>0&&(!best||k>bestK)){ best={p,c,t:t||snapTime(),mode}; bestK=k; } }
   return best; }
 /* marcador da cidade com bônus de produção de cada item (dados do jogo: craftingmodifiers). Refino +40%, equipamento, comida e poção +15%;
    armas e armaduras também têm o mesmo bônus num dos Rests da zona preta (Arthur's, Merlyn's ou Morgana's Rest). */
