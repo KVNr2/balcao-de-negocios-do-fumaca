@@ -17,7 +17,8 @@ const RES = {
   wood:{raw:"WOOD",ref:"PLANKS",city:"Fort Sterling",rawName:"Madeira",refName:"Tábua",prevName:"Tábua",u:"tábua",up:"tábuas",art:"uma",note:"Fort Sterling tem o bônus de refino de madeira."},
   stone:{raw:"ROCK",ref:"STONEBLOCK",city:"Bridgewatch",rawName:"Pedra",refName:"Bloco de pedra",prevName:"Bloco de pedra",u:"bloco",up:"blocos",art:"um",note:"Bridgewatch tem o bônus de refino de pedra."}
 };
-const N = {4:2,5:3,6:4,7:5,8:5};
+const N = {2:1,3:2,4:2,5:3,6:4,7:5,8:5};
+const FOCUS_REF_LOW = {2:11,3:27}; // T2 e T3: estimado pela proporção do T4 (o jogo cobra bem menos foco nesses tiers)
 const FOCUS_REF = [[54,94,164,287,503],[94,164,287,503,880],[164,287,503,880,1539],[287,503,880,1539,2694],[503,880,1539,2694,4715]]; // .4 estimado (×1,75 por nível)
 const FOCUS_CRAFT = [[429,750,1313,2298,4021],[750,1313,2298,4021,7037],[1313,2298,4021,7037,12315],[2298,4021,7037,12315,21551],[4021,7037,12315,21551,37714]]; // elmo e botas; peito = ×2
 const IV = (t,e)=>Math.pow(2,t+e);

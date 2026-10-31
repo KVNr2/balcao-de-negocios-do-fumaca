@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T00:40:00Z",
+   "titulo": "Refino: T2 e T3 na lista, e refinar sem foco",
+   "itens": [
+    "A aba Refino passou a mostrar os refinos T2 e T3 de barra, tecido, couro, tábua e bloco de pedra. O T2 usa só a matéria-prima, e o T3 usa 2 de matéria-prima mais 1 refinado T2. Eles não têm encantamento.",
+    "Novo: dá para refinar sem foco. Desligue Usar foco e o campo do topo vira Unidades a refinar. A conta usa o retorno sem foco (36,7% na cidade com bônus daquele recurso) e não gasta foco.",
+    "O custo de foco do T2 e do T3 é estimado pela proporção do T4."
+   ],
+   "como": "Refino > desligue Usar foco e digite quantas unidades quer refinar. No filtro Tier, marque T2 ou T3 para ver só eles.",
+   "impacto": "Quem está começando ou está sem foco também vê se o refino compensa."
+  },
+  {
    "t": "2026-10-30T15:45:00Z",
    "titulo": "Conferimos as nossas contas com o tools4albion",
    "itens": [

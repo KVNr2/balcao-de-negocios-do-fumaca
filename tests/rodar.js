@@ -96,6 +96,19 @@ async function simular(p) {
     return { p: salvo.p && salvo.p.length, o: salvo.o && salvo.o.length, txt: cjTexto(c).split("\n").length, cheio6: cheio }; });
   conf("conjunto de builds guarda principais e opcionais", cj.p === 2 && cj.o === 1 && cj.txt === 6, cj);
 
+  /* 9. Refino: T2 e T3 na lista, e refinar sem foco */
+  const rf = await p.evaluate(async () => { document.getElementById("t-refino").click();
+    OF.tiers.clear(); OF.tiers.add(2); OF.tiers.add(3); renderOf();
+    for (let i = 0; i < 60; i++) { await new Promise(f => setTimeout(f, 250)); if (document.querySelectorAll("#p-refino .of-rec").length) break; }
+    const com = [...document.querySelectorAll("#p-refino .of-rec")].map(x => x.textContent);
+    const it = ofItems("refine").find(x => x.id === "T3_PLANKS"), mF = ofModel(it);
+    const fc = document.getElementById("ofFocus"); fc.checked = false; fc.dispatchEvent(new Event("change"));
+    for (let i = 0; i < 20; i++) { await new Promise(f => setTimeout(f, 250)); if (/sem foco/.test(document.querySelector("#p-refino .of-rec")?.textContent || "")) break; }
+    const sem = [...document.querySelectorAll("#p-refino .of-rec")].map(x => x.textContent), mS = ofModel(it);
+    fc.checked = true; fc.dispatchEvent(new Event("change")); OF.tiers.clear();
+    return { nCom: com.length, focoCom: /foco/.test(com[0] || ""), nSem: sem.length, semFoco: /sem foco/.test(sem[0] || ""), rrF: mF && mF.rr, rrS: mS && mS.rr, nS: mS && mS.N, fcS: mS && mS.fc, ing: it && it.ing.map(g => g.id + "x" + g.n) }; });
+  conf("refino mostra T2 e T3 e refina sem foco", rf.nCom >= 5 && rf.semFoco && rf.nS === 100 && rf.fcS === 0 && rf.rrS < rf.rrF && String(rf.ing) === "T3_WOODx2,T2_PLANKSx1", rf);
+
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
   console.log(ok.map(x => "ok   " + x).join("\n")); if (falhas.length) { console.log(falhas.map(x => "FALHOU " + x).join("\n")); process.exit(1); }
