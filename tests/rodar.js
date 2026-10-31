@@ -42,7 +42,7 @@ async function simular(p) {
   await simular(p); await p.goto(BASE); await p.waitForTimeout(3000);
 
   /* 1. as páginas abrem sem erro */
-  for (const t of ["t-voce", "t-plano", "t-refino", "t-craft", "t-encantar", "t-cozinha", "t-fazenda", "t-pesca", "t-trab", "t-mk", "t-mercado", "t-builds", "t-pvp", "t-versao"]) {
+  for (const t of ["t-voce", "t-plano", "t-refino", "t-craft", "t-encantar", "t-cozinha", "t-fazenda", "t-pesca", "t-trab", "t-mk", "t-mercado", "t-transp", "t-builds", "t-pvp", "t-versao"]) {
     await p.evaluate(t => { const x = document.getElementById(t); if (x) x.click(); }, t); await p.waitForTimeout(2500); }
   conf("páginas abrem sem erro de script", erros.length === 0, erros.slice(0, 5));
 
@@ -134,6 +134,15 @@ async function simular(p) {
     o.cel = document.querySelector("#ckTable .ck-venda small")?.textContent || ""; document.querySelector('#ckVS [data-v="auto"]').click();
     o.ui = !!document.querySelector("#ckVC.msel"); return o; });
   conf("Cozinha escolhe a venda pela estratégia e pela cidade", String(cv.ordem) === "1020,Thetford,ordem" && String(cv.inst) === "970,Martlock,inst" && String(cv.auto) === "1020,Thetford,ordem" && cv.tipico[2] === "tipico" && cv.lym.c === "Lymhurst" && /na hora/.test(cv.cel) && cv.ui, cv);
+
+  /* 12. Transporte: rota com lucro depois das taxas, carga pela montaria e pelo que o destino vende */
+  const tr = await p.evaluate(async () => { document.getElementById("t-transp").click(); await new Promise(f => setTimeout(f, 6000)); await bagData();
+    const id = "T1_FACTION_FOREST_TOKEN_1"; DATA.itens[id] = { Lymhurst: [3000, 2900, 1, 1], Martlock: [4000, 3500, 1, 1], Thetford: [4100, 0, 1, 0] };
+    OF2.hs[id + "|Martlock"] = { vol: 100, avg: 4000 }; OF2.hs[id + "|Thetford"] = { vol: 10, avg: 4100 };
+    Object.assign(TR, { grp: "hearts", buy: "auto", sell: "auto", mount: "T8_MOUNT_OX", cash: "", dias: 3, seguro: false }); TR.de = new Set(["Lymhurst"]); TR.para = new Set(["Martlock", "Thetford"]);
+    const rs = trRoutes([{ api: id, id, nm: "x", t: 1, e: 0, kind: "Coração" }]); TR.de = new Set(); TR.para = new Set();
+    return { n: rs.length, r: rs.map(r => [r.b, Math.round(r.lucro), r.n, r.lim.join("+"), r.buy.mode, r.sell.mode]), cards: document.querySelectorAll(".tr-card").length }; });
+  conf("transporte calcula rota, carga e limite de vendas", tr.n === 2 && tr.r[0][0] === "Martlock" && tr.r[0][2] === 300 && tr.r[1][2] === 30 && tr.r[1][3] === "vendas", tr);
 
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();

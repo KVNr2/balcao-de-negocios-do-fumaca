@@ -317,6 +317,7 @@ function bonusLinhaItem(id){
 }
 const bdItem=id=>bonusDia(bonusLinhaItem(id));
 const taxOf=()=> (st.prem?0.04:0.08)+(st.sell==="order"?0.025:0);
+const taxBase=()=> st.prem?0.04:0.08;   // só a taxa de venda; os 2,5% do anúncio entram à parte quando a venda é por anúncio
 const feeVal=()=>+$("fee").value||0;
 function model(res,t,e,o={}){
   const R=RES[res];
@@ -1164,7 +1165,7 @@ const ckVSave=()=>{ try{ store.set("ckVenda",JSON.stringify({s:CKV.s,c:[...CKV.c
 const CKV_PILL={ordem:"ORDEM VENDA",inst:"VENDA INST",tipico:"PREÇO TÍPICO"};
 const CKV_SUB={ordem:"anúncio no preço do menor anúncio",inst:"vende na hora para a maior ordem de compra",tipico:"mediana dos anúncios das cidades"};
 function ckSale(id){
-  const r=DATA.itens[id]||{}, locs=CKV.c.size?[...CKV.c]:Object.keys(r).filter(c=>c!=="Black Market"), tx=taxOf();
+  const r=DATA.itens[id]||{}, locs=CKV.c.size?[...CKV.c]:Object.keys(r).filter(c=>c!=="Black Market"), tx=taxBase();
   const comPreco=locs.filter(c=>r[c]&&(r[c][0]>0||r[c][1]>0)).length;
   if(CKV.s==="tipico"){ const sub={}; for(const c of locs) if(r[c]) sub[c]=r[c]; const t=typical(id,0,{[id]:sub}); return t?{p:t.p,n:t.n,c:locs.length===1?locs[0]:"cidades",mode:"tipico",t:t.t}:null; }
   const ps=locs.map(c=>r[c]&&r[c][0]).filter(x=>x>0).sort((a,b)=>a-b);
@@ -1186,7 +1187,7 @@ function cookModel(id){
   const item=ckSale(id);
   if(miss||!item) return {id,name,kind,q,miss:miss||"preço do próprio item"};
   if(item.n<2) thin=true;
-  const fee=q*nut*0.1125*feeVal()/100, net=q*item.p*(1-taxOf()-(item.mode==="ordem"?0.025:0));
+  const fee=q*nut*0.1125*feeVal()/100, net=q*item.p*(1-taxBase()-(item.mode==="ordem"?0.025:0));
   const r1=rrr(0.15,true,st.daily+bonusDia(/_POTION/i.test(id)?"POTION":"MEAL")), r0=rrr(0.15,false,st.daily+bonusDia(/_POTION/i.test(id)?"POTION":"MEAL"));
   const ret=cost-fix, p1=net-ret*(1-r1)-fix-fee, p0=net-ret*(1-r0)-fix-fee, fc=Math.max(1,Math.round(fo*Math.pow(0.5,cookFCE(kind,id)/10000)));
   const bc=ret*(1-r1)+fix+fee;
@@ -1308,7 +1309,7 @@ function cookPanel(m){
   const card=(cls,title,lines,tot)=>{ const c=el("div",{class:"of-xcard "+cls}); c.append(el("h4",{class:"of-xh",text:title})); for(const [k,v] of lines){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{text:v})); c.append(l); } if(tot){ const l=el("div",{class:"of-xline of-xtot"}); l.append(el("span",{text:tot[0]}),el("b",{text:tot[1]})); c.append(l); } return c; };
   const rr=rrr(0.15,true,st.daily+bonusDia(bonusCozinha(m))), bruto=m.q*m.item.p*N, fN=N>1?` (${fmt(N)} fornadas)`:"";
   right.append(card("cost","Custos detalhados (−)",[[`Ingredientes${fN}`,fmt(m.cost*N)],[`Retorno de recursos (${dec(rr*100)}%${m.fix>0?", o ingrediente raro não volta":""})`,"−"+fmt(m.ret*rr*N)],["Taxa da estação",fmt(m.fee*N)]],[N>1?"Custo total":"Custo da fornada",fmt((m.ret*(1-rr)+m.fix+m.fee)*N)]));
-  const lines=[[`Venda (${fmt(m.q*N)} × ${fmt(m.item.p)})`,fmt(bruto)],[`Taxas de venda (${dec((taxOf()+(m.item.mode==="ordem"?0.025:0))*100)}%${m.item.mode==="ordem"?", com os 2,5% do anúncio":""})`,"−"+fmt(bruto-m.net*N)],["Líquido da venda",fmt(m.net*N)],[N>1?"Foco no total":"Foco por fornada",fmt(focMix(N,m.fc,m.p1,m.p0).foc)]];
+  const lines=[[`Venda (${fmt(m.q*N)} × ${fmt(m.item.p)})`,fmt(bruto)],[`Taxas de venda (${dec((taxBase()+(m.item.mode==="ordem"?0.025:0))*100)}%${m.item.mode==="ordem"?", com os 2,5% do anúncio":""})`,"−"+fmt(bruto-m.net*N)],["Líquido da venda",fmt(m.net*N)],[N>1?"Foco no total":"Foco por fornada",fmt(focMix(N,m.fc,m.p1,m.p0).foc)]];
   if(N>1) lines.push(["Lucro por fornada",sgn(m.p1)]);
   lines.push(["Com 10.000 de foco",sgn(m.day)+" por dia"],["Por ponto de foco",dec(m.spf)+" pratas"]);
   const v=lfVol(m.id); if(v!=null&&v>=0) lines.push(["O mercado vende por dia",`${fmtU(v)} (você faz ${fmt(m.q*N)})`]);
