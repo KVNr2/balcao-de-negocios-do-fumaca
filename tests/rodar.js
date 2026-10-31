@@ -196,6 +196,14 @@ async function simular(p) {
   const ql = await p.evaluate(() => { const c = qualChances(750), z = qualChances(0); return { exc: (c[4] + c[5]) * 100, op: c[5] * 100, soma: c.slice(1).reduce((a, b) => a + b, 0), n0: z[1] }; });
   conf("chances de qualidade pela spec", Math.abs(ql.exc - 8.972) < 0.01 && Math.abs(ql.op - 0.8468) < 0.005 && Math.abs(ql.soma - 1) < 1e-9 && Math.abs(ql.n0 - 0.689) < 1e-9, ql);
 
+  const rref = await p.evaluate(async () => { const it = rotCatalogo().find(x => x.city === "Martlock" && x.t === 6 && x.e === 0 && x.ing.some(g => /METALBAR|LEATHER|CLOTH|PLANKS/.test(g.id)));
+    ROT.itens = { Martlock: [it.id] }; ROT.refinar = true; await rotEnsure(document.getElementById("rotNote"));
+    const g = it.ing.find(g => /METALBAR|LEATHER|CLOTH|PLANKS/.test(g.id)), ref = rotRef(g.id, false), refF = rotRef(g.id, true), m = rotModel(it, "Martlock");
+    const usa = m.mats.some(x => x.m.use.mode === "refino"); renderRot(); await new Promise(f => setTimeout(f, 2500));
+    const ord = document.getElementById("rotOrd").textContent; ROT.refinar = false;
+    return { ok: !!ref, menorComFoco: refF && ref && refF.k < ref.k, usa, ordRaw: usa ? /para refinar em/.test(ord) : true, spf: m.refSpf }; });
+  conf("rotação: refinar você mesmo entra no custo e nas ordens", rref.ok && rref.menorComFoco && rref.ordRaw, rref);
+
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
   console.log(ok.map(x => "ok   " + x).join("\n")); if (falhas.length) { console.log(falhas.map(x => "FALHOU " + x).join("\n")); process.exit(1); }
