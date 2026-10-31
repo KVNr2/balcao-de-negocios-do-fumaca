@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T16:20:00Z",
+   "titulo": "Menu do item: qualidade pela sua spec e fabricar .0 e encantar",
+   "itens": [
+    "No botão direito de uma arma, armadura ou mão secundária (T4 ou mais), a nova opção Fabricar: qualidade e encantar abre na hora, sem encher os cartões da lista.",
+    "Qualidade: a chance de sair Normal, Bom, Excepcional, Excelente ou Obra-prima com a sua spec, sem foco e com foco, o preço de cada qualidade e o valor esperado por peça comparado a contar tudo como Normal. É uma estimativa: cada 100 pontos de qualidade dão uma jogada a mais, e a peça fica com a melhor.",
+    "Encantar: para peças .1 a .4, compara fabricar a .0 e encantar com runas, almas e relíquias contra fabricar já encantado, e diz qual sai mais barato."
+   ],
+   "como": "Clique com o botão direito no ícone de qualquer equipamento > Fabricar: qualidade e encantar.",
+   "impacto": "Dá para ver se a sua spec compensa no preço e qual o caminho mais barato até o encantamento."
+  },
+  {
    "t": "2026-10-31T15:30:00Z",
    "titulo": "Uma regra só para comprar e vender",
    "itens": [
