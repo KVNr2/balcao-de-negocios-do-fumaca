@@ -229,7 +229,7 @@ async function itemMenu(id,q,x,y,origem){
   if(gear) add("bm","Ver no Mercado Negro");
   if(gear||cook||ref) add("craft",cook?"Como fazer (Cozinha e alquimia)":ref?"Como refinar (Refino)":"Como fabricar (Craft)");
   const eqBox=el("div",{class:"imenu-eq",hidden:true});
-  if(gear&&t>=4&&bcEquivs(t+e).length>1){ const b=el("button",{type:"button",class:"imenu-i",role:"menuitem"}); b.append(el("span",{text:"Substituição de mesmo IP mais barata"}),el("small",{text:`${t}.${e} = ${bcEquivs(t+e).map(([a,b])=>a+"."+b).join(" = ")}`}));
+  if(gear&&t>=4&&bcEquivs(t+e).length>1){ const b=el("button",{type:"button",class:"imenu-i",role:"menuitem"}); b.append(el("span",{text:"Substituição de mesmo IP mais barata"}),el("small",{text:`${t}.${e} = ${bcEquivs(t+e).filter(([a,b])=>a!==t||b!==e).map(([a,b])=>a+"."+b).join(" = ")}`}));
     b.addEventListener("click",async()=>{ eqBox.hidden=false; eqBox.textContent="Consultando…"; const ids=bcEquivs(t+e).map(([a,b])=>`T${a}_${code}${b?"@"+b:""}`); const pr=await imPrecos(ids,q); eqBox.textContent="";
       const lst=ids.map(i=>({i,r:pr[i]})).sort((a,b)=>(a.r?a.r.p:Infinity)-(b.r?b.r.p:Infinity));
       for(const {i,r} of lst){ const mm=/^T(\d)_.+?(?:@(\d))?$/.exec(i); const li=el("div",{class:"imenu-eqr"+(i===id?" cur":"")}); li.append(iconImg(i,24,q),el("span",{text:`${mm[1]}.${mm[2]||0}${i===id?" (este)":""}`}),el("span",{class:"muted",text:r?r.c:"sem anúncio"}),el("b",{text:r?fmtS(r.p):"—"})); eqBox.append(li); } });
@@ -239,6 +239,13 @@ async function itemMenu(id,q,x,y,origem){
     let aberto=null; b.addEventListener("click",async()=>{ if(aberto){ aberto.remove(); aberto=null; b.setAttribute("aria-expanded","false"); return; } aberto=await mcBox(id,q); b.after(aberto); b.setAttribute("aria-expanded","true"); });
     menu.append(b); itens.push(b); }
   if(typeof bagAdd==="function") add("bag","Pôr na bag");
+  if(typeof lcAdd==="function"){ const lb=el("div",{class:"imenu-lc"}), qn=el("input",{type:"number",min:"1",step:"1",value:"1","aria-label":"Quantidade para a lista de compras"}), bt=el("button",{type:"button",class:"imenu-i",role:"menuitem"});
+    bt.append(el("span",{text:"Pôr na lista de compras"}),el("small",{text:"na cidade mais barata agora"}));
+    bt.addEventListener("click",async()=>{ const pr=await imPrecos([id],q); const x=pr[id]; lcAdd([{id,q:Math.max(1,Math.round(+qn.value||1)),nm:nm.pt+(t?` T${t}.${e}`:""),c:x&&x.c||"",p:x&&x.p||0,modo:"inst"}],"Menu do item"); imFechar(); });
+    lb.append(bt,qn); menu.append(lb); itens.push(bt); }
+  if(gear&&t>=4&&typeof ROT!=="undefined"&&typeof rotItem==="function"){ const cid=BM[code]&&BM[code][2];
+    if(cid&&ROT_CIDADES.includes(cid)){ const ja=(ROT.itens[cid]||[]).includes(id); const b=el("button",{type:"button",class:"imenu-i",role:"menuitem"}); b.append(el("span",{text:ja?`Já está na rotação (${cid})`:"Pôr na Rotação de craft"}),el("small",{text:`na cidade com bônus: ${cid}`})); b.disabled=ja;
+      b.addEventListener("click",()=>{ (ROT.itens[cid]=ROT.itens[cid]||[]).push(id); if(!ROT.cidades.includes(cid)) ROT.cidades.push(cid); rotSave(); imFechar(); if(typeof toast==="function") toast(`${nm.pt} entrou na rotação de ${cid}`); }); menu.append(b); itens.push(b); } }
   add("copy","Copiar o nome");
   /* de olho: guarda o item com um preço-alvo; o site confere de tempos em tempos e avisa quando o menor anúncio chega no alvo */
   const ol=olhoGet(id,q), ob=el("div",{class:"imenu-olho"}), ock=el("input",{type:"checkbox"}), oin=el("input",{type:"number",min:"1",step:"1",placeholder:"preço-alvo","aria-label":"Avisar quando o preço cair até"});
@@ -256,6 +263,15 @@ async function itemMenu(id,q,x,y,origem){
   if(b.p){ IM.min=b.p; ln("Comprar: ",b,"imenu-c"); } else preco.append(el("div",{text:"Sem anúncio de venda recente nas cidades da royal."}));
   if(b.ordem) ln("Vender na hora: ",b.ordem,"imenu-v"); if(b.anuncio&&b.anuncio.c!==b.c) ln("Anunciar: ",b.anuncio,"imenu-v");
   if(!oin.value&&!ock.checked&&b.p) oin.placeholder=`ex.: ${fmt(Math.round(b.p*0.9))}`;
+  /* vendas por dia e média de 7 dias (todas as cidades): dizem se o item tem saída e se o preço de agora está fora do normal */
+  try{ const ki=typeof nk==="function"?nk(id):id, keys=SHOP_LOCS.map(c=>ki+"|"+c);
+    if(typeof histFetch==="function"&&keys.some(k=>OF2.hs[k]==null)) await histFetch(keys);
+    if(IM.el!==menu) return; let vol=0, sv=0, any=false; for(const k of keys){ const h=OF2.hs[k]; if(h&&h.vol>0){ vol+=h.vol; sv+=h.vol*h.avg; any=true; } }
+    if(any){ const avg=sv/vol, d=el("div",{class:"imenu-vol"}); d.append("Vende ",el("b",{text:`${fmtU(vol)} por dia`}),` · média de 7 dias ${fmt(Math.round(avg))}`);
+      if(b.p&&avg>0){ const dif=(b.p-avg)/avg; if(Math.abs(dif)>=0.15) d.append(el("span",{class:dif>0?"loss":"gain",text:` · agora ${dif>0?"+":""}${dec(dif*100)}% da média`})); }
+      preco.append(d); }
+    else preco.append(el("div",{class:"imenu-vol muted",text:"Sem vendas registradas nos últimos 7 dias."}));
+  }catch(err){}
 }
 document.addEventListener("contextmenu",ev=>{ const im=ev.target.closest&&ev.target.closest("img[data-item]"); if(!im||ev.shiftKey) return; ev.preventDefault(); itemMenu(im.dataset.item,+im.dataset.q||1,ev.clientX,ev.clientY,im.closest("[tabindex]")); });
 document.addEventListener("click",ev=>{ if(IM.el&&!IM.el.contains(ev.target)) imFechar(); },true);

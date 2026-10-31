@@ -1164,7 +1164,7 @@ function ckBuy(iid){
    ordem = anuncia no menor anúncio (+2,5% da ordem); inst = vende na hora para a maior ordem de compra; tipico = mediana dos anúncios das cidades */
 const CKV=(()=>{ try{ const o=JSON.parse(store.get("ckVenda")||"{}"); return {s:["auto","ordem","inst","tipico"].includes(o.s)?o.s:"auto",c:new Set(Array.isArray(o.c)?o.c:[])}; }catch(e){ return {s:"auto",c:new Set()}; } })();
 const ckVSave=()=>{ try{ store.set("ckVenda",JSON.stringify({s:CKV.s,c:[...CKV.c]})); }catch(e){} };
-const CKV_PILL={ordem:"ORDEM VENDA",inst:"VENDA INST",tipico:"PREÇO TÍPICO"};
+const CKV_PILL={ordem:"ANÚNCIO",inst:"VENDA NA HORA",tipico:"PREÇO TÍPICO"};
 const CKV_SUB={ordem:"anúncio no preço do menor anúncio",inst:"vende na hora para a maior ordem de compra",tipico:"mediana dos anúncios das cidades"};
 function ckSale(id){
   const r=DATA.itens[id]||{}, locs=CKV.c.size?[...CKV.c]:Object.keys(r).filter(c=>c!=="Black Market");
@@ -1242,7 +1242,7 @@ async function renderCook(){
   }
   { const w=tb.parentNode; if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }
 }
-const CK_PILL={inst:"COMPRA INST",ordem:"ORDEM COMPRA",planto:"DA ILHA",tenho:"JÁ TENHO",manual:"MANUAL"};
+const CK_PILL={inst:"COMPRA NA HORA",ordem:"ORDEM DE COMPRA",planto:"DA ILHA",tenho:"JÁ TENHO",manual:"MANUAL"};
 const CK_SUB={inst:"menor anúncio nas cidades",ordem:"ordem de compra, preço típico",planto:"custo de produzir na ilha",tenho:"entra como custo zero",manual:"valor que você digitou"};
 const CK_OPT=[["","Como o geral"],["inst","Compro na hora"],["ordem","Ordem de compra"],["planto","Produzo na ilha"],["tenho","Já tenho"],["manual","Valor manual"]];
 /* o que plantar ou criar na ilha para N fornadas, com foco por ingrediente e onde o foco rende mais */
@@ -1281,7 +1281,7 @@ function cookPanel(m){
     const it=el("span",{class:"of-xi"}); it.append(el("i",{class:"of-dot"+(kind==="buy"?" red":"")}),iconImg(id,34)); const n=el("span",{class:"of-xn"}); n.append(el("b",{text:nm})); if(sub) n.append(el("small",{text:sub})); it.append(n); r.append(it);
     r.append(el("b",{class:"of-xv",text:fmt(val)}),el("span",{class:"of-xt",text:"—"}),el("span",{class:"of-xc",text:where}),el("span",{class:"of-xq",text:qty})); return r; };
   left.append(row("sale",CKV_PILL[m.item.mode]||"VENDA",m.id,m.name,CKV_SUB[m.item.mode]||"",m.item.p,`${fmt(m.q*N)}x`,m.item.c));
-  for(const x of m.parts) left.append(row("buy",CK_PILL[x.p.src]||"COMPRA INST",x.iid,COOK.n[x.iid]||x.iid,(CK_SUB[x.p.src]||"")+(x.nr?" · não volta no retorno":""),x.p.p,`${fmt(x.c*N)}x`,x.p.src==="tenho"||x.p.src==="planto"?"—":city));
+  for(const x of m.parts) left.append(row("buy",CK_PILL[x.p.src]||"COMPRA NA HORA",x.iid,COOK.n[x.iid]||x.iid,(CK_SUB[x.p.src]||"")+(x.nr?" · não volta no retorno":""),x.p.p,`${fmt(x.c*N)}x`,x.p.src==="tenho"||x.p.src==="planto"?"—":city));
   /* de onde vem cada ingrediente: troca só este, por cima do geral */
   const box=el("div",{class:"ck-src"}); box.append(el("b",{class:"of-ct",text:"De onde vem cada ingrediente"}),el("span"));
   for(const x of m.parts){

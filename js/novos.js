@@ -60,9 +60,9 @@ function enPanel(m){
     r.append(el("b",{class:"of-xv",text:fmt(val)}),el("span",{class:"of-xt",text:"—"}),el("span",{class:"of-xc",text:where}),el("span",{class:"of-xq",text:qty})); return r; };
   const nm=nmKey(m.key,m.name);
   if(m.alt) left.append(row("sale","SEM ENCANTAR",idUp,`${nm} .${m.e}`,"o que custaria já encantado",m.alt.p,"1x",m.alt.how.replace(/^(comprar|fabricar) em /,"")));
-  if(!crafted){ const city=m.base.how.replace("comprando em ",""); left.append(row("buy","COMPRA INST",idLow,`${nm} .${m.e-1}`,"peça de base mais barata",m.base.p,"1x",city)); }
-  else for(const p of cr.parts) left.append(row("buy","COMPRA INST",(p.id||idLow).replace(/_LEVEL(\d)$/,"_LEVEL$1@$1"),p.nm,p.art?"artefato não volta":"para fabricar a peça de base",p.p,`${fmt(p.q)}x`,cr.city));
-  left.append(row("buy","COMPRA INST",matId,`${EN_MAT[m.e][1]} T${m.t}`,"mediana das cidades",m.mat.p,`${m.n}x`,"cidades"));
+  if(!crafted){ const city=m.base.how.replace("comprando em ",""); left.append(row("buy","COMPRA NA HORA",idLow,`${nm} .${m.e-1}`,"peça de base mais barata",m.base.p,"1x",city)); }
+  else for(const p of cr.parts) left.append(row("buy","COMPRA NA HORA",(p.id||idLow).replace(/_LEVEL(\d)$/,"_LEVEL$1@$1"),p.nm,p.art?"artefato não volta":"para fabricar a peça de base",p.p,`${fmt(p.q)}x`,cr.city));
+  left.append(row("buy","COMPRA NA HORA",matId,`${EN_MAT[m.e][1]} T${m.t}`,"mediana das cidades",m.mat.p,`${m.n}x`,"cidades"));
   const card=(cls,title,lines,tot)=>{ const c=el("div",{class:"of-xcard "+cls}); c.append(el("h4",{class:"of-xh",text:title})); for(const [k,v,cc] of lines){ const l=el("div",{class:"of-xline"}); l.append(el("span",{text:k}),el("b",{class:cc||"",text:v})); c.append(l); } if(tot){ const l=el("div",{class:"of-xline of-xtot"}); l.append(el("span",{text:tot[0]}),el("b",{text:tot[1]})); c.append(l); } return c; };
   const cl=[]; if(crafted){ cl.push([`Matérias da peça (${cr.city})`,fmt(cr.res)],[`Retorno de recursos (${Math.round(cr.rr*100)}%)`,"−"+fmt(cr.res*cr.rr)]); if(cr.art>0) cl.push(["Artefato",fmt(cr.art)]); cl.push(["Taxa da estação",fmt(cr.fee)]); cl.push([`Peça de base .${m.e-1}`,fmt(m.base.p)]); } else cl.push([`Peça de base .${m.e-1} (${m.base.how})`,fmt(m.base.p)]);
   cl.push([`${EN_MAT[m.e][1]} (${m.n} × ${fmt(m.mat.p)})`,fmt(m.n*m.mat.p)]);
