@@ -115,6 +115,10 @@ async function simular(p) {
     OF.buyS = "inst"; OF.buyC = new Set(dois); const b = pickBuy(id); OF.buyC = new Set(); OF.buyS = "auto"; ofCards();
     const lista = document.querySelectorAll("#ofBuyList .of-opt").length;
     return { SHOP_N: SHOP_LOCS.length, dois, p: b && b.p, c: b && b.c, esperado, lista, ui: !!document.querySelector("#bmBuyC.msel") }; });
+  const oc = await p.evaluate(() => { DATA.itens.T9_TESTE = { Lymhurst: [2576, 0, 1, 0], Brecilien: [2850, 1805, 1, 1], Martlock: [2775, 2516, 1, 1] };
+    OF.buyS = "ordem"; const a = pickBuy("T9_TESTE"); OF.buyC = new Set(["Lymhurst"]); const b = pickBuy("T9_TESTE"); OF.buyC = new Set(); OF.buyS = "auto"; delete DATA.itens.T9_TESTE;
+    return { a, b }; });
+  conf("ordem de compra ignora lance perdido e cai na compra na hora sem ordem", oc.a.p === 2516 && oc.a.mode === "ordem" && oc.b.p === 2576 && oc.b.mode === "inst", oc);
   conf("compra aceita mais de uma cidade", bc.dois.length === 2 && bc.p === bc.esperado && bc.dois.includes(bc.c) && bc.lista === 1 + bc.SHOP_N && bc.ui, bc);
 
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
