@@ -1,6 +1,19 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T04:35:00Z",
+   "titulo": "Rotação de craft: Thetford e filtros de lucro e vendas",
+   "itens": [
+    "Thetford entrou na rotação: agora vêm as 5 cidades reais. Quem já tinha montado a rotação ganha Thetford automaticamente, e dá para tirar em Cidades da rotação.",
+    "Novo filtro Lucro % mínimo: o lucro com foco sobre o custo de material e taxas.",
+    "Novo filtro Vende por dia, no mínimo: a média de 7 dias na cidade onde o item vende melhor.",
+    "Item abaixo dos filtros fica fora do plano do dia, com o motivo no cartão da cidade. As sugestões pela spec também respeitam os filtros.",
+    "Cada item e cada sugestão agora mostram o lucro %."
+   ],
+   "como": "Ofícios > Rotação de craft > campos Lucro % mínimo e Vende por dia, no mínimo.",
+   "impacto": "A rotação fica só com o que dá margem boa e tem saída."
+  },
+  {
    "t": "2026-10-31T04:20:00Z",
    "titulo": "Nova página: Rotação de craft",
    "itens": [

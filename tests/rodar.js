@@ -152,6 +152,12 @@ async function simular(p) {
     return { cat: rotCatalogo().length, rA: a.rF, rB: b.rF, foco: pl.foco, max: rotFocoVisita(), n: pl.linhas[0] && (pl.linhas[0].nF + pl.linhas[0].nN), hoje: /Martlock/.test(document.getElementById("rotHoje").textContent), ord: document.querySelectorAll("#rotOrd table").length }; });
   conf("rotação aplica bônus da cidade, respeita o foco e lista as ordens", rot.cat > 1000 && rot.rA > rot.rB && rot.foco <= rot.max && rot.n > 0 && rot.hoje && rot.ord === 1, rot);
 
+  const rf2 = await p.evaluate(() => { const it = rotCatalogo().find(x => x.city === "Martlock" && x.t === 6 && x.e === 0); ROT.itens = { Martlock: [it.id] };
+    const m = rotModel(it, "Martlock"); ROT.minPct = String(Math.ceil(m.pct * 100) + 5); const fora = rotPlano("Martlock", rotFocoVisita(), 0).linhas[0];
+    ROT.minPct = ""; ROT.minVol = String((m.vol || 0) + 1000); const fora2 = rotPlano("Martlock", rotFocoVisita(), 0).linhas[0]; ROT.minVol = "";
+    return { f1: fora.fora && fora.nF + fora.nN === 0, f2: fora2.fora && fora2.nF + fora2.nN === 0, tem: ROT.cidades.includes("Thetford") }; });
+  conf("rotação: filtros de lucro % e vendas tiram o item do plano; Thetford na lista", rf2.f1 && rf2.f2 && rf2.tem, rf2);
+
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
   console.log(ok.map(x => "ok   " + x).join("\n")); if (falhas.length) { console.log(falhas.map(x => "FALHOU " + x).join("\n")); process.exit(1); }
