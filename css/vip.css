@@ -2028,3 +2028,9 @@ td.gv-cell .gv-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:400
 @media(max-width:700px){ .of-xr{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"pill pill pill" "item item item" "val city qty"} .of-xr>.of-xc select{min-width:120px} }
 /* cabeçalho entre 901 e 1280px (janela do overlay, notebook pequeno): ele não quebra linha, então o que é menos usado sai e a ficha encolhe */
 @media(min-width:901px) and (max-width:1280px){ .vip-top .facts .patchchip{display:none} .vip-top .who-chip{max-width:170px;flex:0 1 auto;min-width:0} .vip-top .status{flex:0 1 auto;min-width:0} }
+/* notas de rodapé e o mapa de lucro ficam recolhidos */
+details.of-foot{margin-top:8px}details.of-foot>summary,details.cmapa>summary{cursor:pointer;color:var(--parch-2)}
+details.cmapa{margin:22px 0 0;border:1px solid var(--line);border-radius:14px;padding:12px 16px;background:var(--cloth)}
+details.cmapa>summary{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;list-style-position:inside}
+details.cmapa>summary .cm-t{font:700 1.2rem var(--f-display);color:var(--parch)}
+details.cmapa[open]>summary{margin-bottom:12px}

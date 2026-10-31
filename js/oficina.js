@@ -496,7 +496,7 @@ function mkAtualizaLinhas(set){
     const k=1+cs.length, pts=cs.map(c=>rec[c]&&rec[c][0]).filter(v=>v>0), pm=tr.cells[k];
     if(pm){ pm.textContent=pts.length?m.fmtC(Math.round(median(pts))):"—"; pm.classList.toggle("none",!pts.length); pm.title="Mediana dos preços de venda nas cidades desta linha"+(pts.length?` (${pts.length} ${pts.length===1?"cidade":"cidades"})`:""); }
     const d=tr.cells[k+1]; if(d){ d.className="num bm-profit "+(sp>0?"gain":tone==="is-warn"?"warn":""); d.textContent=ex.smax&&ex.smin?fmt(sp):"—"; if(ex.smax&&ex.smin) d.append(el("small",{text:`${sp>=0?"+":""}${dec(spp*100)}%`})); }
-    const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean), u=tr.cells[k+3]; if(u){ u.textContent=""; u.append(ts.length?(ageSpan(Math.max(...ts))||"—"):"—"); }
+    const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean), u=tr.querySelector(".mk-age"); if(u&&ts.length){ const a=ageSpan(Math.max(...ts)); if(a){ a.classList.add("mk-age"); u.replaceWith(a); } }
     tr.classList.remove("is-flat","is-gain","is-warn"); tr.classList.add(tone); }
 }
 async function renderMk(partial=false,forcar=false){
@@ -550,7 +550,7 @@ async function renderMk(partial=false,forcar=false){
   const hsort=(th,k)=>{ th.className="bm-sort"; th.tabIndex=0; th.setAttribute("role","button"); const on=MK.ord.k===k; th.setAttribute("aria-sort",on?(MK.ord.d>0?"ascending":"descending"):"none"); th.title="Ordenar por esta coluna (não refaz a consulta)"; if(on) th.append(" "+(MK.ord.d>0?"▲":"▼")); th.addEventListener("click",()=>mkOrdenar(k)); th.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); mkOrdenar(k); } }); return th; };
   hr.append(hsort(el("th",{text:"Item"}),"nome"));
   cities.forEach(c=>{ const th=el("th",{}); th.append(el("span",{class:"dot",style:`background:${CITY_COLOR[c]||"#999"}`}),c); hr.append(hsort(th,"c:"+c)); });
-  [["Preço médio","med"],["Diferença","dif"],["Vende por dia","vol"],["Atualizado","upd"]].forEach(([h,k])=>{ const th=hsort(el("th",{text:h}),k); if(k==="vol") th.title="Média de unidades vendidas por dia nos últimos 7 dias, somando as cidades e as qualidades. Clique para ordenar."; hr.append(th); }); hr.append(el("th",{text:""}));
+  [["Preço médio","med"],["Diferença","dif"],["Vende por dia","vol"]].forEach(([h,k])=>{ const th=hsort(el("th",{text:h}),k); if(k==="vol") th.title="Média de unidades vendidas por dia nos últimos 7 dias, somando as cidades e as qualidades. Clique para ordenar."; hr.append(th); }); hr.append(el("th",{text:""}));
   const body=tb.createTBody(), src=mq>1?(PQ[mq]||{}):DATA.itens;
   for(const x of rows){ const rec=src[mkKey(x.id)]||{}; const sp=x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0, spp=x.x.smin?sp/x.x.smin.p:0, hot=sp>0, tone=!(x.x.smax&&x.x.smin)?"is-flat":sp>0?"is-gain":"is-warn";
     const tr=body.insertRow(); tr.dataset.fav=x.id; tr.className="clickrow bm-row mk-row "+tone; tr.tabIndex=0; const nm_=mkName(x.r);
@@ -561,7 +561,7 @@ async function renderMk(partial=false,forcar=false){
     { const pts=cities.map(c=>rec[c]&&rec[c][0]).filter(v=>v>0), pm=tr.insertCell(); pm.className="num mk-avg"; pm.textContent=pts.length?fmtC(Math.round(median(pts))):"—"; pm.title="Mediana dos preços de venda nas cidades desta linha"+(pts.length?` (${pts.length} ${pts.length===1?"cidade":"cidades"})`:""); if(!pts.length) pm.classList.add("none"); }
     const d=tr.insertCell(); d.className="num bm-profit "+(hot?"gain":tone==="is-warn"?"warn":""); d.textContent=x.x.smax&&x.x.smin?fmt(sp):"—"; if(x.x.smax&&x.x.smin) d.append(el("small",{text:`${sp>=0?"+":""}${dec(spp*100)}%`})); d.title="Maior venda menos menor venda: o espaço para comprar numa cidade e vender em outra";
     lfVolCell(tr,x.id);
-    const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean); const tu=tr.insertCell(); tu.className="num"; tu.append(ts.length?(ageSpan(Math.max(...ts))||"—"):"—");
+    { const ts=Object.values(rec).map(v=>Math.max(v[2]||0,v[3]||0)).filter(Boolean), sm=c0.querySelector(".inm small"); if(sm&&ts.length){ const a=ageSpan(Math.max(...ts)); if(a){ a.classList.add("mk-age"); a.title="Quando o preço mais recente deste item foi visto"; sm.append(" · ",a); } } }   // a idade do preço fica junto do nome (antes era uma coluna)
     const ac=tr.insertCell(); const bt=el("button",{type:"button",class:"btn mn-craft",text:NARROW?"Ver":"Detalhe",title:"Ver detalhe"}); ac.append(bt,bagBtn(()=>[{id:x.id,q:1,nm:`${nm_}${x.r[3]?` T${x.r[3]}.${x.e}`:""}`,buy:x.x.smin?x.x.smin.p:0,buyC:x.x.smin?x.x.smin.c:"",sell:x.x.smax?x.x.smax.p:0,sellC:x.x.smax?x.x.smax.c:""}],"Pôr na bag: compra na cidade mais barata, vende na mais cara"));
     const op=()=>openItem(x.id,`${nm_} ${x.r[3]?`T${x.r[3]}.${x.e}`:""}`,mq); tr.addEventListener("click",op); tr.addEventListener("keydown",ev=>{ if(ev.key==="Enter"&&ev.target===tr) op(); }); }
   const shownN=rows.length, cortado=achados>shownN, naoVistos=slice.filter(x=>!MK_SEEN.has(seen(x.id))).length;

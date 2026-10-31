@@ -73,3 +73,41 @@ async function mcBox(id,q){
   })();
   return box;
 }
+
+/* Refino no menu: onde refinar com bônus e o lucro de refinar uma unidade (para matéria-prima, o lucro de refinar ela) */
+const MC_RAW2REF={ORE:"METALBAR",FIBER:"CLOTH",HIDE:"LEATHER",WOOD:"PLANKS",ROCK:"STONEBLOCK"};
+function mcRefId(id){ const m=/^T(\d)_([A-Z]+)(?:_LEVEL(\d))?(?:@\d)?$/.exec(id); if(!m) return null; const ref=MC_RAW2REF[m[2]]||(typeof REF_BY!=="undefined"&&REF_BY[m[2]]?m[2]:null); if(!ref) return null; return {t:+m[1],e:+(m[3]||0),ref,cru:!!MC_RAW2REF[m[2]]}; }
+function mcRefCusto(t,e,R,foco){
+  const rawId=idLv(t,R.raw,e), raw=PX.melhorCompra(PX.rec(rawId),[R.city],"auto"); if(!raw) return null;
+  const prevId=t===4?`T3_${R.ref}`:idLv(t-1,R.ref,e), pb=PX.melhorCompra(PX.rec(prevId),[R.city],"auto"); if(!pb) return null;
+  const rr=rrr(0.40,foco,st.daily+bdItem(idLv(t,R.ref,e))), fee=IV(t,e)*0.1125*feeVal()/100;
+  return (N[t]*raw.k+pb.k)*(1-rr)+fee; }
+async function mcRefBox(id){
+  const box=el("div",{class:"imenu-mc"}); box.append(el("p",{class:"tiny muted",text:"Calculando…"}));
+  (async()=>{ try{
+    const x=mcRefId(id); if(!x||x.t<4){ box.textContent="Sem receita de refino para este item."; return; }
+    const R=REF_BY[x.ref], refId=idLv(x.t,R.ref,x.e), ids=[rotApi(refId),rotApi(idLv(x.t,R.raw,x.e)),x.t===4?`T3_${R.ref}`:rotApi(idLv(x.t-1,R.ref,x.e))];
+    await fetchIds(ids,DATA.itens,SHOP_LOCS);
+    const cN=mcRefCusto(x.t,x.e,R,false), cF=mcRefCusto(x.t,x.e,R,true), v=PX.melhorVenda(PX.rec(refId),SHOP_LOCS,"auto"), fc=refFocus(R.k,x.t,x.e);
+    box.textContent=""; box.append(el("b",{class:"imenu-mch",text:`Refinar ${R.refPT.toLowerCase()} T${x.t}.${x.e} em ${R.city} (+40%)`}));
+    if(cN==null||!v){ box.append(el("p",{class:"tiny muted",text:`Sem preço ${cN==null?"da matéria-prima em "+R.city:"de venda do refinado"} agora.`})); return; }
+    box.append(el("p",{class:"tiny",text:`Custo por unidade: ${fmt(Math.round(cN))} sem foco, ${fmt(Math.round(cF))} com foco. Vende por ${fmt(v.p)} (${v.mode==="inst"?"na hora":"anúncio"} em ${bagCityPT(v.c)}).`}),
+      el("p",{class:"tiny "+(v.k-cN>0?"gain":"loss"),text:`Lucro por unidade: ${sgn(Math.round(v.k-cN))} sem foco, ${sgn(Math.round(v.k-cF))} com foco (${dec((cN-cF)/fc)} de prata por ponto de foco).`}),
+      el("p",{class:"tiny muted",text:`Comprando a matéria-prima e o refinado de baixo em ${R.city}, no Automático. ${x.cru?"Para a conta completa, abra o Refino.":""}`}));
+  }catch(e){ box.textContent="Não consegui calcular agora."; } })();
+  return box;
+}
+/* Cozinha no menu: o efeito e o lucro de fazer uma fornada */
+async function mcCookBox(id){
+  const box=el("div",{class:"imenu-mc"}); box.append(el("p",{class:"tiny muted",text:"Calculando…"}));
+  (async()=>{ try{
+    if(typeof cosLoad==="function") await cosLoad(); if(!COOK_LOADED&&typeof ensureCook==="function") await ensureCook();
+    const fx=typeof cosInfo==="function"&&cosInfo(id), m=cookModel(id); box.textContent="";
+    if(fx&&fx.d) box.append(el("b",{class:"imenu-mch",text:"Efeito"}),el("p",{class:"tiny",text:fx.d}));
+    if(!m||m.miss){ box.append(el("p",{class:"tiny muted",text:`Sem preço ${m&&m.miss?"de "+m.miss:""} agora.`})); return; }
+    box.append(el("b",{class:"imenu-mch",text:`Fazer em ${COOK_CITY[m.kind]} (+15%)`}),
+      el("p",{class:"tiny "+(m.p1>0?"gain":"loss"),text:`Uma fornada (${m.q} ${m.kind==="f"?"porções":"poções"}): ${sgn(Math.round(m.p1))} com foco, ${sgn(Math.round(m.p0))} sem foco.`}),
+      el("p",{class:"tiny muted",text:`${fmt(m.fc)} de foco por fornada (${dec(m.spf)} de prata por ponto). Venda e ingredientes como estão na Cozinha e alquimia.`}));
+  }catch(e){ box.textContent="Não consegui calcular agora."; } })();
+  return box;
+}

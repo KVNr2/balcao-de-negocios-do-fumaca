@@ -117,3 +117,6 @@ $("muDlg").addEventListener("click",ev=>{ if(ev.target===$("muDlg")) $("muClose"
 iniciarLimpar();
 
 try{ if(/[?&]diag=1/.test(location.search)){ const sc=document.createElement("script"); sc.src="js/diag.js?v="+(document.documentElement.dataset.v||Date.now()); document.body.append(sc); } }catch(e){}
+
+/* o mapa de lucro das armaduras lembra se ficou aberto */
+{ const d=$("cMapa"); if(d){ try{ d.open=localStorage.getItem("cMapaAberto")==="1"; }catch(e){} d.addEventListener("toggle",()=>{ try{ localStorage.setItem("cMapaAberto",d.open?"1":"0"); }catch(e){} }); } }

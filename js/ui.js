@@ -238,6 +238,11 @@ async function itemMenu(id,q,x,y,origem){
   if(gear&&t>=4&&typeof mcBox==="function"){ const b=el("button",{type:"button",class:"imenu-i",role:"menuitem","aria-expanded":"false"}); b.append(el("span",{text:"Fabricar: qualidade e encantar"}),el("small",{text:e?"chance de cada qualidade e se vale fabricar .0 e encantar":"chance de cada qualidade com a sua spec"}));
     let aberto=null; b.addEventListener("click",async()=>{ if(aberto){ aberto.remove(); aberto=null; b.setAttribute("aria-expanded","false"); return; } aberto=await mcBox(id,q); b.after(aberto); b.setAttribute("aria-expanded","true"); });
     menu.append(b); itens.push(b); }
+  /* refino e cozinha: o lucro de fazer, sem sair do lugar (calcula só ao abrir) */
+  const abre=(txt,sub,fn)=>{ const b=el("button",{type:"button",class:"imenu-i",role:"menuitem","aria-expanded":"false"}); b.append(el("span",{text:txt}),el("small",{text:sub}));
+    let aberto=null; b.addEventListener("click",async()=>{ if(aberto){ aberto.remove(); aberto=null; b.setAttribute("aria-expanded","false"); return; } aberto=await fn(); b.after(aberto); b.setAttribute("aria-expanded","true"); }); menu.append(b); itens.push(b); };
+  if(typeof mcRefBox==="function"&&mcRefId(id)&&t>=4){ const x=mcRefId(id); abre(x.cru?"Refinar este recurso":"Refinar: custo e lucro",`onde tem bônus e quanto sobra por unidade`,()=>mcRefBox(id)); }
+  if(cook&&typeof mcCookBox==="function") abre("Efeito e lucro de fazer","o que faz e quanto rende uma fornada",()=>mcCookBox(id));
   if(typeof bagAdd==="function") add("bag","Pôr na bag");
   if(typeof lcAdd==="function"){ const lb=el("div",{class:"imenu-lc"}), qn=el("input",{type:"number",min:"1",step:"1",value:"1","aria-label":"Quantidade para a lista de compras"}), bt=el("button",{type:"button",class:"imenu-i",role:"menuitem"});
     bt.append(el("span",{text:"Pôr na lista de compras"}),el("small",{text:"na cidade mais barata agora"}));
@@ -341,3 +346,8 @@ function gaveta(box,manter,rotulo){
 }
 gaveta(document.querySelector("#ofRoot .of2-side"),1,"Mais opções (receita, compra, venda, filtros)");
 gaveta(document.querySelector("#p-mk > .row-ctl"),1,"Mais filtros (categoria, tier, qualidade, cidade)");
+/* dica de primeiro uso: na primeira vez que o mouse passa num ícone de item, avisa que o botão direito abre o menu */
+{ let dica=false; try{ dica=localStorage.getItem("dicaMenuItem")==="1"; }catch(e){}
+  if(!dica){ const f=ev=>{ const im=ev.target.closest&&ev.target.closest("img[data-item]"); if(!im) return; document.removeEventListener("mouseover",f,true);
+      try{ localStorage.setItem("dicaMenuItem","1"); }catch(e){} if(typeof toast==="function") toast(matchMedia("(hover:none)").matches?"Dica: segure o dedo num ícone de item para abrir o menu dele (preços, vendas por dia, fabricar, lista de compras).":"Dica: clique com o botão direito num ícone de item para abrir o menu dele (preços, vendas por dia, fabricar, lista de compras)."); };
+    document.addEventListener("mouseover",f,true); } }
