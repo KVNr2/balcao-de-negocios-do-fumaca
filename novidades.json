@@ -1,6 +1,28 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T13:00:00Z",
+   "titulo": "Hoje no Albion foi para o cabeçalho",
+   "itens": [
+    "A faixa Hoje no Albion (produção do dia, atividade e evento) saiu de baixo do título da página e foi para o espaço livre do cabeçalho, entre o aviso de preços e o Ouro/Premium.",
+    "O botão × foi retirado: a faixa fica sempre à vista e os bônus continuam entrando nas contas como antes.",
+    "Quando o conteúdo não cabe no espaço, a faixa anda devagar para os lados e para quando o mouse fica em cima. Os botões 10% e 20% continuam lá."
+   ],
+   "como": "Cabeçalho, ao lado de Preços ao vivo.",
+   "impacto": "Os bônus do dia ficam sempre visíveis sem ocupar uma linha inteira da página."
+  },
+  {
+   "t": "2026-10-31T13:00:01Z",
+   "titulo": "Albion Overlay 2.1.1: Hoje no Albion na barra de cima",
+   "programa": "2.1.1",
+   "itens": [
+    "No overlay, a faixa Hoje no Albion agora aparece no centro da barra de cima, entre o título da aba e os botões Jogo e Preços, em vez de dentro de cada página.",
+    "O × foi retirado. Os botões 10% e 20% do bônus de produção ficam na própria barra e valem para todas as abas."
+   ],
+   "como": "Barra de cima do overlay.",
+   "impacto": "Os bônus do dia aparecem em qualquer aba, sem ocupar espaço da página."
+  },
+  {
    "t": "2026-10-31T05:15:00Z",
    "titulo": "Rotação de craft: filtros como os do Craft",
    "itens": [

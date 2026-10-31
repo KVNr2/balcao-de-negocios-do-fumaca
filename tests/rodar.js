@@ -80,9 +80,9 @@ async function simular(p) {
     for (let i = 0; i < 40 && !BONUS_CAT; i++) await new Promise(f => setTimeout(f, 250));
     const barra = document.querySelector(".fx-barra");
     return { arc: bdItem("T6_MAIN_ARCANESTAFF@1"), arcArt: bdItem("T6_2H_ARCANE_RINGPAIR_AVALON"), placa: bdItem("T5_ARMOR_PLATE_SET2"), couro: bdItem("T5_ARMOR_LEATHER_SET1"),
-      espada: bdItem("T6_MAIN_SWORD"), barra: barra ? barra.innerText.replace(/\n/g, " | ") : null, naMain: !!(barra && barra.closest(".main")) }; });
+      espada: bdItem("T6_MAIN_SWORD"), barra: barra ? barra.innerText.replace(/\n/g, " | ") : null, naMain: !!(barra && barra.closest(".vip-top") && !barra.querySelector(".fx-x")) }; });
   conf("bônus diário casa com a categoria do item", bd.arc === 0.1 && bd.placa === 0.1 && bd.couro === 0 && bd.espada === 0, bd);
-  conf("faixa de bônus aparece no topo das páginas", bd.naMain && /Cajados arcanos/.test(bd.barra || "") && /Halloween/.test(bd.barra || ""), bd);
+  conf("faixa de bônus aparece no cabeçalho, sem botão de fechar", bd.naMain && /Cajados arcanos/.test(bd.barra || "") && /Halloween/.test(bd.barra || ""), bd);
 
   /* 8. conjuntos de builds: principais = mínimo, opcionais até o máximo, salvo no aparelho */
   const cj = await p.evaluate(async () => { document.getElementById("t-builds").click();

@@ -17,7 +17,6 @@
 
   var HOST  = "https://west.albion-online-data.com";   /* servidor Américas, o mesmo que o site usa */
   var CHAVE = "fx:festa";                             /* cache na sessão */
-  var OCULTO = "fx:festa:oculto";
   var TICKS_1970 = 62135596800000;
   var TTL_MAX = 10 * 60e3;                            /* no máximo 10 min de cache, mesmo que ExpiresAt seja maior */
   var PCT_KEY = "fx:festa:pct";                       /* 10% ou 20%: a API não manda, o jogo mostra na aba Atividades */
@@ -86,21 +85,52 @@
     try{ sessionStorage.setItem(CHAVE, JSON.stringify({dados:dados, expira:expira})); }catch(e){}
   }
 
-  var barra = null, timer = 0;
+  var barra = null, timer = 0, ultimoDados = null;
+  var EM_OV = /[?&]overlay=1\b/.test(location.search) && window.parent !== window;
   function esconder(){ if(barra){ barra.remove(); barra = null; } }
 
   /* ---- desenho ----
-     Uma faixa no topo da área das páginas: "Hoje no Albion" e um bloco por tipo de bônus (produção do dia, atividade, evento),
-     cada um com os nomes em destaque e o horário em que acaba. O estilo está em css/vip.css (.fx-*). */
-  function bloco(cls, rotulo, nomes, fim, dica){
-    var i = document.createElement("span"); i.className = "fx-i " + cls; i.title = dica;
-    var k = document.createElement("span"); k.className = "fx-k"; k.textContent = rotulo; i.appendChild(k);
-    nomes.forEach(function(n){ var b = document.createElement("b"); b.textContent = n; i.appendChild(b); });
-    if(fim){ var q = document.createElement("small"); q.textContent = fim; i.appendChild(q); }
+     "Hoje no Albion" mora no cabeçalho, no espaço livre entre o aviso de preços e o Ouro/Premium (.fx-barra, estilo em css/vip.css).
+     Dentro do Albion Overlay as páginas são quadros (iframes): em vez de desenhar aqui, o quadro manda o modelo pronto para a
+     página-mãe (postMessage { fxBarra }), que desenha no centro da barra de cima do overlay. Sem bônus ativo, manda null.
+     Não há mais botão de fechar: a faixa é pequena e fica sempre à vista. */
+  function modelo(diarios, atividades, sazonais){
+    var m = [];
+    if(diarios.length){
+      var pct = Math.round(pctAtual()*100);
+      var fimDia = diarios.map(function(e){ return ticks(e.EndTime); }).filter(Boolean).sort(function(a,b){ return a-b; })[0];
+      m.push({cls:"fx-prod", rotulo:"Produção +" + pct + "%", nomes:diarios.map(function(e){ return nome(e.UniqueName); }),
+        fim: fimDia ? "troca " + quando(fimDia) : "", pct:true,
+        dica:"Bônus diário de produção: +" + pct + "% de retorno de recursos para fabricar ou refinar estas categorias. Já entra nas contas de Craft, Refino, Cozinha, Mercado Negro e Plano do dia, e os itens aparecem marcados com \"+" + pct + "% hoje\". O jogo mostra o percentual na aba Atividades; se lá estiver diferente, troque aqui."});
+    }
+    atividades.forEach(function(e){ m.push({cls:"fx-ativ", rotulo:"Atividade", nomes:[nome(e.UniqueName)], fim:"até " + quando(ticks(e.EndTime)), dica:"Atividade com bônus extra no servidor agora."}); });
+    sazonais.forEach(function(e){ m.push({cls:"fx-ev", rotulo:"Evento", nomes:[nome(e.UniqueName)], fim:"até " + quando(ticks(e.EndTime), true), dica:"Evento sazonal em andamento."}); });
+    return m;
+  }
+  function bloco(b){
+    var i = document.createElement("span"); i.className = "fx-i " + b.cls; i.title = b.dica;
+    var k = document.createElement("span"); k.className = "fx-k"; k.textContent = b.rotulo; i.appendChild(k);
+    b.nomes.forEach(function(n){ var x = document.createElement("b"); x.textContent = n; i.appendChild(x); });
+    if(b.fim){ var q = document.createElement("small"); q.textContent = b.fim; i.appendChild(q); }
+    if(b.pct){
+      var pu = document.createElement("span"); pu.className = "fx-pct"; pu.setAttribute("role","group"); pu.setAttribute("aria-label","Percentual do bônus de produção");
+      [0.1, 0.2].forEach(function(v){
+        var bt = document.createElement("button");
+        bt.type = "button"; bt.className = "fx-pctb" + (pctAtual() === v ? " on" : "");
+        bt.textContent = Math.round(v*100) + "%"; bt.setAttribute("aria-pressed", String(pctAtual() === v));
+        bt.title = "Percentual que o jogo está mostrando hoje na aba Atividades";
+        bt.addEventListener("click", function(){
+          try{ localStorage.setItem(PCT_KEY, String(v)); }catch(e){}
+          desenhar(ultimoDados);
+        });
+        pu.appendChild(bt);
+      });
+      i.appendChild(pu);
+    }
     return i;
   }
   function desenhar(dados){
-    var oculto = !!sessionStorage.getItem(OCULTO);
+    ultimoDados = dados;
     var agora = new Date();
     var ev = (dados && dados.Events) || [];
     var ativos = ev.filter(function(e){
@@ -116,57 +146,39 @@
     var linhas = {};
     diarios.forEach(function(e){ var k = String(e.UniqueName||"").replace(/^COMMON_/,""); if(k) linhas[k] = 1; });
     publicar(linhas, diarios.length > 0);
-    if(!ativos.length || oculto) return esconder();   /* escondida, mas o bônus continua nas contas */
+    var m = modelo(diarios, atividades, sazonais);
+
+    if(EM_OV){
+      try{ window.parent.postMessage({fxBarra: m.length ? {blocos:m} : null}, location.origin); }catch(e){}
+      return;
+    }
+    if(!m.length) return esconder();
 
     if(!barra){
       barra = document.createElement("div");
       barra.className = "fx-barra";
       barra.setAttribute("role","status");
       barra.setAttribute("aria-live","polite");
-      /* abaixo do título da página, dentro da .main (a .wrap é uma grade: fora da .main a faixa caía no fim da página) */
-      var ph = document.getElementById("pagehead"), main = document.querySelector(".wrap .main");
-      if(ph && ph.parentNode) ph.parentNode.insertBefore(barra, ph.nextSibling);      /* logo abaixo do título da página */
-      else if(main) main.insertBefore(barra, main.firstChild);
+      /* no cabeçalho, entre o aviso "Preços ao vivo" e o grupo Ouro/Premium/Patch */
+      var facts = document.querySelector(".vip-top .facts");
+      if(facts && facts.parentNode) facts.parentNode.insertBefore(barra, facts);
       else document.body.insertBefore(barra, document.body.firstChild);
     }
     barra.textContent = "";
-    var t = document.createElement("span"); t.className = "fx-t"; t.textContent = "Hoje no Albion"; barra.appendChild(t);
-
-    if(diarios.length){
-      var pct = Math.round(pctAtual()*100);
-      var fimDia = diarios.map(function(e){ return ticks(e.EndTime); }).filter(Boolean).sort(function(a,b){ return a-b; })[0];
-      var p = bloco("fx-prod", "Produção +" + pct + "%", diarios.map(function(e){ return nome(e.UniqueName); }),
-        fimDia ? "troca " + quando(fimDia) : "",
-        "Bônus diário de produção: +" + pct + "% de retorno de recursos para fabricar ou refinar estas categorias. Já entra nas contas de Craft, Refino, Cozinha, Mercado Negro e Plano do dia, e os itens aparecem marcados com \"+" + pct + "% hoje\". O jogo mostra o percentual na aba Atividades; se lá estiver diferente, troque aqui.");
-      var pu = document.createElement("span"); pu.className = "fx-pct"; pu.setAttribute("role","group"); pu.setAttribute("aria-label","Percentual do bônus de produção");
-      [0.1, 0.2].forEach(function(v){
-        var b = document.createElement("button");
-        b.type = "button"; b.className = "fx-pctb" + (pctAtual() === v ? " on" : "");
-        b.textContent = Math.round(v*100) + "%"; b.setAttribute("aria-pressed", String(pctAtual() === v));
-        b.title = "Percentual que o jogo está mostrando hoje na aba Atividades";
-        b.addEventListener("click", function(){
-          try{ localStorage.setItem(PCT_KEY, String(v)); }catch(e){}
-          desenhar(dados);
-        });
-        pu.appendChild(b);
-      });
-      p.appendChild(pu); barra.appendChild(p);
-    }
-    if(atividades.length){
-      atividades.forEach(function(e){
-        barra.appendChild(bloco("fx-ativ", "Atividade", [nome(e.UniqueName)], "até " + quando(ticks(e.EndTime)), "Atividade com bônus extra no servidor agora."));
-      });
-    }
-    if(sazonais.length){
-      sazonais.forEach(function(e){
-        barra.appendChild(bloco("fx-ev", "Evento", [nome(e.UniqueName)], "até " + quando(ticks(e.EndTime), true), "Evento sazonal em andamento."));
-      });
-    }
-    var x = document.createElement("button");
-    x.type = "button"; x.className = "fx-x"; x.textContent = "×";
-    x.setAttribute("aria-label","Esconder os bônus até fechar a página"); x.title = "Esconder até fechar a página (os bônus continuam valendo nas contas)";
-    x.addEventListener("click", function(){ try{ sessionStorage.setItem(OCULTO,"1"); }catch(e){} esconder(); });
-    barra.appendChild(x);
+    var pista = document.createElement("div"); pista.className = "fx-pista"; barra.appendChild(pista);
+    var t = document.createElement("span"); t.className = "fx-t"; t.textContent = "Hoje no Albion"; pista.appendChild(t);
+    m.forEach(function(b){ pista.appendChild(bloco(b)); });
+    ajustar();
+    if(!ro && window.ResizeObserver){ ro = new ResizeObserver(function(){ ajustar(); }); ro.observe(barra); }
+  }
+  /* o espaço do cabeçalho é pequeno: se o conteúdo não cabe, a pista vai e volta devagar (pausa com o mouse em cima) */
+  var ro = null;
+  function ajustar(){
+    if(!barra) return;
+    var pista = barra.firstChild; if(!pista) return;
+    var d = pista.offsetWidth - barra.clientWidth;
+    barra.classList.toggle("rola", d > 4);
+    if(d > 4){ pista.style.setProperty("--d", d + "px"); pista.style.setProperty("--t", Math.max(8, Math.round(d/18) + 6) + "s"); }
   }
 
   /* ---- busca ---- */
@@ -198,6 +210,9 @@
       if(k) desenhar(k.dados); else buscar();
     }, 60e3);
   }
+
+  /* o percentual mudou em outro quadro/aba do mesmo endereço (ex.: clique no cabeçalho do overlay): redesenha */
+  window.addEventListener("storage", function(e){ if(e.key === PCT_KEY && ultimoDados !== null) desenhar(ultimoDados); });
 
   function iniciar(){ try{ ciclo(); }catch(e){} }
 
