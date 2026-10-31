@@ -158,6 +158,11 @@ async function simular(p) {
     const r = { sug, n: l.nF + l.nN, salvo: ROT.qtd.Martlock && ROT.qtd.Martlock[it.id], mats: d.querySelectorAll(".rot-mt tbody tr img, .rot-mt tbody tr .ico").length, cmp: d.querySelectorAll(".rot-det2 .rot-cmp tbody tr").length, linhas: d.querySelectorAll(".rot-plf").length };
     ROT.qtd = {}; rotSave(); return r; });
   conf("rotação: quantidade escolhida vale e fica salva; cidade mostra materiais com imagem e detalhes", rdet.sug > 0 && rdet.n === 12 && rdet.salvo === 12 && rdet.mats > 0 && rdet.cmp === 6 && rdet.linhas === 2, rdet);
+  const rtet = await p.evaluate(() => { const it = rotCatalogo().find(x => x.city === "Martlock" && x.t === 6 && x.e === 0); ROT.itens = { Martlock: [it.id] }; ROT.qtd = {};
+    const m = rotModel(it, "Martlock"); ROT.vDias = 3; ROT.fatia = 50; const a = rotPlano("Martlock", rotFocoVisita(), 0).linhas[0];
+    ROT.vDias = 6; const b = rotPlano("Martlock", rotFocoVisita(), 0).linhas[0]; ROT.vDias = 3;
+    return { vol: m.vol, a: a.n, b: b.n, esperado: Math.floor(m.vol * 0.5 * 3) }; });
+  conf("rotação: sugestão não passa do que você vende no prazo", rtet.a === rtet.esperado && rtet.b >= rtet.a, rtet);
 
   const rf2 = await p.evaluate(() => { const it = rotCatalogo().find(x => x.city === "Martlock" && x.t === 6 && x.e === 0); ROT.itens = { Martlock: [it.id] };
     const m = rotModel(it, "Martlock"); ROT.minPct = String(Math.ceil(m.pct * 100) + 5); const fora = rotPlano("Martlock", rotFocoVisita(), 0).linhas[0];
