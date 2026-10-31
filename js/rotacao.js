@@ -21,7 +21,7 @@ function rotPassa(m){ if(!m||m.miss) return false; const mp=rotNum(ROT.minPct), 
 const rotSave=()=>{ try{ store.set("rotacao",JSON.stringify(ROT)); }catch(e){} };
 const rotDKey=id=>id.includes("_LEVEL")?id.split("@")[0]:id;              // como o preço fica guardado
 const rotApi=id=>/_LEVEL\d$/.test(id)?nk(id):id;                         // como a API pede
-let ROT_CAT=null; const ROT_LOADED=new Set();
+let ROT_CAT=null; const ROT_LOADED=tSet(5*60e3);   // preço buscado vale 5 minutos; depois busca de novo
 /* catálogo de tudo que se fabrica na aba Craft (armas, armaduras e mão secundária, T4 a T8, .0 a .4) */
 function rotCatalogo(){
   if(ROT_CAT||!BM) return ROT_CAT;
