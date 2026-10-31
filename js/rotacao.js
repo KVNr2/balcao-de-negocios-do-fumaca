@@ -1,7 +1,8 @@
 /* Rotação de craft: um ou mais crafts fixos por cidade; uma visita (a uma cidade) a cada N dias, passando pelas cidades em rodízio.
    O foco é do personagem, não da cidade: cada visita usa o foco que encheu desde a anterior (10.000 por dia no Premium, até 30.000).
    Cada cidade volta a ser visitada depois de N × cidades dias: é o tempo das ordens encherem e da venda escoar.
-   Entre as visitas, ordens de compra na própria cidade juntam o material mais barato (o material fica no mercado de onde a ordem encheu).
+   Cada material é comprado na cidade real onde sai mais barato (ordem de compra ou na hora) e levado até a cidade do craft.
+   Você escolhe quantas peças fazer de cada item; o site sugere um número e guarda o que você escrever.
    Na visita: o foco acumulado (até 30.000) vai primeiro no item que mais rende por ponto de foco, e cada item fica limitado
    ao que a melhor cidade de venda absorve até a próxima visita. */
 const ROT_CIDADES=["Lymhurst","Fort Sterling","Bridgewatch","Martlock","Thetford"];
@@ -9,8 +10,8 @@ const ROT=(()=>{ const d={cidades:[...ROT_CIDADES],itens:{},ultima:{},dias:3,cas
   try{ const o=JSON.parse(store.get("rotacao")||"{}"); const r={...d,...o,itens:o.itens||{},ultima:o.ultima||{}};
     if(!o.v||o.v<2){ if(!r.cidades.includes("Thetford")) r.cidades=ROT_CIDADES.filter(c=>c==="Thetford"||r.cidades.includes(c)); r.v=2; }   // Thetford entrou na rotação
     if(!Array.isArray(r.tiers)) r.tiers=[]; if(!Array.isArray(r.enchs)) r.enchs=r.soE0?[0]:[]; if(!Array.isArray(r.vendaC)) r.vendaC=[];
-    if(!r.compra) r.compra="ordem"; if(!r.venda) r.venda="auto"; if(r.grupo==null) r.grupo=""; delete r.soE0;
-    return r; }catch(e){ return {...d,tiers:[],enchs:[],vendaC:[],compra:"ordem",venda:"auto",grupo:""}; } })();
+    if(!r.compra) r.compra="ordem"; if(!r.venda) r.venda="auto"; if(r.grupo==null) r.grupo=""; if(!r.qtd||typeof r.qtd!=="object") r.qtd={}; delete r.soE0;
+    return r; }catch(e){ return {...d,tiers:[],enchs:[],vendaC:[],compra:"ordem",venda:"auto",grupo:"",qtd:{}}; } })();
 /* filtros de catálogo (sugestões e busca): tier, encantamento e tipo, como no Craft */
 const ROT_GRUPOS=[["","Tudo"],["armas","Armas"],["armaduras","Armaduras"],["mao","Mão secundária"]];
 const rotCatOk=it=>(!ROT.tiers.length||ROT.tiers.includes(it.t))&&(ROT.enchs.length?ROT.enchs.includes(it.e):it.e<=3)&&(!ROT.grupo||it.grp===ROT.grupo);
@@ -48,12 +49,14 @@ function rotRefIds(id){ const P=typeof refParse==="function"&&refParse(id); if(!
   for(let k=4;k<=t;k++){ out.push(rotApi(idLv(k,R.raw,e)),rotApi(idLv(k,R.ref,e))); } return out; }
 /* prata a mais por ponto de foco refinando este material (com foco × sem foco) */
 function rotRefSpf(id){ const a=rotRef(id,false), b=rotRef(id,true); if(!a||!b) return null; const fc=refFocus(b.R.k,b.t,b.e); return fc>0?(a.k-b.k)/fc:null; }
+/* onde comprar: a cidade real mais barata (já com os 2,5% da ordem); a própria cidade do craft ganha se ficar até 3% acima, para não carregar à toa */
+function rotCompra(id,city){ const r=PX.rec(id), loc=PX.compra(r,city,ROT.compra,{lance:1}), best=PX.melhorCompra(r,ROT_CIDADES,ROT.compra,{lance:1});
+  return loc&&best&&loc.k<=best.k*1.03?loc:(best||loc); }
 function rotMat(id,city){ const r=PX.rec(id);
   const ordem=(()=>{ const x=PX.compra(r,city,"ordem",{lance:1}); return x&&x.mode==="ordem"?x:null; })(), inst=PX.compra(r,city,"inst");
-  let use=PX.compra(r,city,ROT.compra,{lance:1});
+  let use=rotCompra(id,city);
   if(ROT.refinar){ const ref=rotRef(id,false); if(ref&&(!use||ref.k<use.k)) use={p:ref.k,k:ref.k,mode:"refino",ref,c:ref.city,t:ref.raw.t}; }
-  let fora=null; for(const c of ROT_CIDADES){ if(c===city) continue; const w=r[c]; if(w&&w[0]>0&&(!fora||w[0]<fora.p)) fora={p:w[0],c}; }
-  return {ordem,inst,use,fora}; }
+  return {ordem,inst,use}; }
 /* melhor venda líquida nas cidades escolhidas (ou nas reais e Caerleon) e, se marcado, no Mercado Negro */
 function rotVenda(id){ const r=PX.rec(id), locs=ROT.vendaC.length?ROT.vendaC.filter(c=>c!=="Black Market"):[...ROT_CIDADES,"Caerleon"];
   return PX.melhorVenda(r,[...locs,...(ROT.bm===false?[]:["Black Market"])],ROT.venda); }
@@ -68,20 +71,26 @@ function rotModel(it,city){
     cF+=qF*m.use.k; cN+=qN*m.use.k; if(m.inst) instT+=qF*m.inst.k; ordemT+=qF*m.use.k; mats.push({g,m,qF}); }
   const net=it.q*venda.k, pF=net-cF, pN=net-cN, h=OF2.hs[rotApi(it.id)+"|"+venda.c], vol=h&&h.vol>=0?h.vol:null;
   /* refinar: quanto economiza por peça e quanto rende o foco gasto refinando, para comparar com o foco gasto no craft */
-  let refEco=0, refSpf=null; for(const x of mats){ if(x.m.use.mode!=="refino") continue; const b=PX.compra(PX.rec(x.g.id),city,ROT.compra,{lance:1}); if(b) refEco+=x.qF*(b.k-x.m.use.k); const sp=rotRefSpf(x.g.id); if(sp!=null&&(refSpf==null||sp>refSpf)) refSpf=sp; }
+  let refEco=0, refSpf=null; for(const x of mats){ if(x.m.use.mode!=="refino") continue; const b=rotCompra(x.g.id,city); if(b) refEco+=x.qF*(b.k-x.m.use.k); const sp=rotRefSpf(x.g.id); if(sp!=null&&(refSpf==null||sp>refSpf)) refSpf=sp; }
   return {it,city,venda,rF,rN,fc1,pF,pN,pct:cF>0?pF/cF:0,spf:(pF-pN)/fc1,mats,custoF:cF,custoN:cN,fee,economia:instT-ordemT,vol,bonusC,bd,refEco,refSpf};
 }
-/* plano de uma visita: foco primeiro onde rende mais por ponto, sem passar do que a venda absorve até a próxima visita */
+/* plano de uma visita. Sugestão: foco primeiro onde rende mais por ponto, sem passar do que a venda absorve até a próxima visita.
+   Se você escreveu quantas fazer, vale o seu número: o foco vai primeiro nos itens que rendem mais por ponto e o resto sai sem foco. */
 function rotPlano(city,foco,cash){
-  const ms=(ROT.itens[city]||[]).map(id=>rotItem(id)).filter(Boolean).map(it=>rotModel(it,city));
-  const ok=ms.filter(rotPassa).sort((a,b)=>b.spf-a.spf); let F=foco, C=cash>0?cash:Infinity; const linhas=[];
+  const ms=(ROT.itens[city]||[]).map(id=>rotItem(id)).filter(Boolean).map(it=>rotModel(it,city)), Q=ROT.qtd[city]||{};
+  const ok=ms.filter(m=>!m.miss).sort((a,b)=>b.spf-a.spf); let F=foco, C=cash>0?cash:Infinity; const sug=new Map();
   for(const m of ok){ const teto=m.vol!=null?Math.max(1,Math.floor(m.vol*rotCiclo())):Infinity;
-    let nF=m.pF>0?Math.min(teto,Math.floor(F/m.fc1),Math.floor(C/Math.max(1,m.custoF))):0; F-=nF*m.fc1; C-=nF*m.custoF;
-    let nN=m.pN>0?Math.min(teto-nF,Math.floor(C/Math.max(1,m.custoF))):0; if(!isFinite(nN)) nN=0; C-=nN*m.custoF;
-    if(!isFinite(nF)) nF=0;
-    linhas.push({m,nF,nN,teto,lucro:nF*m.pF+nN*m.pN,foco:nF*m.fc1}); }
-  for(const m of ms.filter(m=>!rotPassa(m))) linhas.push({m,nF:0,nN:0,lucro:0,foco:0,fora:!m.miss});
-  return {city,linhas,lucro:linhas.reduce((a,l)=>a+l.lucro,0),foco:foco-F};
+    if(!rotPassa(m)){ sug.set(m.it.id,{n:0,teto}); continue; }
+    let nF=m.pF>0?Math.min(teto,Math.floor(F/m.fc1),Math.floor(C/Math.max(1,m.custoF))):0; if(!isFinite(nF)) nF=0; F-=nF*m.fc1; C-=nF*m.custoF;
+    let nN=m.pN>0?Math.min(teto-nF,Math.floor(C/Math.max(1,m.custoN))):0; if(!isFinite(nN)) nN=0; C-=nN*m.custoN;
+    sug.set(m.it.id,{n:nF+nN,teto}); }
+  F=foco; const linhas=[];
+  for(const m of ok){ const s=sug.get(m.it.id), q=Q[m.it.id], manual=q!=null&&q>=0, N=manual?q:s.n;
+    const nF=m.pF>0?Math.max(0,Math.min(N,Math.floor(F/m.fc1))):0; F-=nF*m.fc1; const nN=N-nF;
+    linhas.push({m,nF,nN,n:N,sug:s.n,manual,teto:s.teto,lucro:nF*m.pF+nN*m.pN,custo:nF*m.custoF+nN*m.custoN,foco:nF*m.fc1,fora:!rotPassa(m)&&!manual}); }
+  for(const m of ms.filter(m=>m.miss)) linhas.push({m,nF:0,nN:0,n:0,sug:0,lucro:0,custo:0,foco:0});
+  const ord=new Map((ROT.itens[city]||[]).map((id,i)=>[id,i])); linhas.sort((a,b)=>(ord.get(a.m.it.id)||0)-(ord.get(b.m.it.id)||0));   // na ordem em que você pôs
+  return {city,linhas,lucro:linhas.reduce((a,l)=>a+l.lucro,0),custo:linhas.reduce((a,l)=>a+l.custo,0),foco:foco-F};
 }
 async function rotEnsure(note){
   if(!BM){ BM=await need("bm"); } rotCatalogo();
@@ -114,7 +123,7 @@ function rotHoje(planos){
     el("p",{class:"small",text:`${d==null?"Você ainda não marcou nenhuma visita aqui.":d>=rotCiclo()?`Última visita há ${d} ${d===1?"dia":"dias"}: as ordens já tiveram o ciclo todo para encher.`:`Última visita há ${d} ${d===1?"dia":"dias"}.`} ${best.foco?`Com ${fmt(best.foco)} de foco, a`:"Sem foco, a"} visita rende uns ${sgn(Math.round(best.lucro))}, com ${fmtS(best.linhas.reduce((a,l)=>a+(l.nF+l.nN)*(l.m.custoF||0),0))} de material.`}));
   const ul=el("ul",{class:"rot-todo"});
   for(const l of best.linhas){ if(!(l.nF+l.nN)) continue; const m=l.m;
-    ul.append(el("li",{},el("b",{text:`${m.it.nm}: ${fmt(l.nF+l.nN)} ${l.nF+l.nN>1?"peças":"peça"}`}),el("span",{class:"muted",text:` (${l.nF?`${fmt(l.nF)} com foco`:""}${l.nF&&l.nN?" e ":""}${l.nN?`${fmt(l.nN)} sem foco`:""}). Material ${fmtS((l.nF+l.nN)*m.custoF)}. Venda em ${bagCityPT(m.venda.c)} (${m.venda.mode==="inst"?"na hora":"anúncio"} a ${fmt(m.venda.p)}), ${sgn(Math.round(l.lucro))}.`}))); }
+    ul.append(el("li",{},el("b",{text:`${m.it.nm}: ${fmt(l.nF+l.nN)} ${l.nF+l.nN>1?"peças":"peça"}`}),el("span",{class:"muted",text:` (${l.nF?`${fmt(l.nF)} com foco`:""}${l.nF&&l.nN?" e ":""}${l.nN?`${fmt(l.nN)} sem foco`:""}). Material ${fmtS(l.custo)}. Venda em ${bagCityPT(m.venda.c)} (${m.venda.mode==="inst"?"na hora":"anúncio"} a ${fmt(m.venda.p)}), ${sgn(Math.round(l.lucro))}.`}))); }
   card.append(ul);
   const bt=el("button",{type:"button",class:"btn",text:`Fiz a visita em ${best.city} hoje`}); bt.addEventListener("click",()=>{ ROT.ultima[best.city]=Date.now(); rotSave(); renderRot(); });
   card.append(bt);
@@ -126,9 +135,12 @@ function rotHoje(planos){
 const rotModoC=u=>u.mode==="ordem"?"ordem de compra":u.mode==="refino"?"refinando você mesmo":"compra na hora";
 const rotModoV=v=>v.c==="Black Market"?"venda na hora (Mercado Negro)":v.mode==="ordem"?"anúncio":"venda na hora";
 const rotQN=(x,m)=>x.g.art?x.g.n:x.g.n*(1-m.rN);
+const rotNm=(x,m)=>x.g.art&&/^artefato$/i.test(x.g.nm)?`Artefato de ${m.it.name} T${m.it.t}`:x.g.nm;
+const rotPctN=m=>m.custoN>0?m.pN/m.custoN:0;
 const rotDetAberto=(()=>{ try{ return new Set(JSON.parse(store.get("rotDetAberto")||"[]")); }catch(e){ return new Set(); } })();
-const rotStat=(rot,val,cls,sub)=>el("div",{class:"rot-st"},el("span",{class:"rot-sl",text:rot}),el("b",{class:cls||"",text:val}),sub?el("small",{class:"muted",text:sub}):"");
-/* uma linha de item no card da cidade: nome, bônus e os quatro números que decidem */
+function rotLembra(d,k){ if(rotDetAberto.has(k)) d.open=true;
+  d.addEventListener("toggle",()=>{ d.open?rotDetAberto.add(k):rotDetAberto.delete(k); try{ store.set("rotDetAberto",JSON.stringify([...rotDetAberto])); }catch(e){} }); return d; }
+/* card do item: lucro %, onde vende e quantas fazer (vem com a sugestão do site; o que você escrever fica guardado) */
 function rotLinhaItem(l,c){
   const m=l.m, it=m.it, row=el("div",{class:"rot-i"});
   row.append(iconImg(it.id,40));
@@ -136,39 +148,48 @@ function rotLinhaItem(l,c){
   if(!m.miss){ hd.append(el("span",{class:"rot-chip"+(m.bonusC?" ok":""),text:m.bonusC?`+${Math.round(m.bonusC*100)}% de retorno aqui`:`sem bônus aqui (é em ${it.city})`}));
     if(m.bd) hd.append(el("span",{class:"rot-chip ok",text:`+${Math.round(m.bd*100)}% hoje`})); }
   tx.append(hd);
+  const ctl=el("div",{class:"rot-ctl2"});
   if(m.miss) tx.append(el("small",{class:"loss",text:`Sem preço de ${m.miss}: não dá para calcular.`}));
   else {
-    const g=el("div",{class:"rot-stats"});
-    g.append(rotStat("Lucro/peça com foco",sgn(Math.round(m.pF)),m.pF>0?"gain":"loss",`${dec(m.pct*100)}% sobre o custo`),
-      rotStat("Lucro/peça sem foco",sgn(Math.round(m.pN)),m.pN>0?"gain":"loss"),
-      rotStat("Vende por dia",m.vol==null?"?":fmtU(m.vol),"",`em ${bagCityPT(m.venda.c)}`),
-      rotStat("Prata por foco",dec(m.spf),"",`${fmt(m.fc1)} de foco/peça`));
-    tx.append(g);
-    if(ROT.refinar&&(m.refEco>0||m.refSpf!=null)){ const p=[];
-      if(m.refEco>0) p.push(`refinar os materiais você mesmo deixa a peça ${fmtS(m.refEco)} mais barata`);
-      if(m.refSpf!=null) p.push(m.refSpf>m.spf?`gaste o foco no refino: lá cada ponto vale ${dec(m.refSpf)} de prata, aqui ${dec(m.spf)}`:`gaste o foco aqui no craft: cada ponto vale ${dec(m.spf)} de prata, no refino ${dec(m.refSpf)}`);
-      const t=p.join("; "); tx.append(el("small",{class:"muted",text:t.charAt(0).toUpperCase()+t.slice(1)+"."})); }
-    if(l.fora) tx.append(el("small",{class:"warn",text:"Fica fora do plano: abaixo do lucro % ou das vendas por dia que você filtrou."}));
+    tx.append(el("small",{class:m.pF>0?"gain":"loss",text:`Lucro: ${dec(m.pct*100)}% com foco · ${dec(rotPctN(m)*100)}% sem foco`}));
+    tx.append(el("small",{class:"muted",text:`Vende ${m.vol==null?"?":fmtU(m.vol)} por dia em ${bagCityPT(m.venda.c)}`}));
+    if(l.fora) tx.append(el("small",{class:"warn",text:"Abaixo dos seus filtros de lucro % ou vendas: a sugestão é não fazer."}));
+    const lab=el("label",{class:"rot-q"}), inp=el("input",{type:"number",min:"0",step:"1",inputMode:"numeric",value:String(l.n),"aria-label":`Quantas ${it.nm} fazer em ${c}`});
+    lab.append(el("span",{text:"Fazer"}),inp);
+    ctl.append(lab,el("small",{class:"muted rot-qs",text:l.manual?(l.n!==l.sug?`sugestão: ${fmt(l.sug)}`:"igual à sugestão"):"sugestão do site"}));
+    inp.addEventListener("change",()=>{ const v=inp.value.trim(), Q=ROT.qtd[c]=ROT.qtd[c]||{};
+      if(v==="") delete Q[it.id]; else Q[it.id]=Math.max(0,Math.floor(+v)||0); rotSave(); renderRot(); });
+    inp.addEventListener("keydown",ev=>{ if(ev.key==="Enter") inp.blur(); });
   }
-  const rm=el("button",{type:"button",class:"btn sm ghost",text:"Tirar","aria-label":`Tirar ${it.nm} de ${c}`}); rm.addEventListener("click",()=>{ ROT.itens[c]=(ROT.itens[c]||[]).filter(x=>x!==it.id); rotSave(); renderRot(); });
-  row.append(tx,rm); return row;
+  const rm=el("button",{type:"button",class:"btn sm ghost",text:"Tirar","aria-label":`Tirar ${it.nm} de ${c}`});
+  rm.addEventListener("click",()=>{ ROT.itens[c]=(ROT.itens[c]||[]).filter(x=>x!==it.id); if(ROT.qtd[c]) delete ROT.qtd[c][it.id]; rotSave(); renderRot(); });
+  ctl.append(rm); row.append(tx,ctl); return row;
 }
-/* o detalhe de um item: receita, custo, com e sem foco, venda e o que entra na visita */
+/* materiais da visita somados: cada um na cidade real onde sai mais barato. Refinar você mesmo vira a matéria-prima, na cidade do refino.
+   A quantidade já desconta o retorno de material, mas nunca fica abaixo da receita de um craft (o primeiro pede a receita cheia). */
+function rotCompras(p){ const mp=new Map();
+  const add=(id,nm,q,b,via)=>{ if(!(q>0)||!b) return; const k=id+"|"+b.c+"|"+b.mode, cur=mp.get(k)||{id,nm,q:0,c:b.c,mode:b.mode,p:b.p,k:b.k,via:new Set()}; cur.q+=q; if(via) cur.via.add(via); mp.set(k,cur); };
+  for(const l of p.linhas){ if(!l.n||l.m.miss) continue; const m=l.m;
+    for(const x of m.mats){ const u=x.m.use, q=Math.max(l.nF*x.qF+l.nN*rotQN(x,m),x.g.n);
+      if(u.mode==="refino"){ const f=u.ref, via=`para refinar em ${f.city}`;
+        add(f.rawId,`${f.R.rawPT} T${f.t}.${f.e}`,q*f.n*(1-f.rr),rotCompra(f.rawId,f.city),via);
+        if(f.prevSrc==="comprado") add(f.prevId,`${f.R.refPT} ${f.t===4?"T3":`T${f.t-1}.${f.e}`}`,q*(1-f.rr),rotCompra(f.prevId,f.city),via); continue; }
+      add(x.g.id,rotNm(x,m),q,u,x.g.art?"artefato":null); } }
+  return [...mp.values()].map(x=>({...x,q:Math.ceil(x.q)})).sort((a,b)=>b.q*b.k-a.q*a.k); }
+const rotLcItem=x=>({id:rotApi(x.id),nm:x.nm,q:x.q,c:x.c,p:x.p,modo:x.mode==="ordem"?"ordem":"inst"});
+function rotTabMats(ls,city){
+  const tb=el("table",{class:"rot-tb rot-mt"}), tbd=el("tbody");
+  tb.append(el("thead",{},el("tr",{},el("th",{text:"Material"}),el("th",{class:"n",text:"Comprar"}),el("th",{text:"Onde"}),el("th",{class:"n",text:"Preço"}),el("th",{class:"n",text:"Total"}))));
+  for(const x of ls){ const nm=el("span",{class:"rot-mn"}); nm.append(iconImg(rotApi(x.id),28),el("span",{},el("span",{text:x.nm}),x.via.size?el("small",{class:"muted",text:[...x.via].join(", ")}):null));
+    tbd.append(el("tr",{},el("td",{},nm),el("td",{class:"n",text:fmt(x.q)}),
+      el("td",{},el("span",{text:bagCityPT(x.c)+(x.c===city?" (aqui)":"")}),el("small",{class:"muted",text:x.mode==="ordem"?"ordem de compra":"compra na hora"})),
+      el("td",{class:"n",text:fmt(x.p)}),el("td",{class:"n",text:fmtS(x.q*x.k)}))); }
+  tb.append(tbd); return tb; }
+/* aba Detalhes: a conta completa de um item */
 function rotDetItem(l,city){
   const m=l.m, it=m.it, box=el("section",{class:"rot-dx"});
-  const hd=el("div",{class:"rot-dxh"}); hd.append(iconImg(it.id,32),el("b",{text:it.nm}));
-  const n=l.nF+l.nN;
-  hd.append(el("span",{class:"tag",text:m.miss?"sem preço":l.fora?"fora do plano":n?`fazer ${fmt(n)}`:"nada a fazer agora"}));
-  box.append(hd);
+  const hd=el("div",{class:"rot-dxh"}); hd.append(iconImg(it.id,32),el("b",{text:it.nm})); box.append(hd);
   if(m.miss){ box.append(el("p",{class:"small loss",text:`Falta o preço de ${m.miss}.`})); return box; }
-  /* receita */
-  const tb=el("table",{class:"rot-tb"}), th=el("thead"), tbd=el("tbody");
-  th.append(el("tr",{},el("th",{text:"Material"}),el("th",{class:"n",text:"Com foco"}),el("th",{class:"n",text:"Sem foco"}),el("th",{class:"n",text:"Preço"}),el("th",{class:"n",text:"Na visita"})));
-  for(const x of m.mats){ const u=x.m.use, qN=rotQN(x,m), tot=l.nF*x.qF+l.nN*qN;
-    const como=`${rotModoC(u)}${u.c&&u.c!==city?` em ${bagCityPT(u.c)}`:""}${x.g.art?" · não volta no retorno":""}`;
-    tbd.append(el("tr",{},el("td",{},el("span",{text:x.g.nm}),el("small",{class:"muted",text:como})),el("td",{class:"n",text:dec(x.qF)}),el("td",{class:"n",text:dec(qN)}),el("td",{class:"n",text:fmt(u.p)}),el("td",{class:"n",text:tot>0?fmt(Math.ceil(tot)):"—"}))); }
-  tb.append(th,tbd); const wr=el("div",{class:"rot-tbw"}); wr.append(tb); box.append(wr);
-  /* com foco × sem foco */
   const net=it.q*m.venda.k, cmp=el("table",{class:"rot-tb rot-cmp"}), cb=el("tbody");
   cmp.append(el("thead",{},el("tr",{},el("th",{text:""}),el("th",{class:"n",text:"Com foco"}),el("th",{class:"n",text:"Sem foco"}))));
   const ln=(rot,a,b,cls)=>cb.append(el("tr",{class:cls||""},el("th",{text:rot}),el("td",{class:"n",text:a}),el("td",{class:"n",text:b})));
@@ -179,25 +200,37 @@ function rotDetItem(l,city){
   ln("Lucro por peça",sgn(Math.round(m.pF)),sgn(Math.round(m.pN)),"tot");
   ln("Foco por peça",fmt(m.fc1),"0");
   cmp.append(cb); const wc=el("div",{class:"rot-tbw"}); wc.append(cmp); box.append(wc);
-  box.append(el("p",{class:"small muted",text:`Venda: ${rotModoV(m.venda)} a ${fmt(m.venda.p)} em ${bagCityPT(m.venda.c)}${it.q>1?` (sai ${it.q} por craft)`:""}. ${m.vol==null?"Não sei quanto vende por dia.":`Vende uns ${fmtU(m.vol)} por dia; até a próxima visita (${rotCiclo()} ${rotCiclo()===1?"dia":"dias"}) o mercado absorve ${l.teto&&isFinite(l.teto)?fmt(l.teto):"?"}.`}`}));
-  /* a visita */
-  if(n){ const v=el("div",{class:"rot-vis"});
-    if(l.nF) v.append(el("div",{},el("span",{text:`${fmt(l.nF)} com foco`}),el("b",{class:"gain",text:sgn(Math.round(l.nF*m.pF))}),el("small",{class:"muted",text:`${fmt(l.foco)} de foco · custa ${fmtS(l.nF*m.custoF)}`})));
-    if(l.nN) v.append(el("div",{},el("span",{text:`${fmt(l.nN)} sem foco`}),el("b",{class:"gain",text:sgn(Math.round(l.nN*m.pN))}),el("small",{class:"muted",text:`custa ${fmtS(l.nN*m.custoN)}`})));
-    box.append(v); }
-  else if(!l.fora) box.append(el("p",{class:"small muted",text:m.pN<=0&&m.pF<=0?"Dá prejuízo com e sem foco: não entra no plano.":"Sem foco ou prata sobrando para este item nesta visita."}));
+  const tb=el("table",{class:"rot-tb"}), tbd=el("tbody");
+  tb.append(el("thead",{},el("tr",{},el("th",{text:"Receita"}),el("th",{class:"n",text:"Pede"}),el("th",{class:"n",text:"Gasta, com foco"}),el("th",{class:"n",text:"Sem foco"}),el("th",{class:"n",text:"Preço"}))));
+  for(const x of m.mats){ const u=x.m.use;
+    tbd.append(el("tr",{},el("td",{},el("span",{text:rotNm(x,m)}),el("small",{class:"muted",text:`${rotModoC(u)}${u.c?` em ${bagCityPT(u.c)}`:""}${x.g.art?" · não volta no retorno":""}`})),
+      el("td",{class:"n",text:fmt(x.g.n)}),el("td",{class:"n",text:dec(x.qF)}),el("td",{class:"n",text:dec(rotQN(x,m))}),el("td",{class:"n",text:fmt(u.p)}))); }
+  tb.append(tbd); const wr=el("div",{class:"rot-tbw"}); wr.append(tb); box.append(wr);
+  box.append(el("p",{class:"small muted",text:`"Gasta" é a média por peça depois do retorno de material. Venda: ${rotModoV(m.venda)} a ${fmt(m.venda.p)} em ${bagCityPT(m.venda.c)}${it.q>1?` (sai ${it.q} por craft)`:""}. ${m.vol==null?"Não sei quanto vende por dia.":`Vende uns ${fmtU(m.vol)} por dia; até a próxima visita (${rotCiclo()} ${rotCiclo()===1?"dia":"dias"}) o mercado absorve uns ${l.teto&&isFinite(l.teto)?fmt(l.teto):"?"}.`}${ROT.refinar&&m.refEco>0?` Refinar os materiais você mesmo deixa a peça ${fmtS(m.refEco)} mais barata.`:""}`}));
   return box;
 }
+/* menu da cidade: o que fazer de cada item, os materiais somados e o total; a conta completa fica em Detalhes */
 function rotDetCidade(p){
-  const c=p.city, d=el("details",{class:"rot-det"}); if(rotDetAberto.has(c)) d.open=true;
-  const inv=p.linhas.reduce((a,l)=>a+(l.m.miss?0:l.nF*l.m.custoF+l.nN*l.m.custoN),0), pcs=p.linhas.reduce((a,l)=>a+l.nF+l.nN,0);
-  const sm=el("summary"); sm.append(el("span",{text:`Receitas, custos e lucro em ${c}`}),el("b",{class:p.lucro>0?"gain":"muted",text:pcs?`${sgn(Math.round(p.lucro))} esperado`:"nada no plano"}));
+  const c=p.city, d=rotLembra(el("details",{class:"rot-det"}),c), pcs=p.linhas.reduce((a,l)=>a+l.n,0);
+  const sm=el("summary"); sm.append(el("span",{text:`Plano em ${c}`}),el("b",{class:p.lucro>0?"gain":"muted",text:pcs?`${sgn(Math.round(p.lucro))} de lucro`:"nada para fazer"}));
   d.append(sm);
-  d.addEventListener("toggle",()=>{ d.open?rotDetAberto.add(c):rotDetAberto.delete(c); try{ store.set("rotDetAberto",JSON.stringify([...rotDetAberto])); }catch(e){} });
-  const res=el("div",{class:"rot-res3"});
-  res.append(rotStat("Peças na visita",fmt(pcs)),rotStat("Prata para investir",fmtS(inv)),rotStat("Foco gasto",fmt(p.foco)),rotStat("Lucro esperado",sgn(Math.round(p.lucro)),p.lucro>0?"gain":""));
-  d.append(res);
-  for(const l of p.linhas) d.append(rotDetItem(l,c));
+  const its=el("div",{class:"rot-pi"});
+  for(const l of p.linhas){ const m=l.m; if(m.miss) continue; const b=el("div",{class:"rot-pl"});
+    const h=el("div",{class:"rot-plh"}); h.append(iconImg(m.it.id,28),el("b",{text:m.it.nm}),el("span",{class:l.lucro>0?"gain":l.lucro<0?"loss":"muted",text:l.n?sgn(Math.round(l.lucro)):"não fazer"})); b.append(h);
+    const f=(rot,n,cu,lu)=>el("div",{class:"rot-plf"},el("span",{},el("span",{class:"muted",text:rot+": "}),`${fmt(n)} ${n===1?"peça":"peças"}`),el("span",{text:`custo ${fmt(cu)}/peça`}),el("span",{class:lu>0?"gain":"loss",text:`lucro ${sgn(Math.round(lu))}/peça`}));
+    b.append(f("Com foco",l.nF,m.custoF,m.pF),f("Sem foco",l.nN,m.custoN,m.pN));
+    if(l.n) b.append(el("small",{class:"muted",text:`Custo total ${fmtS(l.custo)}${l.foco?` · ${fmt(l.foco)} de foco`:""}`}));
+    its.append(b); }
+  d.append(its);
+  const ls=rotCompras(p);
+  if(ls.length){ const mt=el("div",{class:"rot-mats"}), hh=el("div",{class:"rot-mh"}); hh.append(el("b",{text:"Materiais"}));
+    if(typeof lcBtn==="function"){ const lb=lcBtn(()=>ls.map(rotLcItem),`Rotação: ${c}`,"Pôr na lista de compras"); lb.classList.add("sm"); hh.append(lb); }
+    const wr=el("div",{class:"rot-tbw"}); wr.append(rotTabMats(ls,c));
+    mt.append(hh,wr,el("small",{class:"muted",text:"Já descontado o retorno de material. Compre cada um onde está mais barato e leve até aqui."})); d.append(mt); }
+  if(pcs) d.append(el("div",{class:"rot-tot"},el("span",{text:`Total: custo ${fmtS(p.custo)}${p.foco?` · ${fmt(p.foco)} de foco`:""}`}),el("b",{class:p.lucro>0?"gain":"loss",text:`lucro ${sgn(Math.round(p.lucro))}`})));
+  const dt=rotLembra(el("details",{class:"rot-det2"}),c+"|det"); dt.append(el("summary",{text:"Detalhes"}));
+  for(const l of p.linhas) dt.append(rotDetItem(l,c));
+  d.append(dt);
   return d;
 }
 function rotCidades(planos){
@@ -224,29 +257,12 @@ function rotBusca(city){
   w.append(inp,so,res); return w;
 }
 function rotOrdens(planos){
-  const o=$("rotOrd"); o.textContent="";
-  let total=0, eco=0; const blocos=[];
-  for(const p of planos){ const mats=new Map();
-    for(const l of p.linhas){ const n=l.nF+l.nN; if(!n||l.m.miss) continue;
-      for(const x of l.m.mats){ const q=x.qF*n;
-        if(x.m.use.mode==="refino"){ const f=x.m.use.ref, onde=f.city;   // refinar: a ordem é da matéria-prima e do refinado de baixo, na cidade do refino
-          const add=(id,nm,qq)=>{ const k=id+"|"+onde, cur=mats.get(k)||{x:{g:{id,nm:`${nm} (para refinar em ${onde})`},m:rotMat(id,onde)},q:0}; cur.q+=qq; mats.set(k,cur); };
-          add(f.rawId,`${f.R.rawPT} T${f.t}.${f.e}`,q*f.n*(1-f.rr)); if(f.prevSrc==="comprado") add(f.prevId,`${f.R.refPT} ${f.t===4?"T3":`T${f.t-1}.${f.e}`}`,q*(1-f.rr)); continue; }
-        const k=x.g.id, cur=mats.get(k)||{x,q:0}; cur.q+=q; mats.set(k,cur); } }
-    if(!mats.size) continue;
-    const tb=el("table",{class:"rot-ot"}), hr=tb.createTHead().insertRow(); ["Material","Quantidade","Ordem a pôr","Comprar na hora","Mais barato fora"].forEach(t=>hr.append(el("th",{text:t})));
-    const body=tb.createTBody(); let sub=0, subE=0;
-    for(const {x,q:q0} of mats.values()){ const q=Math.ceil(q0), m=x.m, tr=body.insertRow();
-      tr.insertCell().append(withIcon(rotApi(x.g.id),el("span",{text:x.g.nm})));
-      const c1=tr.insertCell(); c1.className="num"; c1.textContent=fmt(q);
-      const c2=tr.insertCell(); c2.className="num"; c2.textContent=m.ordem?`${fmt(m.ordem.p)} cada · ${fmtS(m.ordem.p*q)}`:"sem ordem aberta: compre na hora"; if(m.ordem){ sub+=m.ordem.k*q; }
-      const c3=tr.insertCell(); c3.className="num muted"; c3.textContent=m.inst?fmt(m.inst.p):"—"; if(m.ordem&&m.inst) subE+=(m.inst.p-m.ordem.k)*q;
-      const c4=tr.insertCell(); c4.className="num small"; c4.textContent=m.fora&&m.use&&m.fora.p<m.use.k*0.9?`${bagCityPT(m.fora.c)} a ${fmt(m.fora.p)}`:"—"; if(m.fora&&m.use&&m.fora.p<m.use.k*0.9) c4.title="Mais de 10% abaixo do custo daqui. Compensa só se você passar lá; veja o peso na página Transporte."; }
-    total+=sub; eco+=subE;
-    const lista=[...mats.entries()].map(([k,{x,q}])=>{ const onde=k.includes("|")?k.split("|")[1]:p.city, m=x.m, o=m.ordem; return {id:rotApi(x.g.id),q:Math.ceil(q),nm:x.g.nm.replace(/ \(para refinar em .*\)$/,""),c:onde,p:o?o.p:m.inst?m.inst.p:0,modo:o?"ordem":"inst"}; });
-    const lb=typeof lcBtn==="function"?lcBtn(()=>lista,`Rotação: ${p.city}`,"Pôr na lista de compras"):null; if(lb) lb.classList.add("sm");
-    blocos.push(el("div",{class:"rot-ob"},el("div",{class:"rot-obh"},el("h4",{text:`${p.city}${sub?` · ${fmtS(sub)} em ordens`:""}`}),lb),el("div",{class:"tbl-wrap"},tb))); }
-  o.append(el("p",{class:"small",text:blocos.length?`Para a próxima visita de cada cidade: ${fmtS(total)} em ordens de compra, ${subTxt(eco)} em relação a comprar tudo na hora. Ponha a ordem na própria cidade do craft: o material fica no mercado onde a ordem encheu.`:"Os materiais aparecem aqui quando a rotação tiver itens com preço."}),...blocos);
+  const o=$("rotOrd"); o.textContent=""; let total=0; const blocos=[];
+  for(const p of planos){ const ls=rotCompras(p); if(!ls.length) continue; const sub=ls.reduce((a,x)=>a+x.q*x.k,0); total+=sub;
+    const lb=typeof lcBtn==="function"?lcBtn(()=>ls.map(rotLcItem),`Rotação: ${p.city}`,"Pôr na lista de compras"):null; if(lb) lb.classList.add("sm");
+    blocos.push(el("div",{class:"rot-ob"},el("div",{class:"rot-obh"},el("h4",{text:`${p.city} · ${fmtS(sub)}`}),lb),el("div",{class:"tbl-wrap"},rotTabMats(ls,p.city)))); }
+  o.append(el("p",{class:"small",text:blocos.length?`Para a próxima visita de cada cidade: ${fmtS(total)} em materiais. Cada um aparece na cidade onde sai mais barato; compre lá e leve até a cidade do craft.`:"Os materiais aparecem aqui quando houver peças para fazer."}));
+  blocos.forEach(b=>o.append(b));
 }
 const subTxt=v=>v>0?`uns ${fmtS(v)} a menos`:"quase o mesmo";
 function rotUI(){

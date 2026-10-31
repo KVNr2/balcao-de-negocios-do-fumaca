@@ -1,6 +1,19 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T20:39",
+   "titulo": "Rotação: você escolhe quantas peças fazer, e materiais na cidade mais barata",
+   "itens": [
+    "O card de cada item ficou enxuto: lucro % com e sem foco, onde mais vende e quanto por dia, e uma caixa \"Fazer\" que já vem com a sugestão do site. O número que você escrever fica guardado; apague para voltar à sugestão.",
+    "O menu \"Plano em <cidade>\" mostra, para cada item, quantas peças com foco e sem foco, custo por peça e lucro por peça, e o custo e lucro total.",
+    "Materiais da cidade somados, com imagem, quantidade a comprar (já descontado o retorno), a cidade onde está mais barato e se é por ordem de compra ou na hora. Artefatos e materiais encantados entram também.",
+    "A conta completa (retorno, taxa, venda líquida e receita por peça) foi para a aba Detalhes dentro do menu da cidade.",
+    "\"Ordens de compra para pôr\" virou \"Materiais para comprar\", com a cidade mais barata de cada material."
+   ],
+   "como": "Na Rotação de craft, mude o número em \"Fazer\" e abra \"Plano em <cidade>\".",
+   "impacto": "Plano que dá para repetir e ajustar a cada rotação, comprando onde é mais barato."
+  },
+  {
    "t": "2026-10-31T20:02",
    "titulo": "Rotação de craft mais clara e com detalhe por cidade",
    "itens": [
