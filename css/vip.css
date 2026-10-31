@@ -2046,3 +2046,27 @@ nav.tabs .tab-sub{display:none!important}
   .wrap .vip-top:has(.fx-barra){flex-wrap:wrap;align-content:center;row-gap:6px;padding-top:6px;padding-bottom:6px}
   .wrap .vip-top .fx-barra{order:9;flex:1 1 100%;justify-content:flex-start;min-width:0}
 }
+/* rotação: linha de item com números rotulados e detalhe da cidade */
+.rot-ih{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.rot-chip{font-size:13px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--smoke)}
+.rot-chip.ok{border-color:color-mix(in srgb,var(--gain,#3a8f4f) 50%,transparent);color:var(--gain,#3a8f4f)}
+.rot-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px;max-width:440px;margin:4px 0 2px}
+.rot-st{display:grid;gap:0;min-width:0}.rot-st b{font-size:16px}.rot-st small{font-size:13px;line-height:1.25}
+.rot-sl{font-size:13px;color:var(--smoke)}
+.rot-det,.rot-det>*{min-width:0}
+.rot-det{border:1px solid var(--line-soft);border-radius:10px;background:color-mix(in srgb,var(--cloth) 85%,var(--line))}
+.rot-det>summary{cursor:pointer;display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 12px;font-weight:600;list-style:revert;flex-wrap:wrap}
+.rot-det[open]>summary{border-bottom:1px solid var(--line-soft)}
+.rot-res3{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;padding:10px 12px}
+.rot-dx{padding:10px 12px;border-top:1px solid var(--line-soft);display:grid;gap:8px;min-width:0}
+.rot-dxh{display:flex;align-items:center;gap:8px}.rot-dxh .tag{margin-left:auto}
+.rot-dxh img,.rot-dxh .ico{width:32px!important;height:32px!important}
+.rot-tbw{overflow-x:auto}
+.rot-tb{width:100%;border-collapse:collapse;font-size:14.5px}
+.rot-tb th,.rot-tb td{padding:3px 6px;text-align:left;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+.rot-tb thead th{font-weight:600;color:var(--smoke);font-size:13px}
+.rot-tb .n{text-align:right;font-variant-numeric:tabular-nums}
+.rot-tb td small{display:block;font-size:12.5px;white-space:normal}
+.rot-cmp{max-width:420px}.rot-dx>p{overflow-wrap:anywhere}.rot-cmp tbody th{font-weight:400}.rot-cmp tr.tot td,.rot-cmp tr.tot th{font-weight:700}
+.rot-vis{display:flex;flex-wrap:wrap;gap:8px}
+.rot-vis>div{display:grid;border:1px solid var(--line-soft);border-radius:8px;padding:6px 10px;min-width:150px}

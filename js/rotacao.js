@@ -69,7 +69,7 @@ function rotModel(it,city){
   const net=it.q*venda.k, pF=net-cF, pN=net-cN, h=OF2.hs[rotApi(it.id)+"|"+venda.c], vol=h&&h.vol>=0?h.vol:null;
   /* refinar: quanto economiza por peça e quanto rende o foco gasto refinando, para comparar com o foco gasto no craft */
   let refEco=0, refSpf=null; for(const x of mats){ if(x.m.use.mode!=="refino") continue; const b=PX.compra(PX.rec(x.g.id),city,ROT.compra,{lance:1}); if(b) refEco+=x.qF*(b.k-x.m.use.k); const sp=rotRefSpf(x.g.id); if(sp!=null&&(refSpf==null||sp>refSpf)) refSpf=sp; }
-  return {it,city,venda,rF,rN,fc1,pF,pN,pct:cF>0?pF/cF:0,spf:(pF-pN)/fc1,mats,custoF:cF,economia:instT-ordemT,vol,bonusC,bd,refEco,refSpf};
+  return {it,city,venda,rF,rN,fc1,pF,pN,pct:cF>0?pF/cF:0,spf:(pF-pN)/fc1,mats,custoF:cF,custoN:cN,fee,economia:instT-ordemT,vol,bonusC,bd,refEco,refSpf};
 }
 /* plano de uma visita: foco primeiro onde rende mais por ponto, sem passar do que a venda absorve até a próxima visita */
 function rotPlano(city,foco,cash){
@@ -122,21 +122,91 @@ function rotHoje(planos){
   if(outros.length) card.append(el("p",{class:"tiny muted",text:"Depois: "+outros.join(" · ")}));
   h.append(card);
 }
+/* textos curtos de como compra e como vende */
+const rotModoC=u=>u.mode==="ordem"?"ordem de compra":u.mode==="refino"?"refinando você mesmo":"compra na hora";
+const rotModoV=v=>v.c==="Black Market"?"venda na hora (Mercado Negro)":v.mode==="ordem"?"anúncio":"venda na hora";
+const rotQN=(x,m)=>x.g.art?x.g.n:x.g.n*(1-m.rN);
+const rotDetAberto=(()=>{ try{ return new Set(JSON.parse(store.get("rotDetAberto")||"[]")); }catch(e){ return new Set(); } })();
+const rotStat=(rot,val,cls,sub)=>el("div",{class:"rot-st"},el("span",{class:"rot-sl",text:rot}),el("b",{class:cls||"",text:val}),sub?el("small",{class:"muted",text:sub}):"");
+/* uma linha de item no card da cidade: nome, bônus e os quatro números que decidem */
+function rotLinhaItem(l,c){
+  const m=l.m, it=m.it, row=el("div",{class:"rot-i"});
+  row.append(iconImg(it.id,40));
+  const tx=el("div",{class:"rot-it"}), hd=el("div",{class:"rot-ih"}); hd.append(el("b",{text:it.nm}));
+  if(!m.miss){ hd.append(el("span",{class:"rot-chip"+(m.bonusC?" ok":""),text:m.bonusC?`+${Math.round(m.bonusC*100)}% de retorno aqui`:`sem bônus aqui (é em ${it.city})`}));
+    if(m.bd) hd.append(el("span",{class:"rot-chip ok",text:`+${Math.round(m.bd*100)}% hoje`})); }
+  tx.append(hd);
+  if(m.miss) tx.append(el("small",{class:"loss",text:`Sem preço de ${m.miss}: não dá para calcular.`}));
+  else {
+    const g=el("div",{class:"rot-stats"});
+    g.append(rotStat("Lucro/peça com foco",sgn(Math.round(m.pF)),m.pF>0?"gain":"loss",`${dec(m.pct*100)}% sobre o custo`),
+      rotStat("Lucro/peça sem foco",sgn(Math.round(m.pN)),m.pN>0?"gain":"loss"),
+      rotStat("Vende por dia",m.vol==null?"?":fmtU(m.vol),"",`em ${bagCityPT(m.venda.c)}`),
+      rotStat("Prata por foco",dec(m.spf),"",`${fmt(m.fc1)} de foco/peça`));
+    tx.append(g);
+    if(ROT.refinar&&(m.refEco>0||m.refSpf!=null)){ const p=[];
+      if(m.refEco>0) p.push(`refinar os materiais você mesmo deixa a peça ${fmtS(m.refEco)} mais barata`);
+      if(m.refSpf!=null) p.push(m.refSpf>m.spf?`gaste o foco no refino: lá cada ponto vale ${dec(m.refSpf)} de prata, aqui ${dec(m.spf)}`:`gaste o foco aqui no craft: cada ponto vale ${dec(m.spf)} de prata, no refino ${dec(m.refSpf)}`);
+      const t=p.join("; "); tx.append(el("small",{class:"muted",text:t.charAt(0).toUpperCase()+t.slice(1)+"."})); }
+    if(l.fora) tx.append(el("small",{class:"warn",text:"Fica fora do plano: abaixo do lucro % ou das vendas por dia que você filtrou."}));
+  }
+  const rm=el("button",{type:"button",class:"btn sm ghost",text:"Tirar","aria-label":`Tirar ${it.nm} de ${c}`}); rm.addEventListener("click",()=>{ ROT.itens[c]=(ROT.itens[c]||[]).filter(x=>x!==it.id); rotSave(); renderRot(); });
+  row.append(tx,rm); return row;
+}
+/* o detalhe de um item: receita, custo, com e sem foco, venda e o que entra na visita */
+function rotDetItem(l,city){
+  const m=l.m, it=m.it, box=el("section",{class:"rot-dx"});
+  const hd=el("div",{class:"rot-dxh"}); hd.append(iconImg(it.id,32),el("b",{text:it.nm}));
+  const n=l.nF+l.nN;
+  hd.append(el("span",{class:"tag",text:m.miss?"sem preço":l.fora?"fora do plano":n?`fazer ${fmt(n)}`:"nada a fazer agora"}));
+  box.append(hd);
+  if(m.miss){ box.append(el("p",{class:"small loss",text:`Falta o preço de ${m.miss}.`})); return box; }
+  /* receita */
+  const tb=el("table",{class:"rot-tb"}), th=el("thead"), tbd=el("tbody");
+  th.append(el("tr",{},el("th",{text:"Material"}),el("th",{class:"n",text:"Com foco"}),el("th",{class:"n",text:"Sem foco"}),el("th",{class:"n",text:"Preço"}),el("th",{class:"n",text:"Na visita"})));
+  for(const x of m.mats){ const u=x.m.use, qN=rotQN(x,m), tot=l.nF*x.qF+l.nN*qN;
+    const como=`${rotModoC(u)}${u.c&&u.c!==city?` em ${bagCityPT(u.c)}`:""}${x.g.art?" · não volta no retorno":""}`;
+    tbd.append(el("tr",{},el("td",{},el("span",{text:x.g.nm}),el("small",{class:"muted",text:como})),el("td",{class:"n",text:dec(x.qF)}),el("td",{class:"n",text:dec(qN)}),el("td",{class:"n",text:fmt(u.p)}),el("td",{class:"n",text:tot>0?fmt(Math.ceil(tot)):"—"}))); }
+  tb.append(th,tbd); const wr=el("div",{class:"rot-tbw"}); wr.append(tb); box.append(wr);
+  /* com foco × sem foco */
+  const net=it.q*m.venda.k, cmp=el("table",{class:"rot-tb rot-cmp"}), cb=el("tbody");
+  cmp.append(el("thead",{},el("tr",{},el("th",{text:""}),el("th",{class:"n",text:"Com foco"}),el("th",{class:"n",text:"Sem foco"}))));
+  const ln=(rot,a,b,cls)=>cb.append(el("tr",{class:cls||""},el("th",{text:rot}),el("td",{class:"n",text:a}),el("td",{class:"n",text:b})));
+  ln("Retorno de material",`${dec(m.rF*100)}%`,`${dec(m.rN*100)}%`);
+  ln("Custo por peça",fmt(m.custoF),fmt(m.custoN));
+  ln("Taxa da estação (já no custo)",fmt(m.fee),fmt(m.fee));
+  ln("Venda, depois das taxas",fmt(net),fmt(net));
+  ln("Lucro por peça",sgn(Math.round(m.pF)),sgn(Math.round(m.pN)),"tot");
+  ln("Foco por peça",fmt(m.fc1),"0");
+  cmp.append(cb); const wc=el("div",{class:"rot-tbw"}); wc.append(cmp); box.append(wc);
+  box.append(el("p",{class:"small muted",text:`Venda: ${rotModoV(m.venda)} a ${fmt(m.venda.p)} em ${bagCityPT(m.venda.c)}${it.q>1?` (sai ${it.q} por craft)`:""}. ${m.vol==null?"Não sei quanto vende por dia.":`Vende uns ${fmtU(m.vol)} por dia; até a próxima visita (${rotCiclo()} ${rotCiclo()===1?"dia":"dias"}) o mercado absorve ${l.teto&&isFinite(l.teto)?fmt(l.teto):"?"}.`}`}));
+  /* a visita */
+  if(n){ const v=el("div",{class:"rot-vis"});
+    if(l.nF) v.append(el("div",{},el("span",{text:`${fmt(l.nF)} com foco`}),el("b",{class:"gain",text:sgn(Math.round(l.nF*m.pF))}),el("small",{class:"muted",text:`${fmt(l.foco)} de foco · custa ${fmtS(l.nF*m.custoF)}`})));
+    if(l.nN) v.append(el("div",{},el("span",{text:`${fmt(l.nN)} sem foco`}),el("b",{class:"gain",text:sgn(Math.round(l.nN*m.pN))}),el("small",{class:"muted",text:`custa ${fmtS(l.nN*m.custoN)}`})));
+    box.append(v); }
+  else if(!l.fora) box.append(el("p",{class:"small muted",text:m.pN<=0&&m.pF<=0?"Dá prejuízo com e sem foco: não entra no plano.":"Sem foco ou prata sobrando para este item nesta visita."}));
+  return box;
+}
+function rotDetCidade(p){
+  const c=p.city, d=el("details",{class:"rot-det"}); if(rotDetAberto.has(c)) d.open=true;
+  const inv=p.linhas.reduce((a,l)=>a+(l.m.miss?0:l.nF*l.m.custoF+l.nN*l.m.custoN),0), pcs=p.linhas.reduce((a,l)=>a+l.nF+l.nN,0);
+  const sm=el("summary"); sm.append(el("span",{text:`Receitas, custos e lucro em ${c}`}),el("b",{class:p.lucro>0?"gain":"muted",text:pcs?`${sgn(Math.round(p.lucro))} esperado`:"nada no plano"}));
+  d.append(sm);
+  d.addEventListener("toggle",()=>{ d.open?rotDetAberto.add(c):rotDetAberto.delete(c); try{ store.set("rotDetAberto",JSON.stringify([...rotDetAberto])); }catch(e){} });
+  const res=el("div",{class:"rot-res3"});
+  res.append(rotStat("Peças na visita",fmt(pcs)),rotStat("Prata para investir",fmtS(inv)),rotStat("Foco gasto",fmt(p.foco)),rotStat("Lucro esperado",sgn(Math.round(p.lucro)),p.lucro>0?"gain":""));
+  d.append(res);
+  for(const l of p.linhas) d.append(rotDetItem(l,c));
+  return d;
+}
 function rotCidades(planos){
   const g=$("rotCid"); g.textContent="";
   for(const p of planos){ const c=p.city, card=el("article",{class:"rot-c"});
     const dd=rotDiasDesde(c);
     card.append(el("div",{class:"rot-ch"},el("h4",{text:c}),el("span",{class:"tag",text:dd==null?"sem visita":dd===0?"visitada hoje":`há ${dd} ${dd===1?"dia":"dias"}`})));
-    for(const l of p.linhas){ const m=l.m, it=m.it, row=el("div",{class:"rot-i"});
-      row.append(iconImg(it.id,40));
-      const tx=el("div",{class:"rot-it"}); tx.append(el("b",{text:it.nm}));
-      if(m.miss) tx.append(el("small",{class:"loss",text:`Sem preço: ${m.miss}`}));
-      else { tx.append(el("small",{class:"muted",text:`${m.bonusC?`+${Math.round(m.bonusC*100)}% aqui`:`sem bônus aqui (bônus em ${it.city})`}${m.bd?` · +${Math.round(m.bd*100)}% hoje`:""} · ${dec(m.spf)} de prata por foco · vende ${m.vol==null?"?":fmtU(m.vol)}/dia em ${bagCityPT(m.venda.c)}`}));
-        tx.append(el("small",{class:m.pF>0?"gain":"loss",text:`${sgn(Math.round(m.pF))} por peça com foco (${dec(m.pct*100)}%) · ${sgn(Math.round(m.pN))} sem foco`}));
-        if(ROT.refinar&&(m.refEco>0||m.refSpf!=null)) tx.append(el("small",{class:"muted",text:`${m.refEco>0?`Refinando você mesmo: ${fmtS(m.refEco)} a menos por peça. `:""}${m.refSpf!=null?`Refinar com foco rende ${dec(m.refSpf)} por ponto (o craft, ${dec(m.spf)}): ${m.refSpf>m.spf?"o foco rende mais no refino":"o foco rende mais no craft"}.`:""}`}));
-        if(l.fora) tx.append(el("small",{class:"warn",text:"Abaixo dos filtros de lucro % ou vendas por dia: fica fora do plano."})); }
-      const rm=el("button",{type:"button",class:"btn sm ghost",text:"Tirar","aria-label":`Tirar ${it.nm} de ${c}`}); rm.addEventListener("click",()=>{ ROT.itens[c]=(ROT.itens[c]||[]).filter(x=>x!==it.id); rotSave(); renderRot(); });
-      row.append(tx,rm); card.append(row); }
+    for(const l of p.linhas) card.append(rotLinhaItem(l,c));
+    if(p.linhas.length) card.append(rotDetCidade(p));
     card.append(rotSugBox(c,p));
     card.append(rotBusca(c));
     g.append(card); }

@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T20:02",
+   "titulo": "Rotação de craft mais clara e com detalhe por cidade",
+   "itens": [
+    "Cada item da rotação mostra quatro números com nome: lucro por peça com foco, lucro por peça sem foco, quanto vende por dia e quanta prata vale cada ponto de foco.",
+    "A dica de refino virou uma frase direta: quanto a peça fica mais barata refinando você mesmo e onde vale mais gastar o foco.",
+    "Cada cidade tem agora \"Receitas, custos e lucro\": abre a receita de cada item (material, quantidade com e sem foco, preço, como comprar e quanto comprar na visita), custo, venda e lucro com foco lado a lado com sem foco, e o resultado da visita."
+   ],
+   "como": "Na Rotação de craft, clique em \"Receitas, custos e lucro em <cidade>\" dentro do card da cidade. O site lembra quais cidades você deixou abertas.",
+   "impacto": "Dá para conferir de onde sai cada número do plano antes de ir para a cidade."
+  },
+  {
    "t": "2026-10-31T20:10:00Z",
    "titulo": "Menu lateral mais curto e Hoje no Albion com linha própria",
    "itens": [
