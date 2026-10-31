@@ -8,7 +8,7 @@ const BMQ = {};                     // qualidades 2 a 5, mesmo formato do BMP: i
 const BM_VOL = {};                  // id: {qualidade: peças que o Mercado Negro comprou por dia (média dos últimos 7 dias)}, ou -1 se a consulta falhou
 /* dicas dos cabeçalhos da tabela (a coluna fica curta; o que ela é e de onde vem está aqui) */
 const BM_HT={"Vende por dia":"Unidades desta peça, nesta qualidade, que o Mercado Negro comprou por dia nos últimos 7 dias (histórico do Albion Data Project). Use o filtro \"Vende por dia, no mínimo\" para esconder o que quase não vende.","Pedido":"Pedido de compra atual do Mercado Negro para esta peça (qualidade indicada ou melhor), antes da taxa de venda. Vem só dos jogadores com o Albion Overlay coletando preços (Supabase do site). Pedido com mais de 72 horas não aparece.","Média 7 dias":"Média dos pedidos de compra do Mercado Negro registrados nos últimos 7 dias (não é média de vendas fechadas)","Custo":"Custo de fabricar a peça: matéria-prima (já com o retorno de recursos), artefato e taxa da bancada","Bônus em":"Cidade que dá bônus de retorno de recursos para fabricar esta peça"};
-const BM_LOADED = new Set(), BM_TS = {}, BM_REF = {}; let BM_TOK=0, bmMode="craft", bmTiers=new Set(), bmQuals=new Set(), bmEnchs=new Set(), bmSel=null, PLANKS_LOADED=false;
+const BM_LOADED = new Set(), BM_TS = {}, BM_REF = {}; let BM_TOK=0, bmMode="craft", bmTiers=new Set(), bmQuals=new Set(), bmEnchs=new Set(), bmSel=null, PLANKS_LOADED=false, bmBuyCs=new Set();
 const ageH = d => d&&!d.startsWith("0001") ? (Date.now()-Date.parse(d+"Z"))/3600e3 : Infinity;
 /* allQ: traz as qualidades 1 a 5 (a 1 vai para o BMP, as outras para o BMQ); sem allQ só a qualidade 1, como as outras páginas usam */
 const BM_A={};   // "id|qualidade|cidade": médias 7 e 30 dias registradas no Supabase {a7,n7,a30,n30}
@@ -127,12 +127,12 @@ function bmFCE(key){ return itemFCE(key); }   // armas, armaduras e mão secund�
 /* q: qualidade da ordem do Mercado Negro (1 a 5). A ordem aceita essa qualidade ou melhor, então para revender
    vale a peça mais barata entre as qualidades q a 5. */
 /* preço de compra de material: a mediana das cidades, ou o preço de venda na cidade escolhida em "Cidade de compra" */
-function bmTyp(id){ if(!BMF.buy) return typical(id,0,BMD); const v=(BMD[id]||{})[BMF.buy]; return v&&v[0]>0?{p:v[0],n:2,t:v[2]||0}:null; }
+function bmTyp(id){ if(!bmBuyCs.size) return typical(id,0,BMD); let best=null; for(const c of bmBuyCs){ const v=(BMD[id]||{})[c]; if(v&&v[0]>0&&(!best||v[0]<best.p)) best={p:v[0],n:2,t:v[2]||0,c}; } return best; }
 function bmModel(key,t,e,focus=$("bmFocus").checked,q=1){
   const r=BM[key], id=bmId(key,t,e), rec=bmRec(id,q);
   const bmo=rec["Black Market"], cae=rec["Caerleon"];
   const bm=bmo&&bmo[1]>0?{p:bmo[1],age:bmo[2]}:null;
-  let buy=null; for(let qq=q;qq<=5;qq++){ const rq=bmRec(id,qq); for(const c of SHOP_LOCS){ if(BMF.buy&&c!==BMF.buy) continue; const v=rq[c]; if(v&&v[0]>0&&(!buy||v[0]<buy.p)) buy={c,p:v[0],age:v[3],q:qq}; } }
+  let buy=null; for(let qq=q;qq<=5;qq++){ const rq=bmRec(id,qq); for(const c of SHOP_LOCS){ if(bmBuyCs.size&&!bmBuyCs.has(c)) continue; const v=rq[c]; if(v&&v[0]>0&&(!buy||v[0]<buy.p)) buy={c,p:v[0],age:v[3],q:qq}; } }
   const buyC=buy?buy.p:null;
   const tax=st.prem?0.04:0.08, net=bm?bm.p*(1-tax):null;
   let res=0, cnt=0, thin=false, miss=null; const parts=[];
@@ -162,8 +162,8 @@ function setupBM(){
   [og1,og3].forEach(g=>{ if(g.children.length) sel.append(g); }); { const sg=store.get("bmGroup"); sel.value=(sg&&sg!=="*"&&BM_GROUPS.some(x=>x[0]===sg)||LINES.some(x=>x[0]===sg))?sg:bmGroupDefault(); if(!sel.value) sel.value=bmGroupDefault(); }
   /* filtros iguais aos da aba Mercado: busca, categoria, tipo, tier, encantamento e qualidade */
   /* a aba sempre abre em Todas as categorias e tipos; só tier, encantamento e qualidade são lembrados */
-  BMF.cat=""; BMF.sub=""; try{ const sv=JSON.parse(store.get("bmF")||"null"); if(sv){ const arr=(x,ok)=>(Array.isArray(x)?x:x==null?[]:[x]).map(Number).filter(ok); arr(sv.ench,e=>e>=0&&e<=4).forEach(e=>bmEnchs.add(e)); arr(sv.tier,t=>t>=4&&t<=8).forEach(t=>bmTiers.add(t)); arr(sv.qual,q=>q>=1&&q<=5).forEach(q=>bmQuals.add(q)); } }catch(e){}
-  const bmSave=()=>{ try{ store.set("bmF",JSON.stringify({cat:BMF.cat,sub:BMF.sub,ench:[...bmEnchs],tier:[...bmTiers],qual:[...bmQuals]})); }catch(e){} };
+  BMF.cat=""; BMF.sub=""; try{ const sv=JSON.parse(store.get("bmF")||"null"); if(sv){ const arr=(x,ok)=>(Array.isArray(x)?x:x==null?[]:[x]).map(Number).filter(ok); arr(sv.ench,e=>e>=0&&e<=4).forEach(e=>bmEnchs.add(e)); arr(sv.tier,t=>t>=4&&t<=8).forEach(t=>bmTiers.add(t)); arr(sv.qual,q=>q>=1&&q<=5).forEach(q=>bmQuals.add(q)); (Array.isArray(sv.buy)?sv.buy:[]).filter(c=>SHOP_LOCS.includes(c)).forEach(c=>bmBuyCs.add(c)); } }catch(e){}
+  const bmSave=()=>{ try{ store.set("bmF",JSON.stringify({cat:BMF.cat,sub:BMF.sub,ench:[...bmEnchs],tier:[...bmTiers],qual:[...bmQuals],buy:[...bmBuyCs]})); }catch(e){} };
   const fill=(id,opts,val,fn)=>{ const x=$(id); opts.forEach(([v,t])=>x.append(el("option",{value:String(v),text:t}))); x.value=String(val); x.addEventListener("change",()=>{ fn(x.value); bmSave(); BMF.lim=0; bmSel=null; renderBM(); }); };
   fill("bmCat",[["","Todas"],...BM_CATS],BMF.cat,v=>{ BMF.cat=v; BMF.sub=""; bmFillSub(); });
   bmFillSub();
@@ -171,7 +171,7 @@ function setupBM(){
   const msGo=()=>{ bmSave(); BMF.lim=0; bmSel=null; renderBM(); };
   mselUI("bmTierS",[4,5,6,7,8].map(t=>[t,`T${t}`]),bmTiers,"Todos","tiers",msGo);
   mselUI("bmEnch",[0,1,2,3,4].map(e=>[e,`.${e}`]),bmEnchs,"Todos","encantamentos",msGo);
-  fill("bmBuyC",[["","Todas"],...SHOP_LOCS.map(c=>[c,c])],BMF.buy,v=>{ BMF.buy=v; });
+  mselUI("bmBuyC",SHOP_LOCS.map(c=>[c,c]),bmBuyCs,"Todas","cidades",msGo);
   mselUI("bmQualS",[1,2,3,4,5].map(q=>[q,QNAME[q]]),bmQuals,"Todas","qualidades",msGo);
   { let tmr=null; $("bmFind").addEventListener("input",()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ BMF.q=$("bmFind").value.trim(); BMF.lim=0; renderBM(); },250); }); }
   sel.addEventListener("change",()=>{ store.set("bmGroup",sel.value); bmSel=null; renderBM(); });

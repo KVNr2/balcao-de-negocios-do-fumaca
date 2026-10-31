@@ -6,7 +6,7 @@ const REF5 = [
   {k:"wood",raw:"WOOD",ref:"PLANKS",city:"Fort Sterling",rawPT:"Madeira",refPT:"Tábua"},
   {k:"stone",raw:"ROCK",ref:"STONEBLOCK",city:"Bridgewatch",rawPT:"Pedra",refPT:"Bloco de pedra"}];
 const MAT_PT = {METALBAR:"Barra de metal",PLANKS:"Tábua",LEATHER:"Couro",CLOTH:"Tecido"};
-const OF = {mode:null, sort:"profit", cat:null, tiers:new Set(), enchs:new Set(), q:"", rr:"auto", sellC:new Set(), sellS:"auto", buyS:"auto", city:"", loaded:new Set(), vol:{}};
+const OF = {mode:null, sort:"profit", cat:null, tiers:new Set(), enchs:new Set(), q:"", rr:"auto", sellC:new Set(), sellS:"auto", buyS:"auto", buyC:new Set(), loaded:new Set(), vol:{}};
 /* tier e encantamento aceitam vários ao mesmo tempo (OF.tiers, OF.enchs; vazio = todos). OF.tier e OF.ench continuam valendo para o código
    que precisa de um só: devolvem o único marcado (ou 0 / -1 quando há nenhum ou vários) e, ao receber um valor, marcam só ele. */
 Object.defineProperty(OF,"tier",{get(){ return OF.tiers.size===1?[...OF.tiers][0]:0; },set(v){ OF.tiers.clear(); if(+v>0) OF.tiers.add(+v); }});
@@ -97,12 +97,13 @@ const OF2 = {ov:{}, manS:0, manB:0, qty:10, hs:{}, qual:0, tax:true, rrMan:null,
 function bestIn(tbl,id,field,want,only){ const r=tbl[id.includes("_LEVEL")?id.split("@")[0]:id]; if(!r) return null; let b=null; for(const [c,v] of Object.entries(r)){ if(only&&c!==only) continue; const p=v[field]; if(!(p>0)) continue; if(!b||(want==="min"?p<b.p:p>b.p)) b={p,c,t:v[field+2]||snapTime()}; } return b; }
 const sellBM = () => OF.sellC.has("Black Market");
 const sellLocs = () => { const l=[]; if(!OF.sellC.size||[...OF.sellC].some(c=>c!=="Black Market")) l.push(...SHOP_LOCS); if(sellBM()) l.push("Black Market"); return l; };
-const ofSig = () => [...OF.sellC].sort().join(",")+"|"+OF.sellS+"|"+OF.buyS+"|"+OF.city;
+const ofSig = () => [...OF.sellC].sort().join(",")+"|"+OF.sellS+"|"+OF.buyS+"|"+[...OF.buyC].sort().join(",");
+const buyLocs = () => OF.buyC.size?[...OF.buyC]:SHOP_LOCS;   // cidades de compra marcadas (vazio = todas)
 const avgOf = (id,c) => { const h=OF2.hs[nk(id)+"|"+c]; return h&&h.avg>0?h.avg:0; };
 function pickBuy(id,ov){
-  if(OF.buyS==="manual"&&OF2.manB>0) return {p:OF2.manB,c:OF.city||"Manual",t:0,mode:"manual"};
+  if(OF.buyS==="manual"&&OF2.manB>0) return {p:OF2.manB,c:OF.buyC.size===1?[...OF.buyC][0]:"Manual",t:0,mode:"manual"};
   const r=DATA.itens[id.includes("_LEVEL")?id.split("@")[0]:id]||{}; let best=null;
-  for(const c of (ov?[ov]:OF.city?[OF.city]:SHOP_LOCS)){ const v=r[c]; let p=0,t=0,mode="inst";
+  for(const c of (ov?[ov]:buyLocs())){ const v=r[c]; let p=0,t=0,mode="inst";
     if(OF.buyS==="medio"){ p=avgOf(id,c); mode="medio"; } else if(OF.buyS==="ordem"){ p=v?v[1]:0; t=v?v[3]:0; mode="ordem"; } else { p=v?v[0]:0; t=v?v[2]:0; }
     if(p>0&&(!best||p<best.p)) best={p,c,t:t||snapTime(),mode}; }
   return best; }
@@ -383,7 +384,7 @@ async function histFetch(keys){
 async function ofPrefetchAvg(items){
   const keys=[];
   if(OF.sellS==="medio"){ const l=OF.sellC.size?[...OF.sellC]:SHOP_LOCS; for(const it of items) for(const c of l) keys.push(nk(it.id)+"|"+c); }
-  if(OF.buyS==="medio"){ const l=OF.city?[OF.city]:SHOP_LOCS; for(const it of items) for(const g of it.ing) if(!g.art) for(const c of l) keys.push(nk(g.id)+"|"+c); }
+  if(OF.buyS==="medio"){ const l=buyLocs(); for(const it of items) for(const g of it.ing) if(!g.art) for(const c of l) keys.push(nk(g.id)+"|"+c); }
   await histFetch(keys);
 }
 async function fillVolumes(shown){
@@ -405,12 +406,13 @@ function ofCards(){
   const sl=$("ofSellList"); if(!sl) return;
   const redo=()=>{ OF2.ov={}; ofCards(); renderOf(); };
   sl.textContent=""; ["Black Market",...SHOP_LOCS].forEach(c=>sl.append(ofOpt(c,OF.sellC.has(c),"v",()=>{ OF.sellC.has(c)?OF.sellC.delete(c):OF.sellC.add(c); redo(); })));
-  const bl=$("ofBuyList"); bl.textContent=""; [["","Automático"],...SHOP_LOCS.map(c=>[c,c])].forEach(([v,t])=>bl.append(ofOpt(t,OF.city===v,"c",()=>{ OF.city=v; redo(); })));
+  const bl=$("ofBuyList"); bl.textContent=""; bl.append(ofOpt("Automático (todas)",!OF.buyC.size,"c",()=>{ OF.buyC.clear(); redo(); }));
+  SHOP_LOCS.forEach(c=>bl.append(ofOpt(c,OF.buyC.has(c),"c",()=>{ OF.buyC.has(c)?OF.buyC.delete(c):OF.buyC.add(c); if(OF.buyC.size===SHOP_LOCS.length) OF.buyC.clear(); redo(); })));
   const ss=$("ofSellS"); ss.textContent=""; OF_SS.forEach(([v,t])=>ss.append(ofOpt(t,OF.sellS===v,"v",()=>{ OF.sellS=v; redo(); })));
   const bs=$("ofBuyS"); bs.textContent=""; OF_BS.forEach(([v,t])=>bs.append(ofOpt(t,OF.buyS===v,"c",()=>{ OF.buyS=v; redo(); })));
   $("ofManS").hidden=OF.sellS!=="manual"; $("ofManB").hidden=OF.buyS!=="manual";
   const n=OF.sellC.size, vs=n?[...OF.sellC].join(", "):"Automático";
-  $("ofCityV").textContent=vs; $("ofCityC").textContent=OF.city||"Automático"; $("ofCityS").textContent=`${n||"Auto"} Venda / ${OF.city||"Auto"}`;
+  $("ofCityV").textContent=vs; const nb=OF.buyC.size; $("ofCityC").textContent=nb?[...OF.buyC].join(", "):"Automático"; $("ofCityS").textContent=`${n||"Auto"} Venda / ${nb||"Auto"} Compra`;
   const lab=(L,v)=>L.find(x=>x[0]===v)[1]; $("ofStratV").textContent=lab(OF_SS,OF.sellS); $("ofStratC").textContent=lab(OF_BS,OF.buyS); $("ofStratS").textContent=`${lab(OF_SS,OF.sellS)} / ${lab(OF_BS,OF.buyS)}`;
 }
 document.addEventListener("click",ev=>{ const h=ev.target.closest(".of-chead"); if(!h) return; const pop=h.parentNode.querySelector(".of-pop"); const open=pop.hidden; pop.hidden=!open; h.setAttribute("aria-expanded",String(open)); h.parentNode.classList.toggle("open",open); });

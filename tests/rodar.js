@@ -109,6 +109,14 @@ async function simular(p) {
     return { nCom: com.length, focoCom: /foco/.test(com[0] || ""), nSem: sem.length, semFoco: /sem foco/.test(sem[0] || ""), rrF: mF && mF.rr, rrS: mS && mS.rr, nS: mS && mS.N, fcS: mS && mS.fc, ing: it && it.ing.map(g => g.id + "x" + g.n) }; });
   conf("refino mostra T2 e T3 e refina sem foco", rf.nCom >= 5 && rf.semFoco && rf.nS === 100 && rf.fcS === 0 && rf.rrS < rf.rrF && String(rf.ing) === "T3_WOODx2,T2_PLANKSx1", rf);
 
+  /* 10. compra em mais de uma cidade: vale a mais barata entre as marcadas */
+  const bc = await p.evaluate(() => { const id = "T5_PLANKS", r = DATA.itens[id] || {}; const cs = SHOP_LOCS.filter(c => r[c] && r[c][0] > 0);
+    const dois = cs.slice(0, 2), esperado = Math.min(...dois.map(c => r[c][0]));
+    OF.buyS = "inst"; OF.buyC = new Set(dois); const b = pickBuy(id); OF.buyC = new Set(); OF.buyS = "auto"; ofCards();
+    const lista = document.querySelectorAll("#ofBuyList .of-opt").length;
+    return { SHOP_N: SHOP_LOCS.length, dois, p: b && b.p, c: b && b.c, esperado, lista, ui: !!document.querySelector("#bmBuyC.msel") }; });
+  conf("compra aceita mais de uma cidade", bc.dois.length === 2 && bc.p === bc.esperado && bc.dois.includes(bc.c) && bc.lista === 1 + bc.SHOP_N && bc.ui, bc);
+
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
   console.log(ok.map(x => "ok   " + x).join("\n")); if (falhas.length) { console.log(falhas.map(x => "FALHOU " + x).join("\n")); process.exit(1); }
