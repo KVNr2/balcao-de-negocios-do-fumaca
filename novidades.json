@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T02:10:00Z",
+   "titulo": "Compra em mais de uma cidade",
+   "itens": [
+    "No Craft e no Refino, o cartão Cidade agora aceita marcar mais de uma cidade de compra, como já acontecia na venda. A conta usa o preço mais barato entre as cidades marcadas. Sem nenhuma marcada, valem todas.",
+    "No Mercado Negro, o filtro Cidade de compra também passou a aceitar várias cidades."
+   ],
+   "como": "Craft ou Refino > cartão Cidade > Compra: marque as cidades onde você costuma comprar. No Mercado Negro, use o filtro Cidade de compra.",
+   "impacto": "A conta fica mais próxima de onde você realmente compra, sem cair numa cidade em que você nunca vai."
+  },
+  {
    "t": "2026-10-31T00:40:00Z",
    "titulo": "Refino: T2 e T3 na lista, e refinar sem foco",
    "itens": [

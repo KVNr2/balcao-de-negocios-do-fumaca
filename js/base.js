@@ -408,14 +408,14 @@ function mselUI(id,opts,set,allTxt,unit,onChange){
   const b=el("button",{type:"button",class:"msel-b","aria-haspopup":"true","aria-expanded":"false"}), bt=el("span",{class:"msel-t"});
   b.append(bt,el("i",{class:"msel-car","aria-hidden":"true",text:"▾"}));
   const pn=el("div",{class:"msel-p",role:"group",hidden:true}), all=el("button",{type:"button",class:"msel-o msel-all",text:allTxt}), hint=el("small",{class:"msel-h muted",text:"Marque quantos quiser."});
-  let items=[];
+  let items=[]; const cv=x=>opts.length&&typeof opts[0][0]==="string"?String(x):+x;   // valores de texto (cidades) ou número (tier, qualidade)
   const build=()=>{ items.forEach(o=>o.remove()); items=opts.map(([v,t])=>{ const o=el("button",{type:"button",class:"msel-o",role:"checkbox"}); o.dataset.v=String(v); o.append(el("i",{class:"msel-ck","aria-hidden":"true"}),t);
-    o.addEventListener("click",ev=>{ ev.preventDefault(); const x=+o.dataset.v; if(set.has(x)) set.delete(x); else set.add(x); fire(); }); pn.insertBefore(o,hint); return o; }); };
+    o.addEventListener("click",ev=>{ ev.preventDefault(); const x=cv(o.dataset.v); if(set.has(x)) set.delete(x); else set.add(x); fire(); }); pn.insertBefore(o,hint); return o; }); };
   pn.append(all,hint);
   root.append(b,pn); pn.addEventListener("click",ev=>ev.preventDefault());   // clique no fundo da lista não aciona o rótulo em volta
-  const paint=()=>{ items.forEach(o=>{ const on=set.has(+o.dataset.v); o.setAttribute("aria-checked",String(on)); o.classList.toggle("on",on); }); all.classList.toggle("on",!set.size);
+  const paint=()=>{ items.forEach(o=>{ const on=set.has(cv(o.dataset.v)); o.setAttribute("aria-checked",String(on)); o.classList.toggle("on",on); }); all.classList.toggle("on",!set.size);
     const ch=opts.filter(([v])=>set.has(v)).map(([,t])=>t); bt.textContent=!ch.length?allTxt:ch.length<=3?ch.join(", "):`${ch.length} ${unit}`; b.title=ch.length?ch.join(", "):allTxt; root.classList.toggle("on",!!ch.length); };
-  Object.defineProperty(root,"value",{configurable:true,get:()=>[...set].sort((a,b)=>a-b).join(","),set:v=>{ set.clear(); String(v||"").split(",").forEach(x=>{ x=x.trim(); if(x!==""&&opts.some(([o])=>String(o)===x)) set.add(+x); }); paint(); }});
+  Object.defineProperty(root,"value",{configurable:true,get:()=>[...set].sort((a,b)=>a-b).join(","),set:v=>{ set.clear(); String(v||"").split(",").forEach(x=>{ x=x.trim(); if(x!==""&&opts.some(([o])=>String(o)===x)) set.add(cv(x)); }); paint(); }});
   const fire=()=>{ paint(); root.dispatchEvent(new Event("change",{bubbles:true})); };
   const open=on=>{ pn.hidden=!on; b.setAttribute("aria-expanded",String(on)); };
   b.addEventListener("click",ev=>{ ev.preventDefault(); open(pn.hidden); });
