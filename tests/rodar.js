@@ -125,6 +125,16 @@ async function simular(p) {
   conf("estratégia de venda: automático pesa as taxas e ignora anúncio fora da curva", String(au.ordem) === "102000,Thetford,ordem" && String(au.inst) === "97000,Martlock,inst" && String(au.auto) === "102000,Thetford,ordem", au);
   conf("compra aceita mais de uma cidade", bc.dois.length === 2 && bc.p === bc.esperado && bc.dois.includes(bc.c) && bc.lista === 1 + bc.SHOP_N && bc.ui, bc);
 
+  /* 11. Cozinha: estratégia e cidades de venda */
+  const cv = await p.evaluate(async () => { document.getElementById("t-cozinha").click(); await new Promise(f => setTimeout(f, 4000));
+    DATA.itens.T9_SOPA = { Lymhurst: [1000, 600, 1, 1], Martlock: [980, 970, 1, 1], Thetford: [1020, 0, 1, 0], Caerleon: [1800, 0, 1, 0] };
+    const o = {}; for (const s of ["auto", "ordem", "inst", "tipico"]) { CKV.s = s; const x = ckSale("T9_SOPA"); o[s] = x && [x.p, x.c, x.mode]; }
+    CKV.s = "auto"; CKV.c = new Set(["Lymhurst"]); o.lym = ckSale("T9_SOPA"); CKV.c = new Set(); delete DATA.itens.T9_SOPA;
+    document.querySelector('#ckVS [data-v="inst"]').click(); await new Promise(f => setTimeout(f, 1500));
+    o.cel = document.querySelector("#ckTable .ck-venda small")?.textContent || ""; document.querySelector('#ckVS [data-v="auto"]').click();
+    o.ui = !!document.querySelector("#ckVC.msel"); return o; });
+  conf("Cozinha escolhe a venda pela estratégia e pela cidade", String(cv.ordem) === "1020,Thetford,ordem" && String(cv.inst) === "970,Martlock,inst" && String(cv.auto) === "1020,Thetford,ordem" && cv.tipico[2] === "tipico" && cv.lym.c === "Lymhurst" && /na hora/.test(cv.cel) && cv.ui, cv);
+
   conf("nenhum erro de script no fim", erros.length === 0, erros.slice(0, 5));
   await b.close();
   console.log(ok.map(x => "ok   " + x).join("\n")); if (falhas.length) { console.log(falhas.map(x => "FALHOU " + x).join("\n")); process.exit(1); }

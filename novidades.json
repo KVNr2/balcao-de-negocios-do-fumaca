@@ -1,6 +1,19 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T03:20:00Z",
+   "titulo": "Cozinha e alquimia: escolha como e onde vender",
+   "itens": [
+    "Nova linha Venda, com quatro opções: Automático, Anunciar, Vender na hora e Preço típico. O Automático escolhe, em cada cidade, o que deixa mais prata depois das taxas.",
+    "Também dá para marcar as cidades onde você vende, uma ou várias.",
+    "A coluna Venda mostra o preço, a forma de venda (anúncio, na hora ou típico) e a cidade.",
+    "Correção: o detalhe da receita chamava de VENDA INST um preço que era a mediana dos anúncios. Agora o selo mostra a forma de venda usada de verdade, e anunciar já desconta os 2,5% do anúncio.",
+    "O Plano do dia usa a mesma escolha de venda da Cozinha."
+   ],
+   "como": "Cozinha e alquimia > linha Venda, acima de Ingredientes.",
+   "impacto": "Dá para ver onde e como cada prato ou poção vende melhor, sem abrir um por um."
+  },
+  {
    "t": "2026-10-31T02:50:00Z",
    "titulo": "Estratégias de compra e venda revisadas",
    "itens": [
