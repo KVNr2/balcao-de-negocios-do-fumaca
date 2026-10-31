@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T20:10:00Z",
+   "titulo": "Menu lateral mais curto e Hoje no Albion com linha própria",
+   "itens": [
+    "Combate junta Builds, Build ZvZ, PVP e Matchups numa entrada só do menu. Sobre o site junta Patch, Fontes e Versão. As páginas de cada grupo aparecem como abas no alto, e o menu lembra a última que você abriu. O menu caiu de 24 para 19 entradas.",
+    "Links e atalhos para essas páginas continuam funcionando.",
+    "Hoje no Albion: em telas de 901 a 1440px de largura, como a janela do overlay, a faixa ficava espremida no cabeçalho. Agora ela ganha uma linha só dela, e o cabeçalho cresce junto."
+   ],
+   "como": "No menu: Combate e Sobre o site. Dentro da página, troque pelas abas do alto.",
+   "impacto": "Menu mais fácil de percorrer e os bônus do dia legíveis no overlay."
+  },
+  {
    "t": "2026-10-31T19:40:00Z",
    "titulo": "Menu do item com refino e cozinha, páginas mais limpas",
    "itens": [

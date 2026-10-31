@@ -2034,3 +2034,15 @@ details.cmapa{margin:22px 0 0;border:1px solid var(--line);border-radius:14px;pa
 details.cmapa>summary{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;list-style-position:inside}
 details.cmapa>summary .cm-t{font:700 1.2rem var(--f-display);color:var(--parch)}
 details.cmapa[open]>summary{margin-bottom:12px}
+/* menu agrupado: as páginas do grupo saem do menu e viram sub-abas no alto da página */
+nav.tabs .tab-sub{display:none!important}
+.subtabs{margin:0 0 14px;flex-wrap:wrap}
+@media(min-width:901px){ .main>.subtabs{margin:0 32px 14px} }
+@media(max-width:900px){ .main>.subtabs{margin:0 16px 12px} }
+/* "Hoje no Albion" ganha uma linha própria no cabeçalho quando a tela não cabe tudo numa linha (901 a 1440px, como a janela do overlay):
+   antes ficava espremida mostrando só "Pro…". O cabeçalho cresce e o menu lateral acompanha (--top-h). */
+@media(min-width:901px) and (max-width:1440px){
+  html:has(.vip-top .fx-barra){--top-h:104px}
+  .wrap .vip-top:has(.fx-barra){flex-wrap:wrap;align-content:center;row-gap:6px;padding-top:6px;padding-bottom:6px}
+  .wrap .vip-top .fx-barra{order:9;flex:1 1 100%;justify-content:flex-start;min-width:0}
+}
