@@ -269,7 +269,8 @@ function ofDetail(m){
   { const bb=el("div",{class:"of-bagrow"}); const mats=m.parts.filter(g=>g.b&&g.need>0);
     const b1=el("button",{type:"button",class:"btn ghost",text:`Pôr na bag: ${fmt(m.units)} ${m.it.name}`}); b1.addEventListener("click",()=>bagAdd([{id:nk(m.it.id),q:m.units,nm:m.it.name,sell:m.sale.p,sellC:m.sale.c,buy:m.costReal/m.units,buyC:m.it.city}]));
     const b2=el("button",{type:"button",class:"btn ghost",text:`Pôr na bag: os materiais (${mats.length})`}); b2.addEventListener("click",()=>bagAdd(mats.map(g=>({id:nk(g.b.mode==="refino"?g.b.rawId:g.id),q:g.b.mode==="refino"?Math.ceil(g.need*g.b.n*(1-g.b.rr)):g.need,nm:g.b.mode==="refino"?`${g.b.R.rawPT} T${g.b.tier}.${g.b.ench}`:g.nm,buy:g.b.mode==="refino"?g.b.raw.p:g.b.p,buyC:g.b.mode==="refino"?g.b.raw.c:g.b.c,sell:0,sellC:m.it.city})),"Materiais na bag"));
-    bb.append(b1,b2); left.append(bb); }
+    const b3=typeof lcBtn==="function"?lcBtn(()=>mats.map(g=>{ const rf=g.b.mode==="refino"; return {id:nk(rf?g.b.rawId:g.id),q:rf?Math.ceil(g.need*g.b.n*(1-g.b.rr)):g.need,nm:rf?`${g.b.R.rawPT} T${g.b.tier}.${g.b.ench}`:g.nm,c:rf?g.b.raw.c:g.b.c,p:rf?g.b.raw.p:g.b.p,modo:(rf?g.b.raw.mode:g.b.mode)==="ordem"?"ordem":"inst"}; }),()=>`${OF.mode==="refine"?"Refino":"Craft"}: ${m.it.name}`,`Pôr na lista de compras (${mats.length})`):null;
+    bb.append(b1,b2); if(b3) bb.append(b3); left.append(bb); }
   d.append(left,right); return d;
 }
 const ofFB = it => it.bonus===0.40?0.40:0.15;

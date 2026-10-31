@@ -173,7 +173,9 @@ function rotOrdens(planos){
       const c3=tr.insertCell(); c3.className="num muted"; c3.textContent=m.inst?fmt(m.inst.p):"—"; if(m.ordem&&m.inst) subE+=(m.inst.p-m.ordem.k)*q;
       const c4=tr.insertCell(); c4.className="num small"; c4.textContent=m.fora&&m.use&&m.fora.p<m.use.k*0.9?`${bagCityPT(m.fora.c)} a ${fmt(m.fora.p)}`:"—"; if(m.fora&&m.use&&m.fora.p<m.use.k*0.9) c4.title="Mais de 10% abaixo do custo daqui. Compensa só se você passar lá; veja o peso na página Transporte."; }
     total+=sub; eco+=subE;
-    blocos.push(el("div",{class:"rot-ob"},el("h4",{text:`${p.city}${sub?` · ${fmtS(sub)} em ordens`:""}`}),el("div",{class:"tbl-wrap"},tb))); }
+    const lista=[...mats.entries()].map(([k,{x,q}])=>{ const onde=k.includes("|")?k.split("|")[1]:p.city, m=x.m, o=m.ordem; return {id:rotApi(x.g.id),q:Math.ceil(q),nm:x.g.nm.replace(/ \(para refinar em .*\)$/,""),c:onde,p:o?o.p:m.inst?m.inst.p:0,modo:o?"ordem":"inst"}; });
+    const lb=typeof lcBtn==="function"?lcBtn(()=>lista,`Rotação: ${p.city}`,"Pôr na lista de compras"):null; if(lb) lb.classList.add("sm");
+    blocos.push(el("div",{class:"rot-ob"},el("div",{class:"rot-obh"},el("h4",{text:`${p.city}${sub?` · ${fmtS(sub)} em ordens`:""}`}),lb),el("div",{class:"tbl-wrap"},tb))); }
   o.append(el("p",{class:"small",text:blocos.length?`Para a próxima visita de cada cidade: ${fmtS(total)} em ordens de compra, ${subTxt(eco)} em relação a comprar tudo na hora. Ponha a ordem na própria cidade do craft: o material fica no mercado onde a ordem encheu.`:"Os materiais aparecem aqui quando a rotação tiver itens com preço."}),...blocos);
 }
 const subTxt=v=>v>0?`uns ${fmtS(v)} a menos`:"quase o mesmo";
