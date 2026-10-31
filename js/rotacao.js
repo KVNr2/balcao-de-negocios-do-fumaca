@@ -33,22 +33,15 @@ function rotCatalogo(){
 const rotItem=id=>(rotCatalogo()||[]).find(it=>it.id===id);
 const rotFocoVisita=()=>Math.min(FOC_MAX,(st.prem?FOC_DIA:0)*ROT.dias);
 const rotCiclo=()=>ROT.dias*Math.max(1,ROT.cidades.length);   // dias até voltar à mesma cidade
-const rotOrdemOk=v=>v&&v[1]>0&&(!v[0]||v[1]>=v[0]*0.7);
-/* preço de um material na cidade da rotação: ordem de compra (a maior aberta +1, mais os 2,5%) ou, sem ordem, o anúncio */
-function rotMat(id,city){ const r=DATA.itens[rotDKey(id)]||{}, v=r[city];
-  const ordem=rotOrdemOk(v)?{p:v[1]+1,k:(v[1]+1)*1.025,mode:"ordem"}:null, inst=v&&v[0]>0?{p:v[0],k:v[0],mode:"inst"}:null;
+/* preço de um material na cidade da rotação (motor único, js/precos.js): a ordem a pôr é a maior aberta +1 prata, mais os 2,5% */
+function rotMat(id,city){ const r=PX.rec(id);
+  const ordem=(()=>{ const x=PX.compra(r,city,"ordem",{lance:1}); return x&&x.mode==="ordem"?x:null; })(), inst=PX.compra(r,city,"inst");
+  const use=PX.compra(r,city,ROT.compra,{lance:1});
   let fora=null; for(const c of ROT_CIDADES){ if(c===city) continue; const w=r[c]; if(w&&w[0]>0&&(!fora||w[0]<fora.p)) fora={p:w[0],c}; }
-  const use=ROT.compra==="inst"?(inst||ordem):ROT.compra==="auto"?(ordem&&inst?(ordem.k<inst.k?ordem:inst):(ordem||inst)):(ordem||inst);
   return {ordem,inst,use,fora}; }
-/* melhor venda líquida entre as cidades reais, Caerleon e o Mercado Negro (equipamento) */
-function rotVenda(id){ const r=DATA.itens[rotDKey(id)]||{}, tx=taxBase(); let best=null;
-  const locs=ROT.vendaC.length?ROT.vendaC.filter(c=>c!=="Black Market"):[...ROT_CIDADES,"Caerleon"];
-  const ps=[...ROT_CIDADES,"Caerleon"].map(c=>r[c]&&r[c][0]).filter(x=>x>0).sort((a,b)=>a-b), teto=ps.length>=3?(ps.length%2?ps[(ps.length-1)/2]:(ps[ps.length/2-1]+ps[ps.length/2])/2)*1.3:Infinity;   // anúncio fora da curva não vende
-  for(const c of [...locs,...(ROT.bm===false?[]:["Black Market"])]){ const v=r[c]; if(!v) continue; const op=[];
-    if(c==="Black Market"){ if(v[1]>0) op.push({p:v[1],k:v[1]*(1-tx),mode:"inst"}); }
-    else { if(v[0]>0&&v[0]<=teto&&ROT.venda!=="inst") op.push({p:v[0],k:v[0]*(1-tx-0.025),mode:"ordem"}); if(v[1]>0&&ROT.venda!=="ordem") op.push({p:v[1],k:v[1]*(1-tx),mode:"inst"}); }
-    for(const o of op) if(!best||o.k>best.k) best={...o,c}; }
-  return best; }
+/* melhor venda líquida nas cidades escolhidas (ou nas reais e Caerleon) e, se marcado, no Mercado Negro */
+function rotVenda(id){ const r=PX.rec(id), locs=ROT.vendaC.length?ROT.vendaC.filter(c=>c!=="Black Market"):[...ROT_CIDADES,"Caerleon"];
+  return PX.melhorVenda(r,[...locs,...(ROT.bm===false?[]:["Black Market"])],ROT.venda); }
 function rotModel(it,city){
   it.fce=bmFCE(it.key);   // a ficha pode ter mudado (ou sincronizado) depois de montar o catálogo
   const venda=rotVenda(it.id); if(!venda) return {it,miss:"preço de venda"};

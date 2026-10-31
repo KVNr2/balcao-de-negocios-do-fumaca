@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T15:30:00Z",
+   "titulo": "Uma regra só para comprar e vender",
+   "itens": [
+    "Craft, Refino, Cozinha e alquimia, Transporte e Rotação de craft agora usam a mesma conta de compra e venda (o arquivo js/precos.js). Antes cada página tinha a sua, e foi assim que o Automático saiu diferente de uma para outra.",
+    "A regra: comprar na hora é pelo menor anúncio. Ordem de compra é pela maior ordem aberta, mais os 2,5% da ordem. Ordem abaixo de 70% do anúncio é lance perdido e não conta. Anunciar é pelo menor anúncio, com a taxa de venda e os 2,5%. Vender na hora é para a maior ordem de compra. No Mercado Negro só existe vender na hora. O Automático fica com o que custa menos ou deixa mais prata.",
+    "Mudança: anúncio mais de 30% acima da mediana agora é comparado com todas as cidades, mesmo quando você escolhe só algumas para vender. Antes, escolhendo 1 ou 2 cidades, um anúncio velho e caro passava. Conferi com os preços de agora: no Craft T6, isso tirou 5 de uns 150 itens que estavam com preço de venda inflado."
+   ],
+   "como": "Nada muda no uso. As contas só ficam iguais entre as páginas.",
+   "impacto": "O mesmo item tem o mesmo preço de compra e de venda em qualquer página do Balcão."
+  },
+  {
    "t": "2026-10-31T14:55:00Z",
    "titulo": "Transporte: corações por pontos de facção e preços que se atualizam",
    "itens": [
