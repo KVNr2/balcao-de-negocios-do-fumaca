@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="632b7a62">
+<html lang="pt-BR" data-v="fa91469a">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=632b7a62">
-<link rel="stylesheet" href="css/vip.css?v=632b7a62">
-<link rel="stylesheet" href="css/avicons.css?v=632b7a62">
-<link rel="stylesheet" href="css/souk.css?v=632b7a62">
+<link rel="stylesheet" href="css/balcao.css?v=fa91469a">
+<link rel="stylesheet" href="css/vip.css?v=fa91469a">
+<link rel="stylesheet" href="css/avicons.css?v=fa91469a">
+<link rel="stylesheet" href="css/souk.css?v=fa91469a">
 </head>
 <body>
 <div class="wrap app">
@@ -539,14 +539,25 @@ html.em-atual .av-card{margin:0}
 
   <section class="panel" id="p-rot" role="tabpanel" aria-labelledby="t-rot" hidden>
     <p class="aside">Um craft fixo por cidade, uma cidade por visita. Entre uma visita e outra, ordens de compra juntam o material mais barato. Na visita, o foco vai primeiro no item que mais rende por ponto de foco.</p>
-    <div id="rotCtl" class="row-ctl">
+    <div id="rotCtl" class="rot-ctl">
+    <div class="row-ctl">
       <label class="f">Cidades da rotação<div id="rotCidades"></div></label>
       <label class="f" title="Você visita uma cidade por vez. Com 1, uma cidade por dia; com 3, uma a cada 3 dias. O foco de cada visita é o que encheu desde a anterior.">Dias entre visitas<input type="number" id="rotDias" min="1" max="7" value="3" style="width:80px"></label>
       <label class="f" title="Dividido igualmente entre as cidades. Deixe vazio para não limitar.">Dinheiro para os crafts<input type="text" inputmode="numeric" id="rotCash" placeholder="sem limite" style="width:140px"></label>
+    </div>
+    <div class="row-ctl">
+      <label class="f">Tier<div id="rotTier"></div></label>
+      <label class="f">Encantamento<div id="rotEnch"></div></label>
+      <div class="src-g"><span class="of-ct">Tipo</span><div class="seg" id="rotGrupo" role="group" aria-label="Tipo de item"></div></div>
       <label class="f" title="Lucro com foco sobre o custo do material e das taxas">Lucro % mínimo<input type="text" inputmode="decimal" id="rotMinPct" placeholder="qualquer" style="width:100px"></label>
       <label class="f" title="Média de vendas por dia, nos últimos 7 dias, na cidade onde o item vende melhor">Vende por dia, no mínimo<input type="text" inputmode="decimal" id="rotMinVol" placeholder="qualquer" style="width:100px"></label>
-      <label class="chk" title="Sugestões e busca mostram só itens .0 (sem encantamento): material mais barato e mais fácil de encher por ordem"><input type="checkbox" id="rotSoE0"> Só sem encantamento</label>
+    </div>
+    <div class="row-ctl">
+      <div class="src-g"><span class="of-ct">Compra do material</span><div class="seg" id="rotCompra" role="group" aria-label="Como comprar o material"></div></div>
+      <div class="src-g"><span class="of-ct">Venda</span><div class="seg" id="rotVenda" role="group" aria-label="Como vender"></div></div>
+      <label class="f" title="Onde você vende as peças. Sem nenhuma marcada, vale a melhor cidade.">Cidades de venda<div id="rotVendaC"></div></label>
       <label class="chk" title="Com a caixa marcada, o Mercado Negro de Caerleon entra como lugar de venda (vende na hora para a ordem de compra dele). Desmarque para vender só nas cidades."><input type="checkbox" id="rotBM" checked> Vender no Mercado Negro</label>
+    </div>
     </div>
     <p class="small muted" id="rotNote"></p>
     <div id="rotBox">
@@ -871,29 +882,29 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=632b7a62"></script>
-<script src="js/base.js?v=632b7a62"></script>
-<script src="js/fx.js?v=632b7a62"></script>
-<script src="js/biz.js?v=632b7a62"></script>
-<script src="js/builds.js?v=632b7a62"></script>
-<script src="js/nossas.js?v=632b7a62"></script>
-<script src="js/ip.js?v=632b7a62"></script>
-<script src="js/zvz.js?v=632b7a62"></script>
-<script src="js/pvp.js?v=632b7a62"></script>
-<script src="js/novos.js?v=632b7a62"></script>
-<script src="js/guia.js?v=632b7a62"></script>
-<script src="js/ui.js?v=632b7a62"></script>
-<script src="js/avalon.js?v=632b7a62"></script>
-<script src="js/oficina.js?v=632b7a62"></script>
-<script src="js/versao.js?v=632b7a62"></script>
-<script src="js/bag.js?v=632b7a62"></script>
-<script src="js/plano.js?v=632b7a62"></script>
-<script src="js/pesca.js?v=632b7a62"></script>
-<script src="js/listfil.js?v=632b7a62"></script>
-<script src="js/fav.js?v=632b7a62"></script>
-<script src="js/festas.js?v=632b7a62"></script>
-<script src="js/transporte.js?v=632b7a62"></script>
-<script src="js/rotacao.js?v=632b7a62"></script>
-<script src="js/main.js?v=632b7a62"></script>
+<script src="js/icons.js?v=fa91469a"></script>
+<script src="js/base.js?v=fa91469a"></script>
+<script src="js/fx.js?v=fa91469a"></script>
+<script src="js/biz.js?v=fa91469a"></script>
+<script src="js/builds.js?v=fa91469a"></script>
+<script src="js/nossas.js?v=fa91469a"></script>
+<script src="js/ip.js?v=fa91469a"></script>
+<script src="js/zvz.js?v=fa91469a"></script>
+<script src="js/pvp.js?v=fa91469a"></script>
+<script src="js/novos.js?v=fa91469a"></script>
+<script src="js/guia.js?v=fa91469a"></script>
+<script src="js/ui.js?v=fa91469a"></script>
+<script src="js/avalon.js?v=fa91469a"></script>
+<script src="js/oficina.js?v=fa91469a"></script>
+<script src="js/versao.js?v=fa91469a"></script>
+<script src="js/bag.js?v=fa91469a"></script>
+<script src="js/plano.js?v=fa91469a"></script>
+<script src="js/pesca.js?v=fa91469a"></script>
+<script src="js/listfil.js?v=fa91469a"></script>
+<script src="js/fav.js?v=fa91469a"></script>
+<script src="js/festas.js?v=fa91469a"></script>
+<script src="js/transporte.js?v=fa91469a"></script>
+<script src="js/rotacao.js?v=fa91469a"></script>
+<script src="js/main.js?v=fa91469a"></script>
 </body>
 </html>

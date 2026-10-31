@@ -8,7 +8,12 @@ const ROT_CIDADES=["Lymhurst","Fort Sterling","Bridgewatch","Martlock","Thetford
 const ROT=(()=>{ const d={cidades:[...ROT_CIDADES],itens:{},ultima:{},dias:3,cash:"",minPct:"",minVol:"",v:2};
   try{ const o=JSON.parse(store.get("rotacao")||"{}"); const r={...d,...o,itens:o.itens||{},ultima:o.ultima||{}};
     if(!o.v||o.v<2){ if(!r.cidades.includes("Thetford")) r.cidades=ROT_CIDADES.filter(c=>c==="Thetford"||r.cidades.includes(c)); r.v=2; }   // Thetford entrou na rotação
-    return r; }catch(e){ return d; } })();
+    if(!Array.isArray(r.tiers)) r.tiers=[]; if(!Array.isArray(r.enchs)) r.enchs=r.soE0?[0]:[]; if(!Array.isArray(r.vendaC)) r.vendaC=[];
+    if(!r.compra) r.compra="ordem"; if(!r.venda) r.venda="auto"; if(r.grupo==null) r.grupo=""; delete r.soE0;
+    return r; }catch(e){ return {...d,tiers:[],enchs:[],vendaC:[],compra:"ordem",venda:"auto",grupo:""}; } })();
+/* filtros de catálogo (sugestões e busca): tier, encantamento e tipo, como no Craft */
+const ROT_GRUPOS=[["","Tudo"],["armas","Armas"],["armaduras","Armaduras"],["mao","Mão secundária"]];
+const rotCatOk=it=>(!ROT.tiers.length||ROT.tiers.includes(it.t))&&(ROT.enchs.length?ROT.enchs.includes(it.e):it.e<=3)&&(!ROT.grupo||it.grp===ROT.grupo);
 const rotNum=v=>{ const n=typeof numBR==="function"?numBR(v):parseFloat(String(v).replace(",",".")); return n!=null&&isFinite(n)?n:null; };
 /* filtros de lucro % e de vendas por dia: valem para as sugestões e para o plano (o item que não passa fica de fora do plano) */
 function rotPassa(m){ if(!m||m.miss) return false; const mp=rotNum(ROT.minPct), mv=rotNum(ROT.minVol);
@@ -21,7 +26,7 @@ let ROT_CAT=null; const ROT_LOADED=new Set();
 function rotCatalogo(){
   if(ROT_CAT||!BM) return ROT_CAT;
   const t0=new Set(OF.tiers), e0=new Set(OF.enchs); OF.tiers.clear(); OF.enchs.clear();
-  try{ ROT_CAT=ofItems("g:*tudo").filter(it=>it.t>=4); } finally{ t0.forEach(x=>OF.tiers.add(x)); e0.forEach(x=>OF.enchs.add(x)); }
+  try{ ROT_CAT=[]; for(const g of ofGroups("g:*tudo")){ const grp=g==="mao"?"mao":g.startsWith("a_")?"armaduras":"armas"; for(const it of ofItems("g:"+g)) if(it.t>=4){ it.grp=grp; ROT_CAT.push(it); } } } finally{ t0.forEach(x=>OF.tiers.add(x)); e0.forEach(x=>OF.enchs.add(x)); }
   ROT_CAT.forEach(it=>{ it.nm=`${it.name} T${it.t}.${it.e}`; it.busca=(it.nm+" "+it.name).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); });
   return ROT_CAT;
 }
@@ -33,12 +38,15 @@ const rotOrdemOk=v=>v&&v[1]>0&&(!v[0]||v[1]>=v[0]*0.7);
 function rotMat(id,city){ const r=DATA.itens[rotDKey(id)]||{}, v=r[city];
   const ordem=rotOrdemOk(v)?{p:v[1]+1,k:(v[1]+1)*1.025,mode:"ordem"}:null, inst=v&&v[0]>0?{p:v[0],k:v[0],mode:"inst"}:null;
   let fora=null; for(const c of ROT_CIDADES){ if(c===city) continue; const w=r[c]; if(w&&w[0]>0&&(!fora||w[0]<fora.p)) fora={p:w[0],c}; }
-  return {ordem,inst,use:ordem||inst,fora}; }
+  const use=ROT.compra==="inst"?(inst||ordem):ROT.compra==="auto"?(ordem&&inst?(ordem.k<inst.k?ordem:inst):(ordem||inst)):(ordem||inst);
+  return {ordem,inst,use,fora}; }
 /* melhor venda líquida entre as cidades reais, Caerleon e o Mercado Negro (equipamento) */
 function rotVenda(id){ const r=DATA.itens[rotDKey(id)]||{}, tx=taxBase(); let best=null;
-  for(const c of [...ROT_CIDADES,"Caerleon",...(ROT.bm===false?[]:["Black Market"])]){ const v=r[c]; if(!v) continue; const op=[];
+  const locs=ROT.vendaC.length?ROT.vendaC.filter(c=>c!=="Black Market"):[...ROT_CIDADES,"Caerleon"];
+  const ps=[...ROT_CIDADES,"Caerleon"].map(c=>r[c]&&r[c][0]).filter(x=>x>0).sort((a,b)=>a-b), teto=ps.length>=3?(ps.length%2?ps[(ps.length-1)/2]:(ps[ps.length/2-1]+ps[ps.length/2])/2)*1.3:Infinity;   // anúncio fora da curva não vende
+  for(const c of [...locs,...(ROT.bm===false?[]:["Black Market"])]){ const v=r[c]; if(!v) continue; const op=[];
     if(c==="Black Market"){ if(v[1]>0) op.push({p:v[1],k:v[1]*(1-tx),mode:"inst"}); }
-    else { if(v[0]>0) op.push({p:v[0],k:v[0]*(1-tx-0.025),mode:"ordem"}); if(v[1]>0) op.push({p:v[1],k:v[1]*(1-tx),mode:"inst"}); }
+    else { if(v[0]>0&&v[0]<=teto&&ROT.venda!=="inst") op.push({p:v[0],k:v[0]*(1-tx-0.025),mode:"ordem"}); if(v[1]>0&&ROT.venda!=="ordem") op.push({p:v[1],k:v[1]*(1-tx),mode:"inst"}); }
     for(const o of op) if(!best||o.k>best.k) best={...o,c}; }
   return best; }
 function rotModel(it,city){
@@ -128,7 +136,7 @@ function rotBusca(city){
   const so=el("label",{class:"chk small"}); const cb=el("input",{type:"checkbox"}); cb.checked=true; so.append(cb," Só com bônus nesta cidade");
   const busca=()=>{ res.textContent=""; const q=inp.value.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); const cat=rotCatalogo()||[]; if(q.length<2&&!cb.checked) return;
     const toks=q.split(/\s+/).filter(Boolean); const tem=new Set(ROT.itens[city]||[]);
-    const l=cat.filter(it=>(!cb.checked||it.city===city)&&(!ROT.soE0||it.e===0)&&!tem.has(it.id)&&toks.every(t=>it.busca.includes(t))).slice(0,q?8:0);
+    const l=cat.filter(it=>(!cb.checked||it.city===city)&&rotCatOk(it)&&!tem.has(it.id)&&toks.every(t=>it.busca.includes(t))).slice(0,q?8:0);
     for(const it of l){ const b=el("button",{type:"button",class:"rot-op"}); b.append(iconImg(it.id,28),el("span",{text:it.nm}),el("small",{class:"muted",text:it.city===city?`+15% aqui`:`bônus em ${it.city}`}));
       b.addEventListener("click",()=>{ (ROT.itens[city]=ROT.itens[city]||[]).push(it.id); rotSave(); renderRot(); }); res.append(b); } };
   let tm; inp.addEventListener("input",()=>{ clearTimeout(tm); tm=setTimeout(busca,200); }); cb.addEventListener("change",busca);
@@ -161,7 +169,17 @@ function rotUI(){
   const d=$("rotDias"); d.value=String(ROT.dias); d.addEventListener("change",()=>{ ROT.dias=Math.max(1,Math.min(7,Math.round(+d.value)||3)); d.value=String(ROT.dias); rotSave(); renderRot(); });
   for(const [id,k] of [["rotMinPct","minPct"],["rotMinVol","minVol"]]){ const i=$(id); i.value=ROT[k]; let t2; i.addEventListener("input",()=>{ ROT[k]=i.value.trim(); rotSave(); for(const c in ROT_SUG) delete ROT_SUG[c]; clearTimeout(t2); t2=setTimeout(renderRot,400); }); }
   { const bm=$("rotBM"); bm.checked=ROT.bm!==false; bm.addEventListener("change",()=>{ ROT.bm=bm.checked; rotSave(); for(const c in ROT_SUG) delete ROT_SUG[c]; renderRot(); }); }
-  { const e0=$("rotSoE0"); e0.checked=!!ROT.soE0; e0.addEventListener("change",()=>{ ROT.soE0=e0.checked; rotSave(); for(const c in ROT_SUG) delete ROT_SUG[c]; renderRot(); }); }
+  const muda=()=>{ rotSave(); for(const c in ROT_SUG) delete ROT_SUG[c]; renderRot(); };
+  { const ts=new Set(ROT.tiers), es=new Set(ROT.enchs), vs=new Set(ROT.vendaC);
+    mselUI("rotTier",[4,5,6,7,8].map(t=>[t,`T${t}`]),ts,"T4 a T8","tiers",()=>{ ROT.tiers=[...ts].sort(); muda(); });
+    mselUI("rotEnch",[0,1,2,3,4].map(e=>[e,`.${e}`]),es,".0 a .3","encantamentos",()=>{ ROT.enchs=[...es].sort(); muda(); });
+    mselUI("rotVendaC",[...ROT_CIDADES,"Caerleon"].map(c=>[c,c]),vs,"Todas","cidades",()=>{ ROT.vendaC=[...vs]; muda(); }); }
+  const seg=(id,opts,k)=>{ const g=$(id); opts.forEach(([v,t,tt])=>{ const b=el("button",{type:"button",text:t}); b.dataset.v=v; if(tt) b.title=tt; g.append(b); });
+    const pinta=()=>g.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===ROT[k]))); pinta();
+    g.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ROT[k]=b.dataset.v; pinta(); muda(); }); };
+  seg("rotGrupo",ROT_GRUPOS,"grupo");
+  seg("rotCompra",[["ordem","Ordem de compra","A maior ordem aberta +1, mais os 2,5% da ordem. Sem ordem aberta, compra na hora."],["auto","Automático","O mais barato entre pôr ordem (+2,5%) e comprar na hora"],["inst","Na hora","Compra do menor anúncio da cidade"]],"compra");
+  seg("rotVenda",[["auto","Automático","O que deixa mais prata depois das taxas: anunciar (+2,5%) ou vender na hora"],["ordem","Anunciar"],["inst","Na hora"]],"venda");
   const m=$("rotCash"); m.value=ROT.cash; let tm; m.addEventListener("input",()=>{ ROT.cash=m.value; rotSave(); clearTimeout(tm); tm=setTimeout(renderRot,400); });
 }
 
@@ -192,7 +210,7 @@ function rotSugBox(city,plano){
 async function rotSugCalc(city,redraw,modo="spec"){
   const key=city+"|"+modo, set=v=>{ ROT_SUG[key]=v; redraw(); };
   set({loading:modo==="spec"?"Procurando as linhas com mais spec…":"Separando os itens com bônus aqui…"});
-  const cat=rotCatalogo()||[], comBonus=cat.filter(it=>it.city===city&&(ROT.soE0?it.e===0:it.e<=3)); comBonus.forEach(it=>{ it.fce=bmFCE(it.key); });
+  const cat=rotCatalogo()||[], comBonus=cat.filter(it=>it.city===city&&rotCatOk(it)); comBonus.forEach(it=>{ it.fce=bmFCE(it.key); });
   let cands=comBonus;
   if(modo==="spec"){ const porLinha=new Map(); for(const it of comBonus){ const v=porLinha.get(it.key); if(!v||it.fce>v) porLinha.set(it.key,it.fce||0); }
     const linhas=[...porLinha.entries()].filter(([,f])=>f>0).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k])=>k);
