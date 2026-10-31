@@ -5,8 +5,14 @@
    Na visita: o foco acumulado (até 30.000) vai primeiro no item que mais rende por ponto de foco, e cada item fica limitado
    ao que a melhor cidade de venda absorve até a próxima visita. */
 const ROT_CIDADES=["Lymhurst","Fort Sterling","Bridgewatch","Martlock","Thetford"];
-const ROT=(()=>{ const d={cidades:["Lymhurst","Fort Sterling","Bridgewatch","Martlock"],itens:{},ultima:{},dias:3,cash:""};
-  try{ const o=JSON.parse(store.get("rotacao")||"{}"); return {...d,...o,itens:o.itens||{},ultima:o.ultima||{}}; }catch(e){ return d; } })();
+const ROT=(()=>{ const d={cidades:[...ROT_CIDADES],itens:{},ultima:{},dias:3,cash:"",minPct:"",minVol:"",v:2};
+  try{ const o=JSON.parse(store.get("rotacao")||"{}"); const r={...d,...o,itens:o.itens||{},ultima:o.ultima||{}};
+    if(!o.v||o.v<2){ if(!r.cidades.includes("Thetford")) r.cidades=ROT_CIDADES.filter(c=>c==="Thetford"||r.cidades.includes(c)); r.v=2; }   // Thetford entrou na rotação
+    return r; }catch(e){ return d; } })();
+const rotNum=v=>{ const n=typeof numBR==="function"?numBR(v):parseFloat(String(v).replace(",",".")); return n!=null&&isFinite(n)?n:null; };
+/* filtros de lucro % e de vendas por dia: valem para as sugestões e para o plano (o item que não passa fica de fora do plano) */
+function rotPassa(m){ if(!m||m.miss) return false; const mp=rotNum(ROT.minPct), mv=rotNum(ROT.minVol);
+  if(mp!=null&&!(m.pct*100>=mp)) return false; if(mv!=null&&mv>0&&!(m.vol!=null&&m.vol>=mv)) return false; return true; }
 const rotSave=()=>{ try{ store.set("rotacao",JSON.stringify(ROT)); }catch(e){} };
 const rotDKey=id=>id.includes("_LEVEL")?id.split("@")[0]:id;              // como o preço fica guardado
 const rotApi=id=>/_LEVEL\d$/.test(id)?nk(id):id;                         // como a API pede
@@ -45,18 +51,18 @@ function rotModel(it,city){
     const fat=g.art?1:null, qF=g.n*(fat||(1-rF)), qN=g.n*(fat||(1-rN));
     cF+=qF*m.use.k; cN+=qN*m.use.k; if(m.inst) instT+=qF*m.inst.k; ordemT+=qF*m.use.k; mats.push({g,m,qF}); }
   const net=it.q*venda.k, pF=net-cF, pN=net-cN, h=OF2.hs[rotApi(it.id)+"|"+venda.c], vol=h&&h.vol>=0?h.vol:null;
-  return {it,city,venda,rF,rN,fc1,pF,pN,spf:(pF-pN)/fc1,mats,custoF:cF,economia:instT-ordemT,vol,bonusC,bd};
+  return {it,city,venda,rF,rN,fc1,pF,pN,pct:cF>0?pF/cF:0,spf:(pF-pN)/fc1,mats,custoF:cF,economia:instT-ordemT,vol,bonusC,bd};
 }
 /* plano de uma visita: foco primeiro onde rende mais por ponto, sem passar do que a venda absorve até a próxima visita */
 function rotPlano(city,foco,cash){
   const ms=(ROT.itens[city]||[]).map(id=>rotItem(id)).filter(Boolean).map(it=>rotModel(it,city));
-  const ok=ms.filter(m=>!m.miss).sort((a,b)=>b.spf-a.spf); let F=foco, C=cash>0?cash:Infinity; const linhas=[];
+  const ok=ms.filter(rotPassa).sort((a,b)=>b.spf-a.spf); let F=foco, C=cash>0?cash:Infinity; const linhas=[];
   for(const m of ok){ const teto=m.vol!=null?Math.max(1,Math.floor(m.vol*rotCiclo())):Infinity;
     let nF=m.pF>0?Math.min(teto,Math.floor(F/m.fc1),Math.floor(C/Math.max(1,m.custoF))):0; F-=nF*m.fc1; C-=nF*m.custoF;
     let nN=m.pN>0?Math.min(teto-nF,Math.floor(C/Math.max(1,m.custoF))):0; if(!isFinite(nN)) nN=0; C-=nN*m.custoF;
     if(!isFinite(nF)) nF=0;
     linhas.push({m,nF,nN,teto,lucro:nF*m.pF+nN*m.pN,foco:nF*m.fc1}); }
-  for(const m of ms.filter(m=>m.miss)) linhas.push({m,nF:0,nN:0,lucro:0,foco:0});
+  for(const m of ms.filter(m=>!rotPassa(m))) linhas.push({m,nF:0,nN:0,lucro:0,foco:0,fora:!m.miss});
   return {city,linhas,lucro:linhas.reduce((a,l)=>a+l.lucro,0),foco:foco-F};
 }
 async function rotEnsure(note){
@@ -108,7 +114,8 @@ function rotCidades(planos){
       const tx=el("div",{class:"rot-it"}); tx.append(el("b",{text:it.nm}));
       if(m.miss) tx.append(el("small",{class:"loss",text:`Sem preço: ${m.miss}`}));
       else { tx.append(el("small",{class:"muted",text:`${m.bonusC?`+${Math.round(m.bonusC*100)}% aqui`:`sem bônus aqui (bônus em ${it.city})`}${m.bd?` · +${Math.round(m.bd*100)}% hoje`:""} · ${dec(m.spf)} de prata por foco · vende ${m.vol==null?"?":fmtU(m.vol)}/dia em ${bagCityPT(m.venda.c)}`}));
-        tx.append(el("small",{class:m.pF>0?"gain":"loss",text:`${sgn(Math.round(m.pF))} por peça com foco · ${sgn(Math.round(m.pN))} sem foco`})); }
+        tx.append(el("small",{class:m.pF>0?"gain":"loss",text:`${sgn(Math.round(m.pF))} por peça com foco (${dec(m.pct*100)}%) · ${sgn(Math.round(m.pN))} sem foco`}));
+        if(l.fora) tx.append(el("small",{class:"warn",text:"Abaixo dos filtros de lucro % ou vendas por dia: fica fora do plano."})); }
       const rm=el("button",{type:"button",class:"btn sm ghost",text:"Tirar","aria-label":`Tirar ${it.nm} de ${c}`}); rm.addEventListener("click",()=>{ ROT.itens[c]=(ROT.itens[c]||[]).filter(x=>x!==it.id); rotSave(); renderRot(); });
       row.append(tx,rm); card.append(row); }
     card.append(rotSugBox(c,p));
@@ -152,6 +159,7 @@ function rotUI(){
   const cs=new Set(ROT.cidades);
   mselUI("rotCidades",ROT_CIDADES.map(c=>[c,c]),cs,"Nenhuma","cidades",()=>{ ROT.cidades=ROT_CIDADES.filter(c=>cs.has(c)); rotSave(); renderRot(); });
   const d=$("rotDias"); d.value=String(ROT.dias); d.addEventListener("change",()=>{ ROT.dias=Math.max(1,Math.min(7,Math.round(+d.value)||3)); d.value=String(ROT.dias); rotSave(); renderRot(); });
+  for(const [id,k] of [["rotMinPct","minPct"],["rotMinVol","minVol"]]){ const i=$(id); i.value=ROT[k]; let t2; i.addEventListener("input",()=>{ ROT[k]=i.value.trim(); rotSave(); for(const c in ROT_SUG) delete ROT_SUG[c]; clearTimeout(t2); t2=setTimeout(renderRot,400); }); }
   const m=$("rotCash"); m.value=ROT.cash; let tm; m.addEventListener("input",()=>{ ROT.cash=m.value; rotSave(); clearTimeout(tm); tm=setTimeout(renderRot,400); });
 }
 
@@ -165,10 +173,10 @@ function rotSugBox(city,plano){
   const desenha=()=>{ body.textContent=""; const s=ROT_SUG[city];
     if(!s){ body.append(el("p",{class:"tiny muted",text:"Procura, entre os itens com bônus aqui, os das linhas em que você tem mais spec, e mostra os que mais rendem por visita."})); const b=el("button",{type:"button",class:"btn sm",text:"Procurar"}); b.addEventListener("click",()=>rotSugCalc(city,desenha)); body.append(b); return; }
     if(s.loading){ body.append(el("p",{class:"tiny muted",text:s.loading})); return; }
-    if(!s.lista.length){ body.append(el("p",{class:"tiny muted",text:s.vazio||"Nada com lucro agora entre as suas linhas com bônus aqui."})); return; }
+    if(!s.lista.length){ body.append(el("p",{class:"tiny muted",text:s.vazio||(ROT.minPct||ROT.minVol?"Nada passa pelos filtros de lucro % e vendas por dia entre as suas linhas com bônus aqui. Afrouxe um deles.":"Nada com lucro agora entre as suas linhas com bônus aqui.")})); return; }
     const tem=new Set(ROT.itens[city]||[]);
     for(const x of s.lista){ const m=x.m, it=m.it, r=el("div",{class:"rot-op rot-sg"});
-      r.append(iconImg(it.id,28),el("span",{},el("b",{text:it.nm}),el("small",{class:"muted",text:` · spec ${rotSpecPct(it.fce)}% menos foco · ${dec(m.spf)} por foco · ${sgn(Math.round(x.visita))} numa visita${m.vol!=null?` · vende ${fmtU(m.vol)}/dia`:""}`})));
+      r.append(iconImg(it.id,28),el("span",{},el("b",{text:it.nm}),el("small",{class:"muted",text:` · spec ${rotSpecPct(it.fce)}% menos foco · lucro ${dec(m.pct*100)}% · ${dec(m.spf)} por foco · ${sgn(Math.round(x.visita))} numa visita${m.vol!=null?` · vende ${fmtU(m.vol)}/dia`:""}`})));
       const b=el("button",{type:"button",class:"btn sm",text:tem.has(it.id)?"Já está":"Pôr"}); b.disabled=tem.has(it.id);
       b.addEventListener("click",()=>{ (ROT.itens[city]=ROT.itens[city]||[]).push(it.id); rotSave(); renderRot(); }); r.append(b); body.append(r); } };
   desenha(); if(ROT_SUG[city]&&!ROT_SUG[city].loading) w.open=true; return w;
@@ -185,10 +193,11 @@ async function rotSugCalc(city,redraw){
     const ids=[...new Set(cands.map(it=>rotApi(it.id)))].filter(x=>!ROT_LOADED.has(x)), mats=[...new Set(cands.flatMap(it=>it.ing.map(g=>rotApi(g.id))))].filter(x=>!ROT_LOADED.has(x));
     if(ids.length) await fetchIds(ids,DATA.itens,[...SHOP_LOCS,"Black Market"]); if(mats.length) await fetchIds(mats,DATA.itens,SHOP_LOCS); [...ids,...mats].forEach(x=>ROT_LOADED.add(x));
     const F=rotFocoVisita(), visita=m=>{ const teto=m.vol!=null?Math.max(1,Math.floor(m.vol*rotCiclo())):Infinity, nF=m.pF>0?Math.min(teto,F>0?Math.floor(F/m.fc1):0):0, nN=m.pN>0?Math.min(teto-nF,isFinite(teto)?teto:0):0; return nF*m.pF+nN*m.pN; };
-    let ms=cands.map(it=>rotModel(it,city)).filter(m=>!m.miss&&m.pF>0).sort((a,b)=>b.spf-a.spf).slice(0,24);
+    const mp=rotNum(ROT.minPct);
+    let ms=cands.map(it=>rotModel(it,city)).filter(m=>!m.miss&&m.pF>0&&(mp==null||m.pct*100>=mp)).sort((a,b)=>b.spf-a.spf).slice(0,40);   // o filtro de lucro % já entra aqui; o de vendas, depois de consultar
     ROT_SUG[city]={loading:"Consultando quanto cada um vende por dia…"}; redraw();
     const keys=ms.map(m=>rotApi(m.it.id)+"|"+m.venda.c).filter(k=>OF2.hs[k]==null); if(keys.length) await histFetch(keys);
-    ms=ms.map(m=>rotModel(m.it,city));
+    ms=ms.map(m=>rotModel(m.it,city)).filter(rotPassa);
     const lista=ms.map(m=>({m,visita:visita(m)})).filter(x=>x.visita>0).sort((a,b)=>b.visita-a.visita).slice(0,6);
     ROT_SUG[city]={lista};
   }catch(e){ ROT_SUG[city]={lista:[],vazio:"Não consegui buscar os preços agora."}; }
