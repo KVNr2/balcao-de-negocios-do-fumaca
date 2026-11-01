@@ -169,6 +169,12 @@ async function simular(p) {
     const hoje = histDias([{ data: [{ timestamp: dia(0), item_count: 500, avg_price: 1 }] }]);
     return { pico: pico.vol, media: pico.media, lento: lento.vol, hoje: hoje.vol, nota: !!volNota(pico) }; });
   conf("vendas por dia: mediana dos 7 dias, item lento usa a média, hoje não conta", hmed.pico === 3 && hmed.media > 7 && Math.abs(hmed.lento - 1 / 7) < 1e-9 && hmed.hoje === 0 && hmed.nota, hmed);
+  const renc = await p.evaluate(async () => { const it = rotCatalogo().find(x => x.city === "Lymhurst" && x.t === 5 && x.e === 2); ROT.itens = { Lymhurst: [it.id] }; ROT.qtd = {};
+    ROT.enc = "runas"; await rotEnsure(document.getElementById("rotNote")); const a = rotModel(it, "Lymhurst");
+    ROT.enc = "craft"; const b = rotModel(it, "Lymhurst"); ROT.enc = "auto"; const c = rotModel(it, "Lymhurst");
+    ROT.enc = "runas"; ROT.qtd = { Lymhurst: { [it.id]: 3 } }; const comp = rotCompras(rotPlano("Lymhurst", rotFocoVisita(), 0)).map(x => x.id); ROT.enc = "auto"; ROT.qtd = {};
+    return { usa: a.enc && a.enc.usa, runas: a.mats.filter(x => x.g.enc).map(x => x.g.id + ":" + x.g.n), semRuna: b.mats.every(x => !x.g.enc), auto: c.enc && c.enc.usa, menor: c.enc && Math.min(c.enc.a, c.enc.b) === (c.enc.usa === "runas" ? c.enc.b : c.enc.a), comp }; });
+  conf("rotação: item .2 pode ser .0 + runas e almas, com os materiais na compra", renc.usa === "runas" && renc.runas.length === 2 && /RUNE/.test(renc.runas[0]) && /SOUL/.test(renc.runas[1]) && renc.semRuna && renc.menor && renc.comp.some(x => /_SOUL$/.test(x)), renc);
 
   const rf2 = await p.evaluate(() => { const it = rotCatalogo().find(x => x.city === "Martlock" && x.t === 6 && x.e === 0); ROT.itens = { Martlock: [it.id] };
     const m = rotModel(it, "Martlock"); ROT.minPct = String(Math.ceil(m.pct * 100) + 5); const fora = rotPlano("Martlock", rotFocoVisita(), 0).linhas[0];
