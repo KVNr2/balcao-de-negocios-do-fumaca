@@ -169,6 +169,19 @@ async function simular(p) {
     const hoje = histDias([{ data: [{ timestamp: dia(0), item_count: 500, avg_price: 1 }] }]);
     return { pico: pico.vol, media: pico.media, lento: lento.vol, hoje: hoje.vol, nota: !!volNota(pico) }; });
   conf("vendas por dia: mediana dos 7 dias, item lento usa a média, hoje não conta", hmed.pico === 3 && hmed.media > 7 && Math.abs(hmed.lento - 1 / 7) < 1e-9 && hmed.hoje === 0 && hmed.nota, hmed);
+  const pxv = await p.evaluate(async () => { const id = "T4_TESTE_VENDA", H = (c, vol, avg) => { OF2.hs[id + "|" + c] = { vol, avg }; };
+    const r = { Bridgewatch: [130000, 0], "Fort Sterling": [110000, 100000], Lymhurst: [120000, 0] };
+    H("Bridgewatch", 0, 0); H("Fort Sterling", 18, 105000); H("Lymhurst", 16, 122000);
+    const sem = PX.melhorVenda(r, Object.keys(r), "auto"), com = PX.melhorVenda(r, Object.keys(r), "auto", { id });
+    const cap = PX.melhorVenda({ Lymhurst: [200000, 0] }, ["Lymhurst"], "auto", { id });
+    H("Fort Sterling", 0.5, 105000); H("Lymhurst", 0.4, 122000); const pouco = PX.melhorVenda(r, Object.keys(r), "ordem", { id });
+    const ordem = PX.melhorVenda({ "Fort Sterling": [0, 90000] }, ["Fort Sterling"], "auto", { id });
+    const velho = window.apiJSON; window.apiJSON = async () => [{ item_id: "X", city: "Black Market", buy_price_max: 17000, buy_price_max_date: new Date().toISOString().slice(0, 19), sell_price_min: 0 },
+      { item_id: "X", city: "Bridgewatch", sell_price_min: 130000, sell_price_min_date: new Date().toISOString().slice(0, 19), buy_price_max: 0 }];
+    let menu; try { menu = (await imPrecos(["X"], 1, true)).X; } finally { window.apiJSON = velho; }
+    return { sem: sem && sem.c, com: com && com.c + ":" + com.p, cap: cap && cap.p + ":" + cap.anuncio, pouco: pouco && pouco.c + ":" + !!pouco.semSaida, ordem: ordem && ordem.mode + ":" + !!ordem.semSaida, menuP: menu && menu.p, menuC: menu && menu.c }; });
+  conf("venda: anúncio só conta onde o item vende, com teto de 1,3× o preço médio da cidade", pxv.sem === "Bridgewatch" && pxv.com === "Lymhurst:120000" && pxv.cap === "158600:200000" && pxv.pouco === "Lymhurst:true" && pxv.ordem === "inst:false", pxv);
+  conf("menu do item: anúncio aparece mesmo quando a ordem de compra vem primeiro", pxv.menuP === 130000 && pxv.menuC === "Bridgewatch", pxv);
   const renc = await p.evaluate(async () => { const it = rotCatalogo().find(x => x.city === "Lymhurst" && x.t === 5 && x.e === 2); ROT.itens = { Lymhurst: [it.id] }; ROT.qtd = {};
     ROT.enc = "runas"; await rotEnsure(document.getElementById("rotNote")); const a = rotModel(it, "Lymhurst");
     ROT.enc = "craft"; const b = rotModel(it, "Lymhurst"); ROT.enc = "auto"; const c = rotModel(it, "Lymhurst");

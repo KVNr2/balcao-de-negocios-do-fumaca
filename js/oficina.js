@@ -125,8 +125,8 @@ function pickSell(id,ov){
   if(OF.sellS==="manual"&&OF2.manS>0) return {p:OF2.manS,c:cands[0]||"Manual",t:0,mode:"manual"};
   const r=PX.rec(id,OF2.qual>1?PQ[OF2.qual]:DATA.itens);
   if(OF.sellS==="medio"){ let b=null; for(const c of cands){ const x=c==="Black Market"?PX.venda(r,c,"inst",Infinity):null; const p=x?x.p:avgOf(id,c), k=x?x.k:p*(1-ofTaxV()); if(p>0&&(!b||k>b.k)) b={p,k,c,t:x?x.t:snapTime(),mode:x?"inst":"medio"}; } return b&&{p:b.p,c:b.c,t:b.t||snapTime(),mode:b.mode}; }
-  const x=PX.melhorVenda(r,cands,OF.sellS==="manual"?"ordem":OF.sellS,{semTeto:!!ov});   // manual sem valor digitado: anúncio   // motor único (js/precos.js)
-  return x?{p:x.p,c:x.c,t:x.t||snapTime(),mode:x.mode}:null; }
+  const x=PX.melhorVenda(r,cands,OF.sellS==="manual"?"ordem":OF.sellS,{semTeto:!!ov,id});   // manual sem valor digitado: anúncio   // motor único (js/precos.js)
+  return x?{p:x.p,c:x.c,t:x.t||snapTime(),mode:x.mode,...(x.semSaida?{semSaida:true}:{}),...(x.anuncio?{anuncio:x.anuncio}:{})}:null; }
 /* marcador da cidade com bônus de produção de cada item (dados do jogo: craftingmodifiers). Refino +40%, equipamento, comida e poção +15%;
    armas e armaduras também têm o mesmo bônus num dos Rests da zona preta (Arthur's, Merlyn's ou Morgana's Rest). */
 let DESC=null; need("descanso").then(d=>{ DESC=d.rest||{}; }).catch(()=>{ DESC={}; });
@@ -341,7 +341,12 @@ async function renderOf(){
   if(OF.sellS==='medio'||OF.buyS==='medio'){ note.textContent='Consultando valores médios…'; await ofPrefetchAvg(items); if(stale()) return; }
   if(selfRefOn()){ note.textContent="Consultando a matéria-prima e os refinados do tier anterior para o refino…"; if(!await ensureRefMats(items)){ note.textContent="Não consegui consultar a matéria-prima agora."; return; } if(stale()) return; }
   OF2.sample=items[0];
-  const rows=items.map(it=>ofModel(it)).filter(Boolean); let ok0=rows.filter(m=>!m.miss);
+  let rows=items.map(it=>ofModel(it)).filter(Boolean);
+  /* o anúncio só conta onde o item vende (js/precos.js): consulta as vendas de cada cidade dos que podem aparecer e refaz a conta */
+  if(OF.sellS!=="medio"&&!(OF.sellS==="manual"&&OF2.manS>0)){ const ok=rows.filter(m=>!m.miss), top=new Set([...ok.slice().sort((a,b)=>b.profit-a.profit).slice(0,150),...ok.slice().sort((a,b)=>b.pct-a.pct).slice(0,150)].map(m=>m.it.id));
+    const L=sellLocs().filter(c=>c!=="Black Market"), keys=[...top].flatMap(id=>L.map(c=>nk(id)+"|"+c)).filter(k=>OF2.hs[k]==null);
+    if(keys.length){ note.textContent="Consultando onde cada item vende…"; await histFetch(keys); if(stale()) return; rows=items.map(it=>ofModel(it)).filter(Boolean); } }
+  let ok0=rows.filter(m=>!m.miss);
   const nAll=ok0.length;
   if(OF2.fMinP!=null&&isFinite(OF2.fMinP)) ok0=ok0.filter(m=>m.profit>=OF2.fMinP);
   if(OF2.fMinPct!=null&&isFinite(OF2.fMinPct)) ok0=ok0.filter(m=>m.pct*100>=OF2.fMinPct);
@@ -421,7 +426,7 @@ async function fillVolumes(shown){
   for(const r of (OF2.rows||[])){ const m=r.m, tr=r.tr; if(!tr||!tr.isConnected) continue; const h=OF2.hs[nk(m.it.id)+"|"+m.sale.c], nm=tr.querySelector(".inm"); if(!nm) continue; nm.querySelectorAll(".of-vd").forEach(x=>x.remove()); if(!h||!(h.vol>=0)||!(m.units>0)) continue;
     const v=h.vol, perU=m.profit/m.units, dayU=Math.min(m.units,v), days=v>0?Math.ceil(m.units/v):Infinity, over=m.units>v*1.0001;
     const c=el("span",{class:"of-vd"+(over?" warn":""),title:`${fmtU(v)} unidades vendidas por dia (mediana dos últimos 7 dias) em ${m.sale.c} (todas as qualidades). ${over?`Para vender ${fmt(m.units)} unidades levaria ${v>0?fmt(days)+" dias":"muito tempo"}; o lucro total mostrado só vale se você vender tudo. `:""}Lucro vendendo o que o mercado absorve em 1 dia: ${sgn(Math.round(dayU*perU))}.`});
-    c.append(el("span",{class:"wk-fl",text:"Venda/dia"}),el("b",{text:`~${fmtU(v)}`}),over?el("small",{text:v>0?` · ${fmt(m.units)} un. levam ${fmt(days)} ${days===1?"dia":"dias"} · lucro/dia ${sgn(Math.round(dayU*perU))}`:" · sem vendas recentes"}):el("small",{text:" · cabe em 1 dia"})); nm.append(c); }
+    c.append(el("span",{class:"wk-fl",text:"Venda/dia"}),el("b",{text:`~${fmtU(v)}`}),(()=>{ const t=lfVol(m.it.id); return t>0&&t-v>=1&&t>v*1.5?el("small",{text:` em ${m.sale.c} · ${fmtU(t)} somando as cidades`}):""; })(),m.sale.semSaida?el("small",{class:"loss",text:" · vende menos de 1 por dia em todas as cidades"}):"",over?el("small",{text:v>0?` · ${fmt(m.units)} un. levam ${fmt(days)} ${days===1?"dia":"dias"} · lucro/dia ${sgn(Math.round(dayU*perU))}`:" · sem vendas recentes"}):el("small",{text:" · cabe em 1 dia"})); nm.append(c); }
   ofUpdateQty();
 }
 /* cartões de cidade e estratégia, como no albionvip */

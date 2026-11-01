@@ -198,7 +198,7 @@ function imFechar(){ if(IM.el){ IM.el.remove(); IM.el=null; } }
 async function imPrecos(ids,q,full){ const locs=[...CITIES,"Caerleon",...(full?["Black Market"]:[])], out={};
   try{ const j=await apiJSON(`${HOST}/api/v2/stats/prices/${ids.join(",")}.json?locations=${locs.join(",").replace(/ /g,"%20")}&qualities=${q||1}`);
     for(const x of j){ const bm=x.city==="Black Market";
-      if(!bm&&x.sell_price_min>0&&fresh(x.sell_price_min_date)){ const o=out[x.item_id]; if(!o||x.sell_price_min<o.p) out[x.item_id]={...(o||{}),p:x.sell_price_min,c:x.city}; const a=out[x.item_id]; if(!a.anuncio||x.sell_price_min>a.anuncio.p) a.anuncio={p:x.sell_price_min,c:x.city}; }
+      if(!bm&&x.sell_price_min>0&&fresh(x.sell_price_min_date)){ const o=out[x.item_id]; if(!o||!(o.p>0)||x.sell_price_min<o.p) out[x.item_id]={...(o||{}),p:x.sell_price_min,c:x.city};   /* o registro pode já existir só com a ordem de compra */ const a=out[x.item_id]; if(!a.anuncio||x.sell_price_min>a.anuncio.p) a.anuncio={p:x.sell_price_min,c:x.city}; }
       if(full&&x.buy_price_max>0&&fresh(x.buy_price_max_date)){ const o=out[x.item_id]||(out[x.item_id]={}); if(!o.ordem||x.buy_price_max>o.ordem.p) o.ordem={p:x.buy_price_max,c:bm?"Mercado Negro":x.city}; } } }catch(e){}
   return out; }
 async function imIr(tab){ const t=$(tab); if(t) t.click(); await new Promise(f=>setTimeout(f,60)); }

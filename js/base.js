@@ -1170,7 +1170,7 @@ function ckSale(id){
   const r=DATA.itens[id]||{}, locs=CKV.c.size?[...CKV.c]:Object.keys(r).filter(c=>c!=="Black Market");
   const comPreco=locs.filter(c=>r[c]&&(r[c][0]>0||r[c][1]>0)).length;
   if(CKV.s==="tipico"){ const sub={}; for(const c of locs) if(r[c]) sub[c]=r[c]; const t=typical(id,0,{[id]:sub}); return t?{p:t.p,n:t.n,c:locs.length===1?locs[0]:"cidades",mode:"tipico",t:t.t}:null; }
-  const x=PX.melhorVenda(r,locs,CKV.s);   // motor único (js/precos.js)
+  const x=PX.melhorVenda(r,locs,CKV.s,{id});   // motor único (js/precos.js)
   return x?{p:x.p,c:x.c,mode:x.mode,t:x.t||0,n:comPreco}:null; }
 const ckNeedsFarm=()=>SRC.ck==="planto"||Object.values(SRC.ckO||{}).includes("planto");
 /* ingredientes que o retorno de recursos não devolve (no jogo, maxreturnamount 0): os ingredientes raros de alquimia e o token de Avalon */
@@ -1215,9 +1215,9 @@ async function renderCook(){
   { const bx=$("ckTeto"); if(bx&&!bx.firstChild) bx.append(tetoUI(()=>renderCook())); }
   const N=ckN(), AUTO=!!(SRC.ckAuto&&ilhaL()>0); { const th=tb.tHead.rows[0].cells[2]; const b=th&&th.querySelector(".lf-hs"); if(b&&AUTO) b.firstChild.textContent=`Você ganha com ${fmt(ilhaL())} lotes`; else if(b&&N>1) b.firstChild.textContent=`Você ganha em ${fmt(N)} fornadas`; }
   const only=$("ckBuilds").checked, FAVON=!!(window.FAV&&FAV.on("cozinha"));
-  let rows=Object.keys(COOK.r).filter(id=>FAVON?FAV.has("cozinha",id):(COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id)))).map(cookModel).filter(Boolean);
-  const st0=lfState("ck",def), needVol=st0.k==="vol"||lfNum(lfGet("ck").minVol);
-  await lfEnsureVol(rows.map(m=>m.id),needVol,tb,note);
+  const ckIds=Object.keys(COOK.r).filter(id=>FAVON?FAV.has("cozinha",id):(COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id))));
+  await lfEnsureVol(ckIds,true,tb,note);   // antes do preço: a venda só conta nas cidades onde o item vende
+  let rows=ckIds.map(cookModel).filter(Boolean);
   const nAll=rows.length; rows=lfSort("ck",lfFilter("ck",rows,CK_FIL),CK_COLS,def); lfCount(bar,"ck",CK_FIL,nAll-rows.length);
   ganhoTop($("ckSum"),rows.filter(m=>!m.miss),m=>ckTot(m),m=>{ const n=ckNFor(m), mx=ckMix(m); return `${m.name}: você ganha ${fmt(Math.round(mx.tot))} de prata em ${n>1?fmt(n)+" fornadas":"uma fornada"}${AUTO&&ckLotsPerBatch(m)>0?`, o máximo que os seus ${fmt(ilhaL())} lotes dão por colheita`:""} (${fmt(m.q*n)} ${m.kind==="f"?"porções":"poções"}, ${fmt(mx.foc)} de foco${mx.parcial?`; ${mixTxt(mx)}`:""}). Já descontados ingredientes, taxa da estação e taxas de venda.`; },"Com os preços de agora, nada desta lista dá lucro.");
   if(!rows.length){ const td=body.insertRow().insertCell(); td.colSpan=NC; td.className="muted"; td.textContent=nAll?"Nada passa pelos filtros. Afrouxe um deles ou clique em Limpar filtros.":"Nada para mostrar aqui."; }

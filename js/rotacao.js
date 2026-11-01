@@ -63,8 +63,12 @@ function rotMat(id,city){ const r=PX.rec(id);
   if(ROT.refinar){ const ref=rotRef(id,false); if(ref&&(!use||ref.k<use.k)) use={p:ref.k,k:ref.k,mode:"refino",ref,c:ref.city,t:ref.raw.t}; }
   return {ordem,inst,use}; }
 /* melhor venda líquida nas cidades escolhidas (ou nas reais e Caerleon) e, se marcado, no Mercado Negro */
+/* cidades cujo histórico de vendas a Rotação consulta: as de venda, Brecilien (para o total) e o Mercado Negro */
+const ROT_HLOCS=()=>[...new Set([...ROT_CIDADES,...SHOP_LOCS,"Black Market"])];
+/* " · 35 somando as cidades", quando o total é bem maior que o da cidade de venda */
+const rotVolTot=(id,m)=>{ const t=typeof lfVol==="function"?lfVol(rotApi(id)):null; return t>0&&t-(m.vol||0)>=1&&t>(m.vol||0)*1.5?` · ${fmtU(t)} somando as cidades`:""; };
 function rotVenda(id){ const r=PX.rec(id), locs=ROT.vendaC.length?ROT.vendaC.filter(c=>c!=="Black Market"):[...ROT_CIDADES,"Caerleon"];
-  return PX.melhorVenda(r,[...locs,...(ROT.bm===false?[]:["Black Market"])],ROT.venda); }
+  return PX.melhorVenda(r,[...locs,...(ROT.bm===false?[]:["Black Market"])],ROT.venda,{id:rotApi(id)}); }
 /* item encantado tem dois caminhos: fabricar já encantado (materiais encantados) ou fabricar a .0 e encantar com runas, almas e relíquias.
    Runa, alma e relíquia não voltam no retorno de material. Devolve o caminho de encantar (receita da .0 + o que encanta) ou null. */
 function rotRotaEnc(it){
@@ -117,7 +121,7 @@ async function rotEnsure(note){
     const R=rotRotaEnc(it); [...it.ing,...(R?R.ing:[])].forEach(g=>{ mats.add(rotApi(g.id)); if(ROT.refinar) rotRefIds(g.id).forEach(x=>mats.add(x)); }); }
   const falta=[...ids,...mats].filter(x=>!ROT_LOADED.has(x));
   if(falta.length){ note.textContent="Buscando os preços…"; await fetchIds([...ids].filter(x=>!ROT_LOADED.has(x)),DATA.itens,[...SHOP_LOCS,"Black Market"]); await fetchIds([...mats].filter(x=>!ROT_LOADED.has(x)),DATA.itens,SHOP_LOCS); falta.forEach(x=>ROT_LOADED.add(x)); }
-  const keys=[...ids].flatMap(id=>[...ROT_CIDADES,"Caerleon","Black Market"].map(c=>id+"|"+c)).filter(k=>OF2.hs[k]==null);
+  const keys=[...ids].flatMap(id=>ROT_HLOCS().map(c=>id+"|"+c)).filter(k=>OF2.hs[k]==null);
   if(keys.length){ note.textContent="Consultando quanto cada item vende por dia…"; await histFetch(keys); }
 }
 let ROT_TOK=0;
@@ -172,7 +176,9 @@ function rotLinhaItem(l,c){
   if(m.miss) tx.append(el("small",{class:"loss",text:`Sem preço de ${m.miss}: não dá para calcular.`}));
   else {
     tx.append(el("small",{class:m.pF>0?"gain":"loss",text:`Lucro: ${dec(m.pct*100)}% com foco · ${dec(rotPctN(m)*100)}% sem foco`}));
-    { const hn=volNota(OF2.hs[rotApi(it.id)+"|"+m.venda.c]); tx.append(el("small",{class:"muted",text:`Vende ${m.vol==null?"?":fmtU(m.vol)} por dia em ${bagCityPT(m.venda.c)}${hn?` (${hn})`:""}`})); }
+    { const hn=volNota(OF2.hs[rotApi(it.id)+"|"+m.venda.c]); tx.append(el("small",{class:"muted",text:`Vende ${m.vol==null?"?":fmtU(m.vol)} por dia em ${bagCityPT(m.venda.c)}${hn?` (${hn})`:""}${rotVolTot(it.id,m)}`}));
+      if(m.venda.semSaida) tx.append(el("small",{class:"loss",text:"Vende menos de 1 por dia em todas as cidades: o preço usado é o da cidade que paga mais."}));
+      else if(m.venda.anuncio) tx.append(el("small",{class:"muted",text:`Anúncio de ${fmt(m.venda.anuncio)} lá, mas a conta usa ${fmt(m.venda.p)} (até 1,3× o preço médio de 7 dias da cidade).`})); }
     const dv=rotDiasVender(m,l.n);
     if(dv!=null) tx.append(el("small",{class:dv>ROT.vDias*1.5?"warn":"muted",text:`${fmt(l.n)} ${l.n===1?"peça leva":"peças levam"} uns ${dv<1?"menos de 1 dia":`${dv<10?dec(dv):fmt(dv)} dias`} para vender${dv>ROT.vDias*1.5?`, mais que os ${ROT.vDias} que você quer`:""}`}));
     if(l.fora) tx.append(el("small",{class:"warn",text:"Abaixo dos seus filtros de lucro % ou vendas: a sugestão é não fazer."}));
@@ -358,7 +364,7 @@ async function rotSugCalc(city,redraw,modo="spec"){
     /* spec: os que mais rendem por foco; lucro: os de maior lucro por peça (as vendas decidem depois) */
     ms=ms.sort(modo==="spec"?(a,b)=>b.spf-a.spf:(a,b)=>b.pF-a.pF).slice(0,modo==="spec"?40:80);
     set({loading:`Consultando quanto ${fmt(ms.length)} itens vendem por dia…`});
-    const keys=ms.map(m=>rotApi(m.it.id)+"|"+m.venda.c).filter(k=>OF2.hs[k]==null); if(keys.length) await histFetch(keys);
+    const keys=ms.flatMap(m=>ROT_HLOCS().map(c=>rotApi(m.it.id)+"|"+c)).filter(k=>OF2.hs[k]==null); if(keys.length) await histFetch(keys);   // todas as cidades: a venda só conta onde o item vende
     ms=ms.map(m=>rotModel(m.it,city)).filter(m=>rotPassa(m)&&(mv==null||(m.vol!=null&&m.vol>=mv)));
     const lista=ms.map(m=>({m,visita:visita(m)})).filter(x=>x.visita>0).sort((a,b)=>b.visita-a.visita).slice(0,modo==="spec"?6:8);
     set({lista});
