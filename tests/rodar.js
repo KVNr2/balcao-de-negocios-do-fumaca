@@ -169,6 +169,16 @@ async function simular(p) {
     const hoje = histDias([{ data: [{ timestamp: dia(0), item_count: 500, avg_price: 1 }] }]);
     return { pico: pico.vol, media: pico.media, lento: lento.vol, hoje: hoje.vol, nota: !!volNota(pico) }; });
   conf("vendas por dia: mediana dos 7 dias, item lento usa a média, hoje não conta", hmed.pico === 3 && hmed.media > 7 && Math.abs(hmed.lento - 1 / 7) < 1e-9 && hmed.hoje === 0 && hmed.nota, hmed);
+  const cenc2 = await p.evaluate(async () => { document.getElementById("t-cozinha").click(); await new Promise(f => setTimeout(f, 1500)); await ensureCook();
+    const a = cookModel("T8_MEAL_STEW"), b = cookModel("T8_MEAL_STEW@2"), pz = cookModel("T6_POTION_HEAL@3"), mol = b && b.parts.find(x => x.iid === "T1_FISHSAUCE_LEVEL2");
+    SRC.ckO = { ...(SRC.ckO || {}), T1_FISHSAUCE_LEVEL2: "faco" }; const f = cookModel("T8_MEAL_STEW@2"), mf = f && f.parts.find(x => x.iid === "T1_FISHSAUCE_LEVEL2");
+    const esperado = 45 * ckBuy("T1_FISHCHOPS").p + 3 * ckBuy("T1_SEAWEED").p; delete SRC.ckO.T1_FISHSAUCE_LEVEL2;
+    CK_ENC.clear(); CK_ENC.add(2); await renderCook(); const linhas = [...document.querySelectorAll("#ckTable tbody tr[data-fav]")].map(tr => tr.dataset.fav);
+    CK_ENC.clear(); CK_ENC.add(0); renderCook();
+    const craft = ofItems("meal").find(x => x.id === "T8_MEAL_STEW@1");
+    return { nome: b && b.name, mol: mol && mol.c, custo: a && b && mol ? Math.round(b.cost - a.cost - mol.c * mol.p.p) : null, foco: COOK.r["T8_MEAL_STEW@2"][3], ext: pz && pz.parts.some(x => x.iid === "T1_ALCHEMY_EXTRACT_LEVEL3"),
+      faco: mf && mf.p.src === "faco" && Math.round(mf.p.p) === Math.round(esperado), linhas: linhas.length, so2: linhas.every(x => x.endsWith("@2")), craftE: craft && craft.e }; });
+  conf("cozinha: comida e poção encantadas com molho de peixe e extrato arcano no custo", cenc2.nome === "Guisado de Carne .2" && cenc2.mol === 90 && cenc2.custo === 0 && cenc2.foco === 1152 && cenc2.ext && cenc2.faco && cenc2.linhas > 0 && cenc2.so2 && cenc2.craftE === 1, cenc2);
   const pxv = await p.evaluate(async () => { const id = "T4_TESTE_VENDA", H = (c, vol, avg) => { OF2.hs[id + "|" + c] = { vol, avg }; };
     const r = { Bridgewatch: [130000, 0], "Fort Sterling": [110000, 100000], Lymhurst: [120000, 0] };
     H("Bridgewatch", 0, 0); H("Fort Sterling", 18, 105000); H("Lymhurst", 16, 122000);

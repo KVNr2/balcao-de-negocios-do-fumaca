@@ -12,7 +12,7 @@ const TABLES={ encantar:{id:"enTable",ctl:"#p-encantar .row-ctl"}, cozinha:{id:"
 const RENDER={ refino:"renderOf", craft:"renderOf", encantar:"renderEN", cozinha:"renderCook", fazenda:"renderFZ", trab:"renderWK", mk:"renderMk", mercado:"renderBM" };
 /* controles de seleção que não valem enquanto só os favoritos aparecem */
 const IGN={ refino:["#ofCat","#ofFind","#ofTier","#ofEnch"], craft:["#ofCat","#ofFind","#ofTier","#ofEnch","#ofQual"], encantar:["#enGroup","#enTier"],
-  cozinha:["[data-ck]","#ckBuilds"], fazenda:["[data-fz]"], mk:["#mkFind","#mkCat","#mkSub","#mkTier","#mkEnch","#mkOnly"],
+  cozinha:["[data-ck]","#ckBuilds","#ckEnc"], fazenda:["[data-fz]"], mk:["#mkFind","#mkCat","#mkSub","#mkTier","#mkEnch","#mkOnly"],
   mercado:["#bmFind","#bmCat","#bmSub","#bmTierS","#bmEnch","#bmQualS","#bmAtivo"] };
 let DB={t:0,d:{}}, ONLY={};
 try{ const j=JSON.parse(localStorage.getItem(LS)||"null"); if(j&&j.d) DB=j; }catch(e){}

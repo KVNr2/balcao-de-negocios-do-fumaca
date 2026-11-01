@@ -1,6 +1,19 @@
 {
  "itens": [
   {
+   "t": "2026-11-01T23:50:00Z",
+   "titulo": "Cozinha e alquimia: comidas e poções encantadas",
+   "itens": [
+    "Comidas .1, .2 e .3 com molho de peixe (básico, extravagante e especial) e poções .1, .2 e .3 com extrato arcano (básico, refinado e puro), com a quantidade e o foco de cada receita do jogo.",
+    "O molho e o extrato entram no custo, na receita, na Lista de compras e na bag, e voltam no retorno de material como os outros ingredientes.",
+    "Novo filtro Encantamento (.0 a .3) na Cozinha e alquimia; dá para marcar mais de um.",
+    "Na receita aberta, o molho e o extrato podem vir de \"Faço\": o custo passa a ser o do peixe picado e da alga (ou dos restos de animais raros), e a Lista de compras leva esses no lugar.",
+    "Os encantados também aparecem no Craft (filtro de encantamento), no Plano do dia e no Para você."
+   ],
+   "como": "Em Cozinha e alquimia, marque .1, .2 ou .3 em Encantamento. Abra uma receita para ver o molho ou o extrato e escolher se você compra ou faz.",
+   "impacto": "Dá para ver se vale cozinhar comida e poção encantada e quanto de molho de peixe ou extrato comprar."
+  },
+  {
    "t": "2026-11-01T07:40:00Z",
    "titulo": "Preço de venda só conta onde o item vende",
    "itens": [
