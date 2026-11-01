@@ -1,6 +1,19 @@
 {
  "itens": [
   {
+   "t": "2026-11-01T07:40:00Z",
+   "titulo": "Preço de venda só conta onde o item vende",
+   "itens": [
+    "A cidade de venda agora é escolhida entre as cidades onde o item vende pelo menos 1 por dia. Antes valia o maior anúncio, mesmo numa cidade onde ninguém comprava (ex.: Botas da Bravura T4.2 aparecia com 147% de lucro por um anúncio em Bridgewatch, onde não vendeu nada na semana).",
+    "Um anúncio vale no máximo 1,3× o preço médio de 7 dias daquela cidade; acima disso a conta usa esse teto. Cidade sem venda nos últimos 7 dias não entra pelo anúncio. Vender na hora para uma ordem de compra continua valendo em qualquer cidade.",
+    "Vale para Rotação de craft, Craft, Cozinha e alquimia, Plano do dia e o menu de craft do item.",
+    "Rotação e Craft mostram também quanto o item vende somando as cidades, quando é bem mais que na cidade de venda, e avisam quando ele vende pouco em todas.",
+    "Correção: o menu do item (botão direito) mostrava \"Sem anúncio de venda recente\" junto com \"Anunciar\"."
+   ],
+   "como": "Nada muda no uso. Na Rotação, o card do item diz onde vende, quanto por dia e o total das cidades; se o anúncio da cidade estava alto demais, aparece o valor que a conta usou.",
+   "impacto": "Lucro e sugestões mais realistas: itens que só pareciam bons por um anúncio que ninguém paga caem, e itens que vendem bem em outra cidade deixam de ser descartados."
+  },
+  {
    "t": "2026-11-01T02:16:00Z",
    "titulo": "Craft: item encantado pode ser .0 + runas, almas e relíquias",
    "itens": [

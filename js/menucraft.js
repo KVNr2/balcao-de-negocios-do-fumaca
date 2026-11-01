@@ -23,7 +23,8 @@ const MC_LOCS=()=>[...SHOP_LOCS,"Black Market"];
 /* preço líquido de venda de cada qualidade; quem não tem preço vende pelo da qualidade de baixo (a peça melhor também atende ordem de qualidade menor) */
 async function mcVendaQual(id){
   const key=PX.chave(id), out=[0];
-  for(let q=1;q<=5;q++){ const T={}; try{ await fetchIds([id],T,MC_LOCS(),q); }catch(e){} const v=PX.melhorVenda(T[key]||{},MC_LOCS(),"auto"); out[q]=v; }
+  try{ if(typeof histFetch==="function") await histFetch(SHOP_LOCS.map(c=>nk(id)+"|"+c)); }catch(e){}   // a venda só conta onde o item vende
+  for(let q=1;q<=5;q++){ const T={}; try{ await fetchIds([id],T,MC_LOCS(),q); }catch(e){} const v=PX.melhorVenda(T[key]||{},MC_LOCS(),"auto",{id}); out[q]=v; }
   for(let q=2;q<=5;q++) if(!out[q]||(out[q-1]&&out[q-1].k>out[q].k)) out[q]=out[q-1]?{...out[q-1],herdado:true}:out[q];
   return out;
 }
@@ -87,8 +88,8 @@ async function mcRefBox(id){
   (async()=>{ try{
     const x=mcRefId(id); if(!x||x.t<4){ box.textContent="Sem receita de refino para este item."; return; }
     const R=REF_BY[x.ref], refId=idLv(x.t,R.ref,x.e), ids=[rotApi(refId),rotApi(idLv(x.t,R.raw,x.e)),x.t===4?`T3_${R.ref}`:rotApi(idLv(x.t-1,R.ref,x.e))];
-    await fetchIds(ids,DATA.itens,SHOP_LOCS);
-    const cN=mcRefCusto(x.t,x.e,R,false), cF=mcRefCusto(x.t,x.e,R,true), v=PX.melhorVenda(PX.rec(refId),SHOP_LOCS,"auto"), fc=refFocus(R.k,x.t,x.e);
+    await fetchIds(ids,DATA.itens,SHOP_LOCS); try{ await histFetch(SHOP_LOCS.map(c=>nk(refId)+"|"+c)); }catch(e){}
+    const cN=mcRefCusto(x.t,x.e,R,false), cF=mcRefCusto(x.t,x.e,R,true), v=PX.melhorVenda(PX.rec(refId),SHOP_LOCS,"auto",{id:refId}), fc=refFocus(R.k,x.t,x.e);
     box.textContent=""; box.append(el("b",{class:"imenu-mch",text:`Refinar ${R.refPT.toLowerCase()} T${x.t}.${x.e} em ${R.city} (+40%)`}));
     if(cN==null||!v){ box.append(el("p",{class:"tiny muted",text:`Sem preço ${cN==null?"da matéria-prima em "+R.city:"de venda do refinado"} agora.`})); return; }
     box.append(el("p",{class:"tiny",text:`Custo por unidade: ${fmt(Math.round(cN))} sem foco, ${fmt(Math.round(cF))} com foco. Vende por ${fmt(v.p)} (${v.mode==="inst"?"na hora":"anúncio"} em ${bagCityPT(v.c)}).`}),

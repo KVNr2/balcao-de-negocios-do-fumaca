@@ -17,7 +17,7 @@
    - Anúncio mais de 30% acima da mediana dos anúncios das cidades (com 3 cidades ou mais) não vende e não conta.
 
    O resultado sempre traz p (preço da tabela), k (custo real ou líquido real, para comparar), c (cidade), mode e t (hora do preço). */
-const PX={ ORDEM:0.025, LANCE_MIN:0.7, TETO:1.3 };
+const PX={ ORDEM:0.025, LANCE_MIN:0.7, TETO:1.3, MIN_VOL:1 };
 PX.chave=id=>id.includes("_LEVEL")?id.split("@")[0]:id;                       // como o preço fica guardado em DATA.itens
 PX.rec=(id,tbl)=>(tbl||DATA.itens)[PX.chave(id)]||{};
 PX.ordemOk=v=>!!(v&&v[1]>0&&(!v[0]||v[1]>=v[0]*PX.LANCE_MIN));
@@ -32,16 +32,31 @@ PX.compra=(r,c,modo,o={})=>{ const v=r[c]; if(!v) return null;
   if(modo==="inst") return a;
   if(modo==="ordem") return b||a;
   return a&&b?(b.k<a.k?b:a):(a||b); };
-/* venda numa cidade. teto: o de PX.teto(r) (passe Infinity para não aplicar) */
-PX.venda=(r,c,modo,teto)=>{ const v=r[c]; if(!v) return null; const tx=PX.taxa();
+/* venda numa cidade. teto: o de PX.teto(r) (passe Infinity para não aplicar).
+   h: vendas da cidade nos últimos 7 dias (histDias), quando já consultadas. Com h:
+   - o anúncio vale no máximo 1,3× o preço médio de 7 dias da cidade (acima disso, conta como anunciado nesse teto);
+   - cidade sem venda nos 7 dias: o anúncio não conta;
+   - cidade que vende menos de PX.MIN_VOL por dia: o anúncio sai marcado saida:false (só é escolhido se nenhuma cidade vender).
+   Venda na hora (para uma ordem de compra) não depende das vendas: a ordem já está lá. */
+PX.venda=(r,c,modo,teto,h)=>{ const v=r[c]; if(!v) return null; const tx=PX.taxa();
   if(c==="Black Market") return v[1]>0?{p:v[1],k:v[1]*(1-tx),mode:"inst",t:v[3]||0,c}:null;
-  const l=v[0]>0&&v[0]<=teto?{p:v[0],k:v[0]*(1-tx-PX.ORDEM),mode:"ordem",t:v[2]||0,c}:null;
+  const hk=!!(h&&h.vol>=0); let lp=v[0]>0&&v[0]<=teto?v[0]:0, cap=0;
+  if(lp&&hk){ if(!(h.avg>0)) lp=0; else if(lp>h.avg*PX.TETO){ cap=lp; lp=Math.round(h.avg*PX.TETO); } }
+  const l=lp?{p:lp,k:lp*(1-tx-PX.ORDEM),mode:"ordem",t:v[2]||0,c,...(cap?{anuncio:cap}:{}),...(hk&&h.vol<PX.MIN_VOL?{saida:false}:{})}:null;
   const i=v[1]>0?{p:v[1],k:v[1]*(1-tx),mode:"inst",t:v[3]||0,c}:null;
   if(modo==="inst") return i; if(modo==="ordem") return l;
+  if(l&&i&&l.saida===false) return i;
   return l&&i?(i.k>=l.k?i:l):(l||i); };
+/* vendas de 7 dias de um item numa cidade (histDias), se já consultadas */
+PX.hist=(id,c)=>{ if(!id||typeof OF2==="undefined"||!OF2.hs) return null; const k=(typeof nk==="function"?nk(id):id)+"|"+c; return OF2.hs[k]||null; };
 /* a melhor entre várias cidades */
 PX.melhorCompra=(r,locs,modo,o)=>{ let b=null; for(const c of locs){ const x=PX.compra(r,c,modo,o); if(x&&(!b||x.k<b.k)) b=x; } return b; };
-PX.melhorVenda=(r,locs,modo,o={})=>{ const teto=o.semTeto?Infinity:PX.teto(r); let b=null; for(const c of locs){ const x=PX.venda(r,c,modo,teto); if(x&&(!b||x.k>b.k)) b=x; } return b; };
+/* venda: com o.id, usa as vendas de cada cidade (PX.venda). Escolhe a melhor entre as cidades onde o item vende;
+   se não vende em nenhuma, a melhor de todas, marcada semSaida. o.semTeto: cidade escolhida à mão, sem teto nenhum. */
+PX.melhorVenda=(r,locs,modo,o={})=>{ const teto=o.semTeto?Infinity:PX.teto(r); let b=null, z=null;
+  for(const c of locs){ const x=PX.venda(r,c,modo,teto,o.semTeto?null:PX.hist(o.id,c)); if(!x) continue;
+    if(x.saida===false){ if(!z||x.k>z.k) z=x; } else if(!b||x.k>b.k) b=x; }
+  return b||(z?{...z,semSaida:true}:null); };
 
 /* Vendas por dia a partir do histórico diário (uma ou mais séries da API, somadas por dia).
    Conta os 7 dias completos antes de hoje; dia sem registro conta como zero.

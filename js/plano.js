@@ -125,6 +125,7 @@ async function renderPlanoProd(run){
     const C=PP.cats; if(!(C.equip||C.cons||C.ref||C.rega)){ box.textContent=""; box.append(el("p",{class:"muted",text:"Marque pelo menos uma opção em O que entra."})); return; }
     const ok=await plEnsure(note); if(!ok) throw new Error("dados da fazenda ou da cozinha");
     if(C.equip){ if(!BM) BM=await need("bm"); const sv=ofFiltSave(); ofFiltLoad([[],[]]); try{ await ensureOfG("g:*tudo",note); } finally{ ofFiltLoad(sv); } }
+    const montar=()=>{
     const cand=[];
     const ofPush=(it,kind,unit,nm)=>{ const m=plOfItem(it); if(!m||m.thin||(PP.spec&&!((it.fce||0)>0))) return; cand.push({...m,name:nm||m.name,kind,unit,semFoco:m.profitF-m.gain}); };
     if(C.equip){ const sv=ofFiltSave(); ofFiltLoad([[],[]]); try{ for(const it of ofItems("g:*tudo")) ofPush(it,"Fabricar",["peça","peças"],`${it.name} T${it.t}.${it.e}`); } finally{ ofFiltLoad(sv); } }
@@ -135,9 +136,13 @@ async function renderPlanoProd(run){
       if(pl) cand.push({id:pl.crop,name:`${fzName(pl.crop)} nos seus ${fmt(L)} lotes`,city:"sua ilha",q:1,fc1:pl.fc,profitF:pl.p1,semFoco:pl.p0,invest:pl.sp,sale:pl.cp,kind:"Plantar e regar",unit:["semente","sementes"],cap:9*L,rega:true}); } }
     /* cada tarefa com as duas formas: com foco (lucro pF, custo inv, foco f) e sem foco (lucro p0, custo inv0) */
     cand.forEach(c=>{ c.pF=c.profitF; c.p0=c.semFoco; c.f=c.fc1; c.inv=c.invest; c.inv0=c.invest+(c.profitF-c.semFoco); c.r=Math.max(c.pF/Math.max(1,c.invest),c.p0/Math.max(1,c.inv0)); });
-    const pool=cand.filter(c=>c.invest>0&&(c.pF>0||c.p0>0)).sort((a,b)=>b.r-a.r).slice(0,400);
+    return cand.filter(c=>c.invest>0&&(c.pF>0||c.p0>0)).sort((a,b)=>b.r-a.r).slice(0,400);
+    };
+    let pool=montar();
     note.textContent="Consultando quanto o mercado vende por dia…";
     await histFetch(pool.filter(c=>!c.rega).flatMap(c=>SHOP_LOCS.map(l=>nk(c.id)+"|"+l)));
+    pool=montar();   // de novo, já com as vendas de cada cidade: o preço de venda só conta onde o item vende
+    { const falta=pool.filter(c=>!c.rega).flatMap(c=>SHOP_LOCS.map(l=>nk(c.id)+"|"+l)).filter(k=>OF2.hs[k]==null); if(falta.length) await histFetch(falta); }
     const items=[]; for(const c of pool){ let cap, v=null; if(c.rega) cap=c.cap; else { v=lfVol(c.id); if(!(v>=0.5)) continue; cap=Math.floor(v*PP.dias*(PP.parte/100)/c.q); } if(cap>=1) items.push({...c,cap,vol:v}); }
     let plan=plOtimo(items,PP.cap,PP.foc);
     { const tot0=plan.reduce((a,x)=>a+x.lucro,0); plan=plan.filter(x=>x.lucro>=10000&&x.lucro>=tot0*0.01); }
