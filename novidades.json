@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-10-31T22:03",
+   "titulo": "Vendas por dia agora são a mediana dos 7 dias",
+   "itens": [
+    "Em todo o site, \"Vende por dia\" passou a ser a mediana dos 7 dias completos antes de hoje: um dia de pico ou um dia vazio não mexe mais no número. Vale para Mercado, Craft, Refino, Cozinha, Mercado Negro, Transporte, Rotação de craft, menu do botão direito e os filtros de vendas mínimas.",
+    "Dia sem venda registrada conta como zero. Item que vende de vez em quando (mediana zero) usa a média, para não sumir: um item que vende 1 por semana aparece como 0,1 por dia.",
+    "O dia de hoje, ainda incompleto, ficou fora da conta.",
+    "Na Rotação de craft, quando a média de 7 dias foge muito da mediana, o card mostra as duas."
+   ],
+   "impacto": "Sugestões e filtros de vendas mais estáveis para planejar."
+  },
+  {
    "t": "2026-10-31T20:50",
    "titulo": "Rotação: sugestão pelo que dá para vender rápido",
    "itens": [

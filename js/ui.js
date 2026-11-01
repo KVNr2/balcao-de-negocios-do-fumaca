@@ -272,7 +272,7 @@ async function itemMenu(id,q,x,y,origem){
   try{ const ki=typeof nk==="function"?nk(id):id, keys=SHOP_LOCS.map(c=>ki+"|"+c);
     if(typeof histFetch==="function"&&keys.some(k=>OF2.hs[k]==null)) await histFetch(keys);
     if(IM.el!==menu) return; let vol=0, sv=0, any=false; for(const k of keys){ const h=OF2.hs[k]; if(h&&h.vol>0){ vol+=h.vol; sv+=h.vol*h.avg; any=true; } }
-    if(any){ const avg=sv/vol, d=el("div",{class:"imenu-vol"}); d.append("Vende ",el("b",{text:`${fmtU(vol)} por dia`}),` · média de 7 dias ${fmt(Math.round(avg))}`);
+    if(any){ const avg=sv/vol, d=el("div",{class:"imenu-vol"}); d.append("Vende ",el("b",{text:`${fmtU(vol)} por dia`}),` · preço médio de 7 dias ${fmt(Math.round(avg))}`); d.title="Vendas por dia: mediana dos últimos 7 dias, somando as cidades. Um dia fora da curva não mexe no número.";
       if(b.p&&avg>0){ const dif=(b.p-avg)/avg; if(Math.abs(dif)>=0.15) d.append(el("span",{class:dif>0?"loss":"gain",text:` · agora ${dif>0?"+":""}${dec(dif*100)}% da média`})); }
       preco.append(d); }
     else preco.append(el("div",{class:"imenu-vol muted",text:"Sem vendas registradas nos últimos 7 dias."}));

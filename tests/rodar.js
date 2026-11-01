@@ -163,6 +163,12 @@ async function simular(p) {
     ROT.vDias = 6; const b = rotPlano("Martlock", rotFocoVisita(), 0).linhas[0]; ROT.vDias = 3;
     return { vol: m.vol, a: a.n, b: b.n, esperado: Math.floor(m.vol * 0.5 * 3) }; });
   conf("rotação: sugestão não passa do que você vende no prazo", rtet.a === rtet.esperado && rtet.b >= rtet.a, rtet);
+  const hmed = await p.evaluate(() => { const dia = i => new Date(Date.now() - i * 864e5).toISOString().slice(0, 10) + "T00:00:00";
+    const pico = histDias([{ data: [[1, 40], [2, 3], [3, 2], [4, 3], [5, 2], [6, 3], [7, 2]].map(([d, n]) => ({ timestamp: dia(d), item_count: n, avg_price: 100 })) }]);
+    const lento = histDias([{ data: [{ timestamp: dia(3), item_count: 1, avg_price: 80e6 }] }]);
+    const hoje = histDias([{ data: [{ timestamp: dia(0), item_count: 500, avg_price: 1 }] }]);
+    return { pico: pico.vol, media: pico.media, lento: lento.vol, hoje: hoje.vol, nota: !!volNota(pico) }; });
+  conf("vendas por dia: mediana dos 7 dias, item lento usa a média, hoje não conta", hmed.pico === 3 && hmed.media > 7 && Math.abs(hmed.lento - 1 / 7) < 1e-9 && hmed.hoje === 0 && hmed.nota, hmed);
 
   const rf2 = await p.evaluate(() => { const it = rotCatalogo().find(x => x.city === "Martlock" && x.t === 6 && x.e === 0); ROT.itens = { Martlock: [it.id] };
     const m = rotModel(it, "Martlock"); ROT.minPct = String(Math.ceil(m.pct * 100) + 5); const fora = rotPlano("Martlock", rotFocoVisita(), 0).linhas[0];

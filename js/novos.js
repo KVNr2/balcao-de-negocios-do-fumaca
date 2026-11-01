@@ -261,7 +261,7 @@ async function renderFZ(){
   const foodTxt=f=>`${f.n} × ${fzName(f.id)}`;
   const foodSrc=f=>f.src==="tenho"?"já tem, custo zero":f.src==="planto"?`plantada na ilha, ${fmt(f.p)} cada`:`${fmt(f.p)} cada${SRC_TAG[f.src]||""}`;
   const draw=(kind,hr,keep)=>{
-    const key="fz:"+kind, def=FZ_DEF[kind], vs={h:"Vende por dia",k:"vol",s:m=>lfVol(FZ_SOLD[kind](m)),t:"Ordenar pelas unidades vendidas por dia (7 dias, somando as cidades)"};
+    const key="fz:"+kind, def=FZ_DEF[kind], vs={h:"Vende por dia",k:"vol",s:m=>lfVol(FZ_SOLD[kind](m)),t:"Ordenar pelas unidades vendidas por dia (mediana dos 7 dias, somando as cidades)"};
     const nm=id=>m=>fzName(id(m)); const L=n=>`${n} ${n>1?"lotes":"lote"}`, A=n=>`${n} ${n>1?"animais":"animal"}`;
     let cols;
     if(kind==="crop"||kind==="herb") cols=[{h:"Planta",k:"name",s:nm(m=>m.crop)},{h:"Você ganha por colheita",k:"tot",s:m=>cropMx(m).tot,t:"Ordenar pela prata que sobra a cada colheita, em todos os seus lotes"},{h:"Semente",k:"cost",s:m=>m.sp,first:-1,t:"Ordenar pelo preço da semente (primeiro clique: a mais barata)"},{h:"Colheita",k:"sale",s:m=>m.cp,t:"Ordenar pelo preço da colheita"},{h:"Lucro por semente",k:"profit",s:fzP},{h:"Prata por foco",k:"spf",s:m=>m.spf},vs];
