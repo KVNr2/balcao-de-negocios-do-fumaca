@@ -365,7 +365,10 @@ async function rotSugCalc(city,redraw,modo="spec"){
     ms=ms.sort(modo==="spec"?(a,b)=>b.spf-a.spf:(a,b)=>b.pF-a.pF).slice(0,modo==="spec"?40:80);
     set({loading:`Consultando quanto ${fmt(ms.length)} itens vendem por dia…`});
     const keys=ms.flatMap(m=>ROT_HLOCS().map(c=>rotApi(m.it.id)+"|"+c)).filter(k=>OF2.hs[k]==null); if(keys.length) await histFetch(keys);   // todas as cidades: a venda só conta onde o item vende
-    ms=ms.map(m=>rotModel(m.it,city)).filter(m=>rotPassa(m)&&(mv==null||(m.vol!=null&&m.vol>=mv)));
+    /* com as vendas de cada cidade os preços mudam: refaz todos, e quem subiu para o topo sem histórico ganha uma segunda consulta */
+    { const n=modo==="spec"?40:80, ord=modo==="spec"?(a,b)=>b.spf-a.spf:(a,b)=>b.pF-a.pF, todos=()=>cands.map(it=>rotModel(it,city)).filter(m=>!m.miss&&m.pF>0&&(mp==null||m.pct*100>=mp)).sort(ord).slice(0,n);
+      ms=todos(); const k2=ms.flatMap(m=>ROT_HLOCS().map(c=>rotApi(m.it.id)+"|"+c)).filter(k=>OF2.hs[k]==null); if(k2.length){ await histFetch(k2); ms=todos(); } }
+    ms=ms.filter(m=>rotPassa(m)&&(mv==null||(m.vol!=null&&m.vol>=mv)));
     const lista=ms.map(m=>({m,visita:visita(m)})).filter(x=>x.visita>0).sort((a,b)=>b.visita-a.visita).slice(0,modo==="spec"?6:8);
     set({lista});
   }catch(e){ set({lista:[],vazio:"Não consegui buscar os preços agora."}); }

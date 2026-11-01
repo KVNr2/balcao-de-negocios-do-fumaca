@@ -142,7 +142,7 @@ async function renderPlanoProd(run){
     note.textContent="Consultando quanto o mercado vende por dia…";
     await histFetch(pool.filter(c=>!c.rega).flatMap(c=>SHOP_LOCS.map(l=>nk(c.id)+"|"+l)));
     pool=montar();   // de novo, já com as vendas de cada cidade: o preço de venda só conta onde o item vende
-    { const falta=pool.filter(c=>!c.rega).flatMap(c=>SHOP_LOCS.map(l=>nk(c.id)+"|"+l)).filter(k=>OF2.hs[k]==null); if(falta.length) await histFetch(falta); }
+    { const falta=pool.filter(c=>!c.rega).flatMap(c=>SHOP_LOCS.map(l=>nk(c.id)+"|"+l)).filter(k=>OF2.hs[k]==null); if(falta.length){ await histFetch(falta); pool=montar(); } }
     const items=[]; for(const c of pool){ let cap, v=null; if(c.rega) cap=c.cap; else { v=lfVol(c.id); if(!(v>=0.5)) continue; cap=Math.floor(v*PP.dias*(PP.parte/100)/c.q); } if(cap>=1) items.push({...c,cap,vol:v}); }
     let plan=plOtimo(items,PP.cap,PP.foc);
     { const tot0=plan.reduce((a,x)=>a+x.lucro,0); plan=plan.filter(x=>x.lucro>=10000&&x.lucro>=tot0*0.01); }

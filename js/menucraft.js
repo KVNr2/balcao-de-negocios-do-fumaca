@@ -24,7 +24,7 @@ const MC_LOCS=()=>[...SHOP_LOCS,"Black Market"];
 async function mcVendaQual(id){
   const key=PX.chave(id), out=[0];
   try{ if(typeof histFetch==="function") await histFetch(SHOP_LOCS.map(c=>nk(id)+"|"+c)); }catch(e){}   // a venda só conta onde o item vende
-  for(let q=1;q<=5;q++){ const T={}; try{ await fetchIds([id],T,MC_LOCS(),q); }catch(e){} const v=PX.melhorVenda(T[key]||{},MC_LOCS(),"auto",{id}); out[q]=v; }
+  for(let q=1;q<=5;q++){ const T={}; try{ await fetchIds([id],T,MC_LOCS(),q); }catch(e){} const v=PX.melhorVenda(T[key]||{},MC_LOCS(),"auto",{id,qual:q}); out[q]=v; }
   for(let q=2;q<=5;q++) if(!out[q]||(out[q-1]&&out[q-1].k>out[q].k)) out[q]=out[q-1]?{...out[q-1],herdado:true}:out[q];
   return out;
 }
