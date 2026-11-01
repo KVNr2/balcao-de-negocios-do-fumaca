@@ -47,6 +47,9 @@ $("bRefresh").addEventListener("click",async()=>{ const bt=$("bRefresh"); if(bt.
 $("bOnlyMine").addEventListener("change",renderBuilds);
 document.querySelectorAll("[data-ck]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll("[data-ck]").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); ckKind=b.dataset.ck; ckSel=null; renderCook(); }));
 $("ckBuilds").addEventListener("change",renderCook);
+/* encantamento da Cozinha: liga e desliga cada nível; pelo menos um fica marcado */
+{ const g=$("ckEnc"), pinta=()=>g.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(CK_ENC.has(+b.dataset.e))));
+  pinta(); g.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; const e=+b.dataset.e; if(CK_ENC.has(e)){ if(CK_ENC.size>1) CK_ENC.delete(e); } else CK_ENC.add(e); try{ store.set("ckEnc",JSON.stringify([...CK_ENC])); }catch(err){} pinta(); renderCook(); }); }
 { const vs=$("ckVS"), pinta=()=>vs.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===CKV.s)));
   pinta(); vs.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; CKV.s=b.dataset.v; ckVSave(); pinta(); renderCook(); });
   mselUI("ckVC",SHOP_LOCS.map(c=>[c,c]),CKV.c,"Melhor cidade","cidades",()=>{ ckVSave(); renderCook(); }); }
@@ -70,7 +73,7 @@ function recompute(reset){ $("resNote").textContent=RES[st.res].note; renderHeat
 loadProfile(); renderProfile(); renderWho(); renderActs("all");
 stallIntro();
 (async()=>{
-  try{ const [p,c,z,g,sp,io]=await Promise.all([need("precos"),need("cook"),need("zones"),need("gear"),need("specs"),need("ipoff").catch(()=>({}))]); DATA=p; COOK=c; ZONES=z; GEAR=g; SPECS=sp; IPOFF=io||{}; indexSpecs(); }catch(e){ $("when").textContent="Não consegui abrir os dados do site"; }
+  try{ const [p,c,z,g,sp,io]=await Promise.all([need("precos"),need("cook"),need("zones"),need("gear"),need("specs"),need("ipoff").catch(()=>({}))]); DATA=p; COOK=c; cookExpand(); ZONES=z; GEAR=g; SPECS=sp; IPOFF=io||{}; indexSpecs(); }catch(e){ $("when").textContent="Não consegui abrir os dados do site"; }
   applyMeta(); renderSpecs(); renderCookProfile(); importFromHash();
   const hash=location.hash.slice(1).split("/")[0].split("=")[0], start=tabs.find(b=>b.id==="t-"+hash)?"t-"+hash:(store.get("tab")||"t-voce"); recompute(true); if($(start)) showTab(start,true);
   loadBuilds(); loadLive();

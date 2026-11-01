@@ -1120,8 +1120,18 @@ const BUILD_FOOD = ["T8_MEAL_STEW_FISH","T7_MEAL_ROAST_FISH","T7_MEAL_OMELETTE",
   "T6_POTION_HEAL","T4_POTION_HEAL","T7_POTION_REVIVE","T5_POTION_REVIVE","T8_POTION_COOLDOWN","T6_POTION_COOLDOWN","T8_POTION_CLEANSE","T7_POTION_STONESKIN","T5_POTION_STONESKIN","T7_POTION_CLEANSE2","T5_POTION_CLEANSE2","T6_POTION_ENERGY"];
 const COOK_CITY = {f:"Caerleon",p:"Brecilien"};
 const COOK_LOCS = ["Thetford","Fort Sterling","Martlock","Bridgewatch","Lymhurst","Caerleon","Brecilien"];
-const cookType = id => (id.split("_")[2]||"");
+const cookType = id => (id.split("@")[0].split("_")[2]||"");
+/* comidas e poções encantadas (.1 a .3): a receita da .0 mais molho de peixe (comida) ou extrato arcano (poção) do nível.
+   data/cook.json "e": {id: [quantidade, prefixo, foco .1, foco .2, foco .3]} (tools/gerar_cozinha_encantada.py). O molho e o extrato voltam no retorno, como os outros ingredientes. */
+const cookEnc = id => +((id.split("@")[1])||0);
+const cookNome = id => { const r=COOK.r[id], e=cookEnc(id); return r?(e?`${r[0]} .${e}`:r[0]):id; };
+function cookExpand(){ const E=COOK.e||{}; for(const b in E){ const r=COOK.r[b]; if(!r) continue; const [n,pre,...fo]=E[b];
+  for(let k=1;k<=3;k++) COOK.r[`${b}@${k}`]=[r[0],r[1],r[2],fo[k-1],r[4],[...r[5],[`${pre}_LEVEL${k}`,n]]]; } }
+/* o molho e o extrato também podem ser feitos: molho = 15 picados + 1 alga (×3 a cada nível); extrato = 1 resto de animal raro (×3), que não volta no retorno */
+const ENC_FAZ={FISHSAUCE:[["T1_FISHCHOPS",15],["T1_SEAWEED",1]],ALCHEMY_EXTRACT:[["T1_ALCHEMY_COMMON",1]]};
+const encFaz=iid=>{ const m=/^T1_(FISHSAUCE|ALCHEMY_EXTRACT)_LEVEL(\d)$/.exec(iid); return m?ENC_FAZ[m[1]].map(([id,c])=>[id,c*Math.pow(3,+m[2]-1)]):null; };
 const cookFCE = (k,id) => { const r=PF[k==="f"?"cozinha":"alquimia"]||{}; const specs=Object.assign({},r.s||{}); if(r.all&&id){ const tp=cookType(id); if(specs[tp]==null) specs[tp]=r.all; } return fceRule(r.m,specs,id?cookType(id):""); };
+const CK_ENC=new Set((()=>{ try{ const a=JSON.parse(store.get("ckEnc")||"[0]"); return Array.isArray(a)&&a.length?a:[0]; }catch(e){ return [0]; } })());
 let COOK_LOADED=false, COOK_LOADING=null, ckKind="f", ckSel=null;
 function ensureCook(){
   if(COOK_LOADED) return Promise.resolve(true);
@@ -1156,6 +1166,7 @@ function ckBuy(iid){
   const m=ckMode(iid);
   if(m==="manual"){ const v=(SRC.ckM||{})[iid]; if(v!=null&&v!==""&&+v>=0) return {p:+v,n:9,src:"manual"}; }
   if(m==="tenho") return {p:0,n:9,src:"tenho"};
+  if(m==="faco"){ const f=encFaz(iid); if(f){ let p=0, n=9; for(const [id,c] of f){ const b=ckBuy(id); if(!b) return null; p+=c*b.p; n=Math.min(n,b.n); } return {p,n,src:"faco"}; } }
   if(m==="planto"){ const u=farmUnit(iid,!!(SRC.ckF||{})[iid]); if(u) return u; }
   const o=m==="ordem"?typical(iid,1):null, i=o||typical(iid,0);
   return i?{p:i.p,n:i.n,src:o?"ordem":"inst"}:null;
@@ -1176,7 +1187,7 @@ const ckNeedsFarm=()=>SRC.ck==="planto"||Object.values(SRC.ckO||{}).includes("pl
 /* ingredientes que o retorno de recursos não devolve (no jogo, maxreturnamount 0): os ingredientes raros de alquimia e o token de Avalon */
 const ckNoRet=iid=>/_ALCHEMY_RARE_|^QUESTITEM_TOKEN_AVALON/.test(iid);
 function cookModel(id){
-  const r=COOK.r[id]; if(!r||!r[3]) return null; const [name,kind,q,fo,nut,ing]=r;
+  const r=COOK.r[id]; if(!r||!r[3]) return null; const [,kind,q,fo,nut,ing]=r, name=cookNome(id);
   let cost=0, fix=0, miss=null, thin=false; const parts=[];
   for(const [iid,c] of ing){ const p=ckBuy(iid); if(!p){ miss=COOK.n[iid]||iid; break; } cost+=c*p.p; const nr=ckNoRet(iid); if(nr) fix+=c*p.p; if(p.n<2&&(p.src==="inst"||p.src==="ordem")) thin=true; parts.push({iid,c,p,nr}); }
   const item=ckSale(id);
@@ -1215,7 +1226,7 @@ async function renderCook(){
   { const bx=$("ckTeto"); if(bx&&!bx.firstChild) bx.append(tetoUI(()=>renderCook())); }
   const N=ckN(), AUTO=!!(SRC.ckAuto&&ilhaL()>0); { const th=tb.tHead.rows[0].cells[2]; const b=th&&th.querySelector(".lf-hs"); if(b&&AUTO) b.firstChild.textContent=`Você ganha com ${fmt(ilhaL())} lotes`; else if(b&&N>1) b.firstChild.textContent=`Você ganha em ${fmt(N)} fornadas`; }
   const only=$("ckBuilds").checked, FAVON=!!(window.FAV&&FAV.on("cozinha"));
-  const ckIds=Object.keys(COOK.r).filter(id=>FAVON?FAV.has("cozinha",id):(COOK.r[id][1]===ckKind&&(!only||BUILD_FOOD.includes(id))));
+  const ckIds=Object.keys(COOK.r).filter(id=>FAVON?FAV.has("cozinha",id):(COOK.r[id][1]===ckKind&&CK_ENC.has(cookEnc(id))&&(!only||BUILD_FOOD.includes(id.split("@")[0]))));
   await lfEnsureVol(ckIds,true,tb,note);   // antes do preço: a venda só conta nas cidades onde o item vende
   let rows=ckIds.map(cookModel).filter(Boolean);
   const nAll=rows.length; rows=lfSort("ck",lfFilter("ck",rows,CK_FIL),CK_COLS,def); lfCount(bar,"ck",CK_FIL,nAll-rows.length);
@@ -1242,9 +1253,9 @@ async function renderCook(){
   }
   { const w=tb.parentNode; if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }
 }
-const CK_PILL={inst:"COMPRA NA HORA",ordem:"ORDEM DE COMPRA",planto:"DA ILHA",tenho:"JÁ TENHO",manual:"MANUAL"};
-const CK_SUB={inst:"menor anúncio nas cidades",ordem:"ordem de compra, preço típico",planto:"custo de produzir na ilha",tenho:"entra como custo zero",manual:"valor que você digitou"};
-const CK_OPT=[["","Como o geral"],["inst","Compro na hora"],["ordem","Ordem de compra"],["planto","Produzo na ilha"],["tenho","Já tenho"],["manual","Valor manual"]];
+const CK_PILL={inst:"COMPRA NA HORA",ordem:"ORDEM DE COMPRA",planto:"DA ILHA",tenho:"JÁ TENHO",manual:"MANUAL",faco:"FAÇO"};
+const CK_SUB={inst:"menor anúncio nas cidades",ordem:"ordem de compra, preço típico",planto:"custo de produzir na ilha",tenho:"entra como custo zero",manual:"valor que você digitou",faco:"feito com o que você compra (sem contar o retorno de quando você faz)"};
+const CK_OPT=[["","Como o geral"],["inst","Compro na hora"],["ordem","Ordem de compra"],["planto","Produzo na ilha"],["faco","Faço"],["tenho","Já tenho"],["manual","Valor manual"]];
 /* o que plantar ou criar na ilha para N fornadas, com foco por ingrediente e onde o foco rende mais */
 function ckFarmPlan(m,N){
   if(!FARM||!FZ_LOADED) return null;
@@ -1286,7 +1297,7 @@ function cookPanel(m){
   const box=el("div",{class:"ck-src"}); box.append(el("b",{class:"of-ct",text:"De onde vem cada ingrediente"}),el("span"));
   for(const x of m.parts){
     const sel=el("select",{"aria-label":"De onde vem "+(COOK.n[x.iid]||x.iid)}), cur=(SRC.ckO||{})[x.iid]||"";
-    for(const [v,t] of CK_OPT){ if(v==="planto"&&FARM&&!isFarmItem(x.iid)) continue; const o=el("option",{value:v,text:t}); if(v===cur) o.selected=true; sel.append(o); }
+    for(const [v,t] of CK_OPT){ if(v==="planto"&&FARM&&!isFarmItem(x.iid)) continue; if(v==="faco"&&!encFaz(x.iid)) continue; const o=el("option",{value:v,text:t}); if(v===cur) o.selected=true; sel.append(o); }
     const man=el("input",{type:"number",min:"0",step:"1",placeholder:"prata cada",value:(SRC.ckM||{})[x.iid]!=null?String(SRC.ckM[x.iid]):""}); man.hidden=cur!=="manual"; man.setAttribute("aria-label","Valor manual de "+(COOK.n[x.iid]||x.iid));
     sel.addEventListener("click",ev=>ev.stopPropagation()); man.addEventListener("click",ev=>ev.stopPropagation());
     sel.addEventListener("change",()=>{ SRC.ckO=SRC.ckO||{}; if(sel.value) SRC.ckO[x.iid]=sel.value; else delete SRC.ckO[x.iid]; srcSave(); man.hidden=sel.value!=="manual"; if(sel.value==="manual"&&man.value==="") { man.focus(); return; } renderCook(); });
@@ -1296,9 +1307,10 @@ function cookPanel(m){
   left.append(box);
   { const fp=ckFarmPlan(m,N); if(fp) left.append(fp); }
   if(window.bagBtn){ const bg=el("div",{class:"ck-bag"}), sc0={c:m.item.c};
-    const mats=()=>m.parts.map(x=>({id:x.iid,q:x.c*N,nm:COOK.n[x.iid]||x.iid,buy:x.p.p,buyC:city}));
+    const partes=()=>m.parts.flatMap(x=>x.p.src==="faco"?encFaz(x.iid).map(([id,c])=>{ const b=ckBuy(id)||{p:0,src:"inst"}; return {iid:id,c:c*x.c,p:b}; }):[x]);   // molho/extrato feito: compra o que vai nele
+    const mats=()=>partes().map(x=>({id:x.iid,q:x.c*N,nm:COOK.n[x.iid]||x.iid,buy:x.p.p,buyC:city}));
     const prod=()=>[{id:m.id,q:m.q*N,nm:m.name,sell:m.item.p,sellC:sc0?sc0.c:city}];
-    if(typeof lcBtn==="function") bg.append(lcBtn(()=>m.parts.filter(x=>x.p.src==="inst"||x.p.src==="ordem").map(x=>({id:x.iid,q:x.c*N,nm:COOK.n[x.iid]||x.iid,c:city,p:x.p.p,modo:x.p.src})),`Cozinha: ${m.name}`,"Pôr na lista de compras"));
+    if(typeof lcBtn==="function") bg.append(lcBtn(()=>partes().filter(x=>x.p.src==="inst"||x.p.src==="ordem").map(x=>({id:x.iid,q:x.c*N,nm:COOK.n[x.iid]||x.iid,c:city,p:x.p.p,modo:x.p.src})),`Cozinha: ${m.name}`,"Pôr na lista de compras"));
     bg.append(bagBtn(mats,"Pôr os ingredientes na bag"),el("span",{text:`Ingredientes de ${fmt(N)} fornada${N>1?"s":""}`}),bagBtn(prod,"Pôr o que sai na bag"),el("span",{text:`${fmt(m.q*N)} ${m.kind==="f"?"porções":"poções"} prontas`}));
     left.append(bg); }
   const hist=el("div",{class:"hist"}), hh=el("div",{class:"hist-h"}); hh.append(el("span",{text:"Histórico de 30 dias"})); const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("viewBox","0 0 520 150"); svg.setAttribute("role","img"); const hn=el("p",{class:"tiny muted"}); hist.append(hh,svg,hn); left.append(hist);

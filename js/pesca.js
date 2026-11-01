@@ -41,7 +41,7 @@ async function ensurePesca(){
 /* quanto vale 1 peixe em cada destino, já com as taxas de venda */
 const PC_DISH={}; // peixe -> receitas da cozinha que levam ele
 function pcDishes(){ if(Object.keys(PC_DISH).length) return PC_DISH;
-  for(const id in COOK.r){ const r=COOK.r[id]; if(!r||!r[3]||!r[5]) continue; for(const [iid,c] of r[5]) if(/FISH/.test(iid)&&!/FISHSAUCE/.test(iid)) (PC_DISH[iid]=PC_DISH[iid]||[]).push({id,c}); }
+  for(const id in COOK.r){ const r=COOK.r[id]; if(!r||!r[3]||!r[5]||id.includes("@")) continue; for(const [iid,c] of r[5]) if(/FISH/.test(iid)&&!/FISHSAUCE/.test(iid)) (PC_DISH[iid]=PC_DISH[iid]||[]).push({id,c}); }
   return PC_DISH; }
 const PC_VAL={};
 function pcValue(id){
