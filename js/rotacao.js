@@ -68,7 +68,7 @@ function rotVenda(id){ const r=PX.rec(id), locs=ROT.vendaC.length?ROT.vendaC.fil
 /* item encantado tem dois caminhos: fabricar já encantado (materiais encantados) ou fabricar a .0 e encantar com runas, almas e relíquias.
    Runa, alma e relíquia não voltam no retorno de material. Devolve o caminho de encantar (receita da .0 + o que encanta) ou null. */
 function rotRotaEnc(it){
-  if(!(it.e>=1)||!GEAR||!GEAR.e) return null; const mm=/^T(\d)_(.+?)(?:@\d)?$/.exec(it.id), key=mm&&mm[2], n=key&&GEAR.e[key]; if(!n) return null;
+  if(!(it.e>=1&&it.e<=3)||!GEAR||!GEAR.e) return null;   /* .4 não tem caminho de encantar */ const mm=/^T(\d)_(.+?)(?:@\d)?$/.exec(it.id), key=mm&&mm[2], n=key&&GEAR.e[key]; if(!n) return null;
   const it0=rotItem(bmId(key,it.t,0)); if(!it0) return null;
   const extra=[]; for(let k=1;k<=it.e;k++) extra.push({id:`T${it.t}_${EN_MAT[k][0]}`,n,nm:`${EN_MAT[k][1]} T${it.t}`,art:true,enc:true});
   return {it0,ing:[...it0.ing,...extra]};
@@ -349,7 +349,7 @@ async function rotSugCalc(city,redraw,modo="spec"){
     cands=comBonus.filter(it=>linhas.includes(it.key)); }
   set({loading:`Buscando preços de ${fmt(cands.length)} itens…`});
   try{
-    const ids=[...new Set(cands.map(it=>rotApi(it.id)))].filter(x=>!ROT_LOADED.has(x)), mats=[...new Set(cands.flatMap(it=>it.ing.map(g=>rotApi(g.id))))].filter(x=>!ROT_LOADED.has(x));
+    const ids=[...new Set(cands.map(it=>rotApi(it.id)))].filter(x=>!ROT_LOADED.has(x)), mats=[...new Set(cands.flatMap(it=>{ const R=rotRotaEnc(it); return [...it.ing,...(R?R.ing:[])].map(g=>rotApi(g.id)); }))].filter(x=>!ROT_LOADED.has(x));
     if(mats.length) await fetchIds(mats,DATA.itens,SHOP_LOCS); mats.forEach(x=>ROT_LOADED.add(x));
     for(let i=0;i<ids.length;i+=150){ const part=ids.slice(i,i+150); await fetchIds(part,DATA.itens,[...SHOP_LOCS,"Black Market"]); part.forEach(x=>ROT_LOADED.add(x)); if(ids.length>150) set({loading:`Buscando preços: ${fmt(Math.min(ids.length,i+150))} de ${fmt(ids.length)}…`}); }
     const F=rotFocoVisita(), visita=m=>{ const teto=rotTeto(m), nF=m.pF>0?Math.min(teto,F>0?Math.floor(F/m.fc1):0):0, nN=m.pN>0?Math.min(teto-nF,isFinite(teto)?teto:0):0; return nF*m.pF+nN*m.pN; };

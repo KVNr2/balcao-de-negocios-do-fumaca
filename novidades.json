@@ -1,6 +1,18 @@
 {
  "itens": [
   {
+   "t": "2026-11-01T02:16:00Z",
+   "titulo": "Craft: item encantado pode ser .0 + runas, almas e relíquias",
+   "itens": [
+    "Na página de Craft, itens .1, .2 e .3 agora comparam fabricar já encantado com fabricar a .0 e encantar com runas (.1), almas (.2) e relíquias (.3). Runa, alma e relíquia entram no custo, na receita e na Lista de compras, sem retorno de material.",
+    "Novo campo \"Item encantado\" ao lado da qualidade: O mais barato (padrão), Fabricar já encantado ou Fabricar .0 e encantar. A comparação é sempre sem foco, igual à Rotação de craft.",
+    "Correção: na Rotação de craft, um item .4 travava a aba inteira depois da mudança de encantamento.",
+    "Correção: as sugestões da Rotação de craft agora buscam os preços de runas e almas, então o lucro sugerido bate com o da linha depois que o item entra."
+   ],
+   "como": "No Craft, escolha em \"Item encantado\". A linha mostra \"fabricar .0 e encantar\" quando esse caminho é o usado.",
+   "impacto": "O custo de itens encantados no Craft inclui o encantamento quando ele sai mais barato."
+  },
+  {
    "t": "2026-10-31T22:12",
    "titulo": "Rotação: item encantado pode ser .0 + runas, almas e relíquias",
    "itens": [

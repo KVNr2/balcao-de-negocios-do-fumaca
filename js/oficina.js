@@ -41,7 +41,12 @@ function ofItems(cat){
       const ing=[]; for(const [,c,n] of r[3].matchAll(/([MPLC])(\d+)/g)) ing.push({id:idLv(t,BM_RES[c],e),n:+n,nm:`${MAT_PT[BM_RES[c]]} T${t}.${e}`});
       if(r[4]) ing.push({id:`T${t}_${r[4][0]}`,n:r[4][1],nm:r[4][0].startsWith("ALCHEMY")?"Ingrediente raro":"Artefato",art:true});
       const cnt=ing.filter(x=>!x.art).reduce((a,x)=>a+x.n,0);
-      out.push({id:bmId(k,t,e),key:k,name:nmKey(k,r[0]),t,e,q:1,ing,city:r[2],bonus:0.15,fee:cnt*IV(t,e)*0.1125,focus:r[5]*bmFocT(t,e)/429,fce:bmFCE(k)}); } }
+      const itx={id:bmId(k,t,e),key:k,name:nmKey(k,r[0]),t,e,q:1,ing,city:r[2],bonus:0.15,fee:cnt*IV(t,e)*0.1125,focus:r[5]*bmFocT(t,e)/429,fce:bmFCE(k)};
+      /* outro caminho do encantado: fabricar a .0 e encantar com runas (.1), almas (.2) e relíquias (.3); elas não voltam no retorno */
+      if(e>=1&&e<=3&&GEAR&&GEAR.e&&GEAR.e[k]){ const ing0=ing.map(g=>g.art?{...g}:{...g,id:idLv(t,g.id.replace(/^T\d_/,"").replace(/_LEVEL\d$/,""),0),nm:g.nm.replace(/\.\d$/,".0")});
+        for(let j=1;j<=e;j++) ing0.push({id:`T${t}_${EN_MAT[j][0]}`,n:GEAR.e[k],nm:`${EN_MAT[j][1]} T${t}`,art:true,enc:true});
+        itx.encR={ing:ing0,fee:cnt*IV(t,0)*0.1125,focus:r[5]*bmFocT(t,0)/429}; }
+      out.push(itx); } }
   } else if(cat==="meal"||cat==="potion"){ const kind=cat==="meal"?"f":"p";
     for(const id in COOK.r){ const r=COOK.r[id]; if(r[1]!==kind||!r[3]) continue; const [name,,q,fo,nut,ing]=r;
       out.push({id,key:id,name,t:+id[1],e:0,q,ing:ing.map(([iid,n])=>({id:iid,n,nm:COOK.n[iid]||iid})),city:COOK_CITY[kind],bonus:0.15,fee:q*nut*0.1125,focus:fo,fce:cookFCE(kind,id)}); }
@@ -57,6 +62,7 @@ function ofItems(cat){
 }
 /* receitas por grupo: busca só os tiers e encantamentos do filtro; com "Mercado Negro" como destino, busca também as ordens de compra de lá */
 async function ensureOfG(cat,note,cancel){
+  if(!GEAR){ try{ GEAR=await need("gear"); }catch(e){} }
   const tiers=OF.tiers.size?[...OF.tiers].sort():[4,5,6,7,8], enchs=OF.enchs.size?[...OF.enchs].sort():[0,1,2,3,4], bm=sellBM(), groups=ofGroups(cat);
   const jobs=[];
   for(const gg of groups){
@@ -64,7 +70,8 @@ async function ensureOfG(cat,note,cancel){
     for(const k of bmKeys(gg)) for(const t of tiers){ let usado=false; for(const e of enchs){
       if(t<4&&(e>0||BM[k][4])) continue;
       const kk=`${k}|${t}|${e}`; const idg=bmId(k,t,e);
-      if(!OF.loaded.has("p|"+kk)){ ids.push(idg); usado=true; for(const [,c] of BM[k][3].matchAll(/([MPLC])(\d+)/g)) mats.add(apiLv(t,BM_RES[c],e)); }
+      if(!OF.loaded.has("p|"+kk)){ ids.push(idg); usado=true; for(const [,c] of BM[k][3].matchAll(/([MPLC])(\d+)/g)){ mats.add(apiLv(t,BM_RES[c],e)); if(e>=1&&e<=3) mats.add(apiLv(t,BM_RES[c],0)); }
+        if(e>=1&&e<=3) for(let j=1;j<=e;j++) extra.add(`T${t}_${EN_MAT[j][0]}`); }
       if(bm&&!OF.loaded.has("b|"+kk)) idsBM.push(idg); }
       if(usado&&BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
     if(ids.length||idsBM.length) jobs.push({gg,ids,idsBM,mats,extra}); }
@@ -82,11 +89,12 @@ async function ensureOfG(cat,note,cancel){
   }catch(e){ lpHide(note); return false; }
 }
 async function ensureOf(cat){
+  if(!GEAR){ try{ GEAR=await need("gear"); }catch(e){} }
   if(cat.startsWith("refine")) cat="refine";
   if(OF.loaded.has(cat)) return true;
   try{
     if(cat.startsWith("g:")){ const g=cat.slice(2); const ids=[], extra=new Set(), mats=new Set();
-      for(const k of bmKeys(g)) for(let t=4;t<=8;t++){ for(let e=0;e<=4;e++){ ids.push(bmId(k,t,e)); for(const [,c] of BM[k][3].matchAll(/([MPLC])(\d+)/g)) mats.add(apiLv(t,BM_RES[c],e)); } if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); }
+      for(const k of bmKeys(g)) for(let t=4;t<=8;t++){ for(let e=0;e<=4;e++){ ids.push(bmId(k,t,e)); for(const [,c] of BM[k][3].matchAll(/([MPLC])(\d+)/g)) mats.add(apiLv(t,BM_RES[c],e)); } if(BM[k][4]) extra.add(`T${t}_${BM[k][4][0]}`); for(let j=1;j<=3;j++) extra.add(`T${t}_${EN_MAT[j][0]}`); }
       await fetchIds(ids,DATA.itens,SHOP_LOCS); await fetchIds([...mats,...extra],DATA.itens,SHOP_LOCS);
     } else if(cat==="meal"||cat==="potion"){ const ok=await ensureCook(); if(!ok) return false; }
     else { const ids=new Set(); for(const R of REF5){ for(const t of [2,3]){ ids.add(`T${t}_${R.raw}`); ids.add(`T${t}_${R.ref}`); } for(let t=4;t<=8;t++) for(let e=0;e<=4;e++){ ids.add(apiLv(t,R.raw,e)); ids.add(apiLv(t,R.ref,e)); } } await fetchIds([...ids],DATA.itens,SHOP_LOCS); }
@@ -135,9 +143,19 @@ function ofRR(it){ return OF.mode!=="refine"&&OF2.rrMan!=null?OF2.rrMan:ofRRbase
 /* quantidade que o jogo devolve: o arredondamento é por jogada, aqui usamos a média */
 function ofN(){ return OF2.qty>0?OF2.qty:10; }
 /* custo e lucro de N receitas: o retorno é aplicado ao total de cada material e arredondado para cima, como se compra no jogo */
+/* compra de um ingrediente na conta do Craft: cidade escolhida na linha, depois refinar você mesmo, depois a compra normal */
+const ofBuyIng=(it,g)=>{ const ovB=OF2.ov["b|"+it.id+"|"+g.id]; return (ovB&&pickBuy(g.id,ovB))||(selfRefOn()&&!g.art&&refUnit(g.id))||pickBuy(g.id); };
 function ofModel(it,rrOv){
   const ovS=OF2.ov["s|"+it.id]; const sale=(ovS&&pickSell(it.id,ovS))||pickSell(it.id); if(!sale) return null;
-  const rr=rrOv!=null?rrOv:ofRR(it), ref=OF.mode==="refine", fc1=Math.max(1,Math.round(it.focus*Math.pow(0.5,(it.fce||0)/10000)));
+  const rr=rrOv!=null?rrOv:ofRR(it), ref=OF.mode==="refine";
+  /* item encantado: fabricar já encantado ou fabricar a .0 e encantar (OF2.enc: auto = o mais barato, por receita, com o retorno desta conta) */
+  let ing=it.ing, itFee=it.fee, itFocus=it.focus, enc=null;
+  if(!ref&&it.encR){ const rN=rrr(it.bonus,false,st.daily+bdItem(it.id));   // sempre sem foco, como na Rotação: a escolha não muda com o foco
+    const custo=(l,f)=>{ let c=f*feeVal()/100; for(const g of l){ const b=ofBuyIng(it,g); if(!b) return null; c+=g.n*(g.art?1:1-rN)*b.p*(b.mode==="ordem"?1.025:1); } return c; };
+    const a=custo(it.ing,it.fee), b=custo(it.encR.ing,it.encR.fee), w=OF2.enc||"auto";
+    const usa=w==="craft"?"craft":w==="runas"?(b!=null?"runas":"craft"):(b!=null&&(a==null||b<a)?"runas":"craft");
+    enc={a,b,usa}; if(usa==="runas"){ ing=it.encR.ing; itFee=it.encR.fee; itFocus=it.encR.focus; } }
+  const fc1=Math.max(1,Math.round(itFocus*Math.pow(0.5,(it.fce||0)/10000)));
   /* Refino: a conta parte do foco (quantas unidades o foco cobre). Craft: "receitas pagas" compra material para N receitas e o retorno devolve material para fabricar mais peças (N ÷ (1 − retorno)); "peças finais" fabrica exatamente N. */
   const pay=!ref&&OF2.qMode!=="final"; let N, Np;
   if(ref&&OF2.refFoc){ N=Math.floor(focBud()/fc1); if(N<1) return null; Np=N; }
@@ -145,15 +163,15 @@ function ofModel(it,rrOv){
   else if(pay){ Np=ofN(); N=Math.max(Np,Math.floor(Np/(1-rr)+1e-9)); }
   else { N=Np=ofN(); }
   let mat=0, buyFee=0, miss=0; const parts=[];
-  for(const g of it.ing){ const ovB=OF2.ov["b|"+it.id+"|"+g.id]; const b=(ovB&&pickBuy(g.id,ovB))||(selfRefOn()&&!g.art&&refUnit(g.id))||pickBuy(g.id); if(!b){ miss++; parts.push({...g,b:null}); continue; }
+  for(const g of ing){ const b=ofBuyIng(it,g); if(!b){ miss++; parts.push({...g,b:null}); continue; }
     const unit=b.p, total=g.n*N; let need;
     if(g.art) need=total; else if(pay) need=g.n*Np; else need=Math.ceil(total*(1-rr)-1e-9);
     const ret=total-need, base=need*unit, bf=b.mode==="ordem"?base*0.025:0;
     mat+=base; buyFee+=bf; parts.push({...g,b,unit,total,need,ret,pay:need,sub:base+bf,retVal:ret*unit}); }
-  if(miss) return {it,sale,parts,miss};
-  const fee=it.fee*feeVal()/100*N, cost=mat+buyFee+fee;
+  if(miss) return {it,sale,parts,miss,enc};
+  const fee=itFee*feeVal()/100*N, cost=mat+buyFee+fee;
   const tax=OF2.tax?((st.prem?0.04:0.08)+(sale.mode==="ordem"?0.025:0)):0, gross=N*it.q*sale.p, taxV=gross*tax, net=gross-taxV, costReal=cost+taxV, profit=gross-costReal;
-  return {it,N,Np,sale,parts,cost,costReal,mat,buyFee,net,gross,taxV,profit,pct:costReal>0?profit/costReal:0,rr,fee,fc:ref&&!OF2.refFoc?0:fc1*N,fc1,units:N*it.q};
+  return {it,N,Np,sale,parts,cost,costReal,mat,buyFee,net,gross,taxV,profit,pct:costReal>0?profit/costReal:0,rr,fee,fc:ref&&!OF2.refFoc?0:fc1*N,fc1,units:N*it.q,enc};
 }
 /* preços na qualidade escolhida para o item fabricado */
 async function ensureOfQ(items){
@@ -183,7 +201,7 @@ function ofApplyMode(mode){
   mselUI("ofTier",[],OF.tiers,"Todos","tiers",()=>renderOf()); mselUI("ofEnch",[0,1,2,3,4].map(e=>[e,`.${e}`]),OF.enchs,"Todos","encantamentos",()=>renderOf());
   ofFiltLoad(OF2["filt_"+mode]||[[],[]]); $("ofTier")._msel.setOpts(tiers.map(t=>[t,`T${t}`])); OF2.qty=OF2["qty_"+mode]||(ref?100:10);
   $("ofQty").value=String(OF2.qty);
-  $("ofQualBox").hidden=ref; if(ref) OF2.qual=0; else { OF2.qual=OF2.qualSaved||0; $("ofQual").value=String(OF2.qual); }
+  $("ofQualBox").hidden=ref; { const eb=$("ofEncBox"); if(eb) eb.hidden=ref; } if(ref) OF2.qual=0; else { OF2.qual=OF2.qualSaved||0; $("ofQual").value=String(OF2.qual); }
   $("ofTitle").textContent=ref?"Oficina de refino":"Oficina"; $("ofRcT").textContent=ref?"Refino":"Receita";
   $("ofRcT").textContent=ref?"Foco a gastar":"Receita"; $("ofRcS").textContent=ref?"cada item mostra quantas unidades esse foco refina, o lucro, onde comprar e onde vender":"receitas pagas de cada item (o retorno rende peças extras)"; $("ofQty").setAttribute("aria-label",ref?"Foco a gastar no refino":"Quantidade de receitas");
   if(ref) ofRefQtyUI(); else $("ofQty").step="1";
@@ -200,6 +218,8 @@ function setupOf(){
   fill($("ofQual"),[[0,"Automática"],...[1,2,3,4,5].map(q=>[q,QNAME[q]])]);
   const bind=(id,key,num,store_)=>$(id).addEventListener("change",()=>{ (store_||OF)[key]=num?+$(id).value:$(id).value; renderOf(); });
   bind("ofQual","qual",1,OF2); ofCards();
+  { const s=$("ofEnc"); if(s){ fill(s,[["auto","O mais barato"],["craft","Fabricar já encantado"],["runas","Fabricar .0 e encantar"]]); OF2.enc=store.get("ofEnc")||"auto"; s.value=OF2.enc;
+    s.addEventListener("change",()=>{ OF2.enc=s.value; try{ store.set("ofEnc",s.value); }catch(e){} renderOf(); }); } }
   $("ofRRp").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; OF2.rrMan=null; OF.rr=b.dataset.rr; renderOf(); });
   $("ofRRs").addEventListener("input",()=>{ OF2.rrMan=+$("ofRRs").value/100; $("ofRRv").textContent=dec(OF2.rrMan*100)+"%"; renderOf(); });
   { const bx=$("ofFocBox"); if(bx&&!bx.firstChild) bx.append(focBudUI(renderOf,"O foco só aumenta o retorno de recursos. Em cada item aberto aparece quantas unidades o foco do dia cobre.")); }
@@ -343,7 +363,7 @@ async function renderOf(){
   for(const m of shown){ const key=m.it.id; const item=el("div",{class:"of-item"}); body.append(item); const tr=el("div",{class:"of-row"}); item.append(tr); tr.dataset.id=m.it.id; tr.dataset.fav=m.it.id; tr.dataset.fctx=ofFavCtx(m.it); tr.dataset.city=m.sale.c; tr.className="clickrow of-row "+(m.profit>=0?"is-gain":"is-loss"); tr.tabIndex=0; tr.setAttribute("aria-expanded","false");
     stamp(m.sale.t); m.parts.forEach(g=>stamp(g.b&&g.b.t));
     const c0=el("div",{class:"itemcell"}); tr.append(c0); const head=el("div",{class:"ihead"}); const chev=el("span",{class:"of-chev","aria-hidden":"true",text:"▾"});
-    const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),el("span",{class:"of-rec",text:OF.mode==="refine"?(OF2.refFoc?`${fmt(m.N)} ${m.N>1?"unidades":"unidade"} com ${fmt(m.fc)} de foco`:`${fmt(m.N)} ${m.N>1?"unidades":"unidade"} sem foco`):m.Np!==m.N?`${fmt(m.Np)} pagas → ${fmt(m.N)} ${m.N>1?"receitas":"receita"} com o retorno`:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}${OF.mode!=="refine"&&m.fc>0?`${OF.rr==="focus"?"foco para tudo":"com foco gastaria"} ${fmt(m.fc)} de foco`:""}`,title:OF.mode==="refine"?"":`Cada receita gasta ${fmt(m.fc1)} de foco (com as specs da sua ficha); ${fmt(m.N)} receitas gastam ${fmt(m.fc)}`})); if(OF.mode!=="refine"&&OF.rr==="focus"&&OF2.rrMan==null){ try{ ofSpf(m); }catch(e){} if(m.pF&&m.pF.fc1>0){ const cov=Math.min(m.N,Math.floor(focBud()/m.pF.fc1)), full=cov>=m.N, pc=m.N?Math.round(cov/m.N*100):0, un=OF.mode==="refine"?"unidades":"receitas"; const fm=el("span",{class:"wk-fm"+(full?" full":cov?"":" none"),title:`Cada ${OF.mode==="refine"?"unidade":"receita"} gasta ${fmt(m.pF.fc1)} de foco; com ${fmt(focBud())} por dia o foco cobre ${fmt(cov)} de ${fmt(m.N)}`}); fm.append(el("span",{class:"wk-fl",text:"Foco"}),el("span",{class:"wk-fbar"},el("i",{style:`width:${pc}%`})),el("b",{text:`cobre ${fmt(cov)} de ${fmt(m.N)} ${un}`})); nmb.append(fm); } }
+    const nmb=el("span",{class:"inm"}); nmb.append(el("strong",{text:m.it.name}),m.enc&&m.enc.usa==="craft"&&OF2.enc==="runas"?el("span",{class:"tag of-enc",text:"sem preço de runa, alma ou relíquia: fabricado já encantado"}):m.enc&&m.enc.usa==="runas"?el("span",{class:"tag of-enc",text:"fabricar .0 e encantar",title:m.enc.a!=null&&m.enc.b!=null?`Por peça, sem foco: fabricar já encantado ${fmt(m.enc.a)}, fabricar a .0 e encantar ${fmt(m.enc.b)}`:""}):null,el("span",{class:"of-rec",text:OF.mode==="refine"?(OF2.refFoc?`${fmt(m.N)} ${m.N>1?"unidades":"unidade"} com ${fmt(m.fc)} de foco`:`${fmt(m.N)} ${m.N>1?"unidades":"unidade"} sem foco`):m.Np!==m.N?`${fmt(m.Np)} pagas → ${fmt(m.N)} ${m.N>1?"receitas":"receita"} com o retorno`:`${fmt(m.N)} ${m.N>1?"receitas":"receita"}`}),el("small",{text:`${m.it.q>1?`fornada de ${m.it.q} · `:""}${OF.mode!=="refine"&&m.fc>0?`${OF.rr==="focus"?"foco para tudo":"com foco gastaria"} ${fmt(m.fc)} de foco`:""}`,title:OF.mode==="refine"?"":`Cada receita gasta ${fmt(m.fc1)} de foco (com as specs da sua ficha); ${fmt(m.N)} receitas gastam ${fmt(m.fc)}`})); if(OF.mode!=="refine"&&OF.rr==="focus"&&OF2.rrMan==null){ try{ ofSpf(m); }catch(e){} if(m.pF&&m.pF.fc1>0){ const cov=Math.min(m.N,Math.floor(focBud()/m.pF.fc1)), full=cov>=m.N, pc=m.N?Math.round(cov/m.N*100):0, un=OF.mode==="refine"?"unidades":"receitas"; const fm=el("span",{class:"wk-fm"+(full?" full":cov?"":" none"),title:`Cada ${OF.mode==="refine"?"unidade":"receita"} gasta ${fmt(m.pF.fc1)} de foco; com ${fmt(focBud())} por dia o foco cobre ${fmt(cov)} de ${fmt(m.N)}`}); fm.append(el("span",{class:"wk-fl",text:"Foco"}),el("span",{class:"wk-fbar"},el("i",{style:`width:${pc}%`})),el("b",{text:`cobre ${fmt(cov)} de ${fmt(m.N)} ${un}`})); nmb.append(fm); } }
     nmb.append(ofBonusPill(m.it)); head.append(iconImg(m.it.id,52,qIc),nmb,bagBtn(()=>[{id:nk(m.it.id),q:m.units,nm:m.it.name,sell:m.sale.p,sellC:m.sale.c,buy:m.costReal/m.units,buyC:m.it.city}],"Pôr na bag os itens prontos desta linha"),chev); c0.append(head); c0.querySelector("img").classList.add("of-itic");
     const stat=(cls,v,lab)=>{ const c=el("div",{class:"of-stat "+cls}); tr.append(c); c.append(el("b",{text:v}),el("small",{text:lab})); return c; };
     stat("loss",fmtS(m.costReal),"CUSTO"); stat("sale",fmtS(m.gross),"VENDA");
@@ -390,7 +410,7 @@ async function histFetch(keys){
 async function ofPrefetchAvg(items){
   const keys=[];
   if(OF.sellS==="medio"){ const l=OF.sellC.size?[...OF.sellC]:SHOP_LOCS; for(const it of items) for(const c of l) keys.push(nk(it.id)+"|"+c); }
-  if(OF.buyS==="medio"){ const l=buyLocs(); for(const it of items) for(const g of it.ing) if(!g.art) for(const c of l) keys.push(nk(g.id)+"|"+c); }
+  if(OF.buyS==="medio"){ const l=buyLocs(); for(const it of items) for(const g of [...it.ing,...(it.encR?it.encR.ing:[])]) if(!g.art||g.enc) for(const c of l) keys.push(nk(g.id)+"|"+c); }
   await histFetch(keys);
 }
 async function fillVolumes(shown){

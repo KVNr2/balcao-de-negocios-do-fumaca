@@ -175,6 +175,14 @@ async function simular(p) {
     ROT.enc = "runas"; ROT.qtd = { Lymhurst: { [it.id]: 3 } }; const comp = rotCompras(rotPlano("Lymhurst", rotFocoVisita(), 0)).map(x => x.id); ROT.enc = "auto"; ROT.qtd = {};
     return { usa: a.enc && a.enc.usa, runas: a.mats.filter(x => x.g.enc).map(x => x.g.id + ":" + x.g.n), semRuna: b.mats.every(x => !x.g.enc), auto: c.enc && c.enc.usa, menor: c.enc && Math.min(c.enc.a, c.enc.b) === (c.enc.usa === "runas" ? c.enc.b : c.enc.a), comp }; });
   conf("rotação: item .2 pode ser .0 + runas e almas, com os materiais na compra", renc.usa === "runas" && renc.runas.length === 2 && /RUNE/.test(renc.runas[0]) && /SOUL/.test(renc.runas[1]) && renc.semRuna && renc.menor && renc.comp.some(x => /_SOUL$/.test(x)), renc);
+  const cenc = await p.evaluate(async () => { document.getElementById("t-craft").click(); await new Promise(f => setTimeout(f, 3000));
+    OF.tiers.clear(); OF.tiers.add(5); OF.enchs.clear(); OF.enchs.add(2); await ensureOfG("g:espada", null); const it = ofItems("g:espada").find(x => x.e === 2 && x.encR);
+    if (!it) return { it: false }; const r = {}; for (const w of ["runas", "craft", "auto"]) { OF2.enc = w; const m = ofModel(it); r[w] = { usa: m.enc && m.enc.usa, ids: m.parts.map(x => x.id), a: m.enc && m.enc.a, b: m.enc && m.enc.b, fc1: m.fc1 }; }
+    OF2.enc = "auto"; OF.tiers.clear(); OF.enchs.clear(); return { it: true, ...r }; });
+  conf("craft: item .2 por .0 + runas e almas, ou já encantado, ou o mais barato", cenc.it && cenc.runas.usa === "runas" && cenc.runas.ids.some(x => /_RUNE$/.test(x)) && cenc.runas.ids.some(x => /_SOUL$/.test(x)) && !cenc.runas.ids.some(x => /_LEVEL/.test(x))
+    && cenc.craft.usa === "craft" && !cenc.craft.ids.some(x => /_RUNE$|_SOUL$/.test(x)) && cenc.auto.usa === (cenc.auto.b < cenc.auto.a ? "runas" : "craft") && cenc.runas.fc1 < cenc.craft.fc1, cenc);
+  const r4 = await p.evaluate(() => { const it = rotCatalogo().find(x => x.city === "Martlock" && x.t === 6 && x.e === 4); try { return { ok: rotRotaEnc(it) === null && !!rotModel(it, "Martlock") }; } catch (e) { return { ok: false, err: e.message }; } });
+  conf("rotação: item .4 não quebra (sem caminho de encantar)", r4.ok, r4);
 
   const rf2 = await p.evaluate(() => { const it = rotCatalogo().find(x => x.city === "Martlock" && x.t === 6 && x.e === 0); ROT.itens = { Martlock: [it.id] };
     const m = rotModel(it, "Martlock"); ROT.minPct = String(Math.ceil(m.pct * 100) + 5); const fora = rotPlano("Martlock", rotFocoVisita(), 0).linhas[0];
