@@ -54,7 +54,8 @@ PX.melhorCompra=(r,locs,modo,o)=>{ let b=null; for(const c of locs){ const x=PX.
 /* venda: com o.id, usa as vendas de cada cidade (PX.venda). Escolhe a melhor entre as cidades onde o item vende;
    se não vende em nenhuma, a melhor de todas, marcada semSaida. o.semTeto: cidade escolhida à mão, sem teto nenhum. */
 PX.melhorVenda=(r,locs,modo,o={})=>{ const teto=o.semTeto?Infinity:PX.teto(r); let b=null, z=null;
-  for(const c of locs){ const x=PX.venda(r,c,modo,teto,o.semTeto?null:PX.hist(o.id,c)); if(!x) continue;
+  for(const c of locs){ let h=o.semTeto?null:PX.hist(o.id,c); if(h&&o.qual>1) h={...h,avg:Infinity};   /* qualidade acima de Normal: o preço médio mistura as qualidades, só as vendas contam */
+    const x=PX.venda(r,c,modo,teto,h); if(!x) continue;
     if(x.saida===false){ if(!z||x.k>z.k) z=x; } else if(!b||x.k>b.k) b=x; }
   return b||(z?{...z,semSaida:true}:null); };
 

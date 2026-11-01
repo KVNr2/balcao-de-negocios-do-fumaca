@@ -174,13 +174,14 @@ async function simular(p) {
     H("Bridgewatch", 0, 0); H("Fort Sterling", 18, 105000); H("Lymhurst", 16, 122000);
     const sem = PX.melhorVenda(r, Object.keys(r), "auto"), com = PX.melhorVenda(r, Object.keys(r), "auto", { id });
     const cap = PX.melhorVenda({ Lymhurst: [200000, 0] }, ["Lymhurst"], "auto", { id });
+    const capQ = PX.melhorVenda({ Lymhurst: [200000, 0] }, ["Lymhurst"], "auto", { id, qual: 3 });
     H("Fort Sterling", 0.5, 105000); H("Lymhurst", 0.4, 122000); const pouco = PX.melhorVenda(r, Object.keys(r), "ordem", { id });
     const ordem = PX.melhorVenda({ "Fort Sterling": [0, 90000] }, ["Fort Sterling"], "auto", { id });
     const velho = window.apiJSON; window.apiJSON = async () => [{ item_id: "X", city: "Black Market", buy_price_max: 17000, buy_price_max_date: new Date().toISOString().slice(0, 19), sell_price_min: 0 },
       { item_id: "X", city: "Bridgewatch", sell_price_min: 130000, sell_price_min_date: new Date().toISOString().slice(0, 19), buy_price_max: 0 }];
     let menu; try { menu = (await imPrecos(["X"], 1, true)).X; } finally { window.apiJSON = velho; }
-    return { sem: sem && sem.c, com: com && com.c + ":" + com.p, cap: cap && cap.p + ":" + cap.anuncio, pouco: pouco && pouco.c + ":" + !!pouco.semSaida, ordem: ordem && ordem.mode + ":" + !!ordem.semSaida, menuP: menu && menu.p, menuC: menu && menu.c }; });
-  conf("venda: anúncio só conta onde o item vende, com teto de 1,3× o preço médio da cidade", pxv.sem === "Bridgewatch" && pxv.com === "Lymhurst:120000" && pxv.cap === "158600:200000" && pxv.pouco === "Lymhurst:true" && pxv.ordem === "inst:false", pxv);
+    return { sem: sem && sem.c, com: com && com.c + ":" + com.p, cap: cap && cap.p + ":" + cap.anuncio, capQ: capQ && capQ.p, pouco: pouco && pouco.c + ":" + !!pouco.semSaida, ordem: ordem && ordem.mode + ":" + !!ordem.semSaida, menuP: menu && menu.p, menuC: menu && menu.c }; });
+  conf("venda: anúncio só conta onde o item vende, com teto de 1,3× o preço médio da cidade", pxv.sem === "Bridgewatch" && pxv.com === "Lymhurst:120000" && pxv.cap === "158600:200000" && pxv.capQ === 200000 && pxv.pouco === "Lymhurst:true" && pxv.ordem === "inst:false", pxv);
   conf("menu do item: anúncio aparece mesmo quando a ordem de compra vem primeiro", pxv.menuP === 130000 && pxv.menuC === "Bridgewatch", pxv);
   const renc = await p.evaluate(async () => { const it = rotCatalogo().find(x => x.city === "Lymhurst" && x.t === 5 && x.e === 2); ROT.itens = { Lymhurst: [it.id] }; ROT.qtd = {};
     ROT.enc = "runas"; await rotEnsure(document.getElementById("rotNote")); const a = rotModel(it, "Lymhurst");

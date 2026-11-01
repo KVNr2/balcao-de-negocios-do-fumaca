@@ -125,7 +125,7 @@ function pickSell(id,ov){
   if(OF.sellS==="manual"&&OF2.manS>0) return {p:OF2.manS,c:cands[0]||"Manual",t:0,mode:"manual"};
   const r=PX.rec(id,OF2.qual>1?PQ[OF2.qual]:DATA.itens);
   if(OF.sellS==="medio"){ let b=null; for(const c of cands){ const x=c==="Black Market"?PX.venda(r,c,"inst",Infinity):null; const p=x?x.p:avgOf(id,c), k=x?x.k:p*(1-ofTaxV()); if(p>0&&(!b||k>b.k)) b={p,k,c,t:x?x.t:snapTime(),mode:x?"inst":"medio"}; } return b&&{p:b.p,c:b.c,t:b.t||snapTime(),mode:b.mode}; }
-  const x=PX.melhorVenda(r,cands,OF.sellS==="manual"?"ordem":OF.sellS,{semTeto:!!ov,id});   // manual sem valor digitado: anúncio   // motor único (js/precos.js)
+  const x=PX.melhorVenda(r,cands,OF.sellS==="manual"?"ordem":OF.sellS,{semTeto:!!ov,id,qual:OF2.qual});   // manual sem valor digitado: anúncio   // motor único (js/precos.js)
   return x?{p:x.p,c:x.c,t:x.t||snapTime(),mode:x.mode,...(x.semSaida?{semSaida:true}:{}),...(x.anuncio?{anuncio:x.anuncio}:{})}:null; }
 /* marcador da cidade com bônus de produção de cada item (dados do jogo: craftingmodifiers). Refino +40%, equipamento, comida e poção +15%;
    armas e armaduras também têm o mesmo bônus num dos Rests da zona preta (Arthur's, Merlyn's ou Morgana's Rest). */
@@ -317,6 +317,8 @@ async function ofFavItems(){
   finally{ ofFiltLoad(sv); }
   return out;
 }
+/* a venda depende das vendas de cada cidade só quando o anúncio entra na conta (Automático ou Anúncio) */
+const ofHistVenda=()=>OF.sellS==="auto"||OF.sellS==="ordem"||(OF.sellS==="manual"&&!(OF2.manS>0));
 async function renderOf(){
   const note=$("ofNote"), tb=$("ofTable");
   if(!BM){ try{ BM=await need("bm"); }catch(e){ note.textContent="Não consegui abrir as receitas."; return; } }
@@ -343,7 +345,7 @@ async function renderOf(){
   OF2.sample=items[0];
   let rows=items.map(it=>ofModel(it)).filter(Boolean);
   /* o anúncio só conta onde o item vende (js/precos.js): consulta as vendas de cada cidade dos que podem aparecer e refaz a conta */
-  if(OF.sellS!=="medio"&&!(OF.sellS==="manual"&&OF2.manS>0)){ const ok=rows.filter(m=>!m.miss), top=new Set([...ok.slice().sort((a,b)=>b.profit-a.profit).slice(0,150),...ok.slice().sort((a,b)=>b.pct-a.pct).slice(0,150)].map(m=>m.it.id));
+  if(ofHistVenda()){ const ok=rows.filter(m=>!m.miss), top=new Set([...ok.slice().sort((a,b)=>b.profit-a.profit).slice(0,150),...ok.slice().sort((a,b)=>b.pct-a.pct).slice(0,150)].map(m=>m.it.id));
     const L=sellLocs().filter(c=>c!=="Black Market"), keys=[...top].flatMap(id=>L.map(c=>nk(id)+"|"+c)).filter(k=>OF2.hs[k]==null);
     if(keys.length){ note.textContent="Consultando onde cada item vende…"; await histFetch(keys); if(stale()) return; rows=items.map(it=>ofModel(it)).filter(Boolean); } }
   let ok0=rows.filter(m=>!m.miss);
@@ -355,6 +357,9 @@ async function renderOf(){
   if(OF2.fMinVol>0) ok0=ok0.filter(m=>ofVol(m)>=OF2.fMinVol);
   const nFil=nAll-ok0.length; { const fc=$("ofFCount"); if(fc) fc.textContent=nFil>0?`${fmt(nFil)} fora pelos filtros`:""; const cb=$("ofFClear"); if(cb) cb.hidden=!(OF2.fMinP!=null||OF2.fMinPct!=null||OF2.fMinVol>0); }
   const ok=ok0.sort(ofSorter()), LIM=FAVON?400:agg?120:60, shown=ok.slice(0,LIM);
+  /* o que vai aparecer também precisa das vendas de cada cidade (ordenar por nome, custo etc. mostra itens fora do top); busca e refaz uma vez */
+  if(ofHistVenda()){ const L=sellLocs().filter(c=>c!=="Black Market"), falta=[...new Set(shown.map(m=>m.it.id))].flatMap(id=>L.map(c=>nk(id)+"|"+c)).filter(k=>OF2.hs[k]==null);
+    if(falta.length){ note.textContent="Consultando onde cada item vende…"; await histFetch(falta); if(stale()) return; return renderOf(); } }
   ofSyncRR();
   tb.textContent=""; const hr=el("div",{class:"of-lh"}); [["Item","name","Ordenar pelo nome"],["Custo","cost","Custo total real: materiais, taxa da estação, taxas de compra e de venda. Clique para ordenar"],["Venda","sale","Venda bruta, antes das taxas. Clique para ordenar"],["Lucro","profit","Lucro total das receitas. Clique de novo para Lucro %"],["Venda e compra","vol","Ordena pelas unidades vendidas por dia na cidade de venda (média de 7 dias). O número no ícone é a quantidade a vender e a comprar"]].forEach(([h,k,t])=>{
     const on=OF.sort===k||(k==="profit"&&OF.sort==="pct"), b=el("button",{type:"button",class:"of-hs"+(on?" on":""),title:t,"aria-sort":on?((OF.dir||1)>0===(k!=="name")?"descending":"ascending"):"none"});
