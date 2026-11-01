@@ -157,7 +157,7 @@ function rotLinhaItem(l,c){
   if(m.miss) tx.append(el("small",{class:"loss",text:`Sem preço de ${m.miss}: não dá para calcular.`}));
   else {
     tx.append(el("small",{class:m.pF>0?"gain":"loss",text:`Lucro: ${dec(m.pct*100)}% com foco · ${dec(rotPctN(m)*100)}% sem foco`}));
-    tx.append(el("small",{class:"muted",text:`Vende ${m.vol==null?"?":fmtU(m.vol)} por dia em ${bagCityPT(m.venda.c)}`}));
+    { const hn=volNota(OF2.hs[rotApi(it.id)+"|"+m.venda.c]); tx.append(el("small",{class:"muted",text:`Vende ${m.vol==null?"?":fmtU(m.vol)} por dia em ${bagCityPT(m.venda.c)}${hn?` (${hn})`:""}`})); }
     const dv=rotDiasVender(m,l.n);
     if(dv!=null) tx.append(el("small",{class:dv>ROT.vDias*1.5?"warn":"muted",text:`${fmt(l.n)} ${l.n===1?"peça leva":"peças levam"} uns ${dv<1?"menos de 1 dia":`${dv<10?dec(dv):fmt(dv)} dias`} para vender${dv>ROT.vDias*1.5?`, mais que os ${ROT.vDias} que você quer`:""}`}));
     if(l.fora) tx.append(el("small",{class:"warn",text:"Abaixo dos seus filtros de lucro % ou vendas: a sugestão é não fazer."}));

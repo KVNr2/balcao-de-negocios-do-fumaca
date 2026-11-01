@@ -42,3 +42,15 @@ PX.venda=(r,c,modo,teto)=>{ const v=r[c]; if(!v) return null; const tx=PX.taxa()
 /* a melhor entre várias cidades */
 PX.melhorCompra=(r,locs,modo,o)=>{ let b=null; for(const c of locs){ const x=PX.compra(r,c,modo,o); if(x&&(!b||x.k<b.k)) b=x; } return b; };
 PX.melhorVenda=(r,locs,modo,o={})=>{ const teto=o.semTeto?Infinity:PX.teto(r); let b=null; for(const c of locs){ const x=PX.venda(r,c,modo,teto); if(x&&(!b||x.k>b.k)) b=x; } return b; };
+
+/* Vendas por dia a partir do histórico diário (uma ou mais séries da API, somadas por dia).
+   Conta os 7 dias completos antes de hoje; dia sem registro conta como zero.
+   vol = mediana desses 7 dias: um dia fora da curva não mexe no número. Se a mediana der zero mas houve venda
+   (item que vende de vez em quando), usa a média, para não sumir. avg = preço médio ponderado pelas vendas. */
+function histDias(series){
+  const dias=[1,2,3,4,5,6,7].map(i=>new Date(Date.now()-i*864e5).toISOString().slice(0,10)), cnt=Object.fromEntries(dias.map(d=>[d,0])); let n=0, v=0;
+  for(const s of series||[]) for(const d of (s.data||[])){ const k=String(d.timestamp||"").slice(0,10); if(!(k in cnt)) continue; const c=d.item_count||0; cnt[k]+=c; n+=c; v+=(d.avg_price||0)*c; }
+  const xs=dias.map(d=>cnt[d]).sort((a,b)=>a-b), med=xs[3], media=n/7;
+  return {vol:med>0?med:media, med, media, avg:n?v/n:0}; }
+/* texto curto para quando a média de 7 dias foge da mediana: "mediana; a média de 7 dias é 7,4" */
+const volNota=h=>h&&h.media!=null&&h.vol>0&&Math.abs(h.media-h.vol)>Math.max(0.5,h.vol*0.3)?`mediana dos 7 dias; a média é ${typeof fmtU==="function"?fmtU(h.media):h.media.toFixed(1)}`:"";

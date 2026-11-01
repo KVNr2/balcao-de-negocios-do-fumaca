@@ -382,9 +382,9 @@ async function histFetch(keys){
   const todo=[...new Set(keys)].filter(k=>OF2.hs[k]==null); const ids=[...new Set(todo.map(k=>k.split("|")[0]))];
   for(let i=0;i<ids.length;i+=20){ const part=ids.slice(i,i+20), mine=todo.filter(k=>part.includes(k.split("|")[0])), locs=[...new Set(mine.map(k=>k.split("|")[1]))];
     try{ const j=await apiJSON(`${HOST}/api/v2/stats/history/${part.join(",")}.json?locations=${locs.join(",").replace(/ /g,"%20")}&time-scale=24`,360);
-      const since=Date.now()-7*86400e3, acc={};
-      for(const x of j){ const k=nk(x.item_id)+"|"+x.location, a=acc[k]||(acc[k]={n:0,v:0}); for(const d of (x.data||[])) if(Date.parse(d.timestamp+"Z")>=since){ a.n+=d.item_count; a.v+=d.avg_price*d.item_count; } }
-      for(const k of mine){ const a=acc[k]; OF2.hs[k]={vol:a?a.n/7:0,avg:a&&a.n?a.v/a.n:0}; }
+      const acc={};   // todas as qualidades da mesma cidade somam no mesmo dia
+      for(const x of j){ const k=nk(x.item_id)+"|"+x.location; (acc[k]||(acc[k]=[])).push(x); }
+      for(const k of mine) OF2.hs[k]=histDias(acc[k]);
     }catch(e){ for(const k of mine) OF2.hs[k]={vol:-1,avg:0}; } }
 }
 async function ofPrefetchAvg(items){
@@ -396,11 +396,11 @@ async function ofPrefetchAvg(items){
 async function fillVolumes(shown){
   const keys=[]; for(const m of shown){ keys.push(nk(m.it.id)+"|"+m.sale.c); for(const g of m.parts) if(g.b) keys.push(nk(g.id)+"|"+g.b.c); }
   await histFetch(keys);
-  document.querySelectorAll("#ofTable .of-blk").forEach(w=>{ const h=OF2.hs[w.dataset.hk]; if(!h) return; w.querySelector(".hs-avg").textContent=h.avg>0?fmt(h.avg):"—"; const u=w.querySelector(".hs-vol"); u.textContent=fmtU(h.vol); w.title="Média e unidades por dia nos últimos 7 dias nessa cidade, todas as qualidades"; });
+  document.querySelectorAll("#ofTable .of-blk").forEach(w=>{ const h=OF2.hs[w.dataset.hk]; if(!h) return; w.querySelector(".hs-avg").textContent=h.avg>0?fmt(h.avg):"—"; const u=w.querySelector(".hs-vol"); u.textContent=fmtU(h.vol); w.title=`Preço médio dos últimos 7 dias e vendas por dia (mediana dos 7 dias) nessa cidade, todas as qualidades${volNota(h)?". A média de vendas é "+fmtU(h.media):""}`; });
   /* venda diária: o mercado só absorve algumas unidades por dia; o lucro de 100 unidades não é "de verdade" se vendem 5 por dia */
   for(const r of (OF2.rows||[])){ const m=r.m, tr=r.tr; if(!tr||!tr.isConnected) continue; const h=OF2.hs[nk(m.it.id)+"|"+m.sale.c], nm=tr.querySelector(".inm"); if(!nm) continue; nm.querySelectorAll(".of-vd").forEach(x=>x.remove()); if(!h||!(h.vol>=0)||!(m.units>0)) continue;
     const v=h.vol, perU=m.profit/m.units, dayU=Math.min(m.units,v), days=v>0?Math.ceil(m.units/v):Infinity, over=m.units>v*1.0001;
-    const c=el("span",{class:"of-vd"+(over?" warn":""),title:`Média de ${fmtU(v)} unidades vendidas por dia nos últimos 7 dias em ${m.sale.c} (todas as qualidades). ${over?`Para vender ${fmt(m.units)} unidades levaria ${v>0?fmt(days)+" dias":"muito tempo"}; o lucro total mostrado só vale se você vender tudo. `:""}Lucro vendendo o que o mercado absorve em 1 dia: ${sgn(Math.round(dayU*perU))}.`});
+    const c=el("span",{class:"of-vd"+(over?" warn":""),title:`${fmtU(v)} unidades vendidas por dia (mediana dos últimos 7 dias) em ${m.sale.c} (todas as qualidades). ${over?`Para vender ${fmt(m.units)} unidades levaria ${v>0?fmt(days)+" dias":"muito tempo"}; o lucro total mostrado só vale se você vender tudo. `:""}Lucro vendendo o que o mercado absorve em 1 dia: ${sgn(Math.round(dayU*perU))}.`});
     c.append(el("span",{class:"wk-fl",text:"Venda/dia"}),el("b",{text:`~${fmtU(v)}`}),over?el("small",{text:v>0?` · ${fmt(m.units)} un. levam ${fmt(days)} ${days===1?"dia":"dias"} · lucro/dia ${sgn(Math.round(dayU*perU))}`:" · sem vendas recentes"}):el("small",{text:" · cabe em 1 dia"})); nm.append(c); }
   ofUpdateQty();
 }
@@ -550,7 +550,7 @@ async function renderMk(partial=false,forcar=false){
   const hsort=(th,k)=>{ th.className="bm-sort"; th.tabIndex=0; th.setAttribute("role","button"); const on=MK.ord.k===k; th.setAttribute("aria-sort",on?(MK.ord.d>0?"ascending":"descending"):"none"); th.title="Ordenar por esta coluna (não refaz a consulta)"; if(on) th.append(" "+(MK.ord.d>0?"▲":"▼")); th.addEventListener("click",()=>mkOrdenar(k)); th.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); mkOrdenar(k); } }); return th; };
   hr.append(hsort(el("th",{text:"Item"}),"nome"));
   cities.forEach(c=>{ const th=el("th",{}); th.append(el("span",{class:"dot",style:`background:${CITY_COLOR[c]||"#999"}`}),c); hr.append(hsort(th,"c:"+c)); });
-  [["Preço médio","med"],["Diferença","dif"],["Vende por dia","vol"]].forEach(([h,k])=>{ const th=hsort(el("th",{text:h}),k); if(k==="vol") th.title="Média de unidades vendidas por dia nos últimos 7 dias, somando as cidades e as qualidades. Clique para ordenar."; hr.append(th); }); hr.append(el("th",{text:""}));
+  [["Preço médio","med"],["Diferença","dif"],["Vende por dia","vol"]].forEach(([h,k])=>{ const th=hsort(el("th",{text:h}),k); if(k==="vol") th.title="Unidades vendidas por dia (mediana dos últimos 7 dias), somando as cidades e as qualidades. Clique para ordenar."; hr.append(th); }); hr.append(el("th",{text:""}));
   const body=tb.createTBody(), src=mq>1?(PQ[mq]||{}):DATA.itens;
   for(const x of rows){ const rec=src[mkKey(x.id)]||{}; const sp=x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0, spp=x.x.smin?sp/x.x.smin.p:0, hot=sp>0, tone=!(x.x.smax&&x.x.smin)?"is-flat":sp>0?"is-gain":"is-warn";
     const tr=body.insertRow(); tr.dataset.fav=x.id; tr.className="clickrow bm-row mk-row "+tone; tr.tabIndex=0; const nm_=mkName(x.r);

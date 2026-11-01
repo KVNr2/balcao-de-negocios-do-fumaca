@@ -7,7 +7,7 @@ const BMP = {};                     // id: {cidade: [venda, compra, idade em hor
 const BMQ = {};                     // qualidades 2 a 5, mesmo formato do BMP: id: {qualidade: {cidade: [venda, compra, idade da compra, idade da venda]}} (a qualidade 1 fica no BMP)
 const BM_VOL = {};                  // id: {qualidade: peças que o Mercado Negro comprou por dia (média dos últimos 7 dias)}, ou -1 se a consulta falhou
 /* dicas dos cabeçalhos da tabela (a coluna fica curta; o que ela é e de onde vem está aqui) */
-const BM_HT={"Vende por dia":"Unidades desta peça, nesta qualidade, que o Mercado Negro comprou por dia nos últimos 7 dias (histórico do Albion Data Project). Use o filtro \"Vende por dia, no mínimo\" para esconder o que quase não vende.","Pedido":"Pedido de compra atual do Mercado Negro para esta peça (qualidade indicada ou melhor), antes da taxa de venda. Vem só dos jogadores com o Albion Overlay coletando preços (Supabase do site). Pedido com mais de 72 horas não aparece.","Média 7 dias":"Média dos pedidos de compra do Mercado Negro registrados nos últimos 7 dias (não é média de vendas fechadas)","Custo":"Custo de fabricar a peça: matéria-prima (já com o retorno de recursos), artefato e taxa da bancada","Bônus em":"Cidade que dá bônus de retorno de recursos para fabricar esta peça"};
+const BM_HT={"Vende por dia":"Unidades desta peça, nesta qualidade, que o Mercado Negro comprou por dia (mediana dos últimos 7 dias) (histórico do Albion Data Project). Use o filtro \"Vende por dia, no mínimo\" para esconder o que quase não vende.","Pedido":"Pedido de compra atual do Mercado Negro para esta peça (qualidade indicada ou melhor), antes da taxa de venda. Vem só dos jogadores com o Albion Overlay coletando preços (Supabase do site). Pedido com mais de 72 horas não aparece.","Média 7 dias":"Média dos pedidos de compra do Mercado Negro registrados nos últimos 7 dias (não é média de vendas fechadas)","Custo":"Custo de fabricar a peça: matéria-prima (já com o retorno de recursos), artefato e taxa da bancada","Bônus em":"Cidade que dá bônus de retorno de recursos para fabricar esta peça"};
 const BM_LOADED = new Set(), BM_TS = {}, BM_REF = {}; let BM_TOK=0, bmMode="craft", bmTiers=new Set(), bmQuals=new Set(), bmEnchs=new Set(), bmSel=null, PLANKS_LOADED=false, bmBuyCs=new Set();
 const ageH = d => d&&!d.startsWith("0001") ? (Date.now()-Date.parse(d+"Z"))/3600e3 : Infinity;
 /* allQ: traz as qualidades 1 a 5 (a 1 vai para o BMP, as outras para o BMQ); sem allQ só a qualidade 1, como as outras páginas usam */
@@ -268,9 +268,9 @@ async function bmVolFetch(list){
   const ids=[...new Set(list.filter(m=>BMV[m.id+"|"+m.q]==null).map(m=>m.id))];
   for(let i=0;i<ids.length;i+=20){ const part=ids.slice(i,i+20);
     try{ const j=await apiJSON(`${HOST}/api/v2/stats/history/${part.join(",")}.json?locations=Black%20Market&time-scale=24`,360);
-      const since=Date.now()-7*86400e3, acc={};
-      for(const x of (j||[])){ if(x.location!=="Black Market") continue; const k=x.item_id+"|"+x.quality; let n=0; for(const d of (x.data||[])) if(Date.parse(d.timestamp+"Z")>=since) n+=d.item_count; acc[k]=(acc[k]||0)+n; }
-      for(const id of part) for(let q=1;q<=5;q++) BMV[id+"|"+q]=(acc[id+"|"+q]||0)/7;
+      const acc={};
+      for(const x of (j||[])){ if(x.location!=="Black Market") continue; const k=x.item_id+"|"+x.quality; (acc[k]||(acc[k]=[])).push(x); }
+      for(const id of part) for(let q=1;q<=5;q++) BMV[id+"|"+q]=histDias(acc[id+"|"+q]).vol;   // mediana dos 7 dias
     }catch(e){ for(const id of part) for(let q=1;q<=5;q++) if(BMV[id+"|"+q]==null) BMV[id+"|"+q]=-1; } }
 }
 async function bmVolumes(shown){

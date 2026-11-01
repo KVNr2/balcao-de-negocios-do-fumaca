@@ -67,7 +67,7 @@ function lfVol(id){
   for(const c of SHOP_LOCS){ const h=OF2.hs[nk(id)+"|"+c]; if(!h) return null; if(h.vol>=0){ t+=h.vol; any=true; } }
   return any?t:-1;
 }
-function lfVolCell(tr,id){ const c=tr.insertCell(); c.className="num lf-vol"; c.dataset.lfv=id; c.textContent=fmtU(lfVol(id)); c.title="Unidades vendidas por dia nos últimos 7 dias, somando as cidades"; return c; }
+function lfVolCell(tr,id){ const c=tr.insertCell(); c.className="num lf-vol"; c.dataset.lfv=id; c.textContent=fmtU(lfVol(id)); c.title="Unidades vendidas por dia (mediana dos últimos 7 dias), somando as cidades"; return c; }
 /* busca o que falta; se a lista precisa do número para filtrar ou ordenar, espera; senão preenche as células depois */
 async function lfEnsureVol(ids,need,tb,note){
   const keys=lfVolKeys(ids).filter(k=>OF2.hs[k]==null); if(!keys.length) return true;

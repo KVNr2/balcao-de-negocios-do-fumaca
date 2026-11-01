@@ -1201,7 +1201,7 @@ const CK_COLS=[
   {h:"Lucro %",k:"pct",s:m=>m.miss?null:m.pct,t:"Ordenar pelo lucro sobre o custo da fornada"},
   {h:"Por ponto de foco",k:"spf",s:m=>m.miss?null:m.spf},
   {h:"Venda",k:"sale",s:m=>m.miss?null:m.item.p,t:"Ordenar pelo preço de venda de cada unidade, pela estratégia de venda escolhida"},
-  {h:"Vende por dia",k:"vol",s:m=>lfVol(m.id),t:"Ordenar pelas unidades vendidas por dia (7 dias, somando as cidades)"},
+  {h:"Vende por dia",k:"vol",s:m=>lfVol(m.id),t:"Ordenar pelas unidades vendidas por dia (mediana dos 7 dias, somando as cidades)"},
   {h:""} ];
 async function renderCook(){
   const tb=$("ckTable"), note=$("ckNote"), bar=$("ckFil"), NC=CK_COLS.length; tb.textContent="";
