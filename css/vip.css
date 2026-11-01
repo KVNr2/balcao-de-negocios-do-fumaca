@@ -2082,3 +2082,4 @@ nav.tabs .tab-sub{display:none!important}
 .rot-tb td small{display:block;font-size:12.5px;white-space:normal}
 .rot-cmp{max-width:420px}.rot-cmp tbody th{font-weight:400}.rot-cmp tr.tot td,.rot-cmp tr.tot th{font-weight:700}
 .rot-tb td:first-child{white-space:normal;min-width:120px}
+.inm .of-enc{display:inline-block;margin-left:6px;font-size:12.5px;padding:0 7px;border-radius:999px;border:1px solid var(--line);color:var(--smoke);vertical-align:middle;font-weight:400}
