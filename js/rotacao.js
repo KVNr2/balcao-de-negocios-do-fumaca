@@ -10,8 +10,8 @@ const ROT=(()=>{ const d={cidades:[...ROT_CIDADES],itens:{},ultima:{},dias:3,cas
   try{ const o=JSON.parse(store.get("rotacao")||"{}"); const r={...d,...o,itens:o.itens||{},ultima:o.ultima||{}};
     if(!o.v||o.v<2){ if(!r.cidades.includes("Thetford")) r.cidades=ROT_CIDADES.filter(c=>c==="Thetford"||r.cidades.includes(c)); r.v=2; }   // Thetford entrou na rotação
     if(!Array.isArray(r.tiers)) r.tiers=[]; if(!Array.isArray(r.enchs)) r.enchs=r.soE0?[0]:[]; if(!Array.isArray(r.vendaC)) r.vendaC=[];
-    if(!r.compra) r.compra="ordem"; if(!r.venda) r.venda="auto"; if(r.grupo==null) r.grupo=""; if(!(r.vDias>0)) r.vDias=3; if(!(r.fatia>0)) r.fatia=50; if(!r.qtd||typeof r.qtd!=="object") r.qtd={}; delete r.soE0;
-    return r; }catch(e){ return {...d,tiers:[],enchs:[],vendaC:[],compra:"ordem",venda:"auto",grupo:"",qtd:{},vDias:3,fatia:50}; } })();
+    if(!r.compra) r.compra="ordem"; if(!r.venda) r.venda="auto"; if(r.grupo==null) r.grupo=""; if(!(r.vDias>0)) r.vDias=3; if(!r.enc) r.enc="auto"; if(!(r.fatia>0)) r.fatia=50; if(!r.qtd||typeof r.qtd!=="object") r.qtd={}; delete r.soE0;
+    return r; }catch(e){ return {...d,tiers:[],enchs:[],vendaC:[],compra:"ordem",venda:"auto",grupo:"",qtd:{},vDias:3,fatia:50,enc:"auto"}; } })();
 /* filtros de catálogo (sugestões e busca): tier, encantamento e tipo, como no Craft */
 const ROT_GRUPOS=[["","Tudo"],["armas","Armas"],["armaduras","Armaduras"],["mao","Mão secundária"]];
 const rotCatOk=it=>(!ROT.tiers.length||ROT.tiers.includes(it.t))&&(ROT.enchs.length?ROT.enchs.includes(it.e):it.e<=3)&&(!ROT.grupo||it.grp===ROT.grupo);
@@ -65,19 +65,32 @@ function rotMat(id,city){ const r=PX.rec(id);
 /* melhor venda líquida nas cidades escolhidas (ou nas reais e Caerleon) e, se marcado, no Mercado Negro */
 function rotVenda(id){ const r=PX.rec(id), locs=ROT.vendaC.length?ROT.vendaC.filter(c=>c!=="Black Market"):[...ROT_CIDADES,"Caerleon"];
   return PX.melhorVenda(r,[...locs,...(ROT.bm===false?[]:["Black Market"])],ROT.venda); }
+/* item encantado tem dois caminhos: fabricar já encantado (materiais encantados) ou fabricar a .0 e encantar com runas, almas e relíquias.
+   Runa, alma e relíquia não voltam no retorno de material. Devolve o caminho de encantar (receita da .0 + o que encanta) ou null. */
+function rotRotaEnc(it){
+  if(!(it.e>=1)||!GEAR||!GEAR.e) return null; const mm=/^T(\d)_(.+?)(?:@\d)?$/.exec(it.id), key=mm&&mm[2], n=key&&GEAR.e[key]; if(!n) return null;
+  const it0=rotItem(bmId(key,it.t,0)); if(!it0) return null;
+  const extra=[]; for(let k=1;k<=it.e;k++) extra.push({id:`T${it.t}_${EN_MAT[k][0]}`,n,nm:`${EN_MAT[k][1]} T${it.t}`,art:true,enc:true});
+  return {it0,ing:[...it0.ing,...extra]};
+}
 function rotModel(it,city){
   it.fce=bmFCE(it.key);   // a ficha pode ter mudado (ou sincronizado) depois de montar o catálogo
   const venda=rotVenda(it.id); if(!venda) return {it,miss:"preço de venda"};
   const bonusC=it.city===city?it.bonus:0, bd=bdItem(it.id), rF=rrr(bonusC,true,st.daily+bd), rN=rrr(bonusC,false,st.daily+bd);
-  const fc1=Math.max(1,Math.round(it.focus*Math.pow(0.5,(it.fce||0)/10000))), fee=it.fee*feeVal()/100;
+  /* caminho do encantado: o mais barato sem foco (ou o que você escolheu) */
+  let ing=it.ing, focus=it.focus, feeB=it.fee, enc=null; const R=rotRotaEnc(it);
+  if(R){ const custo=(l,f)=>{ let c=f*feeVal()/100; for(const g of l){ const x=rotMat(g.id,city); if(!x.use) return null; c+=g.n*(g.art?1:1-rN)*x.use.k; } return c; };
+    const a=custo(it.ing,it.fee), b=custo(R.ing,R.it0.fee), usa=ROT.enc==="craft"?"craft":ROT.enc==="runas"?(b!=null?"runas":"craft"):(b!=null&&(a==null||b<a)?"runas":"craft");
+    enc={a,b,usa}; if(usa==="runas"){ ing=R.ing; focus=R.it0.focus; feeB=R.it0.fee; } }
+  const fc1=Math.max(1,Math.round(focus*Math.pow(0.5,(it.fce||0)/10000))), fee=feeB*feeVal()/100;
   let cF=fee, cN=fee, ordemT=0, instT=0; const mats=[];
-  for(const g of it.ing){ const m=rotMat(g.id,city); if(!m.use) return {it,miss:g.nm};
+  for(const g of ing){ const m=rotMat(g.id,city); if(!m.use) return {it,miss:g.nm};
     const fat=g.art?1:null, qF=g.n*(fat||(1-rF)), qN=g.n*(fat||(1-rN));
     cF+=qF*m.use.k; cN+=qN*m.use.k; if(m.inst) instT+=qF*m.inst.k; ordemT+=qF*m.use.k; mats.push({g,m,qF}); }
   const net=it.q*venda.k, pF=net-cF, pN=net-cN, h=OF2.hs[rotApi(it.id)+"|"+venda.c], vol=h&&h.vol>=0?h.vol:null;
   /* refinar: quanto economiza por peça e quanto rende o foco gasto refinando, para comparar com o foco gasto no craft */
   let refEco=0, refSpf=null; for(const x of mats){ if(x.m.use.mode!=="refino") continue; const b=rotCompra(x.g.id,city); if(b) refEco+=x.qF*(b.k-x.m.use.k); const sp=rotRefSpf(x.g.id); if(sp!=null&&(refSpf==null||sp>refSpf)) refSpf=sp; }
-  return {it,city,venda,rF,rN,fc1,pF,pN,pct:cF>0?pF/cF:0,spf:(pF-pN)/fc1,mats,custoF:cF,custoN:cN,fee,economia:instT-ordemT,vol,bonusC,bd,refEco,refSpf};
+  return {it,city,venda,rF,rN,fc1,pF,pN,pct:cF>0?pF/cF:0,spf:(pF-pN)/fc1,mats,custoF:cF,custoN:cN,fee,enc,economia:instT-ordemT,vol,bonusC,bd,refEco,refSpf};
 }
 /* plano de uma visita. Sugestão: foco primeiro onde rende mais por ponto, sem passar do que você vende no prazo escolhido.
    Se você escreveu quantas fazer, vale o seu número: o foco vai primeiro nos itens que rendem mais por ponto e o resto sai sem foco. */
@@ -98,9 +111,10 @@ function rotPlano(city,foco,cash){
   return {city,linhas,lucro:linhas.reduce((a,l)=>a+l.lucro,0),custo:linhas.reduce((a,l)=>a+l.custo,0),foco:foco-F};
 }
 async function rotEnsure(note){
-  if(!BM){ BM=await need("bm"); } rotCatalogo();
+  if(!BM){ BM=await need("bm"); } if(!GEAR){ try{ GEAR=await need("gear"); }catch(e){} } rotCatalogo();
   const ids=new Set(), mats=new Set();
-  for(const c of ROT.cidades) for(const id of (ROT.itens[c]||[])){ const it=rotItem(id); if(!it) continue; ids.add(rotApi(it.id)); it.ing.forEach(g=>{ mats.add(rotApi(g.id)); if(ROT.refinar) rotRefIds(g.id).forEach(x=>mats.add(x)); }); }
+  for(const c of ROT.cidades) for(const id of (ROT.itens[c]||[])){ const it=rotItem(id); if(!it) continue; ids.add(rotApi(it.id));
+    const R=rotRotaEnc(it); [...it.ing,...(R?R.ing:[])].forEach(g=>{ mats.add(rotApi(g.id)); if(ROT.refinar) rotRefIds(g.id).forEach(x=>mats.add(x)); }); }
   const falta=[...ids,...mats].filter(x=>!ROT_LOADED.has(x));
   if(falta.length){ note.textContent="Buscando os preços…"; await fetchIds([...ids].filter(x=>!ROT_LOADED.has(x)),DATA.itens,[...SHOP_LOCS,"Black Market"]); await fetchIds([...mats].filter(x=>!ROT_LOADED.has(x)),DATA.itens,SHOP_LOCS); falta.forEach(x=>ROT_LOADED.add(x)); }
   const keys=[...ids].flatMap(id=>[...ROT_CIDADES,"Caerleon","Black Market"].map(c=>id+"|"+c)).filter(k=>OF2.hs[k]==null);
@@ -151,7 +165,8 @@ function rotLinhaItem(l,c){
   row.append(iconImg(it.id,40));
   const tx=el("div",{class:"rot-it"}), hd=el("div",{class:"rot-ih"}); hd.append(el("b",{text:it.nm}));
   if(!m.miss){ hd.append(el("span",{class:"rot-chip"+(m.bonusC?" ok":""),text:m.bonusC?`+${Math.round(m.bonusC*100)}% de retorno aqui`:`sem bônus aqui (é em ${it.city})`}));
-    if(m.bd) hd.append(el("span",{class:"rot-chip ok",text:`+${Math.round(m.bd*100)}% hoje`})); }
+    if(m.bd) hd.append(el("span",{class:"rot-chip ok",text:`+${Math.round(m.bd*100)}% hoje`}));
+    if(m.enc&&m.enc.usa==="runas") hd.append(el("span",{class:"rot-chip",text:`fabricar .0 e encantar`})); }
   tx.append(hd);
   const ctl=el("div",{class:"rot-ctl2"});
   if(m.miss) tx.append(el("small",{class:"loss",text:`Sem preço de ${m.miss}: não dá para calcular.`}));
@@ -181,7 +196,7 @@ function rotCompras(p){ const mp=new Map();
       if(u.mode==="refino"){ const f=u.ref, via=`para refinar em ${f.city}`;
         add(f.rawId,`${f.R.rawPT} T${f.t}.${f.e}`,q*f.n*(1-f.rr),rotCompra(f.rawId,f.city),via);
         if(f.prevSrc==="comprado") add(f.prevId,`${f.R.refPT} ${f.t===4?"T3":`T${f.t-1}.${f.e}`}`,q*(1-f.rr),rotCompra(f.prevId,f.city),via); continue; }
-      add(x.g.id,rotNm(x,m),q,u,x.g.art?"artefato":null); } }
+      add(x.g.id,rotNm(x,m),q,u,x.g.enc?"para encantar":x.g.art?"artefato":null); } }
   return [...mp.values()].map(x=>({...x,q:Math.ceil(x.q)})).sort((a,b)=>b.q*b.k-a.q*a.k); }
 const rotLcItem=x=>({id:rotApi(x.id),nm:x.nm,q:x.q,c:x.c,p:x.p,modo:x.mode==="ordem"?"ordem":"inst"});
 function rotTabMats(ls,city){
@@ -207,10 +222,12 @@ function rotDetItem(l,city){
   ln("Lucro por peça",sgn(Math.round(m.pF)),sgn(Math.round(m.pN)),"tot");
   ln("Foco por peça",fmt(m.fc1),"0");
   cmp.append(cb); const wc=el("div",{class:"rot-tbw"}); wc.append(cmp); box.append(wc);
+  if(m.enc){ const e=m.enc, ab=e.a!=null&&e.b!=null;
+    box.append(el("p",{class:"small",text:`Caminho: ${e.usa==="runas"?`fabricar a .0 e encantar até .${it.e}`:`fabricar já .${it.e} com materiais encantados`}.${ab?` Sem foco, fabricar já encantado custa ${fmt(e.a)} por peça e fabricar a .0 e encantar, ${fmt(e.b)}${ROT.enc==="auto"?" (o site usa o mais barato)":""}.`:e.b==null?" Sem preço de runa, alma ou relíquia agora.":""}`})); }
   const tb=el("table",{class:"rot-tb"}), tbd=el("tbody");
   tb.append(el("thead",{},el("tr",{},el("th",{text:"Receita"}),el("th",{class:"n",text:"Pede"}),el("th",{class:"n",text:"Gasta, com foco"}),el("th",{class:"n",text:"Sem foco"}),el("th",{class:"n",text:"Preço"}))));
   for(const x of m.mats){ const u=x.m.use;
-    tbd.append(el("tr",{},el("td",{},el("span",{text:rotNm(x,m)}),el("small",{class:"muted",text:`${rotModoC(u)}${u.c?` em ${bagCityPT(u.c)}`:""}${x.g.art?" · não volta no retorno":""}`})),
+    tbd.append(el("tr",{},el("td",{},el("span",{text:rotNm(x,m)}),el("small",{class:"muted",text:`${rotModoC(u)}${u.c?` em ${bagCityPT(u.c)}`:""}${x.g.enc?" · para encantar, não volta no retorno":x.g.art?" · não volta no retorno":""}`})),
       el("td",{class:"n",text:fmt(x.g.n)}),el("td",{class:"n",text:dec(x.qF)}),el("td",{class:"n",text:dec(rotQN(x,m))}),el("td",{class:"n",text:fmt(u.p)}))); }
   tb.append(tbd); const wr=el("div",{class:"rot-tbw"}); wr.append(tb); box.append(wr);
   box.append(el("p",{class:"small muted",text:`"Gasta" é a média por peça depois do retorno de material. Venda: ${rotModoV(m.venda)} a ${fmt(m.venda.p)} em ${bagCityPT(m.venda.c)}${it.q>1?` (sai ${it.q} por craft)`:""}. ${m.vol==null?"Não sei quanto vende por dia.":`Vende uns ${fmtU(m.vol)} por dia; com ${ROT.fatia}% dessas vendas, em ${ROT.vDias} ${ROT.vDias===1?"dia":"dias"} você vende uns ${l.teto!=null&&isFinite(l.teto)?fmt(l.teto):"?"}.`}${ROT.refinar&&m.refEco>0?` Refinar os materiais você mesmo deixa a peça ${fmtS(m.refEco)} mais barata.`:""}`}));
@@ -292,6 +309,7 @@ function rotUI(){
     g.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; ROT[k]=b.dataset.v; pinta(); muda(); }); };
   seg("rotGrupo",ROT_GRUPOS,"grupo");
   seg("rotCompra",[["ordem","Ordem de compra","A maior ordem aberta +1, mais os 2,5% da ordem. Sem ordem aberta, compra na hora."],["auto","Automático","O mais barato entre pôr ordem (+2,5%) e comprar na hora"],["inst","Na hora","Compra do menor anúncio da cidade"]],"compra");
+  seg("rotEnc",[["auto","O mais barato","Compara, sem foco, fabricar já encantado com fabricar a .0 e encantar com runas, almas e relíquias"],["craft","Fabricar já encantado","Com barras, tábuas, couros e tecidos encantados"],["runas","Fabricar .0 e encantar","Fabrica a .0 e encanta com runas (.1), almas (.2) e relíquias (.3)"]],"enc");
   seg("rotVenda",[["auto","Automático","O que deixa mais prata depois das taxas: anunciar (+2,5%) ou vender na hora"],["ordem","Anunciar"],["inst","Na hora"]],"venda");
   const m=$("rotCash"); m.value=ROT.cash; let tm; m.addEventListener("input",()=>{ ROT.cash=m.value; rotSave(); clearTimeout(tm); tm=setTimeout(renderRot,400); });
 }
