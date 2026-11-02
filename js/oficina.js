@@ -49,7 +49,7 @@ function ofItems(cat){
       out.push(itx); } }
   } else if(cat==="meal"||cat==="potion"){ const kind=cat==="meal"?"f":"p";
     for(const id in COOK.r){ const r=COOK.r[id]; if(r[1]!==kind||!r[3]) continue; const [name,,q,fo,nut,ing]=r;
-      out.push({id,key:id,name,t:+id[1],e:cookEnc(id),q,ing:ing.map(([iid,n])=>({id:iid,n,nm:COOK.n[iid]||iid})),city:COOK_CITY[kind],bonus:0.15,fee:q*nut*0.1125,focus:fo,fce:cookFCE(kind,id)}); }
+      out.push({id,key:id,name:cookNome(id),t:+id[1],e:cookEnc(id),q,ing:ing.map(([iid,n])=>({id:iid,n,nm:COOK.n[iid]||iid})),city:COOK_CITY[kind],bonus:0.15,fee:q*nut*0.1125,focus:fo,fce:cookFCE(kind,id)}); }
   } else if(cat.startsWith("refine")){ const only=cat.split(":")[1];
     for(const R of REF5) for(let t=2;t<=3;t++){ if(only&&R.ref!==only) continue;   // T2 e T3: sem encantamento; T2 só usa a matéria-prima
       const ing=[{id:`T${t}_${R.raw}`,n:N[t],nm:`${R.rawPT} T${t}`}]; if(t===3) ing.push({id:`T2_${R.ref}`,n:1,nm:`${R.refPT} T2`});
