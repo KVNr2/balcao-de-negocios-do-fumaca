@@ -103,6 +103,8 @@ async function ensureOf(cat){
 }
 const OF2 = {ov:{}, manS:0, manB:0, qty:10, hs:{}, qual:0, tax:true, rrMan:null, open:new Set()};
 function bestIn(tbl,id,field,want,only){ const r=tbl[id.includes("_LEVEL")?id.split("@")[0]:id]; if(!r) return null; let b=null; for(const [c,v] of Object.entries(r)){ if(only&&c!==only) continue; const p=v[field]; if(!(p>0)) continue; if(!b||(want==="min"?p<b.p:p>b.p)) b={p,c,t:v[field+2]||snapTime()}; } return b; }
+/* taxa da estação do Craft: a de craft, ou a de refino quando a página está em Refinar */
+const ofFeeK = () => OF.mode==="refine"?"refino":"craft";
 const sellBM = () => OF.sellC.has("Black Market");
 const sellLocs = () => { const l=[]; if(!OF.sellC.size||[...OF.sellC].some(c=>c!=="Black Market")) l.push(...SHOP_LOCS); if(sellBM()) l.push("Black Market"); return l; };
 const ofSig = () => [...OF.sellC].sort().join(",")+"|"+OF.sellS+"|"+OF.buyS+"|"+[...OF.buyC].sort().join(",");
@@ -126,7 +128,8 @@ function pickSell(id,ov){
   const r=PX.rec(id,OF2.qual>1?PQ[OF2.qual]:DATA.itens);
   if(OF.sellS==="medio"){ let b=null; for(const c of cands){ const x=c==="Black Market"?PX.venda(r,c,"inst",Infinity):null; const p=x?x.p:avgOf(id,c), k=x?x.k:p*(1-ofTaxV()); if(p>0&&(!b||k>b.k)) b={p,k,c,t:x?x.t:snapTime(),mode:x?"inst":"medio"}; } return b&&{p:b.p,c:b.c,t:b.t||snapTime(),mode:b.mode}; }
   const x=PX.melhorVenda(r,cands,OF.sellS==="manual"?"ordem":OF.sellS,{semTeto:!!ov,id,qual:OF2.qual});   // manual sem valor digitado: anúncio   // motor único (js/precos.js)
-  return x?{p:x.p,c:x.c,t:x.t||snapTime(),mode:x.mode,...(x.semSaida?{semSaida:true}:{}),...(x.anuncio?{anuncio:x.anuncio}:{})}:null; }
+  const s2=x&&!ov&&!x.semSaida?PX.segunda(r,cands,OF.sellS==="manual"?"ordem":OF.sellS,{id,qual:OF2.qual}):null;   // segunda cidade, para ver se vale espalhar a produção
+  return x?{p:x.p,c:x.c,t:x.t||snapTime(),mode:x.mode,...(x.semSaida?{semSaida:true}:{}),...(x.anuncio?{anuncio:x.anuncio}:{}),...(s2?{seg:{c:s2.c,p:s2.p,k:s2.k,mode:s2.mode,base:x.k}}:{})}:null; }
 /* marcador da cidade com bônus de produção de cada item (dados do jogo: craftingmodifiers). Refino +40%, equipamento, comida e poção +15%;
    armas e armaduras também têm o mesmo bônus num dos Rests da zona preta (Arthur's, Merlyn's ou Morgana's Rest). */
 let DESC=null; need("descanso").then(d=>{ DESC=d.rest||{}; }).catch(()=>{ DESC={}; });
@@ -151,7 +154,7 @@ function ofModel(it,rrOv){
   /* item encantado: fabricar já encantado ou fabricar a .0 e encantar (OF2.enc: auto = o mais barato, por receita, com o retorno desta conta) */
   let ing=it.ing, itFee=it.fee, itFocus=it.focus, enc=null;
   if(!ref&&it.encR){ const rN=rrr(it.bonus,false,st.daily+bdItem(it.id));   // sempre sem foco, como na Rotação: a escolha não muda com o foco
-    const custo=(l,f)=>{ let c=f*feeVal()/100; for(const g of l){ const b=ofBuyIng(it,g); if(!b) return null; c+=g.n*(g.art?1:1-rN)*b.p*(b.mode==="ordem"?1.025:1); } return c; };
+    const custo=(l,f)=>{ let c=f*feeGet("craft")/100; for(const g of l){ const b=ofBuyIng(it,g); if(!b) return null; c+=g.n*(g.art?1:1-rN)*b.p*(b.mode==="ordem"?1.025:1); } return c; };
     const a=custo(it.ing,it.fee), b=custo(it.encR.ing,it.encR.fee), w=OF2.enc||"auto";
     const usa=w==="craft"?"craft":w==="runas"?(b!=null?"runas":"craft"):(b!=null&&(a==null||b<a)?"runas":"craft");
     enc={a,b,usa}; if(usa==="runas"){ ing=it.encR.ing; itFee=it.encR.fee; itFocus=it.encR.focus; } }
@@ -169,7 +172,7 @@ function ofModel(it,rrOv){
     const ret=total-need, base=need*unit, bf=b.mode==="ordem"?base*0.025:0;
     mat+=base; buyFee+=bf; parts.push({...g,b,unit,total,need,ret,pay:need,sub:base+bf,retVal:ret*unit}); }
   if(miss) return {it,sale,parts,miss,enc};
-  const fee=itFee*feeVal()/100*N, cost=mat+buyFee+fee;
+  const fee=itFee*feeGet(ofFeeK())/100*N, cost=mat+buyFee+fee;
   const tax=OF2.tax?((st.prem?0.04:0.08)+(sale.mode==="ordem"?0.025:0)):0, gross=N*it.q*sale.p, taxV=gross*tax, net=gross-taxV, costReal=cost+taxV, profit=gross-costReal;
   return {it,N,Np,sale,parts,cost,costReal,mat,buyFee,net,gross,taxV,profit,pct:costReal>0?profit/costReal:0,rr,fee,fc:ref&&!OF2.refFoc?0:fc1*N,fc1,units:N*it.q,enc};
 }
@@ -230,7 +233,7 @@ function setupOf(){
   $("ofDaily").addEventListener("change",()=>{ document.querySelector(`[data-g="daily"][data-v="${$("ofDaily").checked?0.1:0}"]`).click(); renderOf(); });
   $("ofQty").addEventListener("input",()=>{ const v=Math.max(0,Math.floor(+$("ofQty").value)||0); if(OF.mode==="refine"&&OF2.refFoc){ focSet(v); FOC_UIS.forEach(u=>u._sync()); } else if(OF.mode==="refine"){ OF2.refQty=v; store.set("refQty",String(v)); } else OF2.qty=v; renderOf(); });
   { OF2.qMode=store.get("ofQMode")==="final"?"final":"pay"; const qm=$("ofQMode"); if(qm){ const sync=()=>qm.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.q===OF2.qMode))); sync(); qm.addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; OF2.qMode=b.dataset.q; store.set("ofQMode",OF2.qMode); sync(); renderOf(); }); } }
-  $("ofFee").value=$("ofFeeS").value=$("fee").value; const feeSet=v=>{ $("fee").value=v; $("fee").dispatchEvent(new Event("input")); $("ofFee").value=$("ofFeeS").value=v; renderOf(); }; $("ofFee").addEventListener("input",()=>feeSet($("ofFee").value)); $("ofFeeS").addEventListener("input",()=>feeSet($("ofFeeS").value));
+  $("ofFee").value=$("ofFeeS").value=String(feeGet(ofFeeK())); const feeSet=v=>{ feeSetK(ofFeeK(),v); $("ofFee").value=$("ofFeeS").value=String(feeGet(ofFeeK())); if(ofFeeK()==="refino") $("fee").value=String(feeGet("refino")); renderOf(); }; $("ofFee").addEventListener("input",()=>feeSet($("ofFee").value)); $("ofFeeS").addEventListener("input",()=>feeSet($("ofFeeS").value));
   $("ofFeeP").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; feeSet(b.dataset.f); });
   $("ofPrem").checked=!!st.prem; $("ofDaily").checked=st.daily>0;
   sel.addEventListener("change",()=>{ store.set(OF.mode==="refine"?"ofCatR":"ofCat",sel.value); OF2.open.clear(); renderOf(); });
@@ -320,6 +323,7 @@ async function ofFavItems(){
 /* a venda depende das vendas de cada cidade só quando o anúncio entra na conta (Automático ou Anúncio) */
 const ofHistVenda=()=>OF.sellS==="auto"||OF.sellS==="ordem"||(OF.sellS==="manual"&&!(OF2.manS>0));
 async function renderOf(){
+  { const v=String(feeGet(ofFeeK())); ["ofFee","ofFeeS"].forEach(i=>{ const x=$(i); if(x&&document.activeElement!==x) x.value=v; }); }
   const note=$("ofNote"), tb=$("ofTable");
   if(!BM){ try{ BM=await need("bm"); }catch(e){ note.textContent="Não consegui abrir as receitas."; return; } }
   ofApplyMode(!$("p-refino").hidden?"refine":!$("p-craft").hidden?"craft":(OF.mode||"craft")); setupOf(); const cat=$("ofCat").value;
@@ -423,15 +427,18 @@ async function ofPrefetchAvg(items){
   if(OF.buyS==="medio"){ const l=buyLocs(); for(const it of items) for(const g of [...it.ing,...(it.encR?it.encR.ing:[])]) if(!g.art||g.enc) for(const c of l) keys.push(nk(g.id)+"|"+c); }
   await histFetch(keys);
 }
+/* segunda cidade de venda no chip de vendas: onde mais dá para vender, quanto a menos paga e quanto vende por dia */
+function ofSegTxt(m){ const g=m.sale&&m.sale.seg; if(!g) return ""; const h=OF2.hs[nk(m.it.id)+"|"+g.c], pc=g.base>0?Math.round((g.base-g.k)/g.base*100):0;
+  const s=el("small",{class:"of-v2",text:` · 2ª cidade: ${g.c}, ${fmt(g.p)}${pc>=1?` (${pc}% a menos)`:""}${h&&h.vol>=0?`, ~${fmtU(h.vol)}/dia`:""}`}); s.title="A segunda cidade que deixa mais prata entre as que vendem pelo menos 1 por dia. Serve para ver se vale espalhar a produção e vender mais rápido."; return s; }
 async function fillVolumes(shown){
-  const keys=[]; for(const m of shown){ keys.push(nk(m.it.id)+"|"+m.sale.c); for(const g of m.parts) if(g.b) keys.push(nk(g.id)+"|"+g.b.c); }
+  const keys=[]; for(const m of shown){ keys.push(nk(m.it.id)+"|"+m.sale.c); if(m.sale.seg) keys.push(nk(m.it.id)+"|"+m.sale.seg.c); for(const g of m.parts) if(g.b) keys.push(nk(g.id)+"|"+g.b.c); }
   await histFetch(keys);
   document.querySelectorAll("#ofTable .of-blk").forEach(w=>{ const h=OF2.hs[w.dataset.hk]; if(!h) return; w.querySelector(".hs-avg").textContent=h.avg>0?fmt(h.avg):"—"; const u=w.querySelector(".hs-vol"); u.textContent=fmtU(h.vol); w.title=`Preço médio dos últimos 7 dias e vendas por dia (mediana dos 7 dias) nessa cidade, todas as qualidades${volNota(h)?". A média de vendas é "+fmtU(h.media):""}`; });
   /* venda diária: o mercado só absorve algumas unidades por dia; o lucro de 100 unidades não é "de verdade" se vendem 5 por dia */
   for(const r of (OF2.rows||[])){ const m=r.m, tr=r.tr; if(!tr||!tr.isConnected) continue; const h=OF2.hs[nk(m.it.id)+"|"+m.sale.c], nm=tr.querySelector(".inm"); if(!nm) continue; nm.querySelectorAll(".of-vd").forEach(x=>x.remove()); if(!h||!(h.vol>=0)||!(m.units>0)) continue;
     const v=h.vol, perU=m.profit/m.units, dayU=Math.min(m.units,v), days=v>0?Math.ceil(m.units/v):Infinity, over=m.units>v*1.0001;
     const c=el("span",{class:"of-vd"+(over?" warn":""),title:`${fmtU(v)} unidades vendidas por dia (mediana dos últimos 7 dias) em ${m.sale.c} (todas as qualidades). ${over?`Para vender ${fmt(m.units)} unidades levaria ${v>0?fmt(days)+" dias":"muito tempo"}; o lucro total mostrado só vale se você vender tudo. `:""}Lucro vendendo o que o mercado absorve em 1 dia: ${sgn(Math.round(dayU*perU))}.`});
-    c.append(el("span",{class:"wk-fl",text:"Venda/dia"}),el("b",{text:`~${fmtU(v)}`}),(()=>{ const t=lfVol(m.it.id); return t>0&&t-v>=1&&t>v*1.5?el("small",{text:` em ${m.sale.c} · ${fmtU(t)} somando as cidades`}):""; })(),m.sale.semSaida?el("small",{class:"loss",text:" · vende menos de 1 por dia em todas as cidades"}):"",over?el("small",{text:v>0?` · ${fmt(m.units)} un. levam ${fmt(days)} ${days===1?"dia":"dias"} · lucro/dia ${sgn(Math.round(dayU*perU))}`:" · sem vendas recentes"}):el("small",{text:" · cabe em 1 dia"})); nm.append(c); }
+    c.append(el("span",{class:"wk-fl",text:"Venda/dia"}),el("b",{text:`~${fmtU(v)}`}),(()=>{ const t=lfVol(m.it.id); return t>0&&t-v>=1&&t>v*1.5?el("small",{text:` em ${m.sale.c} · ${fmtU(t)} somando as cidades`}):""; })(),m.sale.semSaida?el("small",{class:"loss",text:" · vende menos de 1 por dia em todas as cidades"}):"",ofSegTxt(m),over?el("small",{text:v>0?` · ${fmt(m.units)} un. levam ${fmt(days)} ${days===1?"dia":"dias"} · lucro/dia ${sgn(Math.round(dayU*perU))}`:" · sem vendas recentes"}):el("small",{text:" · cabe em 1 dia"})); nm.append(c); }
   ofUpdateQty();
 }
 /* cartões de cidade e estratégia, como no albionvip */
@@ -687,7 +694,7 @@ function refUnit(id){
   const raw=pickBuy(idLv(t,R.raw,e)); if(!raw) return null;
   const prevId=t===4?`T3_${R.ref}`:idLv(t-1,R.ref,e), pb=pickBuy(prevId), pr=t>4?refUnit(prevId):null;
   const usePr=pr&&pr.p<buyEff(pb), prevP=usePr?pr.p:buyEff(pb); if(!isFinite(prevP)) return null;
-  const rr=rrr(0.40,OF2.selfRefFoc,st.daily), fee=IV(t,e)*0.1125*feeVal()/100;
+  const rr=rrr(0.40,OF2.selfRefFoc,st.daily), fee=IV(t,e)*0.1125*feeGet("refino")/100;
   const p=(N[t]*buyEff(raw)+prevP)*(1-rr)+fee;
   return {p,c:R.city,t:raw.t,mode:"refino",raw,rawId:idLv(t,R.raw,e),n:N[t],prevId,prevP,prevSrc:usePr?"refinado":"comprado",prevC:usePr?R.city:pb.c,rr,fee,R,tier:t,ench:e};
 }
@@ -735,7 +742,7 @@ function bestCraftsFor(ref,t,e,unitCost){
       mat+=nn*u*(1-rr); }
     if(!ok) continue;
     if(r[4]){ const b=pickBuy(`T${t}_${r[4][0]}`); if(!b) continue; mat+=r[4][1]*buyEff(b); }
-    const fee=cnt*IV(t,e)*0.1125*feeVal()/100, tax=OF2.tax?((st.prem?0.04:0.08)+(sale.mode==="ordem"?0.025:0)):0;
+    const fee=cnt*IV(t,e)*0.1125*feeGet("craft")/100, tax=OF2.tax?((st.prem?0.04:0.08)+(sale.mode==="ordem"?0.025:0)):0;
     const profit=sale.p*(1-tax)-mat-fee; if(!(used>0)) continue;
     out.push({k,id,g:r[1],name:nmKey(k,r[0]),t,e,profit,perMat:profit/used,used,sale}); }
   return out.sort((a,b)=>b.perMat-a.perMat); }

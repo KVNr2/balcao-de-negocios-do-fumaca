@@ -58,6 +58,13 @@ PX.melhorVenda=(r,locs,modo,o={})=>{ const teto=o.semTeto?Infinity:PX.teto(r); l
     const x=PX.venda(r,c,modo,teto,h); if(!x) continue;
     if(x.saida===false){ if(!z||x.k>z.k) z=x; } else if(!b||x.k>b.k) b=x; }
   return b||(z?{...z,semSaida:true}:null); };
+/* as cidades que vendem (pelo menos 1 por dia), da que deixa mais prata para a que deixa menos: a primeira é a de melhorVenda.
+   Serve para mostrar uma segunda cidade de venda e ver se vale espalhar a produção. */
+PX.ranking=(r,locs,modo,o={})=>{ const teto=o.semTeto?Infinity:PX.teto(r), out=[];
+  for(const c of locs){ let h=o.semTeto?null:PX.hist(o.id,c); if(h&&o.qual>1) h={...h,avg:Infinity};
+    const x=PX.venda(r,c,modo,teto,h); if(x&&x.saida!==false) out.push(x); }
+  return out.sort((a,b)=>b.k-a.k); };
+PX.segunda=(r,locs,modo,o={})=>{ const l=PX.ranking(r,locs,modo,o); return l.find((x,i)=>i>0&&x.c!==l[0].c)||null; };
 
 /* Vendas por dia a partir do histórico diário (uma ou mais séries da API, somadas por dia).
    Conta os 7 dias completos antes de hoje; dia sem registro conta como zero.

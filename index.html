@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="4345fb3b">
+<html lang="pt-BR" data-v="1f2bcd32">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=4345fb3b">
-<link rel="stylesheet" href="css/vip.css?v=4345fb3b">
-<link rel="stylesheet" href="css/avicons.css?v=4345fb3b">
-<link rel="stylesheet" href="css/souk.css?v=4345fb3b">
+<link rel="stylesheet" href="css/balcao.css?v=1f2bcd32">
+<link rel="stylesheet" href="css/vip.css?v=1f2bcd32">
+<link rel="stylesheet" href="css/avicons.css?v=1f2bcd32">
+<link rel="stylesheet" href="css/souk.css?v=1f2bcd32">
 </head>
 <body>
 <div class="wrap app">
@@ -427,19 +427,21 @@ html.em-atual .av-card{margin:0}
       <label class="f" title="Cada lote é uma fazenda de 9 sementes ou um pasto de 9 animais. O mesmo número vale na Ilha e fazenda.">Lotes na ilha<input type="number" id="ckLotes" min="0" max="999" placeholder="0" style="width:100px"></label>
       <label class="chk" title="Com ingredientes produzidos na ilha, cada receita usa o máximo de fornadas que os seus lotes dão por colheita"><input type="checkbox" id="ckAuto"> Fornadas pelo máximo dos lotes</label>
       <div id="ckTeto"></div>
+      <div id="ckFee"></div>
       <label class="f">Fornadas<input type="number" id="ckN" min="1" max="99999" value="1" style="width:110px" aria-label="Quantas fornadas você vai fazer"></label>
       <div class="src-g"><span class="of-ct">Ingredientes</span><div class="seg" role="group" aria-label="Como você consegue os ingredientes">
         <button type="button" data-src="ck:inst" title="Compra direto do anúncio mais barato">Compro na hora</button>
         <button type="button" data-src="ck:ordem" title="Põe ordem de compra e espera alguém vender (mais barato, mais lento)">Ordem de compra</button>
         <button type="button" data-src="ck:planto" title="O que sai da fazenda (plantas, ervas, leite, ovos) entra pelo custo de produzir na ilha; o resto continua comprado">Produzo na ilha</button>
         <button type="button" data-src="ck:tenho" title="Ingredientes que você já tem guardados: custo zero">Já tenho</button></div></div>
+      <label class="f" title="Onde você compra os ingredientes. Marque uma ou mais; sem nenhuma, vale o preço típico de todas as cidades.">Cidades de compra<div id="ckCC"></div></label>
       <p class="tiny muted">Dá para mudar ingrediente por ingrediente ao abrir uma receita.</p>
     </div>
     <div class="of-filw" id="ckFil" role="group" aria-label="Filtros da lista"></div>
     <p class="small muted" id="ckNote">Você ganha é a prata que sobra no bolso: a venda menos ingredientes, taxa da estação e taxas de venda, já contando o retorno de recursos com foco na cidade com bônus. Clique numa linha para ver a conta inteira.</p>
     <p class="ganho-top" id="ckSum" hidden></p>
     <div class="tbl"><table id="ckTable" class="nosort"></table></div>
-    <p class="tiny muted">Taxa da estação estimada pela nutrição da comida; poções saem sem taxa na conta. Confira o valor que aparece no jogo.</p>
+    <p class="tiny muted">Taxa da estação estimada pela nutrição: a da comida vem do jogo; a da poção é a soma da nutrição dos ingredientes, por poção. Confira o valor que aparece no jogo.</p>
   </section>
 
   <!-- AVALON -->
@@ -897,32 +899,32 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=4345fb3b"></script>
-<script src="js/base.js?v=4345fb3b"></script>
-<script src="js/precos.js?v=4345fb3b"></script>
-<script src="js/fx.js?v=4345fb3b"></script>
-<script src="js/biz.js?v=4345fb3b"></script>
-<script src="js/builds.js?v=4345fb3b"></script>
-<script src="js/nossas.js?v=4345fb3b"></script>
-<script src="js/ip.js?v=4345fb3b"></script>
-<script src="js/zvz.js?v=4345fb3b"></script>
-<script src="js/pvp.js?v=4345fb3b"></script>
-<script src="js/novos.js?v=4345fb3b"></script>
-<script src="js/guia.js?v=4345fb3b"></script>
-<script src="js/ui.js?v=4345fb3b"></script>
-<script src="js/avalon.js?v=4345fb3b"></script>
-<script src="js/oficina.js?v=4345fb3b"></script>
-<script src="js/versao.js?v=4345fb3b"></script>
-<script src="js/bag.js?v=4345fb3b"></script>
-<script src="js/plano.js?v=4345fb3b"></script>
-<script src="js/pesca.js?v=4345fb3b"></script>
-<script src="js/listfil.js?v=4345fb3b"></script>
-<script src="js/fav.js?v=4345fb3b"></script>
-<script src="js/festas.js?v=4345fb3b"></script>
-<script src="js/transporte.js?v=4345fb3b"></script>
-<script src="js/rotacao.js?v=4345fb3b"></script>
-<script src="js/menucraft.js?v=4345fb3b"></script>
-<script src="js/compras.js?v=4345fb3b"></script>
-<script src="js/main.js?v=4345fb3b"></script>
+<script src="js/icons.js?v=1f2bcd32"></script>
+<script src="js/base.js?v=1f2bcd32"></script>
+<script src="js/precos.js?v=1f2bcd32"></script>
+<script src="js/fx.js?v=1f2bcd32"></script>
+<script src="js/biz.js?v=1f2bcd32"></script>
+<script src="js/builds.js?v=1f2bcd32"></script>
+<script src="js/nossas.js?v=1f2bcd32"></script>
+<script src="js/ip.js?v=1f2bcd32"></script>
+<script src="js/zvz.js?v=1f2bcd32"></script>
+<script src="js/pvp.js?v=1f2bcd32"></script>
+<script src="js/novos.js?v=1f2bcd32"></script>
+<script src="js/guia.js?v=1f2bcd32"></script>
+<script src="js/ui.js?v=1f2bcd32"></script>
+<script src="js/avalon.js?v=1f2bcd32"></script>
+<script src="js/oficina.js?v=1f2bcd32"></script>
+<script src="js/versao.js?v=1f2bcd32"></script>
+<script src="js/bag.js?v=1f2bcd32"></script>
+<script src="js/plano.js?v=1f2bcd32"></script>
+<script src="js/pesca.js?v=1f2bcd32"></script>
+<script src="js/listfil.js?v=1f2bcd32"></script>
+<script src="js/fav.js?v=1f2bcd32"></script>
+<script src="js/festas.js?v=1f2bcd32"></script>
+<script src="js/transporte.js?v=1f2bcd32"></script>
+<script src="js/rotacao.js?v=1f2bcd32"></script>
+<script src="js/menucraft.js?v=1f2bcd32"></script>
+<script src="js/compras.js?v=1f2bcd32"></script>
+<script src="js/main.js?v=1f2bcd32"></script>
 </body>
 </html>

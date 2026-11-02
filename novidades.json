@@ -1,6 +1,18 @@
 {
  "itens": [
   {
+   "t": "2026-11-02T22:51:00Z",
+   "titulo": "Taxa de cada estação, 2ª cidade de venda e cidades de compra na cozinha",
+   "itens": [
+    "Cada estação tem o seu campo de taxa, porque cada uma tem dono e preço próprios: um em cada cidade da Rotação de craft (no card da cidade), um para a estação de cozinha e outro para a de alquimia na Cozinha e alquimia, um no Craft e um no Refino. Os valores ficam salvos no aparelho (antes voltavam para 500 a cada visita). 0 = sem taxa.",
+    "Poções agora pagam taxa da estação na conta. O jogo não informa a nutrição das poções, então ela é estimada pela soma da nutrição dos ingredientes, com o mesmo ajuste que bate nas comidas (ex.: Poção de Resistência Maior, uns 5.300 por fornada com taxa 500). Antes saíam sem taxa.",
+    "Rotação de craft e Craft mostram a 2ª cidade de venda: a segunda que deixa mais prata entre as que vendem pelo menos 1 por dia, com o preço, quanto paga a menos e quantas vende por dia. Ajuda a ver se vale espalhar a produção.",
+    "Cozinha e alquimia: novo filtro Cidades de compra. Com cidades marcadas, o preço dos ingredientes vem só delas; sem nenhuma, continua o preço típico de todas."
+   ],
+   "como": "Digite a taxa que aparece na janela da estação do jogo: no card de cada cidade da Rotação, ao lado de Fornadas na Cozinha e alquimia (comidas e poções têm valores separados) ou no Craft. O Plano do dia usa esses mesmos valores. Na Cozinha e alquimia, escolha as cidades em Cidades de compra e, se quiser, em Cidades de venda.",
+   "impacto": "O lucro das poções fica mais perto do real, e dá para comparar a melhor e a segunda cidade de venda antes de produzir muito de um item."
+  },
+  {
    "t": "2026-11-01T23:50:00Z",
    "titulo": "Cozinha e alquimia: comidas e poções encantadas",
    "itens": [

@@ -30,7 +30,7 @@ async function mcVendaQual(id){
 }
 /* custo de fabricar uma peça (catálogo da Rotação/Craft), sem foco, na cidade com bônus, comprando no Automático */
 function mcCusto(it){
-  const bd=bdItem(it.id), rr=rrr(it.bonus,false,st.daily+bd); let c=it.fee*feeVal()/100;
+  const bd=bdItem(it.id), rr=rrr(it.bonus,false,st.daily+bd); let c=it.fee*feeGet("craft")/100;
   for(const g of it.ing){ const x=PX.melhorCompra(PX.rec(g.id),SHOP_LOCS,"auto"); if(!x) return null; c+=g.n*(g.art?1:(1-rr))*x.k; }
   return c;
 }
@@ -81,7 +81,7 @@ function mcRefId(id){ const m=/^T(\d)_([A-Z]+)(?:_LEVEL(\d))?(?:@\d)?$/.exec(id)
 function mcRefCusto(t,e,R,foco){
   const rawId=idLv(t,R.raw,e), raw=PX.melhorCompra(PX.rec(rawId),[R.city],"auto"); if(!raw) return null;
   const prevId=t===4?`T3_${R.ref}`:idLv(t-1,R.ref,e), pb=PX.melhorCompra(PX.rec(prevId),[R.city],"auto"); if(!pb) return null;
-  const rr=rrr(0.40,foco,st.daily+bdItem(idLv(t,R.ref,e))), fee=IV(t,e)*0.1125*feeVal()/100;
+  const rr=rrr(0.40,foco,st.daily+bdItem(idLv(t,R.ref,e))), fee=IV(t,e)*0.1125*feeGet("refino")/100;
   return (N[t]*raw.k+pb.k)*(1-rr)+fee; }
 async function mcRefBox(id){
   const box=el("div",{class:"imenu-mc"}); box.append(el("p",{class:"tiny muted",text:"Calculando…"}));

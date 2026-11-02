@@ -321,6 +321,22 @@ const taxOf=()=> (st.prem?0.04:0.08)+(st.sell==="order"?0.025:0);
 const tSet=ms=>{ const m=new Map(); return {has:k=>{ const t=m.get(k); return t!=null&&Date.now()-t<ms; },add:k=>{ m.set(k,Date.now()); },clear:()=>m.clear()}; };
 const taxBase=()=> st.prem?0.04:0.08;   // só a taxa de venda; os 2,5% do anúncio entram à parte quando a venda é por anúncio
 const feeVal=()=>+$("fee").value||0;
+/* taxa da estação (pratas por 100 de nutrição): cada estação tem dono e preço, então cada uma guarda o seu valor no aparelho.
+   Chaves: "refino" (campo #fee do Refino; também o refino que a Rotação faz), "craft" (Craft, Mercado Negro, menu do item e equipamentos do Plano do dia),
+   "ck:f" (estação de cozinha), "ck:p" (estação de alquimia) e "rot:<cidade>" (estação de craft de cada cidade da Rotação). Sem valor: 500. 0 = sem taxa. */
+const FEE_PAD=500;
+const FEES=(()=>{ try{ const o=JSON.parse(store.get("taxasEstacao")||"{}"); return o&&typeof o==="object"?o:{}; }catch(e){ return {}; } })();
+const feeGet=k=>{ const v=FEES[k]; return v!=null&&+v>=0?+v:FEE_PAD; };
+const feeSetK=(k,v)=>{ v=Math.round(+v); if(!(v>=0)) return; FEES[k]=v; store.set("taxasEstacao",JSON.stringify(FEES)); document.querySelectorAll(`.fee-ui[data-fk="${k}"] input`).forEach(i=>{ if(document.activeElement!==i) i.value=String(v); }); };
+$("fee").value=String(feeGet("refino"));
+$("fee").addEventListener("input",()=>{ const v=$("fee").value; if(v!==""&&+v>=0) feeSetK("refino",v); });
+/* campo de taxa de uma estação: k = chave acima, txt = nome curto da estação */
+function feeUI(k,txt,onChange){
+  const w=el("label",{class:"f fee-ui",title:`A taxa que ${txt} cobra, em pratas por 100 de nutrição. Aparece na janela da estação no jogo e muda de uma estação para outra, conforme o dono. 0 = sem taxa (estação sua, por exemplo).`}), n=el("input",{type:"number",min:"0",max:"99999",step:"10","aria-label":`Taxa da estação: ${txt}`});
+  w.dataset.fk=k; n.value=String(feeGet(k)); let tm;
+  n.addEventListener("input",()=>{ const v=Math.round(+n.value); if(n.value===""||!(v>=0)) return; clearTimeout(tm); tm=setTimeout(()=>{ feeSetK(k,v); onChange(); },350); });
+  w.append("Taxa da estação",n,el("small",{class:"f-hint",text:`${txt}; pratas por 100 de nutrição, 0 = sem taxa`})); return w;
+}
 function model(res,t,e,o={}){
   const R=RES[res];
   const raw=o.raw!=null?{p:o.raw,n:9}:typical(idOf(t,R.raw,e),0);
@@ -1168,13 +1184,16 @@ function ckBuy(iid){
   if(m==="tenho") return {p:0,n:9,src:"tenho"};
   if(m==="faco"){ const f=encFaz(iid); if(f){ let p=0, n=9; for(const [id,c] of f){ const b=ckBuy(id); if(!b) return null; p+=c*b.p; n=Math.min(n,b.n); } return {p,n,src:"faco"}; } }
   if(m==="planto"){ const u=farmUnit(iid,!!(SRC.ckF||{})[iid]); if(u) return u; }
-  const o=m==="ordem"?typical(iid,1):null, i=o||typical(iid,0);
+  const o=m==="ordem"?ckTyp(iid,1):null, i=o||ckTyp(iid,0);
   return i?{p:i.p,n:i.n,src:o?"ordem":"inst"}:null;
 }
 /* venda na Cozinha e alquimia: estratégia e cidades, como no Craft. auto = o que deixa mais no bolso depois das taxas;
    ordem = anuncia no menor anúncio (+2,5% da ordem); inst = vende na hora para a maior ordem de compra; tipico = mediana dos anúncios das cidades */
-const CKV=(()=>{ try{ const o=JSON.parse(store.get("ckVenda")||"{}"); return {s:["auto","ordem","inst","tipico"].includes(o.s)?o.s:"auto",c:new Set(Array.isArray(o.c)?o.c:[])}; }catch(e){ return {s:"auto",c:new Set()}; } })();
-const ckVSave=()=>{ try{ store.set("ckVenda",JSON.stringify({s:CKV.s,c:[...CKV.c]})); }catch(e){} };
+/* c = cidades de venda; b = cidades onde você compra os ingredientes (vazio = todas) */
+const CKV=(()=>{ try{ const o=JSON.parse(store.get("ckVenda")||"{}"); return {s:["auto","ordem","inst","tipico"].includes(o.s)?o.s:"auto",c:new Set(Array.isArray(o.c)?o.c:[]),b:new Set(Array.isArray(o.b)?o.b:[])}; }catch(e){ return {s:"auto",c:new Set(),b:new Set()}; } })();
+const ckVSave=()=>{ try{ store.set("ckVenda",JSON.stringify({s:CKV.s,c:[...CKV.c],b:[...CKV.b]})); }catch(e){} };
+/* preço típico de um ingrediente só nas cidades de compra escolhidas */
+const ckTyp=(iid,field)=>{ if(!CKV.b.size) return typical(iid,field); const r=DATA.itens[iid]; if(!r) return null; const sub={}; for(const c of CKV.b) if(r[c]) sub[c]=r[c]; return typical(iid,field,{[iid]:sub}); };
 const CKV_PILL={ordem:"ANÚNCIO",inst:"VENDA NA HORA",tipico:"PREÇO TÍPICO"};
 const CKV_SUB={ordem:"anúncio no preço do menor anúncio",inst:"vende na hora para a maior ordem de compra",tipico:"mediana dos anúncios das cidades"};
 function ckSale(id){
@@ -1189,11 +1208,11 @@ const ckNoRet=iid=>/_ALCHEMY_RARE_|^QUESTITEM_TOKEN_AVALON/.test(iid);
 function cookModel(id){
   const r=COOK.r[id]; if(!r||!r[3]) return null; const [,kind,q,fo,nut,ing]=r, name=cookNome(id);
   let cost=0, fix=0, miss=null, thin=false; const parts=[];
-  for(const [iid,c] of ing){ const p=ckBuy(iid); if(!p){ miss=COOK.n[iid]||iid; break; } cost+=c*p.p; const nr=ckNoRet(iid); if(nr) fix+=c*p.p; if(p.n<2&&(p.src==="inst"||p.src==="ordem")) thin=true; parts.push({iid,c,p,nr}); }
+  for(const [iid,c] of ing){ const p=ckBuy(iid); if(!p){ miss=COOK.n[iid]||iid; break; } cost+=c*p.p; const nr=ckNoRet(iid); if(nr) fix+=c*p.p; if(p.n<Math.min(2,CKV.b.size||2)&&(p.src==="inst"||p.src==="ordem")) thin=true; parts.push({iid,c,p,nr}); }
   const item=ckSale(id);
   if(miss||!item) return {id,name,kind,q,miss:miss||"preço do próprio item"};
   if(item.n<2) thin=true;
-  const fee=q*nut*0.1125*feeVal()/100, net=q*item.p*(1-taxBase()-(item.mode==="ordem"?0.025:0));
+  const fee=q*nut*0.1125*feeGet("ck:"+kind)/100, net=q*item.p*(1-taxBase()-(item.mode==="ordem"?0.025:0));
   const r1=rrr(0.15,true,st.daily+bonusDia(/_POTION/i.test(id)?"POTION":"MEAL")), r0=rrr(0.15,false,st.daily+bonusDia(/_POTION/i.test(id)?"POTION":"MEAL"));
   const ret=cost-fix, p1=net-ret*(1-r1)-fix-fee, p0=net-ret*(1-r0)-fix-fee, fc=Math.max(1,Math.round(fo*Math.pow(0.5,cookFCE(kind,id)/10000)));
   const bc=ret*(1-r1)+fix+fee;
@@ -1224,6 +1243,7 @@ async function renderCook(){
   if(ckNeedsFarm()){ try{ if(!FARM) FARM=await need("farm"); await ensureFZ(); }catch(e){} }
   { const l=$("ckLotes"); if(l&&document.activeElement!==l) l.value=SRC.lotes>0?String(SRC.lotes):""; }
   { const bx=$("ckTeto"); if(bx&&!bx.firstChild) bx.append(tetoUI(()=>renderCook())); }
+  { const bx=$("ckFee"); if(bx&&bx.dataset.k!==ckKind){ bx.dataset.k=ckKind; bx.textContent=""; bx.append(feeUI("ck:"+ckKind,ckKind==="f"?"a estação de cozinha":"a estação de alquimia",()=>renderCook())); } }
   const N=ckN(), AUTO=!!(SRC.ckAuto&&ilhaL()>0); { const th=tb.tHead.rows[0].cells[2]; const b=th&&th.querySelector(".lf-hs"); if(b&&AUTO) b.firstChild.textContent=`Você ganha com ${fmt(ilhaL())} lotes`; else if(b&&N>1) b.firstChild.textContent=`Você ganha em ${fmt(N)} fornadas`; }
   const only=$("ckBuilds").checked, FAVON=!!(window.FAV&&FAV.on("cozinha"));
   const ckIds=Object.keys(COOK.r).filter(id=>FAVON?FAV.has("cozinha",id):(COOK.r[id][1]===ckKind&&CK_ENC.has(cookEnc(id))&&(!only||BUILD_FOOD.includes(id.split("@")[0]))));
