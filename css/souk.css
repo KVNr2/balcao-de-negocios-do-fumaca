@@ -211,3 +211,4 @@ details.spg summary>.sps{grid-area:s;justify-self:start;align-self:start;text-al
 /* taxa da estação (campo que aparece em várias páginas) */
 .fee-ui input[type=number]{width:100px}
 .fee-ui .f-hint{display:block}
+.ck-src .ck-sub{padding-left:14px;opacity:.85}

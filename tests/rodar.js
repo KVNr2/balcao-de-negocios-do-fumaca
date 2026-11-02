@@ -218,6 +218,15 @@ async function simular(p) {
     const linhas = document.querySelectorAll("#ofTable .of-row").length, aviso = /Conferindo em quais cidades/.test(document.getElementById("ofNote").textContent);
     window.histFetch = velho; if (solta) solta(); await new Promise(f => setTimeout(f, 1500)); return { ms, linhas, aviso }; });
   conf("refino: a lista aparece sem esperar as vendas por cidade (que chegam depois)", refl.linhas > 0 && refl.aviso && refl.ms < 8000, refl);
+  const ilha = await p.evaluate(async () => { document.getElementById("t-cozinha").click(); await new Promise(f => setTimeout(f, 800)); await ensureCook(); if (!FARM) FARM = await need("farm"); await ensureFZ();
+    const antes = JSON.stringify(SRC.ckO || {}), id = "T6_MEAL_STEW", a = cookModel(id);
+    SRC.ckO = { ...(SRC.ckO || {}), T6_POTATO: "planto", T6_MEAT: "planto", T4_BREAD: "faco", T3_FLOUR: "faco", T3_WHEAT: "planto" };
+    const b = cookModel(id), carne = b.parts.find(x => x.iid === "T6_MEAT"), pao = b.parts.find(x => x.iid === "T4_BREAD"), lpb = ckLotsPerBatch(b);
+    const folhas = ckLeaves("T4_BREAD", 12, []).map(x => x.iid), plano = ckFarmPlan(b, 1), txt = plano ? plano.textContent : "";
+    const painel = cookPanel(b).textContent; SRC.ckO = JSON.parse(antes);
+    return { meat: carne && carne.p.src === "planto" && !!carne.p.meat && carne.p.meat.per === 18, pao: pao && pao.p.src, folhas, lpb, menor: b.cost < a.cost,
+      batata: /Batatas/.test(txt), carneTxt: /açougue/.test(txt), trigo: /Trigo/.test(txt), sub: /para Pão/.test(painel) }; });
+  conf("cozinha: carne criada na ilha, pão e farinha feitos por você, e os lotes da ilha por fornada", ilha.meat && ilha.pao === "faco" && ilha.folhas.join() === "T3_WHEAT" && ilha.lpb > 0 && ilha.batata && ilha.carneTxt && ilha.trigo && ilha.sub, ilha);
   const renc = await p.evaluate(async () => { const it = rotCatalogo().find(x => x.city === "Lymhurst" && x.t === 5 && x.e === 2); ROT.itens = { Lymhurst: [it.id] }; ROT.qtd = {};
     ROT.enc = "runas"; await rotEnsure(document.getElementById("rotNote")); const a = rotModel(it, "Lymhurst");
     ROT.enc = "craft"; const b = rotModel(it, "Lymhurst"); ROT.enc = "auto"; const c = rotModel(it, "Lymhurst");
