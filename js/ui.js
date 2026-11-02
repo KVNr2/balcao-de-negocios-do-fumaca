@@ -189,7 +189,7 @@ function iniciarLimpar(){
    Mercado, Mercado Negro, como fabricar (Craft, Refino ou Cozinha), equivalentes de mesmo IP mais baratos, bag e copiar o nome. */
 const IM={el:null,cat:null};
 async function imNome(id){ const m=/^T(\d)_(.+?)(?:@(\d))?$/.exec(id)||[]; const base=id.split("@")[0].replace(/_LEVEL\d$/,"");
-  if(typeof COOK!=="undefined"&&COOK&&COOK.r&&COOK.r[id]) return {pt:COOK.r[id][0],en:COOK.r[id][0]};
+  if(typeof COOK!=="undefined"&&COOK&&COOK.r&&COOK.r[id]){ const n=cookNome(id); return {pt:n,en:n}; }
   try{ if(!IM.cat){ const c=await need("catalog"); IM.cat=new Map(c.i.map(r=>[r[0],r])); } const r=IM.cat.get(base); if(r) return {pt:r[5]||r[6],en:r[6]||r[5]}; }catch(e){}
   if(m[2]&&typeof BM!=="undefined"&&BM&&BM[m[2]]){ const n=nmKey(m[2],BM[m[2]][0]); return {pt:n,en:BM[m[2]][0]}; }
   return {pt:id,en:id}; }
@@ -207,7 +207,8 @@ async function imAcao(k,id,q,nm){
   if(k==="mk"){ await imIr("t-mk"); try{ if(typeof setupMk==="function") setupMk(); MK.cat=""; const c=$("mkCat"); if(c) c.value=""; MK.sub=""; MK.tiers.clear(); MK.enchs.clear(); if(t>=4){ MK.tiers.add(t); MK.enchs.add(e); } ["mkTier","mkEnch"].forEach(x=>{ const b=$(x); if(b&&b._msel) b._msel.paint(); }); const f=$("mkFind"); f.value=nm.pt; MK.q=nm.pt.toLowerCase(); mkGatilho(); setTimeout(()=>{ const g=$("mkGo"); if(g&&!g.hidden&&!g.disabled) g.click(); },400); }catch(err){} return; }
   if(k==="bm"){ await imIr("t-mercado"); const f=$("bmFind"); if(f){ f.value=nm.pt; f.dispatchEvent(new Event("input",{bubbles:true})); } return; }
   if(k==="craft"){
-    if(typeof COOK!=="undefined"&&COOK.r&&COOK.r[id]){ await imIr("t-cozinha"); const kind=COOK.r[id][1]; const b=document.querySelector(`[data-ck="${kind}"]`); if(b&&b.getAttribute("aria-pressed")!=="true") b.click();
+    if(typeof COOK!=="undefined"&&COOK.r&&COOK.r[id]){ const ce=cookEnc(id); if(!CK_ENC.has(ce)){ CK_ENC.add(ce); store.set("ckEnc",JSON.stringify([...CK_ENC])); document.querySelectorAll("#ckEnc button").forEach(b=>b.setAttribute("aria-pressed",String(CK_ENC.has(+b.dataset.e)))); }   // o nível do item aparece na lista
+      await imIr("t-cozinha"); const kind=COOK.r[id][1]; const b=document.querySelector(`[data-ck="${kind}"]`); if(b&&b.getAttribute("aria-pressed")!=="true") b.click();
       setTimeout(()=>{ const r=document.querySelector(`#ckTable tr[data-fav="${id}"]`); if(r){ r.scrollIntoView({block:"center",behavior:"smooth"}); if(r.getAttribute("aria-expanded")!=="true") r.click(); } },900); return; }
     if(/^(METALBAR|PLANKS|CLOTH|LEATHER|STONEBLOCK)$/.test(code)){ await imIr("t-refino"); setupOf(); ofApplyMode("refine"); OF.tier=t; OF.ench=e; ofFiltLoad(ofFiltSave()); const f=$("ofFind"); f.value=""; OF.q=""; renderOf(); return; }
     if(!BM) BM=await need("bm");
