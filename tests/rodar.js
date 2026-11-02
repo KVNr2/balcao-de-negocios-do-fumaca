@@ -130,7 +130,7 @@ async function simular(p) {
     DATA.itens.T9_SOPA = { Lymhurst: [1000, 600, 1, 1], Martlock: [980, 970, 1, 1], Thetford: [1020, 0, 1, 0], Caerleon: [1800, 0, 1, 0] };
     const o = {}; for (const s of ["auto", "ordem", "inst", "tipico"]) { CKV.s = s; const x = ckSale("T9_SOPA"); o[s] = x && [x.p, x.c, x.mode]; }
     CKV.s = "auto"; CKV.c = new Set(["Lymhurst"]); o.lym = ckSale("T9_SOPA"); CKV.c = new Set(); delete DATA.itens.T9_SOPA;
-    document.querySelector('#ckVS [data-v="inst"]').click(); await new Promise(f => setTimeout(f, 1500));
+    document.querySelector('#ckVS [data-v="inst"]').click(); for (let i = 0; i < 40 && !/na hora/.test(document.querySelector("#ckTable .ck-venda small")?.textContent || ""); i++) await new Promise(f => setTimeout(f, 500));
     o.cel = document.querySelector("#ckTable .ck-venda small")?.textContent || ""; document.querySelector('#ckVS [data-v="auto"]').click();
     o.ui = !!document.querySelector("#ckVC.msel"); return o; });
   conf("Cozinha escolhe a venda pela estratégia e pela cidade", String(cv.ordem) === "1020,Thetford,ordem" && String(cv.inst) === "970,Martlock,inst" && String(cv.auto) === "1020,Thetford,ordem" && cv.tipico[2] === "tipico" && cv.lym.c === "Lymhurst" && /na hora/.test(cv.cel) && cv.ui, cv);
@@ -212,6 +212,12 @@ async function simular(p) {
     return { c1, uma: uma && uma.p, esperado: r[c1] && r[c1][0], todas: !!todas, potFee: pz && Math.round(pz.fee), esperadoFee: Math.round(5 * COOK.r.T7_POTION_STONESKIN[4] * 0.1125 * 5), nut: COOK.r.T7_POTION_STONESKIN[4],
       separado: pzF.fee === pz.fee && pz2.fee > pz.fee, fk, salvo: salvo["ck:f"], rot0: r0.fee === 0, rot1: r1.fee > 0, outra: m0.fee === m1.fee, refino }; });
   conf("taxa da estação: cada estação com o seu valor (cozinha, alquimia, cidade da rotação, craft e refino), poção com taxa, cidades de compra", ckc.uma === ckc.esperado && ckc.todas && ckc.potFee === ckc.esperadoFee && ckc.nut === 1899 && ckc.separado && ckc.fk === "ck:f" && ckc.salvo === 700 && ckc.rot0 && ckc.rot1 && ckc.outra && ckc.refino === 500, ckc);
+  const refl = await p.evaluate(async () => { document.getElementById("t-refino").click(); await new Promise(f => setTimeout(f, 3000));
+    const velho = window.histFetch; let solta; window.histFetch = () => new Promise(f => { solta = f; }); for (const k in OF2.hs) delete OF2.hs[k];
+    const ini = Date.now(); await Promise.race([renderOf(), new Promise(f => setTimeout(f, 8000))]); const ms = Date.now() - ini;
+    const linhas = document.querySelectorAll("#ofTable .of-row").length, aviso = /Conferindo em quais cidades/.test(document.getElementById("ofNote").textContent);
+    window.histFetch = velho; if (solta) solta(); await new Promise(f => setTimeout(f, 1500)); return { ms, linhas, aviso }; });
+  conf("refino: a lista aparece sem esperar as vendas por cidade (que chegam depois)", refl.linhas > 0 && refl.aviso && refl.ms < 8000, refl);
   const renc = await p.evaluate(async () => { const it = rotCatalogo().find(x => x.city === "Lymhurst" && x.t === 5 && x.e === 2); ROT.itens = { Lymhurst: [it.id] }; ROT.qtd = {};
     ROT.enc = "runas"; await rotEnsure(document.getElementById("rotNote")); const a = rotModel(it, "Lymhurst");
     ROT.enc = "craft"; const b = rotModel(it, "Lymhurst"); ROT.enc = "auto"; const c = rotModel(it, "Lymhurst");

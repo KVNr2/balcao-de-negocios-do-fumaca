@@ -351,7 +351,7 @@ async function renderOf(){
   /* o anúncio só conta onde o item vende (js/precos.js): consulta as vendas de cada cidade dos que podem aparecer e refaz a conta */
   if(ofHistVenda()){ const ok=rows.filter(m=>!m.miss), top=new Set([...ok.slice().sort((a,b)=>b.profit-a.profit).slice(0,150),...ok.slice().sort((a,b)=>b.pct-a.pct).slice(0,150)].map(m=>m.it.id));
     const L=sellLocs().filter(c=>c!=="Black Market"), keys=[...top].flatMap(id=>L.map(c=>nk(id)+"|"+c)).filter(k=>OF2.hs[k]==null);
-    if(keys.length){ note.textContent="Consultando onde cada item vende…"; await histFetch(keys); if(stale()) return; rows=items.map(it=>ofModel(it)).filter(Boolean); } }
+    if(keys.length) ofHistBg(keys); }
   let ok0=rows.filter(m=>!m.miss);
   const nAll=ok0.length;
   if(OF2.fMinP!=null&&isFinite(OF2.fMinP)) ok0=ok0.filter(m=>m.profit>=OF2.fMinP);
@@ -363,7 +363,7 @@ async function renderOf(){
   const ok=ok0.sort(ofSorter()), LIM=FAVON?400:agg?120:60, shown=ok.slice(0,LIM);
   /* o que vai aparecer também precisa das vendas de cada cidade (ordenar por nome, custo etc. mostra itens fora do top); busca e refaz uma vez */
   if(ofHistVenda()){ const L=sellLocs().filter(c=>c!=="Black Market"), falta=[...new Set(shown.map(m=>m.it.id))].flatMap(id=>L.map(c=>nk(id)+"|"+c)).filter(k=>OF2.hs[k]==null);
-    if(falta.length){ note.textContent="Consultando onde cada item vende…"; await histFetch(falta); if(stale()) return; return renderOf(); } }
+    if(falta.length) ofHistBg(falta); }
   ofSyncRR();
   tb.textContent=""; const hr=el("div",{class:"of-lh"}); [["Item","name","Ordenar pelo nome"],["Custo","cost","Custo total real: materiais, taxa da estação, taxas de compra e de venda. Clique para ordenar"],["Venda","sale","Venda bruta, antes das taxas. Clique para ordenar"],["Lucro","profit","Lucro total das receitas. Clique de novo para Lucro %"],["Venda e compra","vol","Ordena pelas unidades vendidas por dia na cidade de venda (média de 7 dias). O número no ícone é a quantidade a vender e a comprar"]].forEach(([h,k,t])=>{
     const on=OF.sort===k||(k==="profit"&&OF.sort==="pct"), b=el("button",{type:"button",class:"of-hs"+(on?" on":""),title:t,"aria-sort":on?((OF.dir||1)>0===(k!=="name")?"descending":"ascending"):"none"});
@@ -394,6 +394,7 @@ async function renderOf(){
   const pos=ok.filter(m=>m.profit>0).length, faltam=rows.length-ok.length, rrs=ok[0]?ok[0].rr:0;
   $("ofAge").textContent=isFinite(oldest)?`Preços coletados há ${fmtAge(newest)}${oldest!==newest?` (mais antigo: ${fmtAge(oldest)})`:""}`:"";
   note.textContent=ok.length?`${OF.mode==="refine"?(OF2.refFoc?`Gastando ${fmt(focBud())} de foco em cada item (retorno ${dec(rrs*100)}% com foco). `:`Refinando ${fmt(OF2.refQty||100)} unidades de cada item, sem foco (retorno ${dec(rrs*100)}% na cidade com bônus). `):""}${ok.length} itens com preço; ${pos} dão lucro. ${OF.mode==="refine"?"":`Retorno de recursos: ${dec(rrs*100)}%${OF2.rrMan==null&&OF.rr==="auto"?" (cidade com bônus, sem foco)":""}.`}${ok.length>LIM?` Mostrando os ${LIM} primeiros de ${fmt(ok.length)} registros, ordenados por ${OF_SORT_NM[OF.sort]||"lucro"}${(OF.dir||1)<0?" (do menor para o maior)":""}: não são todos.`:` Mostrando todos os ${fmt(ok.length)} registros, ordenados por ${OF_SORT_NM[OF.sort]||"lucro"}${(OF.dir||1)<0?" (do menor para o maior)":""}.`}${sellBM()?" Mercado Negro: vale a melhor ordem de compra de lá, só com a taxa de venda.":""}${faltam?` ${faltam} sem preço de algum material.`:""}${selfRefOn()?` Barras, tecido, couro e tábuas entram pelo custo de refinar você mesmo (retorno do refino ${dec(rrr(0.40,OF2.selfRefFoc,st.daily)*100)}%).`:""}${OF.mode==="refine"?" Em cada linha aparece o craft que mais rende com esse material.":""} Clique numa linha para ver os materiais e o retorno.`:"Nenhum item com preço suficiente nesse filtro.";
+  if(OF2.hsWait>0||OF2.hsPend){ note.append(el("span",{class:"muted",text:" Conferindo em quais cidades cada item vende: a lista se ajusta sozinha quando terminar."})); }
   if(window.gsap&&!RM) gsap.from(body.querySelectorAll(".of-row"),{opacity:0,x:-8,duration:.22,stagger:.01,clearProps:"opacity,transform"});
   hbar(tb.parentNode); fillVolumes(shown);
   if(OF.mode==="refine") fillBestCrafts(shown,stale);
@@ -412,6 +413,10 @@ function ofBlock(id,q,pr,kind,qty,m,g){
   if(g&&g.art) tile.title="Artefato: não volta no retorno"; return w; }
 function ofUpdateQty(){}
 const fmtU = v => v==null?"…":v<0?"—":v<1?"<1":v<10?dec(v):fmt(Math.round(v));
+/* vendas por cidade em segundo plano: a lista aparece logo com o que já se sabe e se refaz quando as vendas chegam
+   (antes a página esperava; com a cota da API no limite, logo depois de Atualizar preços, ficava minutos em "Consultando…") */
+function ofHistBg(keys){ const falta=[...new Set(keys)].filter(k=>OF2.hs[k]==null); if(!falta.length) return; OF2.hsPend=true;
+  OF2.hsBg=(OF2.hsBg||Promise.resolve()).then(async()=>{ const f=falta.filter(k=>OF2.hs[k]==null); if(!f.length){ if(!OF2.hsWait) OF2.hsPend=false; return; } OF2.hsWait=(OF2.hsWait||0)+1; try{ await histFetch(f); } finally{ OF2.hsWait--; } if(!OF2.hsWait){ OF2.hsPend=false; renderOf(); } }).catch(()=>{}); }
 async function histFetch(keys){
   const todo=[...new Set(keys)].filter(k=>OF2.hs[k]==null); const ids=[...new Set(todo.map(k=>k.split("|")[0]))];
   for(let i=0;i<ids.length;i+=20){ const part=ids.slice(i,i+20), mine=todo.filter(k=>part.includes(k.split("|")[0])), locs=[...new Set(mine.map(k=>k.split("|")[1]))];

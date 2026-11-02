@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-11-02T23:45:00Z",
+   "titulo": "Refino e Craft não ficam mais presos em \"Consultando onde cada item vende\"",
+   "itens": [
+    "A lista do Refino e do Craft aparece logo com os preços que já chegaram. As vendas por cidade (que decidem onde o item vende) chegam depois e a lista se ajusta sozinha, com um aviso enquanto isso.",
+    "Antes a página esperava todas as consultas; logo depois de Atualizar preços, com a cota da API no limite, ficava minutos parada em \"Consultando onde cada item vende…\"."
+   ],
+   "como": "Nada muda no uso: abra o Refino ou o Craft normalmente.",
+   "impacto": "O Refino volta a abrir na hora, mesmo logo depois de atualizar os preços."
+  },
+  {
    "t": "2026-11-02T22:51:00Z",
    "titulo": "Taxa de cada estação, 2ª cidade de venda e cidades de compra na cozinha",
    "itens": [
