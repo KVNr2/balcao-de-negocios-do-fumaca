@@ -138,7 +138,7 @@ function bmModel(key,t,e,focus=$("bmFocus").checked,q=1){
   let res=0, cnt=0, thin=false, miss=null; const parts=[];
   for(const [,c,n] of r[3].matchAll(/([MPLC])(\d+)/g)){ const rid=idOf(t,BM_RES[c],e), p=bmTyp(rid); if(!p){ miss=BM_RES_PT[c]; break; } if(p.n<2) thin=true; res+=+n*p.p; cnt+=+n; parts.push({id:rid,nm:`${BM_RES_PT[c]} T${t}.${e}`,q:+n,p:p.p}); }
   let art=0; if(!miss&&r[4]){ const p=bmTyp(`T${t}_${r[4][0]}`); if(!p) miss="artefato"; else { art=p.p*r[4][1]; parts.push({id:`T${t}_${r[4][0]}`,nm:(r[4][0].startsWith("ALCHEMY")?"Ingrediente raro":"Artefato")+` T${t}`,q:r[4][1],p:p.p,art:true}); } }
-  const rr=rrr(0.15,focus,st.daily+bdItem(id)), fee=cnt*IV(t,e)*0.1125*feeVal()/100;
+  const rr=rrr(0.15,focus,st.daily+bdItem(id)), fee=cnt*IV(t,e)*0.1125*feeGet("craft")/100;
   const cost=miss?null:res*(1-rr)+art+fee;
   const fc=Math.max(1,Math.round(r[5]*bmFocT(t,e)/429*Math.pow(0.5,bmFCE(key)/10000)));
   return {key,t,e,q,id,name:r[0],city:r[2],bm,net,buyC,buy,flip:net!=null&&buyC?net-buyC:null,cost,craft:net!=null&&cost!=null?net-cost:null,parts,res,art,fee,rr,fc,thin,miss,focus};

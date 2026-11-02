@@ -46,7 +46,7 @@ function rotRef(id,foco){
   const rawId=idLv(t,R.raw,e), raw=PX.compra(PX.rec(rawId),R.city,ROT.compra,{lance:1}); if(!raw) return null;
   const prevId=t===4?`T3_${R.ref}`:idLv(t-1,R.ref,e), pb=PX.compra(PX.rec(prevId),R.city,ROT.compra,{lance:1}), pr=t>4?rotRef(prevId,false):null;
   const usePr=pr&&(!pb||pr.k<pb.k), prevK=usePr?pr.k:pb?pb.k:Infinity; if(!isFinite(prevK)) return null;
-  const rr=rrr(0.40,foco,st.daily+bdItem(id)), fee=IV(t,e)*0.1125*feeVal()/100;
+  const rr=rrr(0.40,foco,st.daily+bdItem(id)), fee=IV(t,e)*0.1125*feeGet("refino")/100;
   return {k:(N[t]*raw.k+prevK)*(1-rr)+fee,rawId,raw,n:N[t],prevId,prevK,prevSrc:usePr?"refinado":"comprado",prevBuy:pb,rr,city:R.city,R,t,e};
 }
 /* tudo que a conta de refinar precisa de preço: matéria-prima e refinados dos tiers de baixo, até o T3 */
@@ -69,6 +69,11 @@ const ROT_HLOCS=()=>[...new Set([...ROT_CIDADES,...SHOP_LOCS,"Black Market"])];
 const rotVolTot=(id,m)=>{ const t=typeof lfVol==="function"?lfVol(rotApi(id)):null; return t>0&&t-(m.vol||0)>=1&&t>(m.vol||0)*1.5?` · ${fmtU(t)} somando as cidades`:""; };
 function rotVenda(id){ const r=PX.rec(id), locs=ROT.vendaC.length?ROT.vendaC.filter(c=>c!=="Black Market"):[...ROT_CIDADES,"Caerleon"];
   return PX.melhorVenda(r,[...locs,...(ROT.bm===false?[]:["Black Market"])],ROT.venda,{id:rotApi(id)}); }
+/* segunda cidade de venda (a segunda que deixa mais prata entre as que vendem pelo menos 1 por dia), para ver se vale espalhar a produção */
+const rotV2Txt=m=>{ const v=m.venda2, d=m.venda.k>0?(v.k-m.venda.k)/m.venda.k:0, pc=Math.round(Math.abs(d)*100);
+  return `2ª cidade: ${bagCityPT(v.c)}, ${fmt(v.p)} ${v.mode==="inst"?"na hora":"anunciando"} (${pc<1?"quase o mesmo":`${pc}% a menos`}; lucro ${m.custoF>0?dec(v.lucro/m.custoF*100):"0"}% com foco)${v.vol!=null?`, vende ${fmtU(v.vol)} por dia`:""}`; };
+function rotVenda2(id){ const r=PX.rec(id), locs=ROT.vendaC.length?ROT.vendaC.filter(c=>c!=="Black Market"):[...ROT_CIDADES,"Caerleon"];
+  return PX.segunda(r,[...locs,...(ROT.bm===false?[]:["Black Market"])],ROT.venda,{id:rotApi(id)}); }
 /* item encantado tem dois caminhos: fabricar já encantado (materiais encantados) ou fabricar a .0 e encantar com runas, almas e relíquias.
    Runa, alma e relíquia não voltam no retorno de material. Devolve o caminho de encantar (receita da .0 + o que encanta) ou null. */
 function rotRotaEnc(it){
@@ -83,10 +88,10 @@ function rotModel(it,city){
   const bonusC=it.city===city?it.bonus:0, bd=bdItem(it.id), rF=rrr(bonusC,true,st.daily+bd), rN=rrr(bonusC,false,st.daily+bd);
   /* caminho do encantado: o mais barato sem foco (ou o que você escolheu) */
   let ing=it.ing, focus=it.focus, feeB=it.fee, enc=null; const R=rotRotaEnc(it);
-  if(R){ const custo=(l,f)=>{ let c=f*feeVal()/100; for(const g of l){ const x=rotMat(g.id,city); if(!x.use) return null; c+=g.n*(g.art?1:1-rN)*x.use.k; } return c; };
+  if(R){ const custo=(l,f)=>{ let c=f*feeGet("rot:"+city)/100; for(const g of l){ const x=rotMat(g.id,city); if(!x.use) return null; c+=g.n*(g.art?1:1-rN)*x.use.k; } return c; };
     const a=custo(it.ing,it.fee), b=custo(R.ing,R.it0.fee), usa=ROT.enc==="craft"?"craft":ROT.enc==="runas"?(b!=null?"runas":"craft"):(b!=null&&(a==null||b<a)?"runas":"craft");
     enc={a,b,usa}; if(usa==="runas"){ ing=R.ing; focus=R.it0.focus; feeB=R.it0.fee; } }
-  const fc1=Math.max(1,Math.round(focus*Math.pow(0.5,(it.fce||0)/10000))), fee=feeB*feeVal()/100;
+  const fc1=Math.max(1,Math.round(focus*Math.pow(0.5,(it.fce||0)/10000))), fee=feeB*feeGet("rot:"+city)/100;
   let cF=fee, cN=fee, ordemT=0, instT=0; const mats=[];
   for(const g of ing){ const m=rotMat(g.id,city); if(!m.use) return {it,miss:g.nm};
     const fat=g.art?1:null, qF=g.n*(fat||(1-rF)), qN=g.n*(fat||(1-rN));
@@ -94,7 +99,8 @@ function rotModel(it,city){
   const net=it.q*venda.k, pF=net-cF, pN=net-cN, h=OF2.hs[rotApi(it.id)+"|"+venda.c], vol=h&&h.vol>=0?h.vol:null;
   /* refinar: quanto economiza por peça e quanto rende o foco gasto refinando, para comparar com o foco gasto no craft */
   let refEco=0, refSpf=null; for(const x of mats){ if(x.m.use.mode!=="refino") continue; const b=rotCompra(x.g.id,city); if(b) refEco+=x.qF*(b.k-x.m.use.k); const sp=rotRefSpf(x.g.id); if(sp!=null&&(refSpf==null||sp>refSpf)) refSpf=sp; }
-  return {it,city,venda,rF,rN,fc1,pF,pN,pct:cF>0?pF/cF:0,spf:(pF-pN)/fc1,mats,custoF:cF,custoN:cN,fee,enc,economia:instT-ordemT,vol,bonusC,bd,refEco,refSpf};
+  const v2=venda.semSaida?null:rotVenda2(it.id), h2=v2&&OF2.hs[rotApi(it.id)+"|"+v2.c], venda2=v2?{...v2,vol:h2&&h2.vol>=0?h2.vol:null,lucro:it.q*v2.k-cF}:null;
+  return {it,city,venda,venda2,rF,rN,fc1,pF,pN,pct:cF>0?pF/cF:0,spf:(pF-pN)/fc1,mats,custoF:cF,custoN:cN,fee,enc,economia:instT-ordemT,vol,bonusC,bd,refEco,refSpf};
 }
 /* plano de uma visita. Sugestão: foco primeiro onde rende mais por ponto, sem passar do que você vende no prazo escolhido.
    Se você escreveu quantas fazer, vale o seu número: o foco vai primeiro nos itens que rendem mais por ponto e o resto sai sem foco. */
@@ -178,7 +184,8 @@ function rotLinhaItem(l,c){
     tx.append(el("small",{class:m.pF>0?"gain":"loss",text:`Lucro: ${dec(m.pct*100)}% com foco · ${dec(rotPctN(m)*100)}% sem foco`}));
     { const hn=volNota(OF2.hs[rotApi(it.id)+"|"+m.venda.c]); tx.append(el("small",{class:"muted",text:`Vende ${m.vol==null?"?":fmtU(m.vol)} por dia em ${bagCityPT(m.venda.c)}${hn?` (${hn})`:""}${rotVolTot(it.id,m)}`}));
       if(m.venda.semSaida) tx.append(el("small",{class:"loss",text:"Vende menos de 1 por dia em todas as cidades: o preço usado é o da cidade que paga mais."}));
-      else if(m.venda.anuncio) tx.append(el("small",{class:"muted",text:`Anúncio de ${fmt(m.venda.anuncio)} lá, mas a conta usa ${fmt(m.venda.p)} (até 1,3× o preço médio de 7 dias da cidade).`})); }
+      else if(m.venda.anuncio) tx.append(el("small",{class:"muted",text:`Anúncio de ${fmt(m.venda.anuncio)} lá, mas a conta usa ${fmt(m.venda.p)} (até 1,3× o preço médio de 7 dias da cidade).`}));
+      if(m.venda2) tx.append(el("small",{class:"muted rot-v2",title:"A segunda cidade que deixa mais prata entre as que vendem pelo menos 1 por dia. Serve para ver se vale espalhar a produção e vender mais rápido.",text:rotV2Txt(m)})); }
     const dv=rotDiasVender(m,l.n);
     if(dv!=null) tx.append(el("small",{class:dv>ROT.vDias*1.5?"warn":"muted",text:`${fmt(l.n)} ${l.n===1?"peça leva":"peças levam"} uns ${dv<1?"menos de 1 dia":`${dv<10?dec(dv):fmt(dv)} dias`} para vender${dv>ROT.vDias*1.5?`, mais que os ${ROT.vDias} que você quer`:""}`}));
     if(l.fora) tx.append(el("small",{class:"warn",text:"Abaixo dos seus filtros de lucro % ou vendas: a sugestão é não fazer."}));
@@ -268,6 +275,7 @@ function rotCidades(planos){
   for(const p of planos){ const c=p.city, card=el("article",{class:"rot-c"});
     const dd=rotDiasDesde(c);
     card.append(el("div",{class:"rot-ch"},el("h4",{text:c}),el("span",{class:"tag",text:dd==null?"sem visita":dd===0?"visitada hoje":`há ${dd} ${dd===1?"dia":"dias"}`})));
+    card.append(feeUI("rot:"+c,`a estação de craft que você usa em ${c}`,()=>{ for(const k in ROT_SUG) delete ROT_SUG[k]; renderRot(); }));
     for(const l of p.linhas) card.append(rotLinhaItem(l,c));
     if(p.linhas.length) card.append(rotDetCidade(p));
     card.append(rotSugBox(c,p));

@@ -193,6 +193,25 @@ async function simular(p) {
     return { sem: sem && sem.c, com: com && com.c + ":" + com.p, cap: cap && cap.p + ":" + cap.anuncio, capQ: capQ && capQ.p, pouco: pouco && pouco.c + ":" + !!pouco.semSaida, ordem: ordem && ordem.mode + ":" + !!ordem.semSaida, menuP: menu && menu.p, menuC: menu && menu.c }; });
   conf("venda: anúncio só conta onde o item vende, com teto de 1,3× o preço médio da cidade", pxv.sem === "Bridgewatch" && pxv.com === "Lymhurst:120000" && pxv.cap === "158600:200000" && pxv.capQ === 200000 && pxv.pouco === "Lymhurst:true" && pxv.ordem === "inst:false", pxv);
   conf("menu do item: anúncio aparece mesmo quando a ordem de compra vem primeiro", pxv.menuP === 130000 && pxv.menuC === "Bridgewatch", pxv);
+  const v2 = await p.evaluate(async () => { const id = "T4_TESTE_V2", H = (c, vol, avg) => { OF2.hs[id + "|" + c] = { vol, avg }; };
+    const r = { Bridgewatch: [130000, 0], "Fort Sterling": [110000, 0], Lymhurst: [120000, 0], Martlock: [125000, 0] };
+    H("Bridgewatch", 0, 0); H("Fort Sterling", 18, 105000); H("Lymhurst", 16, 122000); H("Martlock", 0.5, 120000);
+    const a = PX.melhorVenda(r, Object.keys(r), "ordem", { id }), b = PX.segunda(r, Object.keys(r), "ordem", { id }), so1 = PX.segunda({ Lymhurst: [120000, 0] }, ["Lymhurst"], "ordem", { id });
+    const it = rotCatalogo().find(x => x.city === "Lymhurst" && x.t === 5 && x.e === 0); await rotEnsure(document.getElementById("rotNote")); const m = rotModel(it, "Lymhurst");
+    return { a: a && a.c, b: b && b.c, so1, rot: !m.venda2 || (m.venda2.c !== m.venda.c && m.venda2.k <= m.venda.k), txt: m.venda2 ? rotV2Txt(m).startsWith("2ª cidade:") : true }; });
+  conf("venda: segunda cidade de venda é a segunda que deixa mais prata entre as que vendem", v2.a === "Lymhurst" && v2.b === "Fort Sterling" && v2.so1 === null && v2.rot && v2.txt, v2);
+  const ckc = await p.evaluate(async () => { document.getElementById("t-cozinha").click(); await new Promise(f => setTimeout(f, 800)); await ensureCook();
+    const id = "T7_MULLEIN", r = DATA.itens[id] || {}, cs = Object.keys(r).filter(c => r[c][0] > 0); const c1 = cs[0];
+    CKV.b.clear(); const todas = ckBuy(id); CKV.b.add(c1); const uma = ckBuy(id); CKV.b.clear();
+    feeSetK("ck:p", 500); feeSetK("ck:f", 500); const pz = cookModel("T7_POTION_STONESKIN"); feeSetK("ck:f", 900); const pzF = cookModel("T7_POTION_STONESKIN"); feeSetK("ck:p", 800); const pz2 = cookModel("T7_POTION_STONESKIN");
+    await renderCook(); const ui = document.querySelector("#ckFee input"), fk = ui && ui.closest(".fee-ui").dataset.fk; ui.value = "700"; ui.dispatchEvent(new Event("input")); await new Promise(f => setTimeout(f, 450));
+    const salvo = JSON.parse(localStorage.getItem("taxasEstacao") || "{}"); feeSetK("ck:f", 500); feeSetK("ck:p", 500);
+    const it = rotCatalogo().find(x => x.city === "Lymhurst" && x.t === 5 && x.e === 0); await rotEnsure(document.getElementById("rotNote"));
+    feeSetK("rot:Lymhurst", 0); const r0 = rotModel(it, "Lymhurst"), m0 = rotModel(it, "Martlock"); feeSetK("rot:Lymhurst", 1000); const r1 = rotModel(it, "Lymhurst"), m1 = rotModel(it, "Martlock"); feeSetK("rot:Lymhurst", 500);
+    feeSetK("craft", 0); const refino = +document.getElementById("fee").value; feeSetK("craft", 500);
+    return { c1, uma: uma && uma.p, esperado: r[c1] && r[c1][0], todas: !!todas, potFee: pz && Math.round(pz.fee), esperadoFee: Math.round(5 * COOK.r.T7_POTION_STONESKIN[4] * 0.1125 * 5), nut: COOK.r.T7_POTION_STONESKIN[4],
+      separado: pzF.fee === pz.fee && pz2.fee > pz.fee, fk, salvo: salvo["ck:f"], rot0: r0.fee === 0, rot1: r1.fee > 0, outra: m0.fee === m1.fee, refino }; });
+  conf("taxa da estação: cada estação com o seu valor (cozinha, alquimia, cidade da rotação, craft e refino), poção com taxa, cidades de compra", ckc.uma === ckc.esperado && ckc.todas && ckc.potFee === ckc.esperadoFee && ckc.nut === 1899 && ckc.separado && ckc.fk === "ck:f" && ckc.salvo === 700 && ckc.rot0 && ckc.rot1 && ckc.outra && ckc.refino === 500, ckc);
   const renc = await p.evaluate(async () => { const it = rotCatalogo().find(x => x.city === "Lymhurst" && x.t === 5 && x.e === 2); ROT.itens = { Lymhurst: [it.id] }; ROT.qtd = {};
     ROT.enc = "runas"; await rotEnsure(document.getElementById("rotNote")); const a = rotModel(it, "Lymhurst");
     ROT.enc = "craft"; const b = rotModel(it, "Lymhurst"); ROT.enc = "auto"; const c = rotModel(it, "Lymhurst");
