@@ -1146,13 +1146,25 @@ function cookExpand(){ const E=COOK.e||{}; for(const b in E){ const r=COOK.r[b];
 /* o molho e o extrato também podem ser feitos: molho = 15 picados + 1 alga (×3 a cada nível); extrato = 1 resto de animal raro (×3), que não volta no retorno */
 const ENC_FAZ={FISHSAUCE:[["T1_FISHCHOPS",15],["T1_SEAWEED",1]],ALCHEMY_EXTRACT:[["T1_ALCHEMY_COMMON",1]]};
 const encFaz=iid=>{ const m=/^T1_(FISHSAUCE|ALCHEMY_EXTRACT)_LEVEL(\d)$/.exec(iid); return m?ENC_FAZ[m[1]].map(([id,c])=>[id,c*Math.pow(3,+m[2]-1)]):null; };
+/* produtos de fazenda feitos de um ingrediente só (data/cook.json "f", tools/gerar_produtos_fazenda.py): pão de farinha, farinha de trigo,
+   manteiga de leite, álcool de batata/milho/abóbora e carne do açougue (1 animal adulto dá 18). Por unidade, sem contar o retorno de quando você faz. */
+const ckFaz=iid=>{ const e=encFaz(iid); if(e) return e; const f=(COOK.f||{})[iid]; return f?[[f[0],f[1]/f[2]]]:null; };
+const ckNm=iid=>COOK.n[iid]||(typeof FARM!=="undefined"&&FARM&&FARM.n&&FARM.n[iid]?fzName(iid):iid);
+/* carne criada na ilha: o filhote (menos a chance de ganhar outro filhote ao crescer, maior com foco) e a ração até ficar adulto, divididos pela carne que ele dá */
+const ckMeatRow=iid=>{ const f=(COOK.f||{})[iid]; if(!f||!/_MEAT$/.test(iid)||typeof FARM==="undefined"||!FARM) return null; const r=FARM.b.find(x=>x[1]===f[0]); return r?{r,grown:f[0],per:f[2]}:null; };
+function ckMeatUnit(iid,foc){ const M=ckMeatRow(iid); if(!M||!FZ_LOADED) return null; const [baby,,,hours,off,bonus,nut,fav,,npc]=M.r;
+  const bp=fzBuy(baby,"seed",npc); if(!bp) return null; let food=null;
+  if(fav){ const fb=fzBuy(fav,"food"); if(fb) food={id:fav,n:Math.ceil(nut/96),p:fb.p}; }
+  if(!food){ const c=cheapestCrop(); if(c) food={id:c.id,n:Math.ceil(nut/48),p:c.p}; } if(!food) return null;
+  const o=Math.min(off+(foc?bonus:0),1); return {p:(bp.p*(1-o)+food.n*food.p)/M.per,n:9,src:"planto",foc:!!foc,meat:{baby,grown:M.grown,per:M.per,food,hours:st.prem?hours/2:hours,o,o0:off,bonus,bp:bp.p}}; }
+const ckPlantavel=iid=>!!FARM&&(isFarmItem(iid)||!!ckMeatRow(iid));
 const cookFCE = (k,id) => { const r=PF[k==="f"?"cozinha":"alquimia"]||{}; const specs=Object.assign({},r.s||{}); if(r.all&&id){ const tp=cookType(id); if(specs[tp]==null) specs[tp]=r.all; } return fceRule(r.m,specs,id?cookType(id):""); };
 const CK_ENC=new Set((()=>{ try{ const a=JSON.parse(store.get("ckEnc")||"[0]"); return Array.isArray(a)&&a.length?a:[0]; }catch(e){ return [0]; } })());
 let COOK_LOADED=false, COOK_LOADING=null, ckKind="f", ckSel=null;
 function ensureCook(){
   if(COOK_LOADED) return Promise.resolve(true);
   if(COOK_LOADING) return COOK_LOADING;
-  const ids=[...new Set([...Object.keys(COOK.r), ...Object.keys(COOK.n)])].filter(i=>!i.startsWith("QUESTITEM"));
+  const ids=[...new Set([...Object.keys(COOK.r), ...Object.keys(COOK.n), ...Object.values(COOK.f||{}).map(f=>f[0])])].filter(i=>!i.startsWith("QUESTITEM"));
   COOK_LOADING=fetchLive(ids,COOK_LOCS,"ckNote","Consultando os ingredientes e pratos").then(()=>{COOK_LOADED=true; return true;}).catch(()=>false).finally(()=>{COOK_LOADING=null;});
   return COOK_LOADING;
 }
@@ -1168,22 +1180,31 @@ const ckN=()=>Math.max(1,Math.min(99999,Math.round(+((SRC||{}).ckN)||1)));
 /* lotes da ilha (o mesmo número da Ilha e fazenda): quantos lotes uma fornada ocupa com o que você produz na ilha,
    e quantas fornadas cabem nos seus lotes a cada colheita (plantas a cada 22 h, leite e ovos por dia, 9 animais por pasto) */
 const ilhaL=()=>Math.max(0,Math.round(+((SRC||{}).lotes)||0));
+/* o que sai da ilha numa receita, abrindo o que você faz (pão → farinha → trigo): {iid, U unidades, p} de cada ingrediente produzido na ilha */
+function ckLeaves(iid,U,out,d=0){ const p=ckBuy(iid); if(!p) return out;
+  if(p.src==="faco"&&d<4){ const f=ckFaz(iid); if(f){ for(const [id,c] of f) ckLeaves(id,U*c,out,d+1); return out; } }
+  if(p.src==="planto"){ const o=out.find(x=>x.iid===iid); if(o) o.U+=U; else out.push({iid,U,p}); } return out; }
+/* lotes que cada ingrediente da ilha ocupa: planta pela colheita (9 sementes por lote); leite e ovos por 1 dia de coleta (9 animais por pasto);
+   carne pelos animais criados até adultos (9 por pasto, ocupando o pasto pelas colheitas de 22 h até crescer). Com a ração plantada na ilha, soma os lotes da ração */
+function ckLeafLots(x){ const pm=st.prem?2:1, U=x.U;
+  const r=FARM.p.find(r=>r[1]===x.iid); if(r) return {lots:U/(9*r[7]*pm),kind:"planta",r};
+  const q=FARM.pr.find(r=>r[1]===x.iid); if(q){ const an=U/q[3]; let lots=an/9; const pr=producerModel(q);
+    if(SRC.food==="planto"&&pr){ const fr=FARM.p.find(z=>z[1]===pr.food.id); if(fr) lots+=an*pr.food.n/(9*fr[7]*pm*24/22); } return {lots,kind:"produto",q,an,pr}; }
+  const mt=x.p&&x.p.meat; if(mt){ const an=U/mt.per; let lots=an/9*Math.max(1,mt.hours/22); const fr=SRC.food==="planto"&&FARM.p.find(z=>z[1]===mt.food.id); if(fr) lots+=an*mt.food.n/(9*fr[7]*pm); return {lots,kind:"carne",an,mt}; }
+  return {lots:0}; }
 function ckLotsPerBatch(m){
-  if(!FARM||!FZ_LOADED||!m||!m.parts) return 0; const rr=rrr(0.15,true,st.daily), pm=st.prem?2:1; let lots=0;
-  for(const x of m.parts){ if(!x.p||x.p.src!=="planto") continue; const units=x.c*(1-rr);
-    const r=FARM.p.find(r=>r[1]===x.iid); if(r){ lots+=units/(9*r[7]*pm); continue; }
-    const q=FARM.pr.find(r=>r[1]===x.iid); if(q){ const an=units/q[3]; lots+=an/9; const pr=producerModel(q);
-      if(SRC.food==="planto"&&pr){ const fr=FARM.p.find(z=>z[1]===pr.food.id); if(fr) lots+=an*pr.food.n/(9*fr[7]*pm*24/22); } } }
+  if(!FARM||!FZ_LOADED||!m||!m.parts) return 0; const rr=rrr(0.15,true,st.daily); let lots=0;
+  for(const x of m.parts){ if(!x.p||(x.p.src!=="planto"&&x.p.src!=="faco")) continue; for(const l of ckLeaves(x.iid,x.c*(1-rr),[])) lots+=ckLeafLots(l).lots; }
   return lots;
 }
 function ckNFor(m){ if(SRC.ckAuto&&ilhaL()>0){ const l=ckLotsPerBatch(m); if(l>0) return Math.floor(ilhaL()/l+1e-9); } return ckN(); }
 const ckMode=iid=>((SRC.ckO||{})[iid])||SRC.ck||"inst";
-function ckBuy(iid){
+function ckBuy(iid,d=0){
   const m=ckMode(iid);
   if(m==="manual"){ const v=(SRC.ckM||{})[iid]; if(v!=null&&v!==""&&+v>=0) return {p:+v,n:9,src:"manual"}; }
   if(m==="tenho") return {p:0,n:9,src:"tenho"};
-  if(m==="faco"){ const f=encFaz(iid); if(f){ let p=0, n=9; for(const [id,c] of f){ const b=ckBuy(id); if(!b) return null; p+=c*b.p; n=Math.min(n,b.n); } return {p,n,src:"faco"}; } }
-  if(m==="planto"){ const u=farmUnit(iid,!!(SRC.ckF||{})[iid]); if(u) return u; }
+  if(m==="faco"&&d<4){ const f=ckFaz(iid); if(f){ let p=0, n=9; for(const [id,c] of f){ const b=ckBuy(id,d+1); if(!b) return null; p+=c*b.p; n=Math.min(n,b.n); } return {p,n,src:"faco"}; } }
+  if(m==="planto"){ const foc=!!(SRC.ckF||{})[iid], u=farmUnit(iid,foc)||ckMeatUnit(iid,foc); if(u) return u; }
   const o=m==="ordem"?ckTyp(iid,1):null, i=o||ckTyp(iid,0);
   return i?{p:i.p,n:i.n,src:o?"ordem":"inst"}:null;
 }
@@ -1202,7 +1223,7 @@ function ckSale(id){
   if(CKV.s==="tipico"){ const sub={}; for(const c of locs) if(r[c]) sub[c]=r[c]; const t=typical(id,0,{[id]:sub}); return t?{p:t.p,n:t.n,c:locs.length===1?locs[0]:"cidades",mode:"tipico",t:t.t}:null; }
   const x=PX.melhorVenda(r,locs,CKV.s,{id});   // motor único (js/precos.js)
   return x?{p:x.p,c:x.c,mode:x.mode,t:x.t||0,n:comPreco}:null; }
-const ckNeedsFarm=()=>SRC.ck==="planto"||Object.values(SRC.ckO||{}).includes("planto");
+const ckNeedsFarm=()=>SRC.ck==="planto"||Object.values(SRC.ckO||{}).some(v=>v==="planto"||v==="faco");
 /* ingredientes que o retorno de recursos não devolve (no jogo, maxreturnamount 0): os ingredientes raros de alquimia e o token de Avalon */
 const ckNoRet=iid=>/_ALCHEMY_RARE_|^QUESTITEM_TOKEN_AVALON/.test(iid);
 function cookModel(id){
@@ -1256,10 +1277,10 @@ async function renderCook(){
     const a=tr.insertCell(); const an=el("span"); an.append(m.name); if(BUILD_FOOD.includes(m.id)) an.append(" ",el("span",{class:"spec",text:"build"})); { const bd=bonusDia(bonusCozinha(m)); if(bd>0) an.append(el("span",{class:"bd-hoje",text:`+${Math.round(bd*100)}% hoje`,title:"Bônus diário de produção do jogo: hoje esta categoria rende mais retorno de recursos. A conta já usa."})); } a.append(withIcon(m.id,an));
     tr.insertCell().textContent=`${m.q} ${m.kind==="f"?(m.q>1?"porções":"porção"):(m.q>1?"poções":"poção")}`;
     if(m.miss){ const td=tr.insertCell(); td.colSpan=4; td.className="muted"; td.textContent=`Sem preço: ${m.miss}`; lfVolCell(tr,m.id); tr.insertCell(); continue; }
-    const Nm=ckNFor(m), lpb=ilhaL()>0?ckLotsPerBatch(m):0;
+    const Nm=ckNFor(m), lpb=ckLotsPerBatch(m);
     const c=tr.insertCell(); c.className="num gv-cell "+(m.p1>=0?"gain":"loss");
     if(AUTO&&lpb>0&&Nm<1){ c.className="num gv-cell muted"; c.append(el("b",{class:"gv",text:"—"}),el("small",{class:"gv-sub",text:`1 fornada ocupa ${dec(lpb)} lotes: mais que os seus ${fmt(ilhaL())}`})); }
-    else { const mx=focMix(Nm,m.fc,m.p1,m.p0); c.className="num gv-cell "+(mx.tot>=0?"gain":"loss"); c.append(el("b",{class:"gv",text:sgn(mx.tot)}),el("small",{class:"gv-sub",text:(mx.tot<0?"prejuízo: ":"")+(AUTO&&lpb>0?`${fmt(Nm)} fornadas com seus lotes · ${sgn(m.p1)} cada`:Nm>1?`${sgn(m.p1)} por fornada`:"por fornada, com foco")+` · ${fmt(mx.foc)} de foco`+(mx.parcial?` · ${mixTxt(mx)}`:"")+(!AUTO&&lpb>0?` · seus lotes dão ${fmt(Math.floor(ilhaL()/lpb+1e-9))}`:"")})); }
+    else { const mx=focMix(Nm,m.fc,m.p1,m.p0); c.className="num gv-cell "+(mx.tot>=0?"gain":"loss"); c.append(el("b",{class:"gv",text:sgn(mx.tot)}),el("small",{class:"gv-sub",text:(mx.tot<0?"prejuízo: ":"")+(AUTO&&lpb>0?`${fmt(Nm)} fornadas com seus lotes · ${sgn(m.p1)} cada`:Nm>1?`${sgn(m.p1)} por fornada`:"por fornada, com foco")+` · ${fmt(mx.foc)} de foco`+(mx.parcial?` · ${mixTxt(mx)}`:"")+(!AUTO&&lpb>0&&ilhaL()>0?` · seus lotes dão ${fmt(Math.floor(ilhaL()/lpb+1e-9))}`:"")+(lpb>0?` · ${dec(lpb)} lotes da ilha por fornada`:"")})); }
     const p=tr.insertCell(); p.className="num "+(m.p1>=0?"gain":"loss"); p.textContent=dec(m.pct*100)+"%";
     const d=tr.insertCell(); d.className="num"; d.textContent=dec(m.spf);
     const e=tr.insertCell(); e.className="num ck-venda"; e.append(el("b",{text:fmt(m.item.p)}),el("small",{class:"muted",text:`${m.item.mode==="inst"?"na hora":m.item.mode==="tipico"?"típico":"anúncio"} · ${m.item.c}`}));
@@ -1280,16 +1301,18 @@ const CK_OPT=[["","Como o geral"],["inst","Compro na hora"],["ordem","Ordem de c
 function ckFarmPlan(m,N){
   if(!FARM||!FZ_LOADED) return null;
   const rr=rrr(0.15,true,st.daily+bonusDia(bonusCozinha(m))), rows=[], usos=[{nm:`Fabricar ${m.name} com foco`,spf:m.spf,craft:true}];
-  for(const x of m.parts){ if(x.p.src!=="planto") continue;
-    const U=Math.ceil(x.c*N*(1-rr)), nm=COOK.n[x.iid]||x.iid;
-    const r=FARM.p.find(r=>r[1]===x.iid);
-    if(r){ const [seed,,,chance,bonus,,npc,avg]=r, per=9*avg*(st.prem?2:1), lotes=Math.max(1,Math.ceil(U/per)), foc=!!(SRC.ckF||{})[x.iid];
+  const folhas=[]; for(const x of m.parts){ if(x.p.src!=="planto"&&x.p.src!=="faco") continue; ckLeaves(x.iid,x.c*N*(1-rr),folhas); }
+  for(const x0 of folhas){ const x={...x0,U:Math.ceil(x0.U-1e-9)}, U=x.U, nm=ckNm(x.iid), L=ckLeafLots(x);
+    if(L.kind==="planta"){ const [seed,,,chance,bonus,,npc,avg]=L.r, per=9*avg*(st.prem?2:1), lotes=Math.max(1,Math.ceil(U/per)), foc=!!(SRC.ckF||{})[x.iid];
       const sp=(fzBuy(seed,"seed",npc)||{p:0}).p, fc1=fzFocus(seed), gain=(Math.min(chance+bonus,2)-Math.min(chance,2))*sp, spf=fc1?gain/fc1:0;
       rows.push({iid:x.iid,nm,U,txt:`${fmt(lotes)} ${lotes>1?"lotes":"lote"} (${fmt(lotes*9)} sementes, uma colheita dá uns ${fmt(Math.round(lotes*per))})`,foc,focTxt:`regar gasta ${fmt(lotes*9*fc1)} de foco`,spf});
       usos.push({nm:`Regar ${nm}`,spf}); continue; }
-    const q=FARM.pr.find(r=>r[1]===x.iid);
-    if(q){ const pm=producerModel(q), an=Math.max(1,Math.ceil(U/q[3])); const f=pm&&fzFeedLots(pm.food,pm.food.n*an);
-      rows.push({iid:x.iid,nm,U,txt:`${fmt(an)} ${an>1?"animais":"animal"} (${fzName(q[0])}) por 1 dia de coleta${f?`, com ${f.lotes} ${f.lotes>1?"lotes":"lote"} de ${fzName(pm.food.id)} para a ração`:""}`}); }
+    if(L.kind==="produto"){ const an=Math.max(1,Math.ceil(U/L.q[3])), f=L.pr&&fzFeedLots(L.pr.food,L.pr.food.n*an);
+      rows.push({iid:x.iid,nm,U,txt:`${fmt(an)} ${an>1?"animais":"animal"} (${fzName(L.q[0])}), ${fmt(Math.ceil(an/9))} ${Math.ceil(an/9)>1?"pastos":"pasto"}, por 1 dia de coleta${f?`, com ${f.lotes} ${f.lotes>1?"lotes":"lote"} de ${fzName(L.pr.food.id)} para a ração`:""}`}); continue; }
+    if(L.kind==="carne"){ const mt=L.mt, an=Math.max(1,Math.ceil(U/mt.per)), pa=Math.ceil(an/9), foc=!!(SRC.ckF||{})[x.iid], fc1=fzFocus(mt.baby), spf=fc1?(Math.min(mt.o0+mt.bonus,1)-Math.min(mt.o0,1))*mt.bp/fc1:0;
+      const fr=FARM.p.find(z=>z[1]===mt.food.id), fl=fr?Math.max(1,Math.ceil(an*mt.food.n/(9*fr[7]*(st.prem?2:1)))):0;
+      rows.push({iid:x.iid,nm,U,txt:`${fmt(an)} × ${fzName(mt.baby)} (${an>1?"filhotes":"filhote"}; ${fmt(pa)} ${pa>1?"pastos":"pasto"}), uns ${fmt(Math.round(mt.hours))} h até ficarem adultos; cada um dá ${mt.per} no açougue. Ração: ${fmt(an*mt.food.n)} ${fzName(mt.food.id)}${fl?` (${fl} ${fl>1?"lotes":"lote"} se plantar)`:""}`,foc,focTxt:`alimentar com foco gasta ${fmt(an*fc1)} de foco e aumenta a chance de ganhar outro filhote`,spf,focLab:"Alimentar com foco"});
+      usos.push({nm:`Alimentar ${fzName(mt.baby)}`,spf}); }
   }
   if(!rows.length) return null;
   const box=el("div",{class:"ck-farm"}); box.append(el("b",{class:"of-ct",text:`Na ilha para ${fmt(N)} ${N>1?"fornadas":"fornada"}`}));
@@ -1297,7 +1320,7 @@ function ckFarmPlan(m,N){
     const l=el("div",{class:"ck-fl"}); const t=el("div"); t.append(el("b",{text:`${r.nm}: ${fmt(r.U)}`}),el("small",{class:"muted",text:` já contando o retorno`}),el("div",{class:"small",text:r.txt})); l.append(withIcon(r.iid,t));
     if(r.spf!=null){ const lab=el("label",{class:"chk ck-foc"}), cb=el("input",{type:"checkbox"}); cb.checked=r.foc;
       cb.addEventListener("click",ev=>ev.stopPropagation()); cb.addEventListener("change",()=>{ SRC.ckF=SRC.ckF||{}; if(cb.checked) SRC.ckF[r.iid]=true; else delete SRC.ckF[r.iid]; srcSave(); renderCook(); });
-      lab.append(cb,` Regar com foco (${r.focTxt}; ${dec(r.spf)} de prata por foco)`); l.append(lab); }
+      lab.append(cb,` ${r.focLab||"Regar com foco"} (${r.focTxt}; ${dec(r.spf)} de prata por foco)`); l.append(lab); }
     box.append(l); }
   const best=usos.filter(u=>u.spf>0).sort((a,b)=>b.spf-a.spf);
   if(best.length>1) box.append(el("p",{class:"small ck-fbest",text:`Onde o foco rende mais: ${best.map((u,i)=>`${i?"":"1º "}${u.nm} (${dec(u.spf)} por ponto)`).join(", depois ")}. Se o foco do dia não dá para tudo, gaste primeiro no que vem antes.`}));
@@ -1312,25 +1335,28 @@ function cookPanel(m){
     const it=el("span",{class:"of-xi"}); it.append(el("i",{class:"of-dot"+(kind==="buy"?" red":"")}),iconImg(id,34)); const n=el("span",{class:"of-xn"}); n.append(el("b",{text:nm})); if(sub) n.append(el("small",{text:sub})); it.append(n); r.append(it);
     r.append(el("b",{class:"of-xv",text:fmt(val)}),el("span",{class:"of-xt",text:"—"}),el("span",{class:"of-xc",text:where}),el("span",{class:"of-xq",text:qty})); return r; };
   left.append(row("sale",CKV_PILL[m.item.mode]||"VENDA",m.id,m.name,CKV_SUB[m.item.mode]||"",m.item.p,`${fmt(m.q*N)}x`,m.item.c));
-  for(const x of m.parts) left.append(row("buy",CK_PILL[x.p.src]||"COMPRA NA HORA",x.iid,COOK.n[x.iid]||x.iid,(CK_SUB[x.p.src]||"")+(x.nr?" · não volta no retorno":""),x.p.p,`${fmt(x.c*N)}x`,x.p.src==="tenho"||x.p.src==="planto"?"—":city));
+  for(const x of m.parts) left.append(row("buy",CK_PILL[x.p.src]||"COMPRA NA HORA",x.iid,ckNm(x.iid),(CK_SUB[x.p.src]||"")+(x.nr?" · não volta no retorno":""),x.p.p,`${fmt(x.c*N)}x`,x.p.src==="tenho"||x.p.src==="planto"?"—":city));
   /* de onde vem cada ingrediente: troca só este, por cima do geral */
   const box=el("div",{class:"ck-src"}); box.append(el("b",{class:"of-ct",text:"De onde vem cada ingrediente"}),el("span"));
-  for(const x of m.parts){
-    const sel=el("select",{"aria-label":"De onde vem "+(COOK.n[x.iid]||x.iid)}), cur=(SRC.ckO||{})[x.iid]||"";
-    for(const [v,t] of CK_OPT){ if(v==="planto"&&FARM&&!isFarmItem(x.iid)) continue; if(v==="faco"&&!encFaz(x.iid)) continue; const o=el("option",{value:v,text:t}); if(v===cur) o.selected=true; sel.append(o); }
+  const lista=[]; const poe=(iid,d,dono)=>{ if(lista.some(z=>z.iid===iid)) return; lista.push({iid,d,dono}); const p=ckBuy(iid); if(p&&p.src==="faco"&&d<3){ const f=ckFaz(iid); if(f) for(const [id] of f) poe(id,d+1,iid); } };
+  for(const x of m.parts) poe(x.iid,0,null);
+  for(const x of lista){
+    const sel=el("select",{"aria-label":"De onde vem "+ckNm(x.iid)}), cur=(SRC.ckO||{})[x.iid]||"";
+    for(const [v,t] of CK_OPT){ if(v==="planto"&&FARM&&!ckPlantavel(x.iid)) continue; if(v==="faco"&&!ckFaz(x.iid)) continue; const o=el("option",{value:v,text:t}); if(v===cur) o.selected=true; sel.append(o); }
     const man=el("input",{type:"number",min:"0",step:"1",placeholder:"prata cada",value:(SRC.ckM||{})[x.iid]!=null?String(SRC.ckM[x.iid]):""}); man.hidden=cur!=="manual"; man.setAttribute("aria-label","Valor manual de "+(COOK.n[x.iid]||x.iid));
     sel.addEventListener("click",ev=>ev.stopPropagation()); man.addEventListener("click",ev=>ev.stopPropagation());
     sel.addEventListener("change",()=>{ SRC.ckO=SRC.ckO||{}; if(sel.value) SRC.ckO[x.iid]=sel.value; else delete SRC.ckO[x.iid]; srcSave(); man.hidden=sel.value!=="manual"; if(sel.value==="manual"&&man.value==="") { man.focus(); return; } renderCook(); });
     man.addEventListener("change",()=>{ SRC.ckM=SRC.ckM||{}; if(man.value==="") delete SRC.ckM[x.iid]; else SRC.ckM[x.iid]=+man.value; srcSave(); renderCook(); });
-    box.append(el("span",{text:COOK.n[x.iid]||x.iid}),el("span",{class:"ck-srcw"},sel,man));
+    box.append(el("span",{class:x.d?"ck-sub":"",text:x.d?`${"↳ ".repeat(1)}${ckNm(x.iid)} (para ${ckNm(x.dono)})`:ckNm(x.iid)}),el("span",{class:"ck-srcw"},sel,man));
   }
   left.append(box);
   { const fp=ckFarmPlan(m,N); if(fp) left.append(fp); }
   if(window.bagBtn){ const bg=el("div",{class:"ck-bag"}), sc0={c:m.item.c};
-    const partes=()=>m.parts.flatMap(x=>x.p.src==="faco"?encFaz(x.iid).map(([id,c])=>{ const b=ckBuy(id)||{p:0,src:"inst"}; return {iid:id,c:c*x.c,p:b}; }):[x]);   // molho/extrato feito: compra o que vai nele
-    const mats=()=>partes().map(x=>({id:x.iid,q:x.c*N,nm:COOK.n[x.iid]||x.iid,buy:x.p.p,buyC:city}));
+    const abre=(iid,c,p,d=0)=>p&&p.src==="faco"&&d<4&&ckFaz(iid)?ckFaz(iid).flatMap(([id,k])=>abre(id,c*k,ckBuy(id)||{p:0,src:"inst"},d+1)):[{iid,c,p}];
+    const partes=()=>m.parts.flatMap(x=>abre(x.iid,x.c,x.p));   // o que você faz (molho, extrato, pão, farinha…): compra o que vai nele
+    const mats=()=>partes().map(x=>({id:x.iid,q:Math.ceil(x.c*N-1e-9),nm:ckNm(x.iid),buy:x.p.p,buyC:city}));
     const prod=()=>[{id:m.id,q:m.q*N,nm:m.name,sell:m.item.p,sellC:sc0?sc0.c:city}];
-    if(typeof lcBtn==="function") bg.append(lcBtn(()=>partes().filter(x=>x.p.src==="inst"||x.p.src==="ordem").map(x=>({id:x.iid,q:x.c*N,nm:COOK.n[x.iid]||x.iid,c:city,p:x.p.p,modo:x.p.src})),`Cozinha: ${m.name}`,"Pôr na lista de compras"));
+    if(typeof lcBtn==="function") bg.append(lcBtn(()=>partes().filter(x=>x.p.src==="inst"||x.p.src==="ordem").map(x=>({id:x.iid,q:Math.ceil(x.c*N-1e-9),nm:ckNm(x.iid),c:city,p:x.p.p,modo:x.p.src})),`Cozinha: ${m.name}`,"Pôr na lista de compras"));
     bg.append(bagBtn(mats,"Pôr os ingredientes na bag"),el("span",{text:`Ingredientes de ${fmt(N)} fornada${N>1?"s":""}`}),bagBtn(prod,"Pôr o que sai na bag"),el("span",{text:`${fmt(m.q*N)} ${m.kind==="f"?"porções":"poções"} prontas`}));
     left.append(bg); }
   const hist=el("div",{class:"hist"}), hh=el("div",{class:"hist-h"}); hh.append(el("span",{text:"Histórico de 30 dias"})); const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("viewBox","0 0 520 150"); svg.setAttribute("role","img"); const hn=el("p",{class:"tiny muted"}); hist.append(hh,svg,hn); left.append(hist);

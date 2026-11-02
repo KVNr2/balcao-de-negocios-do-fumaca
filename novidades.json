@@ -1,6 +1,18 @@
 {
  "itens": [
   {
+   "t": "2026-11-02T23:59:00Z",
+   "titulo": "Cozinha e alquimia: carne criada na ilha, pão feito por você e lotes por fornada",
+   "itens": [
+    "Carne pode vir da ilha (Produzo na ilha): a conta usa o filhote, menos a chance de ganhar outro filhote ao crescer (maior se alimentar com foco), mais a ração até ficar adulto, dividido pelos 18 de carne que cada animal dá no açougue.",
+    "Pão, farinha, manteiga e álcool ganharam a opção Faço. O que vai neles aparece logo abaixo na receita (ex.: pão → farinha → trigo), cada um com a sua origem: dá para plantar o trigo do pão.",
+    "Cada linha mostra quantos lotes da ilha uma fornada ocupa. Abrindo a receita, aparece quantos lotes de cada planta, quantos animais e pastos (e por quantas horas) e a ração.",
+    "A Lista de compras e a bag levam o que vai no que você faz, no lugar do item pronto."
+   ],
+   "como": "Em Cozinha e alquimia, abra uma receita (ex.: Guisado de Carneiro) e, em De onde vem cada ingrediente, marque Produzo na ilha na carne e na batata e Faço no pão. A conta e os lotes são refeitos na hora.",
+   "impacto": "Dá para ver quanto custa e quantos lotes ocupa fazer a comida inteira com o que sai da ilha."
+  },
+  {
    "t": "2026-11-02T23:45:00Z",
    "titulo": "Refino e Craft não ficam mais presos em \"Consultando onde cada item vende\"",
    "itens": [
