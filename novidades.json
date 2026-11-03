@@ -1286,6 +1286,32 @@
    "itens": [
     "O modo de coleta liga a leitura do tráfego."
    ]
+  },
+  {
+   "t": "2026-11-03T13:00:00Z",
+   "titulo": "Nova aba Live: transmissões dos amigos direto no site",
+   "itens": [
+    "Quem quiser transmitir digita /live no Discord. O bot posta no canal o link para assistir e manda, só para quem digitou, o link de transmitir.",
+    "A pessoa abre o link, escolhe a tela ou janela do Albion e a transmissão aparece na aba Live de todo mundo, sem digitar nada e sem passar pelo YouTube.",
+    "Se houver mais de uma live ao mesmo tempo, a aba lista todas e você escolhe qual assistir. Um ponto vermelho ao lado da aba avisa quando há live no ar.",
+    "O vídeo vai direto do computador de quem transmite para quem assiste (até 5 espectadores por transmissão).",
+    "Quem só usa o Discord pode esconder a aba Live: botão no fim da aba, e para trazer de volta, o link no rodapé do site. O link de uma live também reativa a aba.",
+    "Quem transmite pode desmarcar a opção de aparecer sozinha: aí só entra quem tem o link do Discord."
+   ],
+   "como": "Menu lateral, grupo Transmissão.",
+   "impacto": "Dá para assistir o Albion dos amigos sem sair do site, sem montar OBS nem YouTube."
+  },
+  {
+   "t": "2026-11-03T13:00:01Z",
+   "titulo": "Albion Overlay 2.1.2: aba Live",
+   "programa": "2.1.2",
+   "itens": [
+    "O overlay ganhou a aba Live: as transmissões do grupo aparecem sozinhas, é só clicar em Assistir.",
+    "Quem transmite abre o link do bot no Chrome ou no Edge (a captura de tela não funciona dentro do overlay).",
+    "Nos Ajustes do overlay há a opção Mostrar a aba Live: desmarque para escondê-la."
+   ],
+   "como": "Barra do overlay, ícone Live.",
+   "impacto": "Assistir a live sem tirar o jogo da frente."
   }
  ]
 }

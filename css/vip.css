@@ -2083,3 +2083,44 @@ nav.tabs .tab-sub{display:none!important}
 .rot-cmp{max-width:420px}.rot-cmp tbody th{font-weight:400}.rot-cmp tr.tot td,.rot-cmp tr.tot th{font-weight:700}
 .rot-tb td:first-child{white-space:normal;min-width:120px}
 .inm .of-enc{display:inline-block;margin-left:6px;font-size:12.5px;padding:0 7px;border-radius:999px;border:1px solid var(--line);color:var(--smoke);vertical-align:middle;font-weight:400}
+
+/* ===== aba Live (transmissão direta pelo navegador, WebRTC) ===== */
+.lv-emit{border:1px solid var(--gold);border-radius:12px;background:#0c1018;padding:14px;margin-bottom:14px;display:grid;gap:10px}
+.lv-emit-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.lv-emit-h b{color:var(--gold)}
+.lv-st{font-size:12px;color:#9aa6bd;border:1px solid #2a3550;border-radius:999px;padding:2px 10px}.lv-st.on{color:#fff;background:#d83b3b;border-color:#d83b3b}
+.lv-emit-bt{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.lv-sec{background:transparent!important;color:#e9dfc8!important;border:1px solid #2a3550!important}
+#lvPrev{width:100%;max-width:420px;border-radius:8px;border:1px solid #2a3550;background:#000}
+.lv-dica{margin:0;color:#9aa6bd;font-size:12.5px}
+.lv-lista{display:grid;gap:8px;margin-bottom:12px}
+.lv-vazio{border:1px dashed #2a3550;border-radius:12px;padding:26px 18px;text-align:center;background:#0c1018;color:#9aa6bd}
+.lv-vazio b{display:block;color:var(--gold);font-size:17px;margin-bottom:4px}
+.lv-card{display:flex;align-items:center;gap:12px;border:1px solid #2a3550;border-radius:12px;background:#0c1018;padding:10px 12px}
+.lv-card.sel{border-color:var(--gold)}
+.lv-card .info{flex:1;min-width:0}.lv-card .info b{display:block;color:#e9dfc8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lv-card .info span{font-size:12px;color:#9aa6bd}
+.lv-dot{width:10px;height:10px;border-radius:50%;background:#555;flex:none}.lv-dot.on{background:#e04444;box-shadow:0 0 8px #e04444}
+.lv-x{background:transparent;border:0;color:#9aa6bd;cursor:pointer;font-size:18px;padding:2px 6px}.lv-x:hover{color:#ff9a8a}
+.lv-colar{display:flex;gap:8px;margin-bottom:12px}
+.lv-colar input{flex:1;min-width:0;background:#05070b;border:1px solid #2a3550;border-radius:8px;color:#e9dfc8;padding:8px 10px;font:inherit}
+.lv-wrap[hidden]{display:none}
+.lv-stage{position:relative;aspect-ratio:16/9;background:#05070b;border:1px solid #2a3550;border-radius:12px;overflow:hidden}
+.lv-stage:fullscreen{border-radius:0;border:0}
+.lv-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+.lv-msg{position:absolute;inset:0 0 52px 0;display:grid;place-items:center;text-align:center;color:#e9dfc8;background:#05070bd9;padding:20px}
+.lv-badge{position:absolute;left:12px;top:12px;background:#d83b3b;color:#fff;font:700 12px var(--f-body,sans-serif);letter-spacing:.08em;padding:4px 10px;border-radius:999px;box-shadow:0 0 12px #d83b3b88}
+.lv-somdica{position:absolute;right:12px;top:12px;background:#000a;color:#f0c060;font-size:12px;padding:4px 10px;border-radius:999px;pointer-events:none}
+.lv-bar{position:absolute;left:0;right:0;bottom:0;height:52px;display:flex;align-items:center;gap:8px;padding:0 10px;background:linear-gradient(#0c1018cc,#0c1018);border-top:1px solid #2a3550}
+.lv-b{width:34px;height:34px;display:grid;place-items:center;background:transparent;border:1px solid #2a3550;border-radius:8px;color:#e9dfc8;cursor:pointer;flex:none}
+.lv-b:hover,.lv-b[data-on="1"]{border-color:var(--gold);color:var(--gold)}
+.lv-b svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lv-b svg path:first-child{fill:currentColor}
+#lvMute[data-on="1"] .p-off,#lvMute:not([data-on="1"]) .p-on{display:none}
+.lv-bar input[type=range]{width:90px;accent-color:var(--gold);flex:none}
+.lv-tit{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#cfd6e4;font-size:13px}
+.lv-err{margin:0 0 10px;color:#ff9a8a;font-size:13px}
+.lv-chk{display:flex;gap:8px;align-items:center;font-size:13px;color:#cfd6e4}
+nav.tabs #t-live.ao-vivo .tl::after{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#e04444;margin-left:6px;box-shadow:0 0 8px #e04444;vertical-align:middle}
+@media (max-width:900px){.lv-bar input[type=range]{width:60px}.lv-colar{flex-wrap:wrap}}
+.lv-chk{white-space:nowrap}.lv-chk input{width:auto;flex:none}
+.lv-ocultar{margin:14px 0 0;font-size:12.5px}.lv-ocultar .linkbtn{color:#9aa6bd}
