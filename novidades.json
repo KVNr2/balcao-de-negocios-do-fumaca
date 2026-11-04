@@ -1312,6 +1312,28 @@
    ],
    "como": "Barra do overlay, ícone Live.",
    "impacto": "Assistir a live sem tirar o jogo da frente."
+  },
+  {
+   "t": "2026-11-03T23:00:00Z",
+   "titulo": "Live: o link do Discord já abre e começa a transmissão",
+   "itens": [
+    "Quem clica no link do /live já cai na aba Live com a live adicionada, sem colar nada.",
+    "Se a live já estiver no ar, quem assiste começa a ver sozinho. Se ainda não começou, a imagem abre assim que ela entrar no ar.",
+    "Com o Albion Overlay aberto, o link é entregue ao overlay (a janela aparece na aba Live) e a página do navegador só avisa, com a opção de usar aqui mesmo."
+   ],
+   "como": "Aba Live.",
+   "impacto": "Menos passos para assistir ou transmitir."
+  },
+  {
+   "t": "2026-11-03T23:00:01Z",
+   "titulo": "Albion Overlay 2.1.3: o link da Live abre no overlay",
+   "programa": "2.1.3",
+   "itens": [
+    "Ao clicar num link de live do Discord com o overlay aberto, a janela do overlay aparece na aba Live e já adiciona a live.",
+    "A aba Live do overlay também ganhou atalho de tecla nos Ajustes."
+   ],
+   "como": "Automático ao abrir o link.",
+   "impacto": "Quem usa o overlay não precisa colar o link."
   }
  ]
 }

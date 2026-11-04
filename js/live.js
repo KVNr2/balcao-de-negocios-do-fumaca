@@ -10,7 +10,9 @@
   var $ = function(id){ return document.getElementById(id); };
   var MAX = 5, ICE = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }] };
   var K_SALAS = "lv:salas", K_EMIT = "lv:emit";
-  var cfg = null, salas = [], info = {}, pub = {}, emit = null, sel = null;
+  var EM_OV = /[?&]overlay=1\b/.test(location.search) && window.parent !== window;
+  var OV_URL = "http://127.0.0.1:47832/live", lastLv = "", lastLvT = 0;
+  var cfg = null, salas = [], info = {}, pub = {}, emit = null, sel = null, aguardar = "", entregue = false, linkPend = null, esperaT = 0;
   var vpc = null, vId = "", vTimer = 0, vGen = 0, vMudo = true, vRetry = 0;
   var stream = null, pcs = {}, worker = null, sIniciando = false;
 
@@ -53,20 +55,27 @@
     return l;
   }
   function atualizarLista(){
+    var snap = salas.map(function(x){ return x.s; }), snapEmit = emit && emit.s; // só decide sobre o que foi consultado (links podem entrar durante a consulta)
     var pi = salas.length ? rpc("live_info", { p_salas: salas }).catch(function(){ return null; }) : Promise.resolve([]);
     var pp = rpc("live_publicas").catch(function(){ return null; });
     return Promise.all([pi, pp]).then(function(rs){
       if(rs[0]){
         info = {}; (rs[0] || []).forEach(function(x){ info[x.sala] = x; });
         var antes = salas.length;
-        salas = salas.filter(function(x){ return info[x.s] && info[x.s].ativo; }); // encerradas ou desconhecidas saem da lista
+        salas = salas.filter(function(x){ return snap.indexOf(x.s) < 0 || (info[x.s] && info[x.s].ativo); }); // encerradas ou desconhecidas saem da lista
         if(salas.length !== antes) ls(K_SALAS, salas);
-        if(emit && !(info[emit.s] && info[emit.s].ativo)){ if(!stream){ emit = null; ls(K_EMIT, null); } }
+        if(emit && snapEmit === emit.s && !(info[emit.s] && info[emit.s].ativo)){ if(!stream){ emit = null; ls(K_EMIT, null); } }
       }
       if(rs[1]){ pub = {}; (rs[1] || []).forEach(function(x){ pub[x.sala] = x; if(!info[x.sala]) info[x.sala] = x; }); }
       mostrarEmit(); desenharLista(); pontoAba();
+      if(aguardar && info[aguardar] && info[aguardar].no_ar && !vpc){ var a = aguardar; aguardar = ""; assistir(a); }
+      if(aguardar && !(info[aguardar] && info[aguardar].ativo)) aguardar = "";
+      if(aguardar) agendarEspera();
       if(sel && vpc && !(info[sel] && info[sel].no_ar)) parar("A transmissão terminou.");
     });
+  }
+  function agendarEspera(){ // enquanto espera uma live que ainda não começou, confere a cada 5 s
+    clearTimeout(esperaT); esperaT = setTimeout(function(){ if(aguardar) atualizarLista(); }, 5000);
   }
   function pontoAba(){ var t = $("t-live"); if(t) t.classList.toggle("ao-vivo", todas().some(function(x){ return info[x.s] && info[x.s].no_ar; })); }
   function desenharLista(){
@@ -107,7 +116,7 @@
   }
   function assistir(sid){
     var sl = todas().filter(function(x){ return x.s === sid; })[0]; if(!sl) return;
-    parar(""); erro(""); sel = sid; var gen = ++vGen; vId = rnd(16);
+    parar(""); erro(""); aguardar = ""; sel = sid; var gen = ++vGen; vId = rnd(16);
     $("lvWrap").hidden = false; msgPalco("Conectando…"); $("lvTit").textContent = (info[sid] && info[sid].titulo) || "Live"; desenharLista();
     var pc = vpc = new RTCPeerConnection(ICE);
     pc.addTransceiver("video", { direction: "recvonly" }); pc.addTransceiver("audio", { direction: "recvonly" });
@@ -152,7 +161,7 @@
   /* ---- quem transmite ---- */
   function stEmit(t, on){ var s = $("lvEmitSt"); s.textContent = t; s.classList.toggle("on", !!on); }
   function mostrarEmit(){
-    $("lvEmit").hidden = !emit; if(!emit) return;
+    $("lvEmit").hidden = !emit || entregue; if(!emit) return;
     var i = info[emit.s]; $("lvEmitTit").textContent = "Você vai transmitir: " + ((i && i.titulo) || "sua live");
   }
   function escolher(){
@@ -214,11 +223,26 @@
   }
 
   /* ---- ligação ---- */
-  function adicionarLink(txt){
+  // abre o link como se tivesse sido colado: guarda, atualiza a lista e, se for de quem assiste e a live já estiver no ar, já começa a ver
+  function adicionarLink(txt, auto){
     var l = lerLink(txt);
     if(!l){ erro("Não reconheci esse link. Cole o link inteiro que o bot postou no Discord."); return Promise.resolve(false); }
-    erro(""); guardar(l); mostrarEmit(); return atualizarLista().then(function(){ return true; });
+    erro(""); guardar(l); mostrarEmit();
+    if(auto && !l.ts) aguardar = l.s;
+    return atualizarLista().then(function(){ return true; });
   }
+
+  /* ---- entrega ao Albion Overlay: se o programa estiver aberto, o link vai para ele e a página do navegador só avisa ---- */
+  function entregarAoOverlay(frag){
+    var ctl = typeof AbortController === "function" ? new AbortController() : null, t = setTimeout(function(){ if(ctl) ctl.abort(); }, 2500);
+    return fetch(OV_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ link: frag }), signal: ctl ? ctl.signal : undefined, cache: "no-store" })
+      .then(function(r){ clearTimeout(t); return r.ok ? r.json() : null; }).then(function(j){ return !!(j && j.ok); }).catch(function(){ clearTimeout(t); return false; });
+  }
+  function mostrarEntregue(on){ entregue = on; $("lvEntregue").hidden = !on; mostrarEmit(); }
+  function usarAqui(){
+    var l = linkPend; mostrarEntregue(false); if(l){ linkPend = null; adicionarLink("live=" + l.s + "." + l.t + (l.ts ? "&s=" + l.ts : ""), true); }
+  }
+
   /* esconder a aba para quem só usa o Discord (preferência deste navegador; um link de live ou o botão do rodapé trazem a aba de volta) */
   function aplicarOculta(){
     var o = ls("lv:ocultar") === 1, t = $("t-live"), g = t && t.previousElementSibling;
@@ -237,7 +261,7 @@
     salas = ls(K_SALAS) || []; if(!Array.isArray(salas)) salas = []; emit = ls(K_EMIT);
     var vindo = lerLink(location.hash);
     if(vindo) ls("lv:ocultar", null);
-    if(vindo){ guardar(vindo); try{ history.replaceState(null, "", location.pathname + location.search + "#live"); }catch(e){} }
+    if(vindo){ try{ history.replaceState(null, "", location.pathname + location.search + "#live"); }catch(e){} }
     $("lvColar").addEventListener("submit", function(e){ e.preventDefault(); var v = $("lvLink").value.trim(); if(!v) return; adicionarLink(v).then(function(ok){ if(ok) $("lvLink").value = ""; }); });
     $("lvPublica").addEventListener("change", function(){ if(emit) rpc("live_s_publica", { p_sala: emit.s, p_ts: emit.ts, p_publica: this.checked }).catch(function(){}); });
     $("lvEscolher").addEventListener("click", escolher); $("lvEncerrar").addEventListener("click", encerrar);
@@ -246,7 +270,25 @@
     $("lvFull").addEventListener("click", telaCheia);
     $("lvOcultar").addEventListener("click", function(){ ocultar(true); }); $("lvMostrar").addEventListener("click", function(){ ocultar(false); });
     aplicarOculta(); if(ls("lv:ocultar") === 1 && !$("p-live").hidden && !vindo){ var vv = $("t-voce"); if(vv) vv.click(); }
-    mostrarEmit(); atualizarLista();
+    $("lvAqui").addEventListener("click", usarAqui);
+    if(EM_OV){
+      // dentro do overlay: recebe o link do programa (quando alguém clica no link do Discord com o overlay aberto)
+      window.addEventListener("message", function(e){
+        if(e.origin !== location.origin || e.source !== window.parent || !e.data || typeof e.data.lvLink !== "string") return;
+        var agora = Date.now(); if(e.data.lvLink === lastLv && agora - lastLvT < 4000){ try{ window.parent.postMessage({ lvOk: true }, location.origin); }catch(x){} return; }
+        lastLv = e.data.lvLink; lastLvT = agora;
+        adicionarLink(e.data.lvLink, true); try{ window.parent.postMessage({ lvOk: true }, location.origin); }catch(x){}
+      });
+    }
+    if(vindo && !EM_OV){
+      var frag = "live=" + vindo.s + "." + vindo.t + (vindo.ts ? "&s=" + vindo.ts : "");
+      linkPend = vindo; entregue = true; // esconde o painel de transmissão até saber se o overlay assumiu
+      entregarAoOverlay(frag).then(function(ok){
+        if(ok){ mostrarEntregue(true); }
+        else { mostrarEntregue(false); linkPend = null; adicionarLink(frag, true); }
+      });
+    } else if(vindo){ adicionarLink("live=" + vindo.s + "." + vindo.t + (vindo.ts ? "&s=" + vindo.ts : ""), true); }
+    mostrarEmit(); if(!vindo) atualizarLista();
     setInterval(function(){ if(!document.hidden || stream) atualizarLista(); }, 15000);
   }
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
