@@ -1,5 +1,12 @@
 {
  "itens": [
+ {
+  "t": "2026-11-04T13:57:00Z",
+  "titulo": "Consultas de preço cobertas pelo nosso banco não esperam mais a cota da API",
+  "itens": [
+   "Quando a varredura do banco está fresca e cobre os itens (T4 a T8, nas 8 cidades), as listas grandes deixam de fazer a pausa de cota da API entre os lotes: a barra anda mais rápido. Fora dessa cobertura (T1 a T3, atualização manual, varredura velha) nada muda."
+  ]
+ },
   {
    "t": "2026-11-02T23:59:00Z",
    "titulo": "Cozinha e alquimia: carne criada na ilha, pão feito por você e lotes por fornada",

@@ -78,7 +78,7 @@ async function ensureOfG(cat,note,cancel){
   const total=jobs.length, nomeG=g=>(BM_GROUPS.find(x=>x[0]===g)||[0,g])[1].toLowerCase();
   try{
     for(let i=0;i<total;i++){ const {gg,ids,idsBM,mats,extra}=jobs[i];
-      if(i){ await lpSpace(); if(cancel&&cancel()){ lpHide(note); return true; } }
+      if(i){ await lpSpace([[[...ids,...mats,...extra],SHOP_LOCS,1],[idsBM,["Black Market"],1]].filter(g=>g[0].length)); if(cancel&&cancel()){ lpHide(note); return true; } }
       lpShow(note,i,total,total>1?`Consultando preços: ${nomeG(gg)}`:"Consultando receitas e preços…","grupos");
       if(ids.length){ await fetchIds(ids,DATA.itens,SHOP_LOCS); await fetchIds([...mats,...extra],DATA.itens,SHOP_LOCS); }
       if(idsBM.length) await fetchIds(idsBM,DATA.itens,["Black Market"]);
@@ -575,7 +575,7 @@ async function renderMk(partial=false,forcar=false){
         catch(e){ resto=resto.concat(lc.slice(i).flat()); break; } }   /* a nuvem falhou: o que faltou segue pela API pública */
       const lotes=[]; for(let i=0;i<resto.length;i+=200) lotes.push(resto.slice(i,i+200));
       for(let i=0;i<lotes.length;i++){
-        if(i||feitos){ await lpSpace(); if(tok!==MK_TOK) return; }
+        if(i||feitos){ await lpSpace([[lotes[i],SHOP_LOCS,mq]]); if(tok!==MK_TOK) return; }
         lpShow(note,feitos,want.length,txt,"itens");
         await fetchIds(lotes[i],alvo,SHOP_LOCS,mq,45); lotes[i].forEach(id=>MK_SEEN.add(seen(id))); feitos+=lotes[i].length;
         lpShow(note,feitos,want.length,txt,"itens");
