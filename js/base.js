@@ -452,11 +452,17 @@ let LIVE_GEN=0;
 async function fetchLive(ids,locs,anchorId,txt){ for(let n=0;n<3;n++){ const g=LIVE_GEN; await fetchPaced(ids,DATA.itens,locs,anchorId,txt); if(g===LIVE_GEN) return; } }
 async function fetchPaced(ids,itens,locs,anchorId,txt,q){
   const a=anchorId&&document.getElementById(anchorId), lotes=[]; for(let i=0;i<ids.length;i+=200) lotes.push(ids.slice(i,i+200));
-  try{ for(let i=0;i<lotes.length;i++){ if(i) await lpSpace(); if(a&&lotes.length>1) lpShow(a,i,lotes.length,txt,"lotes"); else if(a) lpShow(a,0,0,txt);
+  try{ for(let i=0;i<lotes.length;i++){ if(i) await lpSpace([[lotes[i],locs,q]]); if(a&&lotes.length>1) lpShow(a,i,lotes.length,txt,"lotes"); else if(a) lpShow(a,0,0,txt);
       await fetchIds(lotes[i],itens,locs,q); if(a&&lotes.length>1) lpShow(a,i+1,lotes.length,txt,"lotes"); } }
   finally{ if(a) lpHide(a); } }
 /* pausa entre lotes: curta enquanto há folga na cota da API; deixa uma reserva para o que o usuário clicar no meio */
-async function lpSpace(){ await lpSleep(300); for(;;){ const l=apiLoad(); if(!l.block&&l.m1<API_MIN-15&&l.m5<API_5MIN-25) return; await lpSleep(1000); } }
+/* grupos (opcional): [[ids,cidades,qualidade],…] do que vem a seguir. Se a varredura do banco cobre tudo, esse lote não gasta a cota da API
+   e a pausa é só um respiro para a tela; se não cobre (T1–T3, cidade fora da lista, varredura velha, atualização manual), vale a espera de sempre. */
+async function nuvemCobre(ids,locs,q){ try{ if(FORCE||!ids||!ids.length) return false; if((locs||[]).some(c=>!VARR_CIDADES.has(c))) return false;
+  q=q||1; if(!(+q>=1&&+q<=5)) return false; if(!(await varrFresca())) return false; const set=await varrIds(); return ids.every(id=>set.has(id)); }catch(e){ return false; } }
+async function lpSpace(grupos){
+  if(grupos&&grupos.length){ let ok=true; for(const [ids,locs,q] of grupos){ if(!(await nuvemCobre(ids,locs,q))){ ok=false; break; } } if(ok){ await lpSleep(30); return; } }
+  await lpSleep(300); for(;;){ const l=apiLoad(); if(!l.block&&l.m1<API_MIN-15&&l.m5<API_5MIN-25) return; await lpSleep(1000); } }
 /* Preços coletados pelo Albion Overlay (tabela market_latest no Supabase, mesmo formato do Albion Data).
    Para cada item/cidade/qualidade vale o valor mais recente entre o Albion Data e o nosso. */
 const CROWD_MEM=new Map(); let CROWD_OFF=false; const CROWD={hits:0};
