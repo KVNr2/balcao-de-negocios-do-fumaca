@@ -2124,3 +2124,4 @@ nav.tabs #t-live.ao-vivo .tl::after{content:"";display:inline-block;width:8px;he
 @media (max-width:900px){.lv-bar input[type=range]{width:60px}.lv-colar{flex-wrap:wrap}}
 .lv-chk{white-space:nowrap}.lv-chk input{width:auto;flex:none}
 .lv-ocultar{margin:14px 0 0;font-size:12.5px}.lv-ocultar .linkbtn{color:#9aa6bd}
+.lv-entregue{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid var(--gold);border-radius:12px;background:#0c1018;padding:12px 14px;margin-bottom:14px}.lv-entregue b{color:var(--gold)}.lv-entregue span{color:#9aa6bd;font-size:13px}
