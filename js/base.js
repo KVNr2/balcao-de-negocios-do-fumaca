@@ -622,6 +622,22 @@ async function crowdMerge(url,j,strict){
 /* Preços só do Supabase (Albion Overlay), sem passar pela API pública: usado pelo Mercado Negro.
    Devolve as linhas de market_latest (menor venda, maior pedido de compra, médias de 7 e 30 dias) dos itens, cidades e qualidades pedidos. */
 const SB_MEM=new Map();
+/* Leitura do Supabase com limite de tempo (SB_TIMEOUT ms) e até 3 tentativas (pausa 0,7 s/1,5 s) em caso de 5xx/429/travamento;
+   se ainda falhar, lança erro e quem chamou desvia o resto para a API pública, em vez de ficar parado. */
+let SB_TIMEOUT=12e3;
+async function sbGet(url,hd){
+  let err;
+  for(let n=0;n<3;n++){
+    const ac=new AbortController(), tm=setTimeout(()=>ac.abort(),SB_TIMEOUT);
+    try{ const r=await fetch(url,{headers:hd,signal:ac.signal});
+      if(r.ok) return await r.json();
+      err=new Error("Supabase respondeu "+r.status); if(!(r.status===429||r.status>=500)) throw err;
+    }catch(e){ err=(e&&e.name==="AbortError")?new Error("Supabase demorou mais de "+(SB_TIMEOUT/1000)+" s"):e; if(err.message.startsWith("Supabase respondeu 4")&&!/429/.test(err.message)) throw err; }
+    finally{ clearTimeout(tm); }
+    if(n<2) await new Promise(r=>setTimeout(r,700*(n+1)));
+  }
+  throw err;
+}
 async function sbRows(ids,locs,quals=[1]){
   const cfg=await need("nuvem"); if(!(cfg.url&&cfg.key)) throw new Error("Supabase não configurado");
   const base=cfg.url.replace(/\/$/,"")+"/rest/v1/market_latest?select=item_id,quality,city,sell_min,sell_min_at,sell_amt,buy_max,buy_max_at,buy_amt,avg7,avg7_n,avg30,avg30_n";
@@ -631,7 +647,7 @@ async function sbRows(ids,locs,quals=[1]){
     const key=part.join(",")+"|"+locs.join(",")+"|"+quals.join(","); const hit=SB_MEM.get(key);
     if(hit&&Date.now()-hit.t<45e3&&!FORCE){ out.push(...hit.r); return; }
     const qs=`&item_id=in.(${part.map(encodeURIComponent).join(",")})&city=in.(${locs.map(encodeURIComponent).join(",")})&quality=in.(${quals.join(",")})&order=item_id,city,quality&limit=1000`;
-    const rows=[]; for(let off=0;off<10000;off+=1000){ const r=await fetch(base+qs+"&offset="+off,{headers:hd}); if(!r.ok) throw new Error("Supabase respondeu "+r.status); const j=await r.json(); rows.push(...j); if(j.length<1000) break; }
+    const rows=[]; for(let off=0;off<10000;off+=1000){ const j=await sbGet(base+qs+"&offset="+off,hd); rows.push(...j); if(j.length<1000) break; }
     SB_MEM.set(key,{t:Date.now(),r:rows}); out.push(...rows);
   }));
   livepSbRows(out,ids,locs,quals);
