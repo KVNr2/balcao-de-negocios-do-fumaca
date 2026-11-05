@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-11-05T15:30:00Z",
+   "titulo": "Mercado e Mercado Negro pedem menos coisas ao banco ao mesmo tempo",
+   "itens": [
+    "As consultas ao nosso banco agora vão no máximo 4 por vez (antes saíam até 15 juntas) e em partes de até 120 itens (antes 60): cerca de metade dos pedidos e sem rajadas, que faziam o banco do plano gratuito engasgar e a barra parar no meio.",
+    "Quando a consulta pede várias qualidades, a parte diminui sozinha para caber nas 1000 linhas que o banco devolve por resposta, então nada fica mais lento nesse caso."
+   ]
+  },
+  {
    "t": "2026-11-04T14:26:00Z",
    "titulo": "Mercado não fica mais parado esperando o banco: consulta lenta tenta de novo e depois segue pela API",
    "itens": [

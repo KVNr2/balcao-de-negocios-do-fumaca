@@ -638,16 +638,23 @@ async function sbGet(url,hd){
   }
   throw err;
 }
+/* Limite de pedidos simultâneos ao Supabase (SB_MAXPAR): o banco do plano Free engasga com rajadas (12 a 15 pedidos de uma vez chegaram a levar 3 s cada).
+   Quem passa do limite espera na fila; o tempo limite de cada pedido só conta depois que ele começa. */
+let SB_MAXPAR=4, sbAtivos=0; const sbFila=[];
+async function sbSlot(){ if(sbAtivos<SB_MAXPAR){ sbAtivos++; return; } await new Promise(r=>sbFila.push(r)); }   // ao acordar, herda a vaga de quem saiu
+function sbFree(){ const n=sbFila.shift(); if(n) n(); else sbAtivos--; }
+/* Itens por pedido: o máximo (120) enquanto couber nas 1000 linhas de uma resposta (itens x cidades x qualidades); com mais qualidades vem menos itens, para não precisar de várias páginas seguidas */
+const sbPorParte=(nLoc,nQ)=>Math.max(20,Math.min(120,Math.floor(1000/Math.max(1,nLoc*nQ))));
 async function sbRows(ids,locs,quals=[1]){
   const cfg=await need("nuvem"); if(!(cfg.url&&cfg.key)) throw new Error("Supabase não configurado");
   const base=cfg.url.replace(/\/$/,"")+"/rest/v1/market_latest?select=item_id,quality,city,sell_min,sell_min_at,sell_amt,buy_max,buy_max_at,buy_amt,avg7,avg7_n,avg30,avg30_n";
-  const out=[], parts=[]; for(let i=0;i<ids.length;i+=60) parts.push(ids.slice(i,i+60));
+  const out=[], parts=[], per=sbPorParte(locs.length,quals.length); for(let i=0;i<ids.length;i+=per) parts.push(ids.slice(i,i+per));
   const hd={apikey:cfg.key,Authorization:"Bearer "+cfg.key};
   await Promise.all(parts.map(async part=>{
     const key=part.join(",")+"|"+locs.join(",")+"|"+quals.join(","); const hit=SB_MEM.get(key);
     if(hit&&Date.now()-hit.t<45e3&&!FORCE){ out.push(...hit.r); return; }
     const qs=`&item_id=in.(${part.map(encodeURIComponent).join(",")})&city=in.(${locs.map(encodeURIComponent).join(",")})&quality=in.(${quals.join(",")})&order=item_id,city,quality&limit=1000`;
-    const rows=[]; for(let off=0;off<10000;off+=1000){ const j=await sbGet(base+qs+"&offset="+off,hd); rows.push(...j); if(j.length<1000) break; }
+    const rows=[]; for(let off=0;off<10000;off+=1000){ await sbSlot(); let j; try{ j=await sbGet(base+qs+"&offset="+off,hd); } finally{ sbFree(); } rows.push(...j); if(j.length<1000) break; }
     SB_MEM.set(key,{t:Date.now(),r:rows}); out.push(...rows);
   }));
   livepSbRows(out,ids,locs,quals);
