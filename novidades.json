@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-11-06T04:10:00Z",
+   "programa": "2.1.4",
+   "titulo": "Overlay: menu igual ao do site, atalho único por função e ajustes que salvam sozinhos",
+   "itens": [
+    "O menu lateral do overlay agora tem as mesmas abas e a mesma ordem do site, incluindo Plano do dia, Rotação de craft, Pesca, Transporte e Lista de compras.",
+    "Um mesmo atalho não pode mais ser usado para duas coisas: a tela recusa na hora (mostrando onde já é usado) e o programa também recusa ao salvar. Ctrl+Shift+O e Shift+Ctrl+O contam como o mesmo atalho.",
+    "Os ajustes do overlay salvam sozinhos, sem botão Salvar."
+   ]
+  },
+  {
    "t": "2026-11-05T15:30:00Z",
    "titulo": "Mercado e Mercado Negro pedem menos coisas ao banco ao mesmo tempo",
    "itens": [
