@@ -1,11 +1,11 @@
 /* ================= wiring ================= */
 const tabs=[...document.querySelectorAll("nav.tabs [role=tab]")];
 function setPageHead(btn){ if(!btn) return; let g=btn.previousElementSibling; while(g&&!g.classList.contains("grp")) g=g.previousElementSibling;
-  const fl=(btn.querySelector(".fl")||{}).textContent||""; $("phKick").textContent=(typeof GRUPO_DE!=="undefined"&&GRUPO_DE[btn.id])?GRUPO_DE[btn.id].nome:g?g.textContent:"";
+  const fl=(btn.querySelector(".fl")||{}).textContent||""; $("phKick").textContent=(typeof GRUPO_DE!=="undefined"&&GRUPO_DE[btn.id])?(GRUPO_DE[btn.id].kick||GRUPO_DE[btn.id].nome):g?g.textContent:"";
   $("phTitle").textContent=btn.querySelector(".tl").textContent; const gd=(typeof GUIA!=="undefined"&&GUIA[btn.getAttribute("aria-controls")])||[]; $("phDesc").textContent=gd[0]||""; document.title=`${btn.querySelector(".tl").textContent} · Balcão de Negócios do Fumaça`; }
-/* Menu agrupado: Combate (Builds, Build ZvZ, PVP, Matchups) e Sobre o site (Patch, Fontes, Versão) viram uma entrada só no menu,
+/* Menu agrupado: Builds (no grupo Combate: Builds, Build ZvZ, PVP, Matchups) e Sobre o site (Patch, Fontes, Versão) viram uma entrada só no menu,
    com as páginas como sub-abas no alto. As abas continuam existindo (links, atalhos e #endereços seguem funcionando). */
-const GRUPOS=[{k:"combate",nome:"Combate",ids:["t-builds","t-zvz","t-pvp","t-matchup"]},{k:"sobre",nome:"Sobre o site",ids:["t-patch","t-fontes","t-versao"]}];
+const GRUPOS=[{k:"combate",nome:"Builds",kick:"Combate",ids:["t-builds","t-zvz","t-pvp","t-matchup"]},{k:"sobre",nome:"Sobre o site",ids:["t-patch","t-fontes","t-versao"]}];
 const GRUPO_DE={}; for(const g of GRUPOS){ g.ids=g.ids.filter(i=>$(i)); if(g.ids.length<2) continue;
   const first=$(g.ids[0]), rep=first.cloneNode(true); rep.id="tg-"+g.k; rep.removeAttribute("aria-controls"); rep.setAttribute("aria-selected","false"); rep.dataset.rep=g.k;
   const tl=rep.querySelector(".tl"); if(tl) tl.textContent=g.nome; const fl=rep.querySelector(".fl"); if(fl) fl.textContent=`${g.ids.length} páginas`;

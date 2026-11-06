@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="659dc617">
+<html lang="pt-BR" data-v="f2c4bb70">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=659dc617">
-<link rel="stylesheet" href="css/vip.css?v=659dc617">
-<link rel="stylesheet" href="css/avicons.css?v=659dc617">
-<link rel="stylesheet" href="css/souk.css?v=659dc617">
+<link rel="stylesheet" href="css/balcao.css?v=f2c4bb70">
+<link rel="stylesheet" href="css/vip.css?v=f2c4bb70">
+<link rel="stylesheet" href="css/avicons.css?v=f2c4bb70">
+<link rel="stylesheet" href="css/souk.css?v=f2c4bb70">
 </head>
 <body>
 <div class="wrap app">
@@ -58,6 +58,7 @@ html.em-atual .av-card{margin:0}
       <button role="tab" id="t-voce" aria-controls="p-voce" aria-selected="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6.5" rx="7" ry="3"/><path d="M5 6.5v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5M5 11.5v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/></svg><span class="tl">Para você</span><em class="fl">fl. 1</em></button>
       <button role="tab" id="t-plano" aria-controls="p-plano" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2.5v3M16 2.5v3M4 9h16"/><path d="M8 13.5l2 2 4-4"/></svg><span class="tl">Plano do dia</span><em class="fl">Hoje</em></button>
       <button role="tab" id="t-ficha" aria-controls="p-ficha" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h10v13a3 3 0 0 1-3 3H7"/><path d="M8 4a2 2 0 0 0-2 2v12a2 2 0 1 0 4 0v-1h8"/><path d="M11 8h4M11 11h4"/></svg><span class="tl">Minha ficha</span><em class="fl">fl. 2</em></button>
+      <button role="tab" id="t-mapas" aria-controls="p-mapas" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg><span class="tl">Mapas</span><em class="fl">fl. 12</em></button>
       <span class="grp" aria-hidden="true">Ofícios</span>
       <button role="tab" id="t-refino" aria-controls="p-refino" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.5 3 5 5.2 5 10a5 5 0 0 1-10 0c0-2.6 1.4-4 2.2-6 .8 1.2 1.6 1.9 2.6 2.2C12.3 7.4 12 5 12 3z"/></svg><span class="tl">Refino</span><em class="fl">fl. 3</em></button>
       <button role="tab" id="t-craft" aria-controls="p-craft" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 4.5l5.5 5.5-2.5 2.5L10.5 7z"/><path d="M12 9.5l-7.5 7.5a1.8 1.8 0 0 0 2.5 2.5l7.5-7.5"/></svg><span class="tl">Craft</span><em class="fl">fl. 4</em></button>
@@ -75,7 +76,7 @@ html.em-atual .av-card{margin:0}
       <button role="tab" id="t-prata" aria-controls="p-prata" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1.6 3.2c3.6 1.6 5.6 4.8 5.6 7.8a5 5 0 0 1-5 5h-4a5 5 0 0 1-5-5c0-3 2-6.2 5.6-7.8z"/><path d="M12 11v5M10.5 12.3h2.3a1 1 0 0 1 0 2h-1.6a1 1 0 0 0 0 2h2.3"/></svg><span class="tl">Onde está a prata</span><em class="fl">fl. 11</em></button>
       <span class="grp" aria-hidden="true">Estrada</span>
       <button role="tab" id="t-avalon" aria-controls="p-avalon" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 3.5v5.5M12 15v5.5M3.5 12H9M15 12h5.5"/></svg><span class="tl">Avalon</span><em class="fl">Estradas</em></button>
-      <button role="tab" id="t-mapas" aria-controls="p-mapas" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg><span class="tl">Mapas</span><em class="fl">fl. 12</em></button>
+      <span class="grp" aria-hidden="true">Combate</span>
       <button role="tab" id="t-builds" aria-controls="p-builds" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 3.5H20v5.5L9.5 19.5l-5-5z"/><path d="M6 13l5 5M3.5 20.5L6 18"/></svg><span class="tl">Builds</span><em class="fl">fl. 13</em></button>
       <button role="tab" id="t-zvz" aria-controls="p-zvz" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l11 11M20 4L9 15"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg><span class="tl">Build ZvZ</span></button>
       <button role="tab" id="t-pvp" aria-controls="p-pvp" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4l7 7M19 4l-7 7"/><path d="M12 11l-5 8M12 11l5 8"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg><span class="tl">PVP</span></button>
@@ -934,33 +935,33 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=659dc617"></script>
-<script src="js/base.js?v=659dc617"></script>
-<script src="js/precos.js?v=659dc617"></script>
-<script src="js/fx.js?v=659dc617"></script>
-<script src="js/biz.js?v=659dc617"></script>
-<script src="js/builds.js?v=659dc617"></script>
-<script src="js/nossas.js?v=659dc617"></script>
-<script src="js/ip.js?v=659dc617"></script>
-<script src="js/zvz.js?v=659dc617"></script>
-<script src="js/pvp.js?v=659dc617"></script>
-<script src="js/novos.js?v=659dc617"></script>
-<script src="js/guia.js?v=659dc617"></script>
-<script src="js/ui.js?v=659dc617"></script>
-<script src="js/avalon.js?v=659dc617"></script>
-<script src="js/oficina.js?v=659dc617"></script>
-<script src="js/versao.js?v=659dc617"></script>
-<script src="js/bag.js?v=659dc617"></script>
-<script src="js/plano.js?v=659dc617"></script>
-<script src="js/pesca.js?v=659dc617"></script>
-<script src="js/listfil.js?v=659dc617"></script>
-<script src="js/fav.js?v=659dc617"></script>
-<script src="js/festas.js?v=659dc617"></script>
-<script src="js/transporte.js?v=659dc617"></script>
-<script src="js/rotacao.js?v=659dc617"></script>
-<script src="js/menucraft.js?v=659dc617"></script>
-<script src="js/compras.js?v=659dc617"></script>
-<script src="js/live.js?v=659dc617"></script>
-<script src="js/main.js?v=659dc617"></script>
+<script src="js/icons.js?v=f2c4bb70"></script>
+<script src="js/base.js?v=f2c4bb70"></script>
+<script src="js/precos.js?v=f2c4bb70"></script>
+<script src="js/fx.js?v=f2c4bb70"></script>
+<script src="js/biz.js?v=f2c4bb70"></script>
+<script src="js/builds.js?v=f2c4bb70"></script>
+<script src="js/nossas.js?v=f2c4bb70"></script>
+<script src="js/ip.js?v=f2c4bb70"></script>
+<script src="js/zvz.js?v=f2c4bb70"></script>
+<script src="js/pvp.js?v=f2c4bb70"></script>
+<script src="js/novos.js?v=f2c4bb70"></script>
+<script src="js/guia.js?v=f2c4bb70"></script>
+<script src="js/ui.js?v=f2c4bb70"></script>
+<script src="js/avalon.js?v=f2c4bb70"></script>
+<script src="js/oficina.js?v=f2c4bb70"></script>
+<script src="js/versao.js?v=f2c4bb70"></script>
+<script src="js/bag.js?v=f2c4bb70"></script>
+<script src="js/plano.js?v=f2c4bb70"></script>
+<script src="js/pesca.js?v=f2c4bb70"></script>
+<script src="js/listfil.js?v=f2c4bb70"></script>
+<script src="js/fav.js?v=f2c4bb70"></script>
+<script src="js/festas.js?v=f2c4bb70"></script>
+<script src="js/transporte.js?v=f2c4bb70"></script>
+<script src="js/rotacao.js?v=f2c4bb70"></script>
+<script src="js/menucraft.js?v=f2c4bb70"></script>
+<script src="js/compras.js?v=f2c4bb70"></script>
+<script src="js/live.js?v=f2c4bb70"></script>
+<script src="js/main.js?v=f2c4bb70"></script>
 </body>
 </html>

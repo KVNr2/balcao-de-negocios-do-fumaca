@@ -1,6 +1,24 @@
 {
  "itens": [
   {
+   "t": "2026-11-06T04:54:00Z",
+   "titulo": "Menu do site: Mapas em Livro-caixa e novo grupo Combate",
+   "itens": [
+    "Mapas saiu de Estrada e foi para o grupo Livro-caixa; Estrada fica só com Avalon.",
+    "Novo grupo Combate, com uma única entrada chamada Builds (Builds, Build ZvZ, PVP e Matchups como sub-abas)."
+   ]
+  },
+  {
+   "t": "2026-11-06T04:55:00Z",
+   "programa": "2.1.5",
+   "titulo": "Overlay: menu agrupado como no site, teste sem registro e opacidade ajustada",
+   "itens": [
+    "O menu do overlay agora segue o do site: Combate (Builds, Build ZvZ, PVP e Matchups) e Sobre o site (Patch, Fontes e Versão) viram uma entrada só, com as outras páginas como sub-abas dentro da página. Mapas passa para o grupo Livro-caixa.",
+    "Corrigido: com a opacidade em 100% o número caía para a linha de baixo, longe da barra.",
+    "Os exes de teste não se registram mais em Aplicativos instalados nem no Menu Iniciar, e apagam o registro de teste antigo ao abrir."
+   ]
+  },
+  {
    "t": "2026-11-06T04:10:00Z",
    "programa": "2.1.4",
    "titulo": "Overlay: menu igual ao do site, atalho único por função e ajustes que salvam sozinhos",
