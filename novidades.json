@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-11-06T04:58:00Z",
+   "programa": "2.1.6",
+   "titulo": "Overlay: barra de opacidade refeita",
+   "itens": [
+    "A barra de opacidade dos Ajustes foi refeita: com 100% ela fica cheia até o fim, sem a caixa em volta, e o número acompanha ao lado."
+   ]
+  },
+  {
    "t": "2026-11-06T04:54:00Z",
    "titulo": "Menu do site: Mapas em Livro-caixa e novo grupo Combate",
    "itens": [
