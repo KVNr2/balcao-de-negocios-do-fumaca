@@ -8,6 +8,7 @@ const V_CATS=[["site","Site"],["programa","Albion Overlay"],["rotinas","Rotinas"
 const V_ROTINAS=[["PvP","data/pvp.json","a cada 6 horas","Builds, armas e jogadores do PvP, a partir das mortes guardadas pelo coletor."],
   ["Coletor de mortes","","a cada 6 minutos","Lê o feed oficial de mortes do Albion, recupera o histórico dos jogadores já vistos e guarda as lutas pequenas dos últimos 30 dias."],
   ["ZvZ","data/zvz.json","uma vez por dia","Funções e armas das maiores lutas recentes (200 jogadores ou mais)."],
+  ["Patch notes (fórum oficial)","data/patches.json","uma vez por dia, às 09:47 (Brasília)","Notas de patch do fórum oficial do Albion (equilíbrio de combate, conteúdo e correções). Os patches novos entram em inglês, com os números \"era → agora\"; os traduzidos à mão não são sobrescritos."],
   ["Builds (AlbionOnlineGrind)","data/builds-grind.json","a cada 6 horas","As builds mais votadas de cada conteúdo."],
   ["Composições (Top Comps)","data/comps.json","a cada 6 horas","As composições de grupo mais usadas."],
   ["Testes do site","","a cada envio de código","Abre o site com preços simulados e confere as contas que já deram erro (retorno, ingrediente raro, teto de foco, plano, teleporte) e se as páginas abrem sem erro. Se algo falhar, o GitHub marca o envio em vermelho."],

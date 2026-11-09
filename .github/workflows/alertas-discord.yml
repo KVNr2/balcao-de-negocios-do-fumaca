@@ -9,6 +9,7 @@ on:
       - "Atualizar composições (a cada 6 horas)"
       - "Atualizar PVP (a cada 6 horas)"
       - "Atualizar ZvZ (diário)"
+      - "Atualizar patch notes (diário)"
       - "Coletar mortes EU (ciclos de 6 min)"
       - "Coletar mortes ASIA (ciclos de 6 min)"
       - "Coletar mortes NA (ciclos de 6 min)"

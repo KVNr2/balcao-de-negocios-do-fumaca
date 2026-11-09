@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-11-09T13:27:00Z",
+   "titulo": "Aba Patch no formato das notas oficiais: Dragonfire Patch 4",
+   "itens": [
+    "A aba Patch agora mostra o Dragonfire Patch 4 (versão 32.040.1, 02/11/2026) com um cartão por item: valor de antes, valor de agora e variação em %.",
+    "Dá para filtrar buffs e nerfs, abrir o resumo \"Sua arma foi mexida?\" e ver as seções de Dragon Sanctuary, mobs, atalhos, outros e correções. O Patch 3 fica em \"Patches anteriores\".",
+    "O texto vem das notas oficiais do fórum do Albion, traduzido e resumido; a classificação em buff ou nerf é leitura nossa.",
+    "As notas passam a se atualizar sozinhas todo dia às 09:47 (Brasília), lendo o fórum oficial do Albion, onde os patches saem entre 07:00 e 07:50 de Brasília. Patch novo entra em inglês, com a classificação em buff ou nerf como palpite automático.",
+    "Os nomes em português de itens e habilidades foram conferidos contra os arquivos do jogo instalado (versão 1.32.040): o catálogo e as habilidades batem com o texto oficial, e 6 montarias que faltavam entraram no catálogo."
+   ]
+  },
+  {
    "t": "2026-11-09T07:55:00Z",
    "programa": "2.1.7",
    "titulo": "Overlay: leitura do mapa de Avalon mais precisa",

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="0c65b734">
+<html lang="pt-BR" data-v="79f1e2ae">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=0c65b734">
-<link rel="stylesheet" href="css/vip.css?v=0c65b734">
-<link rel="stylesheet" href="css/avicons.css?v=0c65b734">
-<link rel="stylesheet" href="css/souk.css?v=0c65b734">
+<link rel="stylesheet" href="css/balcao.css?v=79f1e2ae">
+<link rel="stylesheet" href="css/vip.css?v=79f1e2ae">
+<link rel="stylesheet" href="css/avicons.css?v=79f1e2ae">
+<link rel="stylesheet" href="css/souk.css?v=79f1e2ae">
 </head>
 <body>
 <div class="wrap app">
@@ -43,7 +43,7 @@ html.em-atual .av-card{margin:0}
   <div class="facts" aria-label="Situação do mercado">
     <span class="gold" id="goldBox" title="Quanto custa 1 ouro em prata"><span class="fl">Ouro</span> <strong class="num" id="goldV">8.382</strong> <svg id="goldSpark" viewBox="0 0 96 22" aria-hidden="true"></svg></span>
     <span title="Premium de 30 dias (3.750 ouro) em prata"><span class="fl">Premium</span> <strong class="num" id="premV">31,4M</strong></span>
-    <span class="patchchip"><span class="fl">Patch</span> <strong>Dragonfire 3</strong></span>
+    <span class="patchchip"><span class="fl">Patch</span> <strong>Dragonfire 4</strong></span>
     <button type="button" id="reload" class="linkbtn" title="Buscar os preços de novo agora"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg><span>Atualizar preços</span></button>
   </div>
   <button type="button" id="olhoBtn" class="olho-chip" hidden title="Itens de olho: avisa quando o preço cai até o alvo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="olho-n">0</span></button>
@@ -84,7 +84,7 @@ html.em-atual .av-card{margin:0}
       <span class="grp" aria-hidden="true">Transmissão</span>
       <button role="tab" id="t-live" aria-controls="p-live" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2"/></svg><span class="tl">Live</span><em class="fl">fl. 19</em></button>
       <span class="grp" aria-hidden="true">Arquivo</span>
-      <button role="tab" id="t-patch" aria-controls="p-patch" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h9.5l4.5 4.5v12.5H5z"/><path d="M14.5 3.5V8H19M8.5 12h7M8.5 15.5h5"/></svg><span class="tl">Patch 3</span><em class="fl">fl. 16</em></button>
+      <button role="tab" id="t-patch" aria-controls="p-patch" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h9.5l4.5 4.5v12.5H5z"/><path d="M14.5 3.5V8H19M8.5 12h7M8.5 15.5h5"/></svg><span class="tl">Patch 4</span><em class="fl">fl. 16</em></button>
       <button role="tab" id="t-fontes" aria-controls="p-fontes" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H19v15H7.5A2.5 2.5 0 0 0 5 20.5z"/><path d="M5 20.5V5.5M9 7.5h6"/></svg><span class="tl">Fontes</span><em class="fl">fl. 17</em></button>
       <button role="tab" id="t-versao" aria-controls="p-versao" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg><span class="tl">Versão</span><em class="fl">fl. 18</em></button>
     </nav>
@@ -688,18 +688,7 @@ html.em-atual .av-card{margin:0}
 
   <!-- PATCH -->
   <section class="panel" id="p-patch" role="tabpanel" aria-labelledby="t-patch" hidden>
-    <div class="block">
-      <h2>Dragonfire Patch 3, 12/10/2026</h2>
-      <div class="tbl bm2 patchl"><table class="bm2t lst">
-        <thead><tr><th>Área</th><th>O que mudou</th></tr></thead>
-        <tbody>
-          <tr class="bm-row is-warn"><td>Evento</td><td>+15% de fama e loot por 7 dias, até ~19/10</td></tr>
-          <tr class="bm-row is-flat"><td>Ancient Lands</td><td>Portais pequenos da zona amarela aparecem mais, abrem antes e duram mais, mas pagam 30% menos. Portais grandes surgem 50% mais e o baú do Fire Drake melhorou. Monstros com menos vida e dano.</td></tr>
-          <tr class="bm-row is-flat"><td>Dragões</td><td>No mundo aberto, só recuperam vida até o último marco de 20% e dão 150% mais Might. Luta da Maeve ficou mais tolerante.</td></tr>
-          <tr class="bm-row is-gain"><td>Buffs</td><td>Twin Slayers (Ring of Death 36, era 27, área dobrada), espadas (Heroic Strike 4s, era 3,5s), adagas (Bloodthirsty Blade 2,5%, era 4%), Great Fire Staff, Stillgaze Staff, Hellfire Hands, Mage Cowl, Dragonslayer Hood, Mage Robe (Purging Shield 30s, era 35s)</td></tr>
-          <tr class="bm-row is-loss"><td>Nerfs</td><td>Bestas (Explosive Bolt 119, era 130), Rotcaller (35s, era 30s), Flamewalker (45s, era 40s), Holy Staffs (Smite em PvP 115, era 136), Quarterstaffs (Cartwheel 7 de energia, era 5), Phantom Twinblade, metamorfos (Tether Shift 16 de energia, escudo 88), Cowl of Purity (18m, era 21m), Armor of Valor (Requite 21, era 27)</td></tr>
-        </tbody></table></div>
-    </div>
+    <div id="patchBox" class="block" aria-live="polite">Carregando as notas de patch…</div>
     <div class="block">
       <h3 class="orn">O que mudou desde que vocês pararam</h3>
       <div class="tbl bm2 patchl"><table class="bm2t lst">
@@ -709,7 +698,8 @@ html.em-atual .av-card{margin:0}
           <tr class="bm-row is-flat"><td class="num">06/2025</td><td>The Depths</td><td>PvP instanciado 2v2 e 3v3 sem perder o equipamento vestido</td></tr>
           <tr class="bm-row is-flat"><td class="num">13/04/2026</td><td>Radiant Wilds</td><td>Revisão visual do mundo, quase nada na economia</td></tr>
           <tr class="bm-row is-flat"><td class="num">31/08/2026</td><td>Dragonfire</td><td>Ancient Lands, Dragon Sanctuary, ataques de dragão, montaria Firewing Drake</td></tr>
-          <tr class="bm-row is-warn"><td class="num">12/10/2026</td><td>Dragonfire Patch 3</td><td>Balanceamento de armas e ajustes nas Ancient Lands</td></tr>
+          <tr class="bm-row is-flat"><td class="num">12/10/2026</td><td>Dragonfire Patch 3</td><td>Balanceamento de armas e ajustes nas Ancient Lands</td></tr>
+          <tr class="bm-row is-warn"><td class="num">02/11/2026</td><td>Dragonfire Patch 4</td><td>Poções de cura mais fracas (menos cura em todos os tiers) e mais ovos de Firewing Drake nos tiers altos do Dragon Sanctuary</td></tr>
         </tbody></table></div>
     </div>
   </section>
@@ -935,33 +925,34 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=0c65b734"></script>
-<script src="js/base.js?v=0c65b734"></script>
-<script src="js/precos.js?v=0c65b734"></script>
-<script src="js/fx.js?v=0c65b734"></script>
-<script src="js/biz.js?v=0c65b734"></script>
-<script src="js/builds.js?v=0c65b734"></script>
-<script src="js/nossas.js?v=0c65b734"></script>
-<script src="js/ip.js?v=0c65b734"></script>
-<script src="js/zvz.js?v=0c65b734"></script>
-<script src="js/pvp.js?v=0c65b734"></script>
-<script src="js/novos.js?v=0c65b734"></script>
-<script src="js/guia.js?v=0c65b734"></script>
-<script src="js/ui.js?v=0c65b734"></script>
-<script src="js/avalon.js?v=0c65b734"></script>
-<script src="js/oficina.js?v=0c65b734"></script>
-<script src="js/versao.js?v=0c65b734"></script>
-<script src="js/bag.js?v=0c65b734"></script>
-<script src="js/plano.js?v=0c65b734"></script>
-<script src="js/pesca.js?v=0c65b734"></script>
-<script src="js/listfil.js?v=0c65b734"></script>
-<script src="js/fav.js?v=0c65b734"></script>
-<script src="js/festas.js?v=0c65b734"></script>
-<script src="js/transporte.js?v=0c65b734"></script>
-<script src="js/rotacao.js?v=0c65b734"></script>
-<script src="js/menucraft.js?v=0c65b734"></script>
-<script src="js/compras.js?v=0c65b734"></script>
-<script src="js/live.js?v=0c65b734"></script>
-<script src="js/main.js?v=0c65b734"></script>
+<script src="js/icons.js?v=79f1e2ae"></script>
+<script src="js/base.js?v=79f1e2ae"></script>
+<script src="js/precos.js?v=79f1e2ae"></script>
+<script src="js/fx.js?v=79f1e2ae"></script>
+<script src="js/biz.js?v=79f1e2ae"></script>
+<script src="js/builds.js?v=79f1e2ae"></script>
+<script src="js/nossas.js?v=79f1e2ae"></script>
+<script src="js/ip.js?v=79f1e2ae"></script>
+<script src="js/zvz.js?v=79f1e2ae"></script>
+<script src="js/pvp.js?v=79f1e2ae"></script>
+<script src="js/novos.js?v=79f1e2ae"></script>
+<script src="js/guia.js?v=79f1e2ae"></script>
+<script src="js/ui.js?v=79f1e2ae"></script>
+<script src="js/avalon.js?v=79f1e2ae"></script>
+<script src="js/oficina.js?v=79f1e2ae"></script>
+<script src="js/patch.js?v=79f1e2ae"></script>
+<script src="js/versao.js?v=79f1e2ae"></script>
+<script src="js/bag.js?v=79f1e2ae"></script>
+<script src="js/plano.js?v=79f1e2ae"></script>
+<script src="js/pesca.js?v=79f1e2ae"></script>
+<script src="js/listfil.js?v=79f1e2ae"></script>
+<script src="js/fav.js?v=79f1e2ae"></script>
+<script src="js/festas.js?v=79f1e2ae"></script>
+<script src="js/transporte.js?v=79f1e2ae"></script>
+<script src="js/rotacao.js?v=79f1e2ae"></script>
+<script src="js/menucraft.js?v=79f1e2ae"></script>
+<script src="js/compras.js?v=79f1e2ae"></script>
+<script src="js/live.js?v=79f1e2ae"></script>
+<script src="js/main.js?v=79f1e2ae"></script>
 </body>
 </html>
