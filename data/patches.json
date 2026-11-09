@@ -1,0 +1,543 @@
+{
+ "atualizado": "2026-11-09",
+ "fonte_nome": "Notas oficiais de patch do Albion Online (fórum oficial)",
+ "patches": [
+  {
+   "id": "dragonfire-patch-4",
+   "titulo": "Dragonfire Patch 4",
+   "versao": "32.040.1",
+   "data": "2026-11-02",
+   "resumo": "Equilíbrio de combate (14 buffs e 2 nerfs), mais Firewing Drake Eggs nos tiers altos do Dragon Sanctuary e atalhos com botões do mouse.",
+   "links": {
+    "geral": "https://forum.albiononline.com/index.php/Thread/225605",
+    "combate": "https://forum.albiononline.com/index.php/Thread/225606",
+    "oficial": "https://albiononline.com/changelog"
+   },
+   "balance": [
+    {
+     "cat": "Machados",
+     "itens": [
+      {
+       "item": "Infernal Scythe",
+       "hab": "Bloody Reap",
+       "tipo": "buff",
+       "nota": "Os ticks de sangramento ficaram mais rápidos e, com um tick a mais, a duração total aumentou um pouco. O dano por tick caiu, mas o dano total subiu bastante.",
+       "linhas": [
+        {
+         "r": "Ticks do 2º golpe",
+         "de": "3",
+         "para": "4 (a cada 1 s → a cada 0,75 s)"
+        },
+        {
+         "r": "Duração total do sangramento do 2º golpe",
+         "de": "2 s",
+         "para": "2,25 s"
+        },
+        {
+         "r": "Dano total do 2º golpe, alvos acima de 40%",
+         "de": "141",
+         "para": "168"
+        },
+        {
+         "r": "Dano total do 2º golpe, alvos abaixo de 40%",
+         "de": "255",
+         "para": "296"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Martelos",
+     "itens": [
+      {
+       "item": "Grovekeeper",
+       "hab": "Ground Pound",
+       "tipo": "buff",
+       "nota": "O tempo de conjuração caiu bastante: a habilidade responde melhor e fica menos telegrafada.",
+       "linhas": [
+        {
+         "r": "Tempo de conjuração",
+         "de": "0,4 s",
+         "para": "0,2 s"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Cajados sagrados",
+     "itens": [
+      {
+       "item": "Divine Staff",
+       "hab": "Divine Protection",
+       "tipo": "buff",
+       "nota": "O escudo ficou maior: absorve mais dano de burst e dura mais vezes para o combo de cura em área.",
+       "linhas": [
+        {
+         "r": "Escudo",
+         "de": "456,3",
+         "para": "500"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Maças",
+     "itens": [
+      {
+       "item": "Dreadstorm Monarch",
+       "hab": "Eye of the Storm",
+       "tipo": "buff",
+       "nota": "Faltava o escalonamento por área no pierce da aura (no dano ele já existia); agora foi adicionado.",
+       "linhas": [
+        {
+         "r": "Escalonamento por área no pierce",
+         "texto": "adicionado (sem valores numéricos)"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Bastões",
+     "itens": [
+      {
+       "item": "Todos os Quarterstaffs",
+       "hab": "Concussive Combo",
+       "tipo": "buff",
+       "ic": "2H_QUARTERSTAFF",
+       "nota": "O combo ganhou lentidão acumulável nas duas primeiras habilidades, para firmar o papel de opção de controle para Quarterstaffs de suporte e tanque.",
+       "linhas": [
+        {
+         "r": "1º e 2º golpes agora também causam lentidão",
+         "texto": "8% por 3 s (acumula até 2 vezes)"
+        },
+        {
+         "r": "Tempo parado",
+         "de": "0,3 s",
+         "para": "0,25 s"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Cajados de metamorfo",
+     "itens": [
+      {
+       "item": "Prowling Staff",
+       "hab": "Sinister Swipes",
+       "tipo": "buff",
+       "nota": "O teto de dano da execução contra mobs impedia trapacear chefes, mas era restritivo demais. Foi aumentado bastante para melhorar o PvE.",
+       "linhas": [
+        {
+         "r": "Dano máximo da execução contra mobs",
+         "de": "150",
+         "para": "300"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Espadas",
+     "itens": [
+      {
+       "item": "Claymore",
+       "hab": "Charge",
+       "tipo": "buff",
+       "nota": "O dano ao atravessar alvos subiu: quem alinha o espeto completo agora é recompensado.",
+       "linhas": [
+        {
+         "r": "Dano ao atravessar",
+         "de": "66%",
+         "para": "100%"
+        }
+       ]
+      },
+      {
+       "item": "Kingmaker",
+       "hab": "Majestic Smash",
+       "tipo": "buff",
+       "nota": "O dano da aura de inspiração subiu para premiar o jogo habilidoso, desde que os aliados aproveitem.",
+       "linhas": [
+        {
+         "r": "Dano bônus da aura",
+         "de": "20%",
+         "para": "30%"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Secundárias",
+     "itens": [
+      {
+       "item": "Blueflame Torch",
+       "hab": "Atributos base",
+       "tipo": "nerf",
+       "nota": "Os valores base foram reduzidos para ficar no nível da Muisak. A penalidade de energia e a redução de CCR são parecidas, com ferramentas parecidas para mitigar. A Blueflame ainda chega a um Item Power máximo um pouco acima.",
+       "linhas": [
+        {
+         "r": "Dano e cura bônus",
+         "de": "0,0177",
+         "para": "0,0161"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Elmos",
+     "itens": [
+      {
+       "item": "Demon Helmet",
+       "hab": "Hush",
+       "tipo": "buff",
+       "nota": "O tempo de recarga caiu para favorecer o uso como interrupção ou peça de combo (agora igual ao do Deathward Climax, por exemplo).",
+       "linhas": [
+        {
+         "r": "Recarga",
+         "de": "25 s",
+         "para": "20 s"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Botas",
+     "itens": [
+      {
+       "item": "Graveguard Boots",
+       "hab": "Battle Frenzy",
+       "tipo": "buff",
+       "nota": "Dura mais, aumentando a duração das imunidades a CC e a distância percorrida, para usar contra composições com muito CC.",
+       "linhas": [
+        {
+         "r": "Duração",
+         "de": "5 s",
+         "para": "6 s"
+        }
+       ]
+      },
+      {
+       "item": "Cultist Sandals",
+       "hab": "Rotten Ground",
+       "tipo": "buff",
+       "nota": "Foi adicionado o escalonamento por área que faltava.",
+       "linhas": [
+        {
+         "r": "Escalonamento por área",
+         "texto": "adicionado"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Poções",
+     "itens": [
+      {
+       "item": "Healing Potion",
+       "hab": "Cura (em % da vida)",
+       "tipo": "nerf",
+       "ic": "T6_POTION_HEAL",
+       "nome": "Poção de Cura",
+       "nota": "A cura caiu em todos os tiers, mais nos altos. Ela estava alta demais por causa do aumento da vida base, das armas Despertas, do Item Power máximo maior e da Smuggler Cape; com builds defensivas tudo isso se somava. As poções continuam fortes, mas builds solo totalmente defensivas ficam um pouco menos duráveis.",
+       "linhas": [
+        {
+         "r": "500 IP",
+         "de": "7%",
+         "para": "6%"
+        },
+        {
+         "r": "600 IP",
+         "de": "10%",
+         "para": "9%"
+        },
+        {
+         "r": "700 IP",
+         "de": "13%",
+         "para": "12%"
+        },
+        {
+         "r": "800 IP",
+         "de": "16%",
+         "para": "14%"
+        },
+        {
+         "r": "900 IP",
+         "de": "18%",
+         "para": "16%"
+        },
+        {
+         "r": "1000 IP",
+         "de": "20%",
+         "para": "18%"
+        },
+        {
+         "r": "1100 IP",
+         "de": "22%",
+         "para": "19,5%"
+        },
+        {
+         "r": "1200 IP",
+         "de": "24%",
+         "para": "21%"
+        }
+       ]
+      },
+      {
+       "item": "Lifeward Potion",
+       "hab": "Alcance",
+       "tipo": "buff",
+       "ic": "T7_POTION_REVIVE",
+       "nota": "O alcance máximo aumentou bastante, para suportes à distância usarem melhor em PvP de grupo.",
+       "linhas": [
+        {
+         "r": "Alcance",
+         "de": "11 m",
+         "para": "14 m"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Montarias",
+     "itens": [
+      {
+       "item": "Bighorn Ram e Elite Bighorn Ram",
+       "hab": "Charged Gallop",
+       "tipo": "buff",
+       "ic": "T8_MOUNT_RAM_FW_MARTLOCK_ELITE",
+       "nota": "A passiva ganhou um acúmulo extra: sem interrupção por 12 segundos, a velocidade sobe bastante.",
+       "linhas": [
+        {
+         "r": "Bônus de velocidade por acúmulo",
+         "de": "15%",
+         "para": "10%"
+        },
+        {
+         "r": "Acúmulos (bônus máximo de 15% → 20%)",
+         "texto": "agora acumula até 2 vezes"
+        }
+       ]
+      },
+      {
+       "item": "Saddled Direbear",
+       "hab": "Rush (passiva nova)",
+       "tipo": "buff",
+       "ic": "T8_MOUNT_DIREBEAR",
+       "nota": "Direbears sempre foram caros demais para valer a pena. A mudança melhora a função básica da montaria.",
+       "linhas": [
+        {
+         "r": "Velocidade base",
+         "de": "50%",
+         "para": "85%"
+        },
+        {
+         "r": "Velocidade no galope",
+         "de": "90%",
+         "para": "85%"
+        },
+        {
+         "r": "Rush: levar dano aumenta a velocidade",
+         "texto": "+40% por 4 s, recarga de 8 s"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "secoes": [
+    {
+     "id": "dragon",
+     "titulo": "Dragon Sanctuary",
+     "intro": "Depois de observar os drops no Dragon Sanctuary, a Sandbox ajustou o Firewing Drake Egg. A chance total subiu cerca de 40%, mas a distribuição foi puxada para os tiers altos, para que a forma mais eficiente de conseguir um seja jogar em dificuldade maior. Só os ovos mudaram; o resto do loot continua igual.",
+     "tabela": {
+      "cab": [
+       "Tier do dragão",
+       "Chance do Firewing Drake Egg"
+      ],
+      "linhas": [
+       [
+        "Tier 6",
+        "▼ cerca de 66% menor"
+       ],
+       [
+        "Tier 7",
+        "= sem mudança"
+       ],
+       [
+        "Tier 8",
+        "▲ cerca de 300% maior"
+       ]
+      ]
+     },
+     "itens": [
+      [
+       "▲",
+       "Marcadores de seta no Dragon Sanctuary ficaram mais legíveis e visíveis."
+      ],
+      [
+       "▲",
+       "Claw Swipe do Azaryon ganhou uma descrição extra do debuff, e as descrições passam a durar 6 s (eram 3 s)."
+      ]
+     ]
+    },
+    {
+     "id": "mobs",
+     "titulo": "Mobs",
+     "itens": [
+      [
+       "▲",
+       "Spirit Weaver: Drowsy Essence tem 1,5 s de atraso para acertar e agora mostra as áreas."
+      ],
+      [
+       "▲",
+       "Spirit Weaver: sono no Dragon Sanctuary 2 s → 4 s (Ancient Lands não muda)."
+      ],
+      [
+       "▼",
+       "Spirit Weaver: raio da esfera 1 m → 0,75 m."
+      ],
+      [
+       "▼",
+       "Vida de todos os chefes das Ancient Lands grandes: 40% menor."
+      ],
+      [
+       "▲",
+       "Mobs das Ancient Lands para grupos de 2 ou 3 jogadores: vida 10% maior."
+      ],
+      [
+       "!",
+       "O dano direto dos dragões não pode mais ser refletido."
+      ]
+     ]
+    },
+    {
+     "id": "atalhos",
+     "titulo": "Atalhos de teclado",
+     "itens": [
+      [
+       "!",
+       "Os botões do meio e laterais do mouse agora podem ser atribuídos."
+      ],
+      [
+       "!",
+       "Os atalhos passam a seguir a posição da tecla, não a letra: ao trocar o layout do teclado, eles ficam no mesmo lugar físico."
+      ],
+      [
+       "⇄",
+       "As posições dos perfis ativos devem ficar iguais, mas o padrão pode mudar em alguns layouts. Ao criar ou resetar um perfil, vale o padrão do teclado QWERTY americano (no Linux sempre se assume QWERTY)."
+      ]
+     ]
+    },
+    {
+     "id": "outros",
+     "titulo": "Outros",
+     "itens": [
+      [
+       "▼",
+       "Loot dos baús das Ancient Lands para grupos de 2 ou 3 jogadores: cerca de 10% menor."
+      ],
+      [
+       "!",
+       "Nova missão do Diário de Albion, na categoria Exploração: “Ride a Firewing Drake”."
+      ],
+      [
+       "▲",
+       "Nós de especialização do Destiny Board foram polidos."
+      ],
+      [
+       "!",
+       "Os construtores de Albion ampliaram o Conqueror’s Hall."
+      ]
+     ]
+    }
+   ],
+   "fixes": [
+    {
+     "grupo": "Habilidades",
+     "itens": [
+      {
+       "t": "Blood Ritual (Demonfang): corrigido o alcance errado no quadro de atributos."
+      },
+      {
+       "t": "Flare (Dragonslayer Hood): corrigida a recarga errada na descrição."
+      },
+      {
+       "t": "Ballista Support Fire (Royal Helmet): corrigido o efeito visual de lentidão indevido nos alvos."
+      }
+     ]
+    },
+    {
+     "grupo": "Outros",
+     "itens": [
+      {
+       "p": "MOBILE",
+       "t": "Inspecionar equipamento no inventário podia equipar ou desequipar itens sem querer."
+      },
+      {
+       "p": "MOBILE",
+       "t": "Marcar o minimapa podia abrir o Mapa da Região."
+      },
+      {
+       "p": "MOBILE",
+       "t": "Toques simples podiam ser lidos como toques duplos."
+      },
+      {
+       "p": "MOBILE",
+       "t": "Não era possível coletar nos Aspects do Old White."
+      },
+      {
+       "p": "iOS",
+       "t": "O áudio sumia ao minimizar e voltar ao app."
+      },
+      {
+       "p": "CONTROLLER",
+       "t": "A opção “Open Chat” não funcionava quando o personagem estava caído."
+      }
+     ]
+    }
+   ],
+   "curado": true,
+   "idioma": "pt"
+  },
+  {
+   "id": "dragonfire-patch-3",
+   "titulo": "Dragonfire Patch 3",
+   "data": "2026-10-12",
+   "resumo": "Balanceamento de armas e ajustes nas Ancient Lands.",
+   "anterior": [
+    [
+     "Evento",
+     "+15% de fama e loot por 7 dias, até ~19/10."
+    ],
+    [
+     "Ancient Lands",
+     "Portais pequenos da zona amarela aparecem mais, abrem antes e duram mais, mas pagam 30% menos. Portais grandes surgem 50% mais e o baú do Fire Drake melhorou. Monstros com menos vida e dano."
+    ],
+    [
+     "Dragões",
+     "No mundo aberto, só recuperam vida até o último marco de 20% e dão 150% mais Might. Luta da Maeve ficou mais tolerante."
+    ],
+    [
+     "Buffs",
+     "Twin Slayers (Ring of Death 36, era 27, área dobrada), espadas (Heroic Strike 4 s, era 3,5 s), adagas (Bloodthirsty Blade 2,5%, era 4%), Great Fire Staff, Stillgaze Staff, Hellfire Hands, Mage Cowl, Dragonslayer Hood, Mage Robe (Purging Shield 30 s, era 35 s)."
+    ],
+    [
+     "Nerfs",
+     "Bestas (Explosive Bolt 119, era 130), Rotcaller (35 s, era 30 s), Flamewalker (45 s, era 40 s), Holy Staffs (Smite em PvP 115, era 136), Quarterstaffs (Cartwheel 7 de energia, era 5), Phantom Twinblade, metamorfos (Tether Shift 16 de energia, escudo 88), Cowl of Purity (18 m, era 21 m), Armor of Valor (Requite 21, era 27)."
+    ]
+   ],
+   "curado": true,
+   "idioma": "pt"
+  }
+ ]
+}

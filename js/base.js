@@ -907,7 +907,7 @@ function renderHero(){
 /* ================= nomes em português ou inglês ================= */
 let LANG = store.get("lang")||"pt";
 function expandAlts(g){ const alts=g.split(/\s+ou\s+/).map(a=>a.trim()), last=alts[alts.length-1].split(" ").pop(); return alts.map(a=>(!/\s/.test(a)&&alts.length>1)?`${a} ${last}`:a); }
-const FOOD_PT = [[/Deadwater Eel Stew|Eel Stew/g,"Guisado de Enguia"],[/Roasted Puremist Snapper|Puremist Snapper/g,"Pargo Neblina-pura"],[/Beef Sandwich/g,"Sanduíche de Carne"],[/Beef Stew/g,"Guisado de Carne"],[/Pork Omelette/g,"Omelete de Porco"],[/Omelette/g,"Omelete"],[/Roast Pork/g,"Porco Assado"],[/\bPork\b/g,"Porco Assado"],[/\bStew\b/g,"Guisado"],[/Gigantify/g,"Crescimento"]];
+const FOOD_PT = [[/Deadwater Eel Stew|Eel Stew/g,"Guisado de Enguia de Água-podre"],[/Roasted Puremist Snapper|Puremist Snapper/g,"Pargo Neblina-pura Assado"],[/Beef Sandwich/g,"Sanduíche de Carne"],[/Beef Stew/g,"Guisado de Carne"],[/Pork Omelette/g,"Omelete de Porco"],[/Omelette/g,"Omelete de Porco"],[/Roast Pork/g,"Porco Assado"],[/\bPork\b/g,"Porco Assado"],[/\bStew\b/g,"Guisado de Carne"],[/Gigantify/g,"Poção de Crescimento"]]; /* nomes iguais aos do jogo (1.32.040): T8 Guisado de Enguia de Água-podre, T7 Pargo Neblina-pura Assado, T7 Omelete de Porco, T7 Porco Assado, T8 Guisado de Carne, poção T6/T7 de Crescimento */
 function nm(en){ if(LANG==="en"||!GEAR||!en) return en; return expandAlts(en).map(a=>{ const k=gearKey(a); return k&&GEAR.p[k]?GEAR.p[k]:a; }).join(" ou "); }
 const nmKey = (k,en) => LANG==="pt"&&GEAR&&GEAR.p[k] ? GEAR.p[k] : en;
 const nmFood = f => (LANG==="en"||!f) ? f : FOOD_PT.reduce((s,[rx,pt])=>s.replace(rx,pt),f);
