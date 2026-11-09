@@ -1,6 +1,13 @@
 {
  "itens": [
   {
+   "t": "2026-11-09T23:10:00Z",
+   "titulo": "Encantar não recarrega mais sozinha",
+   "itens": [
+    "A atualização automática de preços (a cada 10 minutos) esvaziava a aba Encantar e consultava tudo de novo, o que parecia a aba carregar duas vezes e bagunçar a tabela. Agora ela mantém os dados já carregados (a consulta completa só se repete pelo botão Atualizar preços ou depois de 40 minutos), não apaga a tabela enquanto atualiza e mantém aberta a linha que você estava vendo, sem refazer a animação."
+   ]
+  },
+  {
    "t": "2026-11-09T17:10:00Z",
    "titulo": "Aba Patch: nomes de itens e habilidades em português",
    "itens": [

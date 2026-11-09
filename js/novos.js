@@ -87,11 +87,12 @@ async function renderEN(partial=false){
   setupEN(); const FAVON=!!(window.FAV&&FAV.on("encantar")); const g=$("enGroup").value, t=FAVON?0:enTierSel;
   const favG=FAVON?[...new Set(FAV.list("encantar").map(f=>f.c&&f.c.g).filter(Boolean))]:[];
   if(FAVON){ for(const gg of favG){ if(!EN_LOADED.has(gg)){ tb.textContent=""; note.textContent="Consultando os favoritos…"; const ok=await ensureEnch(gg); if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } } } }
-  else if(!partial&&!enLoaded(g,t)){ tb.textContent=""; const my=++EN_TOK, gone=()=>my!==EN_TOK||$("enGroup").value!==g||enTierSel!==t; const ok=await ensureEnch(g,t,gone,false,()=>renderEN(true)); if(gone()) return; if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } }
+  else if(!partial&&!enLoaded(g,t)){ if(!tb.rows.length) tb.textContent=""; const my=++EN_TOK, gone=()=>my!==EN_TOK||$("enGroup").value!==g||enTierSel!==t; const ok=await ensureEnch(g,t,gone,false,()=>renderEN(true)); if(gone()) return; if(!ok){ note.textContent="Não consegui consultar os preços agora."; return; } }
   if(!partial) EN_TOK++;
   const rows=[]; if(FAVON){ const keep=new Set(FAV.list("encantar").map(f=>f.k)); for(const gg of favG) for(const k of bmKeys(gg)) for(const tt of [4,5,6,7,8]) for(const e of [1,2,3]){ if(!keep.has(`${k}|${tt}|${e}`)) continue; const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); } }
   else for(const k of bmKeys(g)) for(const tt of (t?[t]:[4,5,6,7,8])) for(const e of [1,2,3]){ const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); }
   rows.sort((a,b)=>((b.save??-1e15)-(a.save??-1e15)));
+  const hadRows=tb.rows.length>1, openKeys=new Set([...tb.querySelectorAll("tr.open")].map(x=>x.dataset.fav)), sy=window.scrollY;
   tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Peça","Passo","Custo final","Economia"].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
   for(const m of rows.slice(0,FAVON?rows.length:(t?40:80))){ const tr=body.insertRow(); tr.dataset.fav=`${m.key}|${m.t}|${m.e}`; tr.dataset.fctx=JSON.stringify({g:BM[m.key][1]}); tr.tabIndex=0; tr.className="clickrow"; tr.insertCell().append(withIcon(bmId(m.key,m.t,m.e),`${nmKey(m.key,m.name)} T${m.t}`)); { const sc=tr.insertCell(); sc.append(withIcon(bmId(m.key,m.t,m.e-1),`.${m.e-1} → .${m.e}`)); }
@@ -100,11 +101,12 @@ async function renderEN(partial=false){
     const dr=document.createElement("tr"); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dc.colSpan=4; dr.append(dc); tr.after(dr);
     const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open));
       if(open){ dc.textContent=""; try{ dc.append(enPanel(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes: "+(e&&e.message||e)})); } setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8) dr.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"}); }catch(e){} },60); } };
-    tr.setAttribute("aria-expanded","false"); tr.addEventListener("click",toggle); tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } }); }
+    tr.setAttribute("aria-expanded","false"); if(openKeys.has(tr.dataset.fav)) toggle(); tr.addEventListener("click",toggle); tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } }); }
   { const w=tb.parentNode; if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }
   const pos=rows.filter(m=>m.save>0).length;
   note.textContent=rows.length?`${pos} de ${rows.length} passos saem mais baratos encantando${t?` em T${t}`:" (todos os tiers)"}. ${rows.length>(t?40:80)?` Mostrando as ${t?40:80} de maior economia de ${fmt(rows.length)} registros: não são todos.`:""} Peça de base pela opção mais barata entre comprar e fabricar sem foco; o material pela mediana das cidades. Clique numa linha para ver a conta.`:`Sem preços suficientes${t?` em T${t}`:""} para comparar.`;
-  if(window.gsap&&!RM) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
+  if(hadRows&&Math.abs(window.scrollY-sy)>4) window.scrollTo(0,sy);
+  if(window.gsap&&!RM&&!hadRows) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
 }
 
 /* ================= ilha e fazenda ================= */
