@@ -245,7 +245,7 @@
        "item": "Healing Potion",
        "hab": "Cura (em % da vida)",
        "tipo": "nerf",
-       "ic": "T6_POTION_HEAL",
+       "ic": "T4_POTION_HEAL",
        "nome": "Poção de Cura",
        "nota": "A cura caiu em todos os tiers, mais nos altos. Ela estava alta demais por causa do aumento da vida base, das armas Despertas, do Item Power máximo maior e da Smuggler Cape; com builds defensivas tudo isso se somava. As poções continuam fortes, mas builds solo totalmente defensivas ficam um pouco menos duráveis.",
        "linhas": [
@@ -295,7 +295,7 @@
        "item": "Lifeward Potion",
        "hab": "Alcance",
        "tipo": "buff",
-       "ic": "T7_POTION_REVIVE",
+       "ic": "T6_POTION_LIFEWARD",
        "nota": "O alcance máximo aumentou bastante, para suportes à distância usarem melhor em PvP de grupo.",
        "linhas": [
         {
