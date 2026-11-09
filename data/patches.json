@@ -7,7 +7,7 @@
    "titulo": "Dragonfire Patch 4",
    "versao": "32.040.1",
    "data": "2026-11-02",
-   "resumo": "Equilíbrio de combate (14 buffs e 2 nerfs), mais Firewing Drake Eggs nos tiers altos do Dragon Sanctuary e atalhos com botões do mouse.",
+   "resumo": "Equilíbrio de combate (14 buffs e 2 nerfs), mais Ovos de Draco Asa de Fogo nos tiers altos do Santuário dos Dragões e atalhos com botões do mouse.",
    "links": {
     "geral": "https://forum.albiononline.com/index.php/Thread/225605",
     "combate": "https://forum.albiononline.com/index.php/Thread/225606",
@@ -104,11 +104,11 @@
      "cat": "Bastões",
      "itens": [
       {
-       "item": "Todos os Quarterstaffs",
+       "item": "Todos os Bordões",
        "hab": "Concussive Combo",
        "tipo": "buff",
        "ic": "2H_QUARTERSTAFF",
-       "nota": "O combo ganhou lentidão acumulável nas duas primeiras habilidades, para firmar o papel de opção de controle para Quarterstaffs de suporte e tanque.",
+       "nota": "O combo ganhou lentidão acumulável nas duas primeiras habilidades, para firmar o papel de opção de controle para Bordões de suporte e tanque.",
        "linhas": [
         {
          "r": "1º e 2º golpes agora também causam lentidão",
@@ -179,7 +179,7 @@
        "item": "Blueflame Torch",
        "hab": "Atributos base",
        "tipo": "nerf",
-       "nota": "Os valores base foram reduzidos para ficar no nível da Muisak. A penalidade de energia e a redução de CCR são parecidas, com ferramentas parecidas para mitigar. A Blueflame ainda chega a um Item Power máximo um pouco acima.",
+       "nota": "Os valores base foram reduzidos para ficar no nível da Muisec. A penalidade de energia e a redução de CCR são parecidas, com ferramentas parecidas para mitigar. A Tocha Chama Azul ainda chega a um Item Power máximo um pouco acima.",
        "linhas": [
         {
          "r": "Dano e cura bônus",
@@ -197,7 +197,7 @@
        "item": "Demon Helmet",
        "hab": "Hush",
        "tipo": "buff",
-       "nota": "O tempo de recarga caiu para favorecer o uso como interrupção ou peça de combo (agora igual ao do Deathward Climax, por exemplo).",
+       "nota": "O tempo de recarga caiu para favorecer o uso como interrupção ou peça de combo (agora igual ao do Clímax Mortífero, por exemplo).",
        "linhas": [
         {
          "r": "Recarga",
@@ -326,14 +326,15 @@
          "r": "Acúmulos (bônus máximo de 15% → 20%)",
          "texto": "agora acumula até 2 vezes"
         }
-       ]
+       ],
+       "nome": "Carneiro Selvagem e Carneiro Selvagem de Elite"
       },
       {
        "item": "Saddled Direbear",
        "hab": "Rush (passiva nova)",
        "tipo": "buff",
        "ic": "T8_MOUNT_DIREBEAR",
-       "nota": "Direbears sempre foram caros demais para valer a pena. A mudança melhora a função básica da montaria.",
+       "nota": "Ursos-vis sempre foram caros demais para valer a pena. A mudança melhora a função básica da montaria.",
        "linhas": [
         {
          "r": "Velocidade base",
@@ -357,12 +358,12 @@
    "secoes": [
     {
      "id": "dragon",
-     "titulo": "Dragon Sanctuary",
-     "intro": "Depois de observar os drops no Dragon Sanctuary, a Sandbox ajustou o Firewing Drake Egg. A chance total subiu cerca de 40%, mas a distribuição foi puxada para os tiers altos, para que a forma mais eficiente de conseguir um seja jogar em dificuldade maior. Só os ovos mudaram; o resto do loot continua igual.",
+     "titulo": "Santuário dos Dragões",
+     "intro": "Depois de observar os drops no Santuário dos Dragões, a Sandbox ajustou o Ovo de Draco Asa de Fogo. A chance total subiu cerca de 40%, mas a distribuição foi puxada para os tiers altos, para que a forma mais eficiente de conseguir um seja jogar em dificuldade maior. Só os ovos mudaram; o resto do loot continua igual.",
      "tabela": {
       "cab": [
        "Tier do dragão",
-       "Chance do Firewing Drake Egg"
+       "Chance do Ovo de Draco Asa de Fogo"
       ],
       "linhas": [
        [
@@ -382,11 +383,11 @@
      "itens": [
       [
        "▲",
-       "Marcadores de seta no Dragon Sanctuary ficaram mais legíveis e visíveis."
+       "Marcadores de seta no Santuário dos Dragões ficaram mais legíveis e visíveis."
       ],
       [
        "▲",
-       "Claw Swipe do Azaryon ganhou uma descrição extra do debuff, e as descrições passam a durar 6 s (eram 3 s)."
+       "Golpe de Garra do Azaryon ganhou uma descrição extra do debuff, e as descrições passam a durar 6 s (eram 3 s)."
       ]
      ]
     },
@@ -396,23 +397,23 @@
      "itens": [
       [
        "▲",
-       "Spirit Weaver: Drowsy Essence tem 1,5 s de atraso para acertar e agora mostra as áreas."
+       "Condutora de Espíritos: Essência Sonolenta tem 1,5 s de atraso para acertar e agora mostra as áreas."
       ],
       [
        "▲",
-       "Spirit Weaver: sono no Dragon Sanctuary 2 s → 4 s (Ancient Lands não muda)."
+       "Condutora de Espíritos: sono no Santuário dos Dragões 2 s → 4 s (Terras Ancestrais não muda)."
       ],
       [
        "▼",
-       "Spirit Weaver: raio da esfera 1 m → 0,75 m."
+       "Condutora de Espíritos: raio da esfera 1 m → 0,75 m."
       ],
       [
        "▼",
-       "Vida de todos os chefes das Ancient Lands grandes: 40% menor."
+       "Vida de todos os chefes das Terras Ancestrais grandes: 40% menor."
       ],
       [
        "▲",
-       "Mobs das Ancient Lands para grupos de 2 ou 3 jogadores: vida 10% maior."
+       "Mobs das Terras Ancestrais para grupos de 2 ou 3 jogadores: vida 10% maior."
       ],
       [
        "!",
@@ -444,15 +445,15 @@
      "itens": [
       [
        "▼",
-       "Loot dos baús das Ancient Lands para grupos de 2 ou 3 jogadores: cerca de 10% menor."
+       "Loot dos baús das Terras Ancestrais para grupos de 2 ou 3 jogadores: cerca de 10% menor."
       ],
       [
        "!",
-       "Nova missão do Diário de Albion, na categoria Exploração: “Ride a Firewing Drake”."
+       "Nova missão do Diário de Albion, na categoria Exploração: “Ande em um Draco Asa de Fogo”."
       ],
       [
        "▲",
-       "Nós de especialização do Destiny Board foram polidos."
+       "Nós de especialização do Painel do Destino foram polidos."
       ],
       [
        "!",
@@ -466,13 +467,13 @@
      "grupo": "Habilidades",
      "itens": [
       {
-       "t": "Blood Ritual (Demonfang): corrigido o alcance errado no quadro de atributos."
+       "t": "Ritual de Sangue (Presa Demoníaca): corrigido o alcance errado no quadro de atributos."
       },
       {
-       "t": "Flare (Dragonslayer Hood): corrigida a recarga errada na descrição."
+       "t": "Labareda (Capuz Mata-dragões): corrigida a recarga errada na descrição."
       },
       {
-       "t": "Ballista Support Fire (Royal Helmet): corrigido o efeito visual de lentidão indevido nos alvos."
+       "t": "Fogo de Assistência de Balista (Elmo Real): corrigido o efeito visual de lentidão indevido nos alvos."
       }
      ]
     },
@@ -493,7 +494,7 @@
       },
       {
        "p": "MOBILE",
-       "t": "Não era possível coletar nos Aspects do Old White."
+       "t": "Não era possível coletar nos Aspectos de Velho Branco."
       },
       {
        "p": "iOS",
@@ -501,7 +502,7 @@
       },
       {
        "p": "CONTROLLER",
-       "t": "A opção “Open Chat” não funcionava quando o personagem estava caído."
+       "t": "A opção “Abrir bate-papo” não funcionava quando o personagem estava caído."
       }
      ]
     }
@@ -513,15 +514,15 @@
    "id": "dragonfire-patch-3",
    "titulo": "Dragonfire Patch 3",
    "data": "2026-10-12",
-   "resumo": "Balanceamento de armas e ajustes nas Ancient Lands.",
+   "resumo": "Balanceamento de armas e ajustes nas Terras Ancestrais.",
    "anterior": [
     [
      "Evento",
      "+15% de fama e loot por 7 dias, até ~19/10."
     ],
     [
-     "Ancient Lands",
-     "Portais pequenos da zona amarela aparecem mais, abrem antes e duram mais, mas pagam 30% menos. Portais grandes surgem 50% mais e o baú do Fire Drake melhorou. Monstros com menos vida e dano."
+     "Terras Ancestrais",
+     "Portais pequenos da zona amarela aparecem mais, abrem antes e duram mais, mas pagam 30% menos. Portais grandes surgem 50% mais e o baú do Draco de Fogo melhorou. Monstros com menos vida e dano."
     ],
     [
      "Dragões",
@@ -529,11 +530,11 @@
     ],
     [
      "Buffs",
-     "Twin Slayers (Ring of Death 36, era 27, área dobrada), espadas (Heroic Strike 4 s, era 3,5 s), adagas (Bloodthirsty Blade 2,5%, era 4%), Great Fire Staff, Stillgaze Staff, Hellfire Hands, Mage Cowl, Dragonslayer Hood, Mage Robe (Purging Shield 30 s, era 35 s)."
+     "Gêmeas Aniquiladoras (Círculo da Morte 36, era 27, área dobrada), espadas (Golpe Heroico 4 s, era 3,5 s), adagas (Lâmina Sanguinária 2,5%, era 4%), Cajado de Fogo Elevado, Cajado Petrificante, Mãos Infernais, Capote de Mago, Capuz Mata-dragões, Robe de Mago (Escudo Expurgador 30 s, era 35 s)."
     ],
     [
      "Nerfs",
-     "Bestas (Explosive Bolt 119, era 130), Rotcaller (35 s, era 30 s), Flamewalker (45 s, era 40 s), Holy Staffs (Smite em PvP 115, era 136), Quarterstaffs (Cartwheel 7 de energia, era 5), Phantom Twinblade, metamorfos (Tether Shift 16 de energia, escudo 88), Cowl of Purity (18 m, era 21 m), Armor of Valor (Requite 21, era 27)."
+     "Bestas (Virote Explosivo 119, era 130), Cajado Pútrido (35 s, era 30 s), Cajado do Andarilho Flamejante (45 s, era 40 s), Cajados Sagrados (Punição em PvP 115, era 136), Bordões (Salto Mortal 7 de energia, era 5), Lâminas Gêmeas Fantasmagóricas, metamorfos (Ligação Deslocadora 16 de energia, escudo 88), Capote da Pureza (18 m, era 21 m), Armadura da Bravura (Recompensar 21, era 27)."
     ]
    ],
    "curado": true,

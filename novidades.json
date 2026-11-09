@@ -1,6 +1,13 @@
 {
  "itens": [
   {
+   "t": "2026-11-09T17:10:00Z",
+   "titulo": "Aba Patch: nomes de itens e habilidades em português",
+   "itens": [
+    "Itens, habilidades e outros nomes da aba Patch agora aparecem com o nome oficial em português do jogo (por exemplo Urso-vil Selado, Impulso e Santuário dos Dragões), inclusive nas atualizações automáticas diárias."
+   ]
+  },
+  {
    "t": "2026-11-09T13:27:00Z",
    "titulo": "Aba Patch no formato das notas oficiais: Dragonfire Patch 4",
    "itens": [
