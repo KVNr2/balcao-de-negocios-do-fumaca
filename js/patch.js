@@ -11,7 +11,13 @@ function ptIcone(it){ let id=it.ic||null;
   if(!id){ try{ const k=GEAR&&typeof gearKey==="function"?gearKey(it.item):null; if(k) id="T8_"+k; }catch(e){} }
   if(!id) return null;
   const im=el("img",{class:"pt-ic",src:`icons/${id}.webp`,alt:"",loading:"lazy",width:"48",height:"48"}); im.addEventListener("error",()=>{ im.style.visibility="hidden"; }); return im; }
-function ptNome(it){ if(it.nome) return it.nome; try{ const k=GEAR&&typeof gearKey==="function"?gearKey(it.item):null; if(k&&GEAR.p&&GEAR.p[k]) return GEAR.p[k]; }catch(e){} return it.item; }
+let PT_NOMES=null; /* data/nomes-ptbr.json: nomes oficiais do jogo (i: itens, h: habilidades), inglês → português */
+function ptUm(n){ n=(n||"").trim(); if(!n) return n; const d=PT_NOMES&&PT_NOMES.i; if(d&&d[n]) return d[n];
+  const m=n.match(/^(?:Todos os|Todas as|All)\s+(.+?)s?$/); if(m&&d&&d[m[1]]) return "Todos os "+d[m[1]];
+  try{ const k=GEAR&&typeof gearKey==="function"?gearKey(n):null; if(k&&GEAR.p&&GEAR.p[k]) return GEAR.p[k]; }catch(e){} return n; }
+function ptTrad(txt){ return (txt||"").split(/( e | and |, | \/ )/).map((t,i)=>i%2?t:ptUm(t)).join(""); }
+function ptNome(it){ return it.nome||ptTrad(it.item); }
+function ptHab(it){ const h=it.hab||""; if(!h||it.hab_pt) return it.hab_pt||h; const m=h.match(/^(.*?)(\s*\([^)]*\))?$/), b=(m&&m[1]||h).trim(), x=m&&m[2]||"", d=PT_NOMES&&PT_NOMES.h; return d&&d[b]?d[b]+x:h; }
 const ptEl=(tag,props,kids)=>el(tag,props,...(kids||[]));
 const PT_TIPO={buff:"Buff",nerf:"Nerf",mudou:"Mudou"};
 function ptLinha(l){ const row=el("div",{class:"pt-row"}); row.append(el("span",{class:"pt-r",text:l.r}));
@@ -21,13 +27,13 @@ function ptLinha(l){ const row=el("div",{class:"pt-row"}); row.append(el("span",
   row.append(v); return row; }
 function ptCard(it,idx,cat){ const c=el("article",{class:"pt-card "+it.tipo,id:`pt-${idx}`}); c.dataset.tipo=it.tipo;
   const h=el("header",{class:"pt-ch"}); const ic=ptIcone(it); if(ic) h.append(ic);
-  const t=el("div",{class:"pt-ct"}); if(cat) t.append(el("small",{class:"pt-kick",text:cat})); t.append(el("b",{text:ptNome(it)}),el("small",{text:it.hab||""})); h.append(t,el("span",{class:"pt-badge "+it.tipo,text:PT_TIPO[it.tipo]||it.tipo,title:it.auto?"Classificação automática: pode errar":""})); c.append(h);
+  const t=el("div",{class:"pt-ct"}); if(cat) t.append(el("small",{class:"pt-kick",text:cat})); t.append(el("b",{text:ptNome(it)}),el("small",{text:ptHab(it)})); h.append(t,el("span",{class:"pt-badge "+it.tipo,text:PT_TIPO[it.tipo]||it.tipo,title:it.auto?"Classificação automática: pode errar":""})); c.append(h);
   (it.linhas||[]).forEach(l=>c.append(ptLinha(l)));
   if(it.nota) c.append(ptEl("p",{class:"pt-nota"},[el("b",{text:it.auto?"Nota dos devs (original) ":"Nota dos devs "}),document.createTextNode(it.nota)]));
   return c; }
 function ptCompacto(a){ const w=el("div",{class:"pt-comp"});
   if(a.idioma==="en") w.append(el("p",{class:"small muted",text:"Texto original em inglês, lido automaticamente do fórum oficial."}));
-  (a.balance||[]).forEach(g=>{ const ul=el("ul",{class:"pt-sim"}); g.itens.forEach(it=>{ const li=el("li"); li.append(el("span",{class:"pt-badge "+it.tipo,text:PT_TIPO[it.tipo]||it.tipo}),el("span",{text:`${ptNome(it)}${it.hab?" ("+it.hab+")":""}: `+(it.linhas||[]).map(l=>l.texto!=null?`${l.r}${l.texto?": "+l.texto:""}`:`${l.r}: ${l.de} → ${l.para}`).join("; ")})); ul.append(li); }); w.append(el("h4",{class:"pt-gh",text:g.cat}),ul); });
+  (a.balance||[]).forEach(g=>{ const ul=el("ul",{class:"pt-sim"}); g.itens.forEach(it=>{ const li=el("li"); li.append(el("span",{class:"pt-badge "+it.tipo,text:PT_TIPO[it.tipo]||it.tipo}),el("span",{text:`${ptNome(it)}${it.hab?" ("+ptHab(it)+")":""}: `+(it.linhas||[]).map(l=>l.texto!=null?`${l.r}${l.texto?": "+l.texto:""}`:`${l.r}: ${l.de} → ${l.para}`).join("; ")})); ul.append(li); }); w.append(el("h4",{class:"pt-gh",text:g.cat}),ul); });
   (a.secoes||[]).forEach(s=>{ w.append(el("h4",{class:"pt-gh",text:s.titulo})); const ul=el("ul",{class:"pt-sim"}); (s.itens||[]).forEach(([s1,tx])=>{ const li=el("li"); li.append(el("span",{class:"pt-s",text:s1,"aria-hidden":"true"}),el("span",{text:tx})); ul.append(li); }); w.append(ul); });
   (a.fixes||[]).forEach(g=>{ w.append(el("h4",{class:"pt-gh",text:"Correções: "+g.grupo})); const ul=el("ul",{class:"pt-sim"}); g.itens.forEach(x=>{ const li=el("li"); if(x.p) li.append(el("span",{class:"pt-plat",text:x.p})); li.append(el("span",{text:x.t})); ul.append(li); }); w.append(ul); });
   return w; }
@@ -71,6 +77,6 @@ function ptRender(){
 }
 async function renderPatch(){
   const box=$("patchBox"); if(!box) return;
-  if(!PATCHES){ box.textContent="Carregando as notas de patch…"; try{ const [pj]=await Promise.all([need("patches"),(GEAR?Promise.resolve():need("gear").then(g=>{ GEAR=g; }).catch(()=>{}))]); PATCHES=pj; }catch(e){ box.textContent="Não consegui carregar as notas de patch agora."; return; } }
+  if(!PATCHES){ box.textContent="Carregando as notas de patch…"; try{ const [pj]=await Promise.all([need("patches"),(PT_NOMES?Promise.resolve():need("nomes-ptbr").then(n=>{ PT_NOMES=n; }).catch(()=>{})),(GEAR?Promise.resolve():need("gear").then(g=>{ GEAR=g; }).catch(()=>{}))]); PATCHES=pj; }catch(e){ box.textContent="Não consegui carregar as notas de patch agora."; return; } }
   ptRender();
 }
