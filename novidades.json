@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-11-09T07:55:00Z",
+   "programa": "2.1.7",
+   "titulo": "Overlay: leitura do mapa de Avalon mais precisa",
+   "itens": [
+    "O atalho que lê o mapa de Avalon sob o mouse agora amplia a imagem 4x e a converte para preto sobre branco, o que deixa o texto do jogo bem mais legível para o OCR.",
+    "A comparação com os 400 mapas conhecidos trata i, l, I, 1 e | como a mesma letra e tolera até 30% de letras erradas, desde que o segundo mapa mais parecido fique mais longe.",
+    "Se a primeira leitura não achar nenhum mapa, o programa tenta outras duas, com cores e só com o branco forte; o caminho normal continua sendo uma leitura só."
+   ]
+  },
+  {
    "t": "2026-11-06T04:58:00Z",
    "programa": "2.1.6",
    "titulo": "Overlay: barra de opacidade refeita",
