@@ -458,7 +458,7 @@ async function fetchPaced(ids,itens,locs,anchorId,txt,q){
 /* pausa entre lotes: curta enquanto há folga na cota da API; deixa uma reserva para o que o usuário clicar no meio */
 /* grupos (opcional): [[ids,cidades,qualidade],…] do que vem a seguir. Se a varredura do banco cobre tudo, esse lote não gasta a cota da API
    e a pausa é só um respiro para a tela; se não cobre (T1–T3, cidade fora da lista, varredura velha, atualização manual), vale a espera de sempre. */
-async function nuvemCobre(ids,locs,q){ try{ if(FORCE||!ids||!ids.length) return false; if((locs||[]).some(c=>!VARR_CIDADES.has(c))) return false;
+async function nuvemCobre(ids,locs,q){ try{ if(!ids||!ids.length) return false; if((locs||[]).some(c=>!VARR_CIDADES.has(c))) return false;
   q=q||1; if(!(+q>=1&&+q<=5)) return false; if(!(await varrFresca())) return false; const set=await varrIds(); return ids.every(id=>set.has(id)); }catch(e){ return false; } }
 async function lpSpace(grupos){
   if(grupos&&grupos.length){ let ok=true; for(const [ids,locs,q] of grupos){ if(!(await nuvemCobre(ids,locs,q))){ ok=false; break; } } if(ok){ await lpSleep(30); return; } }
@@ -520,6 +520,7 @@ async function livepRedesenha(){
     const w=$("when"); if(w){ const nv=LIVEP.fonte==="nuvem"; w.textContent=(nv?"preço novo, ":"preço do jogo, ")+hh; $("whenBox").classList.remove("stale","off"); $("whenBox").title=nv?"Preço novo de outro jogador chegou à nuvem às "+hh+" (Albion Overlay), conferida a cada poucos segundos":"Preço novo lido do jogo às "+hh+" (Albion Overlay), aplicado na hora"; }
     const mud=LIVEP.mud; LIVEP.mud=new Set(); LIVEP.outros=false;
     if(vis("mk")){ if(mud.size) mkAtualizaLinhas(mud); }   /* Mercado: só as linhas e os valores que mudaram, sem redesenhar nem consultar a API */
+    else if(vis("encantar")&&typeof GEAR!=="undefined"&&GEAR){ await renderEN(); }   /* Encantar: só ele (troca os números que mudaram), sem recalcular as outras abas */
     else{
       if(["voce","craft","refino","mercado","fazenda","encantar"].some(vis)) recompute(false);
       if(vis("cozinha")) await renderCook(); if(vis("mapas")) renderMaps(); if(vis("trab")) await renderWK();
@@ -581,6 +582,12 @@ async function varrIds(){
     for(let e=0;e<=ne;e++) set.add(!e?r[0]:lv?`${r[0]}_LEVEL${e}@${e}`:`${r[0]}@${e}`); }
   return VARR.ids=set;
 }
+/* Separa os itens que a varredura da nuvem cobre (T4 a T8, cidades e qualidades da varredura, varredura fresca) dos que só a API pública tem (T1 a T3 etc.).
+   Sem varredura fresca, tudo vai para a API como reserva. */
+async function varrSplit(ids,locs,quals){
+  try{ if((locs||[]).some(c=>!VARR_CIDADES.has(c))||(quals||[1]).some(x=>!(+x>=1&&+x<=5))||!(await varrFresca())) return {nuvem:[],api:ids.slice()};
+    const set=await varrIds(), nuvem=[], api=[]; for(const id of ids) (set.has(id)?nuvem:api).push(id); return {nuvem,api};
+  }catch(e){ return {nuvem:[],api:ids.slice()}; } }
 async function varrCobre(url){
   try{ const m=/stats\/prices\/([^?]+)\.json\?(.*)$/.exec(url); if(!m) return false;
     const q=new URLSearchParams(m[2]); const locs=(q.get("locations")||"").split(",").filter(Boolean); if(locs.some(c=>!VARR_CIDADES.has(c))) return false;
@@ -596,7 +603,7 @@ async function crowdMerge(url,j,strict){
     const ids=decodeURIComponent(m[1]).split(","), q=new URLSearchParams(m[2]);
     const locs=(q.get("locations")||"").split(",").filter(Boolean), quals=(q.get("qualities")||"1").split(",");
     const key=m[1]+"|"+m[2]; let rows; const hit=CROWD_MEM.get(key);
-    if(hit&&Date.now()-hit.t<60e3) rows=hit.r;
+    if(hit&&Date.now()-hit.t<60e3&&!FORCE) rows=hit.r;
     else{
       const cfg=await need("nuvem"); if(!(cfg.url&&cfg.key)){ CROWD_OFF=true; if(strict) throw new Error("nuvem indisponível"); return j; }
       const qs=`select=item_id,quality,city,sell_min,sell_min_at,sell_amt,buy_max,buy_max_at,buy_amt&item_id=in.(${ids.map(encodeURIComponent).join(",")})`+(locs.length?`&city=in.(${locs.map(c=>encodeURIComponent(c)).join(",")})`:"")+`&quality=in.(${quals.join(",")})&limit=1000`;
@@ -661,7 +668,7 @@ async function sbRows(ids,locs,quals=[1]){
   return out;
 }
 /* Leitura só da nuvem (varredura fresca): mesmo formato de fetchIds, sem passar pela API pública */
-async function varrCobreIds(ids){ if(FORCE) return false; try{ if(!(await varrFresca())) return false; const set=await varrIds(); return ids.every(id=>set.has(id)); }catch(e){ return false; } }
+async function varrCobreIds(ids){ try{ if(!(await varrFresca())) return false; const set=await varrIds(); return ids.every(id=>set.has(id)); }catch(e){ return false; } }
 async function fetchIdsNuvem(ids,target,locs,q){
   const rows=await sbRows(ids,locs,[q]), lim=Date.now()-MAX_AGE_H*3600e3, ms=d=>d?(Date.parse(d)||0):0, ks=new Set();
   for(const x of rows){ const bm=x.city==="Black Market", ts=bm?0:ms(x.sell_min_at), tb=ms(x.buy_max_at);
@@ -670,7 +677,7 @@ async function fetchIdsNuvem(ids,target,locs,q){
   dropOutliers(target,ks); VARR.hits+=ids.length;
 }
 async function apiJSON(url,ttlMin=10){
-  if(!FORCE&&url.includes("/stats/prices/")&&await varrCobre(url)){ try{ const o=await crowdMerge(url,[],true); VARR.hits++; return o; }catch(e){ /* nuvem falhou: segue para a API pública */ } }
+  if(url.includes("/stats/prices/")&&await varrCobre(url)){   /* "Atualizar preços" também lê a nuvem (ignora só os caches); a API fica de reserva */ try{ const o=await crowdMerge(url,[],true); VARR.hits++; return o; }catch(e){ /* nuvem falhou: segue para a API pública */ } }
   const j=await apiJSON0(url,ttlMin);
   return url.includes("/stats/prices/")?crowdMerge(url,j):j;
 }
@@ -710,7 +717,9 @@ function dropOutliers(target,keys){
 }
 async function fetchIds(ids, target, locs=CITIES, q=1, ttl=10){
   const loc=locs.join(",").replace(/ /g,"%20");
-  const parts=apiChunks(ids,loc.length+q.toString().length);
+  /* itens cobertos pela nuvem em pedidos só deles (leitura do Supabase); só o resto (T1 a T3...) segue para a API pública */
+  const sp=await varrSplit(ids,locs,[q]), ex=loc.length+q.toString().length;
+  const parts=[...apiChunks(sp.nuvem,ex),...apiChunks(sp.api,ex)];
   const res=await Promise.all(parts.map(p=>apiJSON(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=${q}`,ttl)));   // pedaços em paralelo
   for(const j of res){
     for(const x of j){
@@ -724,7 +733,7 @@ const loadedFam=new Set();
 async function ensureFamily(slot,mat){ const key=slot+"_"+mat; if(loadedFam.has(key)) return true; try{ const g=LIVE_GEN; await fetchIds(familyIds(slot,mat),DATA.itens); if(g===LIVE_GEN) loadedFam.add(key); return true; }catch(e){ return false; } }
 let LIVE=false;
 async function loadLive(force){
-  const btn=$("reload"), btnTxt=t=>{ const sp=btn.querySelector("span"); (sp||btn).textContent=t; }; btn.disabled=true; btn.classList.add("busy"); btnTxt("Atualizando…"); FORCE=!!force; apiJSON.oldest=Infinity;
+  const btn=$("reload"), btnTxt=t=>{ const sp=btn.querySelector("span"); (sp||btn).textContent=t; }; btn.disabled=true; btn.classList.add("busy"); btnTxt("Atualizando…"); FORCE=!!force; apiJSON.oldest=Infinity; if(force) VARR.t=0;   /* manual: confere de novo o estado da varredura */
   try{
     const itens={}; await fetchIds(baseIds(),itens);
     if(Object.keys(itens).length<30) throw new Error("poucos dados");

@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-11-10T04:50:00Z",
+   "titulo": "Menos consultas à API pública: preços vêm do Supabase",
+   "itens": [
+    "Mercado Negro, Encantar, materiais e as demais abas deixaram de consultar a API pública do Albion Data para tudo que a nossa varredura já cobre (T4 a T8, todas as cidades e qualidades). A API só entra para T1 a T3, para o histórico de vendas por dia, para o preço do ouro e para as festividades, ou quando a varredura passa de 90 minutos sem atualizar (reserva automática). Num teste com a API simulada, o Encantar caiu de 71 para 6 pedidos à API e o Mercado de 57 para 12.",
+    "O botão Atualizar preços também lê o Supabase (que recebe a varredura e os preços do jogo em tempo quase real), sem gastar a cota da API.",
+    "Encantar: um preço novo que chega da nuvem agora só troca os números que mudaram. A tabela não é mais refeita, a linha aberta e a rolagem ficam como estavam."
+   ]
+  },
+  {
    "t": "2026-11-09T23:10:00Z",
    "titulo": "Encantar não recarrega mais sozinha",
    "itens": [

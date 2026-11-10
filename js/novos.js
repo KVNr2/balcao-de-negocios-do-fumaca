@@ -92,19 +92,30 @@ async function renderEN(partial=false){
   const rows=[]; if(FAVON){ const keep=new Set(FAV.list("encantar").map(f=>f.k)); for(const gg of favG) for(const k of bmKeys(gg)) for(const tt of [4,5,6,7,8]) for(const e of [1,2,3]){ if(!keep.has(`${k}|${tt}|${e}`)) continue; const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); } }
   else for(const k of bmKeys(g)) for(const tt of (t?[t]:[4,5,6,7,8])) for(const e of [1,2,3]){ const m=enModel(k,tt,e); if(m&&!m.miss) rows.push(m); }
   rows.sort((a,b)=>((b.save??-1e15)-(a.save??-1e15)));
+  const lim=FAVON?rows.length:(t?40:80), shown=rows.slice(0,lim), keySig=shown.map(m=>`${m.key}|${m.t}|${m.e}`).join(";");
+  const setNote=()=>{ const pos=rows.filter(m=>m.save>0).length;
+    note.textContent=rows.length?`${pos} de ${rows.length} passos saem mais baratos encantando${t?` em T${t}`:" (todos os tiers)"}. ${rows.length>lim?` Mostrando as ${lim} de maior economia de ${fmt(rows.length)} registros: não são todos.`:""} Peça de base pela opção mais barata entre comprar e fabricar sem foco; o material pela mediana das cidades. Clique numa linha para ver a conta.`:`Sem preços suficientes${t?` em T${t}`:""} para comparar.`; };
+  /* Mesma lista na mesma ordem (preço novo que chegou da nuvem, atualização automática): só troca os números que mudaram, sem refazer a tabela */
+  if(rows.length&&tb.dataset.ks===keySig&&tb.tBodies[0]){
+    const trs=[...tb.tBodies[0].querySelectorAll("tr.clickrow")];
+    if(trs.length===shown.length){
+      shown.forEach((m,i)=>{ const tr=trs[i], o=tr._m; tr._m=m; if(o&&o.cost===m.cost&&o.save===m.save&&(o.alt&&o.alt.p)===(m.alt&&m.alt.p)) return;
+        tr.cells[2].textContent=fmt(m.cost); const c5=tr.cells[3]; c5.textContent=m.save==null?"—":sgn(m.save); c5.className="num bm-profit "+(m.save==null?"":m.save>=0?"gain":"loss");
+        if(tr.classList.contains("open")){ const dc=tr.nextSibling&&tr.nextSibling.firstChild; if(dc){ dc.textContent=""; try{ dc.append(enPanel(m)); }catch(e){} } } });
+      setNote(); return; } }
   const hadRows=tb.rows.length>1, openKeys=new Set([...tb.querySelectorAll("tr.open")].map(x=>x.dataset.fav)), sy=window.scrollY;
   tb.textContent=""; const hr=tb.createTHead().insertRow(); ["Peça","Passo","Custo final","Economia"].forEach(h=>hr.append(el("th",{text:h})));
   const body=tb.createTBody();
-  for(const m of rows.slice(0,FAVON?rows.length:(t?40:80))){ const tr=body.insertRow(); tr.dataset.fav=`${m.key}|${m.t}|${m.e}`; tr.dataset.fctx=JSON.stringify({g:BM[m.key][1]}); tr.tabIndex=0; tr.className="clickrow"; tr.insertCell().append(withIcon(bmId(m.key,m.t,m.e),`${nmKey(m.key,m.name)} T${m.t}`)); { const sc=tr.insertCell(); sc.append(withIcon(bmId(m.key,m.t,m.e-1),`.${m.e-1} → .${m.e}`)); }
+  tb.dataset.ks=keySig;
+  for(const m of shown){ const tr=body.insertRow(); tr._m=m; tr.dataset.fav=`${m.key}|${m.t}|${m.e}`; tr.dataset.fctx=JSON.stringify({g:BM[m.key][1]}); tr.tabIndex=0; tr.className="clickrow"; tr.insertCell().append(withIcon(bmId(m.key,m.t,m.e),`${nmKey(m.key,m.name)} T${m.t}`)); { const sc=tr.insertCell(); sc.append(withIcon(bmId(m.key,m.t,m.e-1),`.${m.e-1} → .${m.e}`)); }
     const c3=tr.insertCell(); c3.className="num cost"; c3.textContent=fmt(m.cost);
     const c5=tr.insertCell(); c5.className="num bm-profit "+(m.save==null?"":m.save>=0?"gain":"loss"); c5.textContent=m.save==null?"—":sgn(m.save);
     const dr=document.createElement("tr"); dr.className="of-drow"; dr.hidden=true; const dc=document.createElement("td"); dc.colSpan=4; dr.append(dc); tr.after(dr);
     const toggle=()=>{ const open=dr.hidden; dr.hidden=!open; tr.classList.toggle("open",open); tr.setAttribute("aria-expanded",String(open));
-      if(open){ dc.textContent=""; try{ dc.append(enPanel(m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes: "+(e&&e.message||e)})); } setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8) dr.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"}); }catch(e){} },60); } };
+      if(open){ dc.textContent=""; try{ dc.append(enPanel(tr._m)); }catch(e){ dc.append(el("p",{class:"small loss",text:"Não consegui montar os detalhes: "+(e&&e.message||e)})); } setTimeout(()=>{ try{ const r=dr.getBoundingClientRect(); if(r.bottom>innerHeight-8) dr.scrollIntoView({block:"nearest",behavior:RM?"auto":"smooth"}); }catch(e){} },60); } };
     tr.setAttribute("aria-expanded","false"); if(openKeys.has(tr.dataset.fav)) toggle(); tr.addEventListener("click",toggle); tr.addEventListener("keydown",ev=>{ if(ev.target===tr&&(ev.key==="Enter"||ev.key===" ")){ ev.preventDefault(); toggle(); } }); }
   { const w=tb.parentNode; if(w) w.style.setProperty("--tblw",(w.clientWidth-8)+"px"); }
-  const pos=rows.filter(m=>m.save>0).length;
-  note.textContent=rows.length?`${pos} de ${rows.length} passos saem mais baratos encantando${t?` em T${t}`:" (todos os tiers)"}. ${rows.length>(t?40:80)?` Mostrando as ${t?40:80} de maior economia de ${fmt(rows.length)} registros: não são todos.`:""} Peça de base pela opção mais barata entre comprar e fabricar sem foco; o material pela mediana das cidades. Clique numa linha para ver a conta.`:`Sem preços suficientes${t?` em T${t}`:""} para comparar.`;
+  setNote();
   if(hadRows&&Math.abs(window.scrollY-sy)>4) window.scrollTo(0,sy);
   if(window.gsap&&!RM&&!hadRows) gsap.from(body.rows,{opacity:0,x:-8,duration:.25,stagger:.015,clearProps:"opacity,transform"});
 }

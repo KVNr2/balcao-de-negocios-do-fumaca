@@ -20,7 +20,9 @@ const bmIso=t=>t?new Date(t).toISOString().slice(0,19):"0001-01-01T00:00:00";
    mais recente: se o Albion Data foi coletado depois do nosso, fica o do Albion Data; senão, o do Supabase. As médias vêm sempre do Supabase. */
 async function bmMergedRows(ids,locs,quals){
   const sbr=(await sbRows(ids,locs,quals)).map(x=>({...x})), cities=locs.filter(c=>c!=="Black Market"); if(!cities.length) return sbr;
-  const loc=cities.join(",").replace(/ /g,"%20"), parts=[]; for(let i=0;i<ids.length;i+=API_CHUNK) parts.push(ids.slice(i,i+API_CHUNK));
+  /* com a varredura da nuvem fresca, os itens cobertos (T4 a T8) já vieram do Supabase acima: a API pública só entra para o resto (T1 a T3...) ou sem varredura fresca */
+  const apiIds=(await varrSplit(ids,cities,quals)).api; if(!apiIds.length) return sbr;
+  const loc=cities.join(",").replace(/ /g,"%20"), parts=[]; for(let i=0;i<apiIds.length;i+=API_CHUNK) parts.push(apiIds.slice(i,i+API_CHUNK));
   let ad=[]; try{ ad=(await Promise.all(parts.map(p=>apiJSON0(`${HOST}/api/v2/stats/prices/${p.join(",")}.json?locations=${loc}&qualities=${quals.join(",")}`)))).flat(); }catch(e){ ad=[]; }
   const idx=new Map(sbr.map(x=>[x.item_id+"|"+x.city+"|"+x.quality,x])), ms=d=>{ if(!d||String(d).startsWith("0001")) return 0; d=String(d); return Date.parse(/(Z|[+-]\d\d:?\d\d)$/.test(d)?d:d+"Z")||0; };
   for(const a of ad){ if(!a||a.city==="Black Market") continue; const k=a.item_id+"|"+a.city+"|"+a.quality; let x=idx.get(k);

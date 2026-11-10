@@ -564,7 +564,7 @@ async function renderMk(partial=false,forcar=false){
   if(want.length&&!partial){ MK.busy=true; const ff=FORCE; if(forcar) FORCE=true; tb.textContent="";
     /* varredura da nuvem fresca: os itens cobertos vêm só da nuvem, em lotes grandes e em paralelo, sem a pausa que protege a API pública;
        o resto (e tudo, se a nuvem falhar) segue pela API pública em lotes espaçados */
-    let cob=[], resto=want.slice(); try{ if(!FORCE&&await varrFresca()){ const set=await varrIds(); cob=want.filter(id=>set.has(id)); resto=want.filter(id=>!set.has(id)); } }catch(e){ cob=[]; resto=want.slice(); }
+    let cob=[], resto=want.slice(); try{ if(await varrFresca()){ const set=await varrIds(); cob=want.filter(id=>set.has(id)); resto=want.filter(id=>!set.has(id)); } }catch(e){ cob=[]; resto=want.slice(); }
     const txt=`Consultando ${fmt(want.length)} itens em todas as cidades${mq>1?`, qualidade ${QNAME[mq].toLowerCase()}`:""}${cob.length?" (na nuvem)":""}`;
     const alvo=mq>1?PQ[mq]:DATA.itens; let ult=Date.now(), feitos=0;
     const parcial=async()=>{ if(Date.now()-ult>2500){ await renderMk(true); ult=Date.now(); } };   /* redesenho parcial no máximo a cada 2,5 s */
