@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="b3816442">
+<html lang="pt-BR" data-v="ceee3a60">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=b3816442">
-<link rel="stylesheet" href="css/vip.css?v=b3816442">
-<link rel="stylesheet" href="css/avicons.css?v=b3816442">
-<link rel="stylesheet" href="css/souk.css?v=b3816442">
+<link rel="stylesheet" href="css/balcao.css?v=ceee3a60">
+<link rel="stylesheet" href="css/vip.css?v=ceee3a60">
+<link rel="stylesheet" href="css/avicons.css?v=ceee3a60">
+<link rel="stylesheet" href="css/souk.css?v=ceee3a60">
 </head>
 <body>
 <div class="wrap app">
@@ -555,44 +555,64 @@ html.em-atual .av-card{margin:0}
       <p class="lv-dica">Deixe esta aba aberta enquanto transmite. Para o som do jogo, escolha <b>Tela inteira</b> (o navegador só captura o som da tela toda ou de uma aba). Cabem até 5 espectadores ao mesmo tempo. Desmarque a última opção para só quem tem o link assistir.</p>
     </div>
     <div class="lv-entregue" id="lvEntregue" hidden><b>Esta live foi aberta no Albion Overlay.</b><span>Veja e transmita por lá. Se preferir aqui no navegador:</span><button id="lvAqui" type="button" class="of-btn">Usar aqui no navegador</button></div>
-    <div class="vz" id="vz">
-      <div class="vz-h"><b>Salas de voz</b><span class="lv-st" id="vzSt">fora da sala</span></div>
-      <label class="vz-f">Seu nome<input id="vzNome" type="text" maxlength="24" autocomplete="off" placeholder="Como aparecer nas salas"></label>
-      <div class="vz-canais" id="vzCanais" role="list" aria-label="Salas de voz"></div>
-      <form class="vz-novo" id="vzNovo">
-        <input id="vzSala" type="text" maxlength="30" autocomplete="off" placeholder="Criar uma sala nova (ex.: filmes de terror)" aria-label="Nome da sala nova">
-        <label class="lv-chk"><input id="vzPriv" type="checkbox"> Privada (não aparece na lista)</label>
-        <button id="vzCriar" type="submit" class="of-btn">Criar e entrar</button>
-      </form>
-      <div class="vz-convite" id="vzConvite" hidden><span>Convite para a sala <b id="vzConviteSala"></b></span><button id="vzConviteEntrar" type="button" class="of-btn">Entrar</button><button id="vzConviteFechar" type="button" class="of-btn lv-sec">Agora não</button></div>
-      <div class="vz-on" id="vzOn" hidden>
-        <div class="vz-bt">
-          <b class="vz-sala" id="vzSalaAtual"></b>
-          <button id="vzMic" type="button" class="lv-b vz-b" data-on="1" aria-label="Desligar o microfone" title="Microfone"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/><path class="p-off" d="M4 4l16 16"/></svg></button>
-          <button id="vzSom" type="button" class="lv-b vz-b" data-on="1" aria-label="Silenciar o áudio da sala" title="Áudio (ouvir os outros)"><svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="7" rx="1.5"/><rect x="17" y="13" width="4" height="7" rx="1.5"/><path class="p-off" d="M4 4l16 16"/></svg></button>
-          <input id="vzVol" type="range" min="0" max="100" value="100" aria-label="Volume da sala">
-          <button id="vzTela" type="button" class="of-btn">Transmitir tela</button>
-          <label class="lv-chk"><input id="vzTelaSom" type="checkbox" checked> Incluir o som</label>
-          <button id="vzConv" type="button" class="of-btn lv-sec" title="Copia um link para convidar alguém para esta sala">Copiar convite</button>
-          <button id="vzSair" type="button" class="of-btn lv-sec">Sair da sala</button>
+    <div class="dz" id="vz">
+      <aside class="dz-lado" aria-label="Salas de voz">
+        <div class="dz-lado-h"><span>Salas de voz</span><button id="vzMais" type="button" class="dz-ib" aria-label="Criar sala nova" aria-expanded="false" title="Criar sala nova"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div>
+        <form class="dz-novo" id="vzNovo" hidden>
+          <input id="vzSala" type="text" maxlength="30" autocomplete="off" placeholder="Nome da sala (ex.: filmes de terror)" aria-label="Nome da sala nova">
+          <label class="lv-chk"><input id="vzPriv" type="checkbox"> Privada: fora da lista, só entra por convite</label>
+          <button id="vzCriar" type="submit" class="of-btn">Criar e entrar</button>
+        </form>
+        <div class="dz-convite" id="vzConvite" hidden><span>Convite para <b id="vzConviteSala"></b></span><div><button id="vzConviteEntrar" type="button" class="of-btn">Entrar</button><button id="vzConviteFechar" type="button" class="of-btn lv-sec">Agora não</button></div></div>
+        <div class="dz-canais" id="vzCanais" role="list" aria-label="Salas de voz"></div>
+        <div class="dz-eu">
+          <span class="dz-av dz-av-eu" id="vzEuAv" aria-hidden="true">?</span>
+          <label class="dz-eu-n"><input id="vzNome" type="text" maxlength="24" autocomplete="off" placeholder="Seu nome" aria-label="Seu nome nas salas"><small class="lv-st" id="vzSt">fora da sala</small></label>
         </div>
-        <div class="lv-stage vz-stage" id="vzStage" hidden>
-          <video id="vzVideo" autoplay playsinline muted></video>
-          <span class="lv-badge" id="vzBadge">AO VIVO</span>
-          <button class="lv-b vz-full" id="vzFull" type="button" aria-label="Tela cheia" title="Tela cheia"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      </aside>
+      <section class="dz-main" aria-live="polite">
+        <p class="lv-err dz-err" id="vzErr" hidden></p>
+        <div class="dz-vazio" id="vzVazio">
+          <span class="dz-vazio-i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></span>
+          <h3>Escolha uma sala para conversar</h3>
+          <p>Clique numa sala da lista ou crie uma nova no botão +. Quem entra fala por microfone e pode transmitir a tela com som para todos assistirem juntos.</p>
+          <p class="dz-vazio-d" id="vzDica">Use <b>fones de ouvido</b> para ninguém ouvir eco. Se o Discord estiver aberto, o som dele entra na transmissão da tela inteira: compartilhe só a janela ou a aba do filme. Uma pessoa transmite por vez e cabem 6 por sala.</p>
         </div>
-        <div class="vz-gente" id="vzGente"></div>
-        <details class="vz-av"><summary>Microfone e áudio: opções</summary>
-          <label class="vz-f">Microfone<select id="vzMicDev"></select></label>
-          <label class="vz-f" id="vzSaidaF">Saída de áudio<select id="vzSaida"></select></label>
-          <label class="lv-chk"><input id="vzEco" type="checkbox" checked> Cancelar eco</label>
-          <label class="lv-chk"><input id="vzRuido" type="checkbox" checked> Reduzir ruído</label>
-          <label class="lv-chk"><input id="vzGanho" type="checkbox" checked> Ajustar volume do microfone sozinho</label>
-        </details>
-      </div>
-      <p class="lv-dica" id="vzDica">Use <b>fones de ouvido</b> para ninguém ouvir eco. Quem transmite a tela com som: o navegador tira da transmissão o som desta aba (a voz da sala), então ninguém se ouve de volta. O Discord, se estiver aberto, entra no som da tela inteira: use a voz só em um dos dois ou compartilhe apenas a janela ou aba do filme. Uma pessoa transmite por vez; cabem 6 por sala.</p>
-      <p class="lv-err" id="vzErr" hidden></p>
-      <div id="vzAudios" hidden></div>
+        <div class="dz-on" id="vzOn" hidden>
+          <header class="dz-topo"><span class="dz-topo-i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></span><b id="vzSalaAtual"></b><span class="dz-topo-d">Sala de voz</span></header>
+          <div class="dz-palco" id="vzPalco">
+            <div class="lv-stage vz-stage" id="vzStage" hidden>
+              <video id="vzVideo" autoplay playsinline muted></video>
+              <span class="lv-badge" id="vzBadge">AO VIVO</span>
+              <button class="lv-b vz-full" id="vzFull" type="button" aria-label="Tela cheia" title="Tela cheia (ou dois cliques no vídeo)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+            </div>
+            <p class="dz-dica-tela" id="vzDicaTela" hidden>Você está transmitindo. Aqui só aparece uma miniatura, para ninguém ver a tela dentro da tela. A barra “Compartilhando esta guia” e a borda verde são do Chrome: não aparecem se você compartilhar a <b>janela</b> ou a tela inteira em vez da aba.</p>
+            <div class="dz-gente" id="vzGente"></div>
+          </div>
+          <footer class="dz-ctl">
+            <button id="vzMic" type="button" class="dz-cb vz-b" data-on="1" aria-label="Desligar o microfone" title="Microfone"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/><path class="p-off" d="M4 4l16 16"/></svg><span>Microfone</span></button>
+            <button id="vzSom" type="button" class="dz-cb vz-b" data-on="1" aria-label="Silenciar o áudio da sala" title="Áudio (ouvir os outros)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="7" rx="1.5"/><rect x="17" y="13" width="4" height="7" rx="1.5"/><path class="p-off" d="M4 4l16 16"/></svg><span>Áudio</span></button>
+            <input id="vzVol" type="range" min="0" max="100" value="100" aria-label="Volume da sala" title="Volume geral">
+            <span class="dz-sep"></span>
+            <button id="vzTela" type="button" class="dz-cb dz-tela" title="Transmitir a tela para a sala"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span class="tx">Transmitir tela</span></button>
+            <label class="dz-som"><input id="vzTelaSom" type="checkbox" checked> com som</label>
+            <span class="dz-sep"></span>
+            <button id="vzConv" type="button" class="dz-cb" title="Copia um link para convidar alguém para esta sala"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span class="tx">Convidar</span></button>
+            <details class="dz-cfg vz-av"><summary class="dz-cb" title="Microfone e áudio: opções"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/></svg><span>Opções</span></summary>
+              <div class="dz-pop">
+                <label class="vz-f">Microfone<select id="vzMicDev"></select></label>
+                <label class="vz-f" id="vzSaidaF">Saída de áudio<select id="vzSaida"></select></label>
+                <label class="lv-chk"><input id="vzEco" type="checkbox" checked> Cancelar eco</label>
+                <label class="lv-chk"><input id="vzRuido" type="checkbox" checked> Reduzir ruído</label>
+                <label class="lv-chk"><input id="vzGanho" type="checkbox" checked> Ajustar o volume do microfone sozinho</label>
+                <label class="lv-chk"><input id="vzGate" type="checkbox" checked> Cortar o chiado entre as falas</label>
+              </div>
+            </details>
+            <button id="vzSair" type="button" class="dz-cb dz-sair" title="Sair da sala"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></svg><span>Sair</span></button>
+          </footer>
+        </div>
+        <div id="vzAudios" hidden></div>
+      </section>
     </div>
     <div class="lv-lista" id="lvLista"></div>
     <form class="lv-colar" id="lvColar"><input id="lvLink" type="text" autocomplete="off" placeholder="Colar o link da live que saiu no Discord" aria-label="Link da live"><button type="submit" class="of-btn">Adicionar</button></form>
@@ -964,35 +984,35 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=b3816442"></script>
-<script src="js/base.js?v=b3816442"></script>
-<script src="js/precos.js?v=b3816442"></script>
-<script src="js/fx.js?v=b3816442"></script>
-<script src="js/biz.js?v=b3816442"></script>
-<script src="js/builds.js?v=b3816442"></script>
-<script src="js/nossas.js?v=b3816442"></script>
-<script src="js/ip.js?v=b3816442"></script>
-<script src="js/zvz.js?v=b3816442"></script>
-<script src="js/pvp.js?v=b3816442"></script>
-<script src="js/novos.js?v=b3816442"></script>
-<script src="js/guia.js?v=b3816442"></script>
-<script src="js/ui.js?v=b3816442"></script>
-<script src="js/avalon.js?v=b3816442"></script>
-<script src="js/oficina.js?v=b3816442"></script>
-<script src="js/patch.js?v=b3816442"></script>
-<script src="js/versao.js?v=b3816442"></script>
-<script src="js/bag.js?v=b3816442"></script>
-<script src="js/plano.js?v=b3816442"></script>
-<script src="js/pesca.js?v=b3816442"></script>
-<script src="js/listfil.js?v=b3816442"></script>
-<script src="js/fav.js?v=b3816442"></script>
-<script src="js/festas.js?v=b3816442"></script>
-<script src="js/transporte.js?v=b3816442"></script>
-<script src="js/rotacao.js?v=b3816442"></script>
-<script src="js/menucraft.js?v=b3816442"></script>
-<script src="js/compras.js?v=b3816442"></script>
-<script src="js/live.js?v=b3816442"></script>
-<script src="js/voz.js?v=b3816442"></script>
-<script src="js/main.js?v=b3816442"></script>
+<script src="js/icons.js?v=ceee3a60"></script>
+<script src="js/base.js?v=ceee3a60"></script>
+<script src="js/precos.js?v=ceee3a60"></script>
+<script src="js/fx.js?v=ceee3a60"></script>
+<script src="js/biz.js?v=ceee3a60"></script>
+<script src="js/builds.js?v=ceee3a60"></script>
+<script src="js/nossas.js?v=ceee3a60"></script>
+<script src="js/ip.js?v=ceee3a60"></script>
+<script src="js/zvz.js?v=ceee3a60"></script>
+<script src="js/pvp.js?v=ceee3a60"></script>
+<script src="js/novos.js?v=ceee3a60"></script>
+<script src="js/guia.js?v=ceee3a60"></script>
+<script src="js/ui.js?v=ceee3a60"></script>
+<script src="js/avalon.js?v=ceee3a60"></script>
+<script src="js/oficina.js?v=ceee3a60"></script>
+<script src="js/patch.js?v=ceee3a60"></script>
+<script src="js/versao.js?v=ceee3a60"></script>
+<script src="js/bag.js?v=ceee3a60"></script>
+<script src="js/plano.js?v=ceee3a60"></script>
+<script src="js/pesca.js?v=ceee3a60"></script>
+<script src="js/listfil.js?v=ceee3a60"></script>
+<script src="js/fav.js?v=ceee3a60"></script>
+<script src="js/festas.js?v=ceee3a60"></script>
+<script src="js/transporte.js?v=ceee3a60"></script>
+<script src="js/rotacao.js?v=ceee3a60"></script>
+<script src="js/menucraft.js?v=ceee3a60"></script>
+<script src="js/compras.js?v=ceee3a60"></script>
+<script src="js/live.js?v=ceee3a60"></script>
+<script src="js/voz.js?v=ceee3a60"></script>
+<script src="js/main.js?v=ceee3a60"></script>
 </body>
 </html>

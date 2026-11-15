@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-11-15T17:05:00Z",
+   "titulo": "Live: salas de voz no estilo Discord, tela da transmissão melhor e menos chiado",
+   "itens": [
+    "Novo visual das salas de voz: lista de salas à esquerda com quem está em cada uma (avatar, contorno verde de quem fala, selo AO VIVO), seu nome no canto, e na sala a transmissão grande no formato do filme com os participantes em cartões. Barra de controles com microfone, áudio, volume, transmitir tela, convidar, opções e sair.",
+    "Quem transmite vê só uma miniatura (sem a tela dentro da tela) e a lista do Chrome não oferece mais a própria aba do site. Duplo clique no vídeo abre a tela cheia.",
+    "Nova opção Cortar o chiado entre as falas (ligada por padrão): tira o grave e abaixa o ruído de fundo quando você não está falando. Dá para desligar em Opções."
+   ]
+  },
+  {
    "t": "2026-11-15T16:40:00Z",
    "titulo": "Live: lista de salas, transmitir tela na sala, convite por link e melhor qualidade",
    "itens": [
