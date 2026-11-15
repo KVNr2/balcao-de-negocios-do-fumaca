@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-11-15T21:55:00Z",
+   "titulo": "Live: isolador de voz nas salas e ícone de opções",
+   "itens": [
+    "Nova opção Isolar a minha voz (ligada por padrão), nas Opções da sala: um filtro de inteligência artificial (RNNoise) tira o chiado e o ruído de fundo do seu microfone, inclusive enquanto você fala. Roda no seu navegador e a outra pessoa ouve só a voz. A primeira vez baixa um arquivo de uns 2 MB. O som da transmissão da tela não passa por esse filtro, para não cortar música e efeitos.",
+    "O botão Opções da sala agora tem o ícone de engrenagem."
+   ]
+  },
+  {
    "t": "2026-11-15T17:05:00Z",
    "titulo": "Live: salas de voz no estilo Discord, tela da transmissão melhor e menos chiado",
    "itens": [
