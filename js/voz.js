@@ -19,6 +19,7 @@
   var ICE = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }] };
   var MAX = 6, POLL = 1500;
   var cfg = null, falhas = 0;
+  var RN_URL = ((document.currentScript && document.currentScript.src) || "js/voz.js").replace(/voz\.js.*$/, "rnnoise/rnnoise-worklet.js"), rnOk = null;
   var eu = "", sala = "", nome = "", dentro = false, entrando = false, timer = 0, gen = 0, usadoT = 0, privadaNova = false;
   var mic = null, micOn = true, somOn = true, volGeral = 1;
   var pessoas = [], conns = {}, ctx = null, medidor = 0, loc = null;
@@ -82,7 +83,7 @@
 
   /* ---- microfone ---- */
   function pegarMic(){
-    var c = { echoCancellation: $("vzEco").checked, noiseSuppression: $("vzRuido").checked, autoGainControl: $("vzGanho").checked, channelCount: 1, sampleRate: 48000 };
+    var c = { echoCancellation: $("vzEco").checked, noiseSuppression: $("vzRuido").checked && !($("vzGate").checked && rnOk !== false), autoGainControl: $("vzGanho").checked, channelCount: 1, sampleRate: 48000 };
     var d = $("vzMicDev").value; if(d) c.deviceId = { exact: d };
     return navigator.mediaDevices.getUserMedia({ audio: c, video: false }).then(function(ms){ return $("vzGate").checked ? tratar(ms) : ms; });
   }
@@ -91,7 +92,7 @@
      Roda na thread de áudio (AudioWorklet), então não atrasa se a aba ficar em segundo plano. Se o navegador não suportar, usa o microfone normal. */
   var GATE_JS = "class G extends AudioWorkletProcessor{constructor(){super();this.nf=0.003;this.g=0.15;this.h=0;}process(i,o){var a=i[0],b=o[0];if(!a||!a.length)return true;var s=0,n=a[0].length;for(var k=0;k<n;k++){var x=a[0][k];s+=x*x;}var r=Math.sqrt(s/n);if(r<this.nf)this.nf=this.nf*0.8+r*0.2;else this.nf=Math.min(0.05,this.nf*1.0008+1e-7);var thr=Math.max(0.006,this.nf*3);if(r>thr)this.h=110;else if(this.h>0)this.h--;var t=this.h>0?1:0.12;this.g+=(t-this.g)*(t>this.g?0.35:0.03);for(var c=0;c<b.length;c++){var ic=a[c]||a[0];for(var q=0;q<n;q++)b[c][q]=ic[q]*this.g;}return true;}}registerProcessor('gate-voz',G);";
   var gateOk = null;
-  function tratar(ms){
+  function tratarGate(ms){
     var AC = window.AudioContext || window.webkitAudioContext;
     if(!AC || !window.AudioWorkletNode || gateOk === false) return ms;
     if(!ctx) ctx = new AC();
@@ -105,6 +106,25 @@
       var out = dst.stream; out._raw = ms; out._nodes = [src, hp, gt];
       return out;
     }).catch(function(){ gateOk = false; return ms; });
+  }
+  /* Isolador de voz (RNNoise, rede neural que separa a voz do resto) rodando no navegador de quem fala, na thread de áudio. Precisa de 48 kHz.
+     Se o módulo não carregar, cai na porta de ruído simples acima. */
+  function novoCtx(){ var AC = window.AudioContext || window.webkitAudioContext; try{ return new AC({ sampleRate: 48000, latencyHint: "interactive" }); }catch(e){ return new AC(); } }
+  function tratar(ms){
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC || !window.AudioWorkletNode || rnOk === false) return tratarGate(ms);
+    if(!ctx) ctx = novoCtx();
+    if(ctx.sampleRate !== 48000){ rnOk = false; return tratarGate(ms); }
+    if(ctx.state === "suspended") ctx.resume().catch(function(){});
+    var prep = rnOk ? Promise.resolve() : ctx.audioWorklet.addModule(RN_URL);
+    return prep.then(function(){
+      rnOk = true;
+      var src = ctx.createMediaStreamSource(ms), hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 80; hp.Q.value = 0.7;
+      var rn = new AudioWorkletNode(ctx, "rnnoise-voz", { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1, channelCountMode: "explicit", outputChannelCount: [1] });
+      var dst = ctx.createMediaStreamDestination(); src.connect(hp); hp.connect(rn); rn.connect(dst);
+      var out = dst.stream; out._raw = ms; out._nodes = [src, hp, rn];
+      return out;
+    }).catch(function(){ rnOk = false; return tratarGate(ms); });
   }
   function fecharStream(s){
     if(!s) return;
@@ -150,7 +170,7 @@
   /* ---- medidor de voz (quem está falando) ---- */
   function ligarMedidor(id, stream){
     try{
-      if(!ctx){ var AC = window.AudioContext || window.webkitAudioContext; if(!AC) return; ctx = new AC(); }
+      if(!ctx){ var AC = window.AudioContext || window.webkitAudioContext; if(!AC) return; ctx = novoCtx(); }
       if(ctx.state === "suspended") ctx.resume().catch(function(){});
       var cx = id === "eu" ? loc : conns[id];
       if(!cx) return;
@@ -494,6 +514,6 @@
     var antigo = window.renderLive; window.renderLive = function(){ if(antigo) antigo(); listarCanais(); }; // ao abrir a aba, já mostra as salas
     listarCanais(); setInterval(listarCanais, 8000);
   }
-  window.vzEstado = function(){ return { dentro: dentro, sala: sala, eu: eu, pessoas: pessoas.length, conectados: Object.keys(conns).filter(function(k){ return conns[k].ok; }).length, mic: !!mic, micOn: micOn, somOn: somOn, transmitindo: !!tela, assistindo: Object.keys(vt).length }; };
+  window.vzEstado = function(){ return { rn: rnOk, dentro: dentro, sala: sala, eu: eu, pessoas: pessoas.length, conectados: Object.keys(conns).filter(function(k){ return conns[k].ok; }).length, mic: !!mic, micOn: micOn, somOn: somOn, transmitindo: !!tela, assistindo: Object.keys(vt).length }; };
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
 })();
