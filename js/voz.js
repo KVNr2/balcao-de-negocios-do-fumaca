@@ -44,8 +44,11 @@
     });
   }
   function limparSala(t){ return String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40); }
-  function prefs(){ var p = ls("vz:prefs") || {}; return { eco: p.eco !== false, ruido: p.ruido !== false, ganho: p.ganho !== false, micDev: p.micDev || "", saida: p.saida || "" }; }
-  function salvarPrefs(){ ls("vz:prefs", { eco: $("vzEco").checked, ruido: $("vzRuido").checked, ganho: $("vzGanho").checked, micDev: $("vzMicDev").value || "", saida: $("vzSaida").value || "" }); }
+  var CORES = ["#2f7d74", "#b98c46", "#8e2c2c", "#4a6fa5", "#7a5c9e", "#a0652d", "#4f8f4f", "#a04a7a"];
+  function cor(n){ var h = 0; n = String(n || "?"); for(var i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0; return CORES[h % CORES.length]; }
+  function avatar(n, cls){ var a = document.createElement("span"); a.className = "dz-av" + (cls ? " " + cls : ""); a.textContent = (n || "?").trim().charAt(0).toUpperCase() || "?"; a.style.background = cor(n); return a; }
+  function prefs(){ var p = ls("vz:prefs") || {}; return { eco: p.eco !== false, ruido: p.ruido !== false, ganho: p.ganho !== false, gate: p.gate !== false, micDev: p.micDev || "", saida: p.saida || "" }; }
+  function salvarPrefs(){ ls("vz:prefs", { eco: $("vzEco").checked, ruido: $("vzRuido").checked, ganho: $("vzGanho").checked, gate: $("vzGate").checked, micDev: $("vzMicDev").value || "", saida: $("vzSaida").value || "" }); }
 
   /* ---- qualidade: ajusta o SDP (o lado que recebe diz ao que envia quanto aceita) ---- */
   function melhorarSdp(sdp, tipo){
@@ -81,9 +84,35 @@
   function pegarMic(){
     var c = { echoCancellation: $("vzEco").checked, noiseSuppression: $("vzRuido").checked, autoGainControl: $("vzGanho").checked, channelCount: 1, sampleRate: 48000 };
     var d = $("vzMicDev").value; if(d) c.deviceId = { exact: d };
-    return navigator.mediaDevices.getUserMedia({ audio: c, video: false });
+    return navigator.mediaDevices.getUserMedia({ audio: c, video: false }).then(function(ms){ return $("vzGate").checked ? tratar(ms) : ms; });
   }
-  function fecharMic(){ if(mic){ mic.getTracks().forEach(function(t){ try{ t.stop(); }catch(e){} }); mic = null; } }
+  /* Porta de ruído: o navegador já corta eco e ruído, mas deixa um chiado entre as falas (e filtros de voz fracos aumentam esse chiado quando você para de falar).
+     Aqui o som passa por um filtro que tira o grave (zumbido, vento) e por uma porta que abaixa o volume quando só há ruído de fundo e abre sozinha na sua fala.
+     Roda na thread de áudio (AudioWorklet), então não atrasa se a aba ficar em segundo plano. Se o navegador não suportar, usa o microfone normal. */
+  var GATE_JS = "class G extends AudioWorkletProcessor{constructor(){super();this.nf=0.003;this.g=0.15;this.h=0;}process(i,o){var a=i[0],b=o[0];if(!a||!a.length)return true;var s=0,n=a[0].length;for(var k=0;k<n;k++){var x=a[0][k];s+=x*x;}var r=Math.sqrt(s/n);if(r<this.nf)this.nf=this.nf*0.8+r*0.2;else this.nf=Math.min(0.05,this.nf*1.0008+1e-7);var thr=Math.max(0.006,this.nf*3);if(r>thr)this.h=110;else if(this.h>0)this.h--;var t=this.h>0?1:0.12;this.g+=(t-this.g)*(t>this.g?0.35:0.03);for(var c=0;c<b.length;c++){var ic=a[c]||a[0];for(var q=0;q<n;q++)b[c][q]=ic[q]*this.g;}return true;}}registerProcessor('gate-voz',G);";
+  var gateOk = null;
+  function tratar(ms){
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC || !window.AudioWorkletNode || gateOk === false) return ms;
+    if(!ctx) ctx = new AC();
+    if(ctx.state === "suspended") ctx.resume().catch(function(){});
+    var prep = gateOk ? Promise.resolve() : ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([GATE_JS], { type: "application/javascript" })));
+    return prep.then(function(){
+      gateOk = true;
+      var src = ctx.createMediaStreamSource(ms), hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 90; hp.Q.value = 0.7;
+      var gt = new AudioWorkletNode(ctx, "gate-voz", { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1, channelCountMode: "explicit", outputChannelCount: [1] });
+      var dst = ctx.createMediaStreamDestination(); src.connect(hp); hp.connect(gt); gt.connect(dst);
+      var out = dst.stream; out._raw = ms; out._nodes = [src, hp, gt];
+      return out;
+    }).catch(function(){ gateOk = false; return ms; });
+  }
+  function fecharStream(s){
+    if(!s) return;
+    s.getTracks().forEach(function(t){ try{ t.stop(); }catch(e){} });
+    if(s._raw) s._raw.getTracks().forEach(function(t){ try{ t.stop(); }catch(e){} });
+    if(s._nodes) s._nodes.forEach(function(n){ try{ n.disconnect(); }catch(e){} });
+  }
+  function fecharMic(){ fecharStream(mic); mic = null; }
   function aplicarMicOn(){
     if(mic) mic.getAudioTracks().forEach(function(t){ t.enabled = micOn; });
     var b = $("vzMic"); b.dataset.on = micOn ? "1" : "0"; b.setAttribute("aria-label", micOn ? "Desligar o microfone" : "Ligar o microfone");
@@ -98,7 +127,7 @@
       Object.keys(conns).forEach(function(k){
         conns[k].pc.getSenders().forEach(function(s){ if(s.track && s.track.kind === "audio") s.replaceTrack(nova).catch(function(){}); });
       });
-      antigo.getTracks().forEach(function(t){ try{ t.stop(); }catch(e){} });
+      fecharStream(antigo);
     }).catch(function(){ erro("Não consegui usar esse microfone."); });
   }
   function listarAparelhos(){
@@ -136,8 +165,8 @@
     return m / 128;
   }
   function medir(){
-    var el = $("vzGente"); if(!el) return;
-    Array.prototype.forEach.call(el.children, function(row){
+    var el = $("vz"); if(!el) return;
+    Array.prototype.forEach.call(el.querySelectorAll("[data-id]"), function(row){
       var id = row.dataset.id, cx = id === "eu" ? loc : conns[id];
       var fala = nivel(cx) > 0.06 && !(id === "eu" && !micOn) && !(id !== "eu" && (!somOn || (conns[id] && conns[id].mudo)));
       row.classList.toggle("fala", fala);
@@ -206,7 +235,7 @@
     erro("");
     // som da tela SEM o processamento de voz do navegador (eco/ruído/ganho estragam música e efeitos); restrictOwnAudio tira o som desta aba da captura
     var audio = $("vzTelaSom").checked ? { restrictOwnAudio: true, echoCancellation: false, noiseSuppression: false, autoGainControl: false } : false;
-    navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 }, width: { ideal: 1920, max: 1920 }, height: { ideal: 1080, max: 1080 } }, audio: audio }).then(function(ms){
+    navigator.mediaDevices.getDisplayMedia({ selfBrowserSurface: "exclude", surfaceSwitching: "include", systemAudio: "include", video: { frameRate: { ideal: 30, max: 30 }, width: { ideal: 1920, max: 1920 }, height: { ideal: 1080, max: 1080 } }, audio: audio }).then(function(ms){
       if(!dentro){ ms.getTracks().forEach(function(t){ t.stop(); }); return; }
       tela = { stream: ms, pcs: {} };
       ms.getVideoTracks().forEach(function(t){ try{ t.contentHint = "motion"; }catch(e){} t.addEventListener("ended", function(){ if(tela && tela.stream === ms) pararTela(); }); });
@@ -225,13 +254,14 @@
     atualizarTelaUi();
     if(dentro){ clearTimeout(timer); sync(gen); }
   }
+  function mostraTela(){ return !!tela || pessoas.some(function(p){ return p.tela && p.eu !== eu; }); }
   function atualizarTelaUi(){
     var quem = pessoas.filter(function(p){ return p.tela && p.eu !== eu; })[0];
-    var b = $("vzTela"); b.textContent = tela ? "Parar a transmissão" : "Transmitir tela"; b.disabled = !tela && !!quem;
+    var b = $("vzTela"); b.querySelector(".tx").textContent = tela ? "Parar transmissão" : "Transmitir tela"; b.classList.toggle("on", !!tela); $("vzPalco").classList.toggle("com-tela", mostraTela()); b.disabled = !tela && !!quem;
     b.title = !tela && quem ? quem.nome + " já está transmitindo" : "";
     $("vzTelaSom").disabled = !!tela;
-    var mostra = !!tela || !!quem; $("vzStage").hidden = !mostra;
-    $("vzBadge").textContent = tela ? "VOCÊ ESTÁ TRANSMITINDO" : (quem ? "AO VIVO · " + quem.nome : "AO VIVO");
+    var mostra = !!tela || !!quem; $("vzStage").hidden = !mostra; $("vzStage").classList.toggle("eu", !!tela); $("vzFull").hidden = !!tela; $("vzDicaTela").hidden = !tela;
+    $("vzBadge").textContent = tela ? "TRANSMITINDO" : (quem ? "AO VIVO · " + quem.nome : "AO VIVO");
     aplicarVolumes();
   }
   function ofertarTela(p, g){
@@ -314,7 +344,7 @@
         if(!conns[p.eu] && souIniciador(p)) ofertar(p, g);
       });
       gerirTela(g, ids);
-      if(antes !== pessoas.map(function(p){ return p.eu + p.nome + p.tela; }).join()) desenharGente();
+      if(antes !== pessoas.map(function(p){ return p.eu + p.nome + p.tela; }).join()){ desenharGente(); desenharCanais(); }
       $("vzSt").textContent = pessoas.length + (pessoas.length === 1 ? " pessoa na sala" : " pessoas na sala"); $("vzSt").classList.add("on");
       if(Date.now() - usadoT > 300000){ usadoT = Date.now(); rpc("voz_usar", { p_sala: sala, p_eu: eu, p_privada: privadaNova }).then(listarCanais).catch(function(){}); }
     }).catch(function(e){ if(g === gen && dentro && ++falhas >= 4){ sair("Não consegui falar com o servidor das salas (" + ((e && e.message) || "erro") + "). Tente de novo em instantes."); } }).then(function(){ if(g === gen && dentro) timer = setTimeout(function(){ sync(g); }, POLL); });
@@ -325,22 +355,25 @@
     var el = $("vzGente"); if(!el) return; el.textContent = "";
     pessoas.forEach(function(p){
       var me = p.eu === eu, c = conns[p.eu];
-      var row = document.createElement("div"); row.className = "vz-p"; row.dataset.id = me ? "eu" : p.eu;
-      var av = document.createElement("span"); av.className = "av"; av.textContent = (p.nome || "?").charAt(0).toUpperCase();
-      var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.nome || "Alguém";
-      var sm = document.createElement("small"); sm.textContent = (me ? (mic ? (micOn ? "(você)" : "(você · mudo)") : "(você · só ouvindo)") : (c && c.ok ? "" : "conectando…")) + (p.tela ? " · transmitindo" : ""); nm.appendChild(sm);
-      row.appendChild(av); row.appendChild(nm);
+      var t = document.createElement("div"); t.className = "dz-t" + (me ? " eu" : ""); t.dataset.id = me ? "eu" : p.eu;
+      var av = avatar(p.nome, "dz-av-g"); t.appendChild(av);
+      var nm = document.createElement("div"); nm.className = "dz-t-n"; nm.textContent = p.nome || "Alguém";
+      var sm = document.createElement("small"); sm.textContent = me ? (mic ? (micOn ? "você" : "você · microfone desligado") : "você · só ouvindo") : (c && c.ok ? "" : "conectando…"); nm.appendChild(sm); t.appendChild(nm);
+      if(p.tela){ var ao = document.createElement("span"); ao.className = "dz-live"; ao.textContent = "AO VIVO"; t.appendChild(ao); }
+      if(me && mic && !micOn){ var mm = document.createElement("span"); mm.className = "dz-mudo"; mm.setAttribute("aria-label", "microfone desligado"); mm.textContent = "mudo"; t.appendChild(mm); }
       if(!me){
+        var ct = document.createElement("div"); ct.className = "dz-t-c";
         var vol = document.createElement("input"); vol.type = "range"; vol.min = 0; vol.max = 100; vol.value = c ? Math.round(c.vol * 100) : 100; vol.setAttribute("aria-label", "Volume de " + p.nome);
         vol.addEventListener("input", function(){ var cc = conns[p.eu]; if(cc){ cc.vol = (+vol.value) / 100; aplicarVolumes(); } });
         var mu = document.createElement("button"); mu.type = "button"; mu.className = "mu"; mu.dataset.on = c && c.mudo ? "1" : "0"; mu.textContent = c && c.mudo ? "Mudo" : "Silenciar";
         mu.addEventListener("click", function(){ var cc = conns[p.eu]; if(!cc) return; cc.mudo = !cc.mudo; mu.dataset.on = cc.mudo ? "1" : "0"; mu.textContent = cc.mudo ? "Mudo" : "Silenciar"; aplicarVolumes(); });
-        row.appendChild(vol); row.appendChild(mu);
+        ct.appendChild(vol); ct.appendChild(mu); t.appendChild(ct);
       }
-      el.appendChild(row);
+      el.appendChild(t);
     });
   }
-  function modo(dentroUi){ $("vzOn").hidden = !dentroUi; $("vzSalaAtual").textContent = dentroUi ? sala : ""; desenharCanais(); }
+  function modo(dentroUi){ $("vzOn").hidden = !dentroUi; $("vzVazio").hidden = dentroUi; $("vzSalaAtual").textContent = dentroUi ? sala : ""; if(dentroUi) abrirNovo(false); desenharCanais(); }
+  function abrirNovo(abre){ $("vzNovo").hidden = !abre; $("vzMais").setAttribute("aria-expanded", abre ? "true" : "false"); if(abre) $("vzSala").focus(); }
 
   /* ---- lista de salas (como os canais do Discord) ---- */
   function desenharCanais(){
@@ -349,18 +382,27 @@
     if(dentro && !lista.some(function(c){ return c.sala === sala; })) lista.unshift({ sala: sala, gente: [] });
     lista.forEach(function(c){
       var aqui = dentro && c.sala === sala;
-      var row = document.createElement("div"); row.className = "vz-c" + (aqui ? " aqui" : ""); row.setAttribute("role", "listitem");
-      var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = c.sala; row.appendChild(nm);
-      var gt = document.createElement("div"); gt.className = "gt";
-      var gente = aqui ? pessoas.map(function(p){ return { nome: p.nome, tela: p.tela }; }) : (c.gente || []);
-      if(!gente.length){ var v = document.createElement("em"); v.textContent = "vazia"; gt.appendChild(v); }
-      gente.forEach(function(g){ var s = document.createElement("span"); s.textContent = g.nome + (g.tela ? " · tela" : ""); if(g.tela) s.className = "tl"; gt.appendChild(s); });
-      row.appendChild(gt);
-      var bt = document.createElement("button"); bt.type = "button"; bt.className = "of-btn";
-      if(aqui){ bt.textContent = "Você está aqui"; bt.disabled = true; }
-      else { bt.textContent = "Entrar"; bt.addEventListener("click", function(){ entrar(c.sala, false); }); }
-      row.appendChild(bt); L.appendChild(row);
+      var row = document.createElement("div"); row.className = "dz-c" + (aqui ? " aqui" : ""); row.setAttribute("role", "listitem");
+      var bt = document.createElement("button"); bt.type = "button"; bt.className = "dz-c-b";
+      bt.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5zM16 9a4 4 0 0 1 0 6"/></svg>';
+      var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = c.sala; bt.appendChild(nm);
+      var gente = aqui ? pessoas.map(function(p){ return { eu: p.eu, nome: p.nome, tela: p.tela }; }) : (c.gente || []);
+      if(gente.length){ var n = document.createElement("span"); n.className = "n"; n.textContent = gente.length; bt.appendChild(n); }
+      if(aqui){ bt.setAttribute("aria-current", "true"); bt.title = "Você está nesta sala"; } else { bt.title = "Entrar em " + c.sala; bt.addEventListener("click", function(){ entrar(c.sala, false); }); }
+      row.appendChild(bt);
+      if(gente.length){
+        var ul = document.createElement("div"); ul.className = "dz-m";
+        gente.forEach(function(g){
+          var li = document.createElement("div"); li.className = "dz-mi"; if(aqui && g.eu) li.dataset.id = g.eu === eu ? "eu" : g.eu;
+          li.appendChild(avatar(g.nome, "dz-av-p")); var s = document.createElement("span"); s.className = "t"; s.textContent = g.nome; li.appendChild(s);
+          if(g.tela){ var l = document.createElement("span"); l.className = "dz-live"; l.textContent = "AO VIVO"; li.appendChild(l); }
+          ul.appendChild(li);
+        });
+        row.appendChild(ul);
+      }
+      L.appendChild(row);
     });
+    if(!lista.length){ var v = document.createElement("p"); v.className = "dz-sem"; v.textContent = "Nenhuma sala ainda."; L.appendChild(v); }
   }
   function listarCanais(){
     if(document.hidden) return Promise.resolve();
@@ -421,13 +463,18 @@
   function iniciar(){
     if(!$("vz")) return;
     var p = prefs(); $("vzNome").value = ls("lv:nome") || "";
-    $("vzEco").checked = p.eco; $("vzRuido").checked = p.ruido; $("vzGanho").checked = p.ganho;
+    $("vzEco").checked = p.eco; $("vzRuido").checked = p.ruido; $("vzGanho").checked = p.ganho; $("vzGate").checked = p.gate;
+    $("vzMais").addEventListener("click", function(){ abrirNovo($("vzNovo").hidden); });
+    function atualizaEuAv(){ var n = $("vzNome").value.trim(), a = $("vzEuAv"); a.textContent = (n.charAt(0) || "?").toUpperCase(); a.style.background = n ? cor(n) : ""; }
+    $("vzNome").addEventListener("input", atualizaEuAv); atualizaEuAv();
     $("vzNovo").addEventListener("submit", function(e){ e.preventDefault(); var s = $("vzSala").value; if(!s.trim()){ erro("Escreva o nome da sala nova."); $("vzSala").focus(); return; } entrar($("vzPriv").checked ? limparSala(s).slice(0, 30) + "-" + rnd(6) : s, $("vzPriv").checked); $("vzSala").value = ""; $("vzPriv").checked = false; });
     $("vzConv").addEventListener("click", function(){
       var b = this, l = linkConvite();
-      copiar(l).then(function(){ b.textContent = "Link copiado!"; }, function(){ b.textContent = "Não consegui copiar"; erro("Link do convite: " + l); }).then(function(){ setTimeout(function(){ b.textContent = "Copiar convite"; }, 2500); });
+      var tx = b.querySelector(".tx"); copiar(l).then(function(){ tx.textContent = "Link copiado!"; }, function(){ tx.textContent = "Não copiou"; erro("Link do convite: " + l); }).then(function(){ setTimeout(function(){ tx.textContent = "Convidar"; }, 2500); });
     });
     convidado();
+    var vd = $("vzVideo"); vd.addEventListener("loadedmetadata", function(){ if(vd.videoWidth && vd.videoHeight) $("vzStage").style.aspectRatio = vd.videoWidth + " / " + vd.videoHeight; });
+    vd.addEventListener("dblclick", function(){ if(!tela) $("vzFull").click(); });
     $("vzSair").addEventListener("click", function(){ sair(""); });
     $("vzTela").addEventListener("click", function(){ if(tela) pararTela(); else iniciarTela(); });
     $("vzFull").addEventListener("click", function(){ var el = $("vzStage"); if(document.fullscreenElement){ document.exitFullscreen(); return; } (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el); });
@@ -437,7 +484,7 @@
       if(somOn && ctx && ctx.state === "suspended") ctx.resume().catch(function(){});
     });
     $("vzVol").addEventListener("input", function(){ volGeral = (+this.value) / 100; aplicarVolumes(); });
-    ["vzEco", "vzRuido", "vzGanho"].forEach(function(id){ $(id).addEventListener("change", function(){ salvarPrefs(); trocarMic(); }); });
+    ["vzEco", "vzRuido", "vzGanho", "vzGate"].forEach(function(id){ $(id).addEventListener("change", function(){ salvarPrefs(); trocarMic(); }); });
     $("vzMicDev").addEventListener("change", function(){ salvarPrefs(); trocarMic(); });
     $("vzSaida").addEventListener("change", function(){
       salvarPrefs(); var s = this.value;
