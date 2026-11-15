@@ -168,14 +168,29 @@
     if(sIniciando) return;
     if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){ erro("Este navegador não permite transmitir a tela. Abra o link no Chrome ou no Edge, no computador."); return; }
     sIniciando = true; erro("");
-    navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 }, width: { max: 1920 }, height: { max: 1080 } }, audio: $("lvAudio").checked ? { restrictOwnAudio: true } : false }).then(function(ms){
+    navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 }, width: { max: 1920 }, height: { max: 1080 } }, audio: $("lvAudio").checked ? { restrictOwnAudio: true, echoCancellation: false, noiseSuppression: false, autoGainControl: false } : false }).then(function(ms){
       sIniciando = false; pararCaptura(false); stream = ms;
       ms.getVideoTracks().forEach(function(t){ try{ t.contentHint = "motion"; }catch(e){} t.addEventListener("ended", function(){ if(stream === ms){ pararCaptura(false); stEmit("compartilhamento parado", false); erro("Você parou de compartilhar a tela. Clique em Escolher tela ou janela para continuar."); } }); });
       var p = $("lvPrev"); p.srcObject = ms; p.hidden = false;
       stEmit("no ar", true); iniciarSync();
+      vigiarPreto(ms);
     }).catch(function(e){ sIniciando = false; if(!e || e.name !== "NotAllowedError") erro("Não consegui capturar a tela."); });
   }
+  /* imagem preta na captura (quase sempre aceleração de hardware desligada no navegador, ou conteúdo protegido): avisa quem transmite */
+  var pretoT = 0;
+  function vigiarPreto(ms){
+    clearInterval(pretoT); var n = 0, cv = document.createElement("canvas"); cv.width = 32; cv.height = 18; var g = cv.getContext("2d", { willReadFrequently: true }), p = $("lvPrev");
+    pretoT = setInterval(function(){
+      if(stream !== ms){ clearInterval(pretoT); return; }
+      if(!p.videoWidth || p.readyState < 2) return;
+      var d; try{ g.drawImage(p, 0, 0, 32, 18); d = g.getImageData(0, 0, 32, 18).data; }catch(e){ return; }
+      var soma = 0; for(var i = 0; i < d.length; i += 4) soma += d[i] + d[i + 1] + d[i + 2];
+      if(soma > 40){ n = 0; if(/preta/.test($("lvErr").textContent)) erro(""); return; }
+      if(++n === 5) erro("A transmissão está saindo preta. Ative a aceleração de hardware do navegador (Edge ou Chrome: Configurações > Sistema > Usar aceleração gráfica quando disponível), reinicie o navegador e comece a transmitir de novo. Se for um site com proteção (Netflix, Prime), ele também deixa a captura preta; nesse caso compartilhe a tela inteira em vez da aba.");
+    }, 1000);
+  }
   function pararCaptura(avisarFim){
+    clearInterval(pretoT);
     if(worker){ worker.terminate(); worker = null; }
     Object.keys(pcs).forEach(function(k){ try{ pcs[k].close(); }catch(e){} }); pcs = {};
     if(stream){ stream.getTracks().forEach(function(t){ try{ t.stop(); }catch(e){} }); stream = null; }
@@ -215,7 +230,7 @@
     pc.onconnectionstatechange = function(){ if(pc.connectionState === "failed" || pc.connectionState === "closed" || pc.connectionState === "disconnected"){ try{ pc.close(); }catch(e){} if(pcs[o.viewer] === pc) delete pcs[o.viewer]; } };
     pc.setRemoteDescription({ type: "offer", sdp: o.sdp }).then(function(){
       // limita o envio por espectador (vários espectadores dividem a internet de quem transmite)
-      pc.getSenders().forEach(function(s){ if(s.track && s.track.kind === "video"){ var p = s.getParameters(); if(!p.encodings || !p.encodings.length) p.encodings = [{}]; p.encodings[0].maxBitrate = 3000000; s.setParameters(p).catch(function(){}); } });
+      pc.getSenders().forEach(function(s){ if(s.track && s.track.kind === "video"){ var p = s.getParameters(); if(!p.encodings || !p.encodings.length) p.encodings = [{}]; p.encodings[0].maxBitrate = 6000000; s.setParameters(p).catch(function(){}); } });
       return pc.createAnswer();
     }).then(function(a){ return pc.setLocalDescription(a); }).then(function(){ return esperaIce(pc); }).then(function(){
       return rpc("live_s_resp", { p_sala: sid, p_ts: ts, p_viewer: o.viewer, p_sdp: pc.localDescription.sdp, p_erro: null });

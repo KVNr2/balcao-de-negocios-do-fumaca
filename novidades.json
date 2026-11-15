@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-11-15T16:40:00Z",
+   "titulo": "Live: lista de salas, transmitir tela na sala, convite por link e melhor qualidade",
+   "itens": [
+    "As salas de voz agora aparecem numa lista, como os canais do Discord, com os nomes de quem está dentro de cada uma. Clique em Entrar ou crie uma sala nova e ela aparece para todos. A sala vazia some sozinha (só a cinema fica sempre).",
+    "Dentro da sala há o botão Transmitir tela (com opção de incluir o som): uma pessoa por vez transmite e todos da sala assistem juntos, ouvindo a voz de todo mundo. Quem transmite aparece em vermelho na lista.",
+    "Sala privada: não aparece na lista e ganha um nome com código. O botão Copiar convite gera um link; quem abrir vê o aviso de convite e entra com um clique.",
+    "Qualidade: voz com mais taxa de bits e correção de perda, som da transmissão em estéreo sem o processamento de voz do navegador e vídeo que começa em alta qualidade em vez de subir devagar. A transmissão avisa quando sai preta (aceleração de hardware)."
+   ]
+  },
+  {
    "t": "2026-11-15T15:55:00Z",
    "programa": "2.2.1",
    "titulo": "Live: sala de voz Cinema com microfone e áudio, sem retorno",

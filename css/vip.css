@@ -2129,7 +2129,17 @@ nav.tabs #t-live.ao-vivo .tl::after{content:"";display:inline-block;width:8px;he
 /* ===== Live: sala de voz (cinema) ===== */
 .vz{border:1px solid #2a3550;border-radius:12px;background:#0c1018;padding:14px;margin-bottom:14px;display:grid;gap:10px}
 .vz-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.vz-h b{color:var(--gold)}
-.vz-ent{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.vz-canais{display:grid;gap:6px}
+.vz-c{display:flex;align-items:center;gap:10px;border:1px solid #2a3550;border-radius:10px;padding:8px 12px;background:#05070b}
+.vz-c.aqui{border-color:var(--gold)}
+.vz-c .nm{font-weight:700;color:#e9dfc8;white-space:nowrap}.vz-c .nm::before{content:"# ";color:#9aa6bd}
+.vz-c .gt{flex:1;min-width:0;display:flex;gap:6px;flex-wrap:wrap}
+.vz-c .gt span{font-size:12px;background:#1a2336;color:#cfd6e4;border-radius:999px;padding:2px 9px}.vz-c .gt span.tl{background:#d83b3b;color:#fff}
+.vz-c .gt em{font-style:normal;font-size:12px;color:#9aa6bd}
+.vz-novo{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.vz-novo input[type=text]{flex:1;min-width:180px;background:#05070b;border:1px solid #2a3550;border-radius:8px;color:#e9dfc8;padding:8px 10px;font:inherit}
+.vz-sala{color:var(--gold);margin-right:4px}.vz-sala::before{content:"# ";color:#9aa6bd}
+.vz-stage{margin:10px 0}.vz-stage[hidden]{display:none}.vz-full{position:absolute;right:10px;bottom:10px;background:#0c1018cc}
 .vz-f{display:grid;gap:4px;font-size:12px;color:#9aa6bd}
 .vz-f input,.vz-f select{background:#05070b;border:1px solid #2a3550;border-radius:8px;color:#e9dfc8;padding:8px 10px;font:inherit;min-width:150px;max-width:100%}
 .vz-on[hidden]{display:none}
@@ -2192,3 +2202,5 @@ nav.tabs #t-live.ao-vivo .tl::after{content:"";display:inline-block;width:8px;he
 
 .pt-aviso{margin:0;padding:8px 12px;border:1px solid var(--line);border-left:3px solid var(--saffron);border-radius:8px;background:var(--night-2);color:var(--parch-2)}
 .pt-comp{display:flex;flex-direction:column;gap:6px}.pt-comp .pt-badge{margin-top:1px}
+
+.vz-convite{display:flex;gap:10px;flex-wrap:wrap;align-items:center;border:1px solid var(--gold);border-radius:10px;padding:10px 12px;background:#0b0f18}.vz-convite[hidden]{display:none}.vz-convite span{flex:1;min-width:200px}
