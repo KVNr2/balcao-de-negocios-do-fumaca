@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-11-15T15:55:00Z",
+   "programa": "2.2.1",
+   "titulo": "Live: sala de voz Cinema com microfone e áudio, sem retorno",
+   "itens": [
+    "Nova sala de voz na aba Live, estilo canal do Discord, para conversar enquanto assistem ao filme da live. Escreva seu nome, escolha a sala (o padrão é cinema; outro nome cria uma sala privada) e entre. Cabem até 6 pessoas e a voz vai direto de navegador para navegador.",
+    "Controles: microfone liga/desliga, áudio (ouvir os outros) liga/desliga com volume geral, volume e mudo por pessoa, indicador de quem está falando e escolha do microfone e da saída de áudio. Sem microfone liberado, entra só ouvindo.",
+    "Sem retorno: o microfone usa cancelamento de eco, redução de ruído e ajuste automático de volume do navegador (dá para desligar), e a transmissão da tela passa a tirar o som da própria aba, então a voz da sala não volta para quem ouve. O Discord aberto no PC ainda entra no som da tela inteira: use a voz só em um dos dois ou compartilhe só a janela ou aba do filme. Use fones.",
+    "No Albion Overlay a página da Live agora pode usar o microfone."
+   ]
+  },
+  {
    "t": "2026-11-15T07:20:00Z",
    "programa": "2.2.0",
    "titulo": "Overlay: modo Corrompida (Corrupted Lair) com rota e mobs a matar",

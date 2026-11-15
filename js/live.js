@@ -168,7 +168,7 @@
     if(sIniciando) return;
     if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){ erro("Este navegador não permite transmitir a tela. Abra o link no Chrome ou no Edge, no computador."); return; }
     sIniciando = true; erro("");
-    navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 }, width: { max: 1920 }, height: { max: 1080 } }, audio: $("lvAudio").checked }).then(function(ms){
+    navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 }, width: { max: 1920 }, height: { max: 1080 } }, audio: $("lvAudio").checked ? { restrictOwnAudio: true } : false }).then(function(ms){
       sIniciando = false; pararCaptura(false); stream = ms;
       ms.getVideoTracks().forEach(function(t){ try{ t.contentHint = "motion"; }catch(e){} t.addEventListener("ended", function(){ if(stream === ms){ pararCaptura(false); stEmit("compartilhamento parado", false); erro("Você parou de compartilhar a tela. Clique em Escolher tela ou janela para continuar."); } }); });
       var p = $("lvPrev"); p.srcObject = ms; p.hidden = false;
