@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-11-15T07:20:00Z",
+   "programa": "2.2.0",
+   "titulo": "Overlay: modo Corrompida (Corrupted Lair) com rota e mobs a matar",
+   "itens": [
+    "Novo modo Corrompida no Albion Overlay: ao entrar numa Corrupted Lair (CORRUPT-001 a 020) o programa reconhece o mapa e desenha, por cima do minimapa do jogo, a rota mais curta que passa pelos 2 baús dos mini-bosses (1), pelo baú solto (2) e termina na sala do boss (B). A janela é transparente, não recebe cliques e só aparece com o Albion na frente.",
+    "A rota se refaz sozinha conforme você faz os objetivos ou sai do caminho. O desenho vem do mapa fixo de cada Lair; a posição dos objetivos foi conferida contra 4 runs reais (baús, mini-bosses, boss e portal exatos).",
+    "Infâmia: o programa lê a infâmia atual do jogo (0 a 500) e marca no minimapa, com anéis, quais mobs matar para o boss nascer no menor tempo (vermelho-claro = 25 pontos, amarelo = 15, branco = 5). Os pontos por mob foram medidos no tráfego do jogo; Watcher e Her Mage ainda são estimativa. Os 2 mini-bosses já dão 200 dos 500.",
+    "Ajuste fino em lair.json (pasta FichaAlbion): desligado, sempre, largura/altura e calibração manual. O registro fica em lair.log. Se o jogo estiver em tela cheia exclusiva a janela pode não aparecer: use o modo janela sem bordas."
+   ]
+  },
+  {
    "t": "2026-11-10T04:50:00Z",
    "titulo": "Menos consultas à API pública: preços vêm do Supabase",
    "itens": [
