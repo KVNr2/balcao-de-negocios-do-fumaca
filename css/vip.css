@@ -2126,6 +2126,32 @@ nav.tabs #t-live.ao-vivo .tl::after{content:"";display:inline-block;width:8px;he
 .lv-ocultar{margin:14px 0 0;font-size:12.5px}.lv-ocultar .linkbtn{color:#9aa6bd}
 .lv-entregue{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid var(--gold);border-radius:12px;background:#0c1018;padding:12px 14px;margin-bottom:14px}.lv-entregue b{color:var(--gold)}.lv-entregue span{color:#9aa6bd;font-size:13px}
 
+/* ===== Live: sala de voz (cinema) ===== */
+.vz{border:1px solid #2a3550;border-radius:12px;background:#0c1018;padding:14px;margin-bottom:14px;display:grid;gap:10px}
+.vz-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.vz-h b{color:var(--gold)}
+.vz-ent{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.vz-f{display:grid;gap:4px;font-size:12px;color:#9aa6bd}
+.vz-f input,.vz-f select{background:#05070b;border:1px solid #2a3550;border-radius:8px;color:#e9dfc8;padding:8px 10px;font:inherit;min-width:150px;max-width:100%}
+.vz-on[hidden]{display:none}
+.vz-bt{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.vz-bt input[type=range]{width:110px;accent-color:var(--gold)}
+.vz-b:not([data-on="1"]){border-color:#d83b3b;color:#ff8a7a}
+.vz-b[data-on="1"] .p-off,#vzMic:not([data-on="1"]) .p-on{display:none}
+.vz-b svg path:first-child,.vz-b svg rect{fill:none}
+#vzMic svg rect{fill:currentColor;stroke:none}
+.vz-b .p-off{stroke:#ff6a5a;stroke-width:2.4}
+.vz-gente{display:grid;gap:6px;margin:10px 0}
+.vz-p{display:flex;align-items:center;gap:10px;border:1px solid #2a3550;border-radius:10px;padding:6px 10px;background:#05070b}
+.vz-p .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#1a2336;color:#e9dfc8;font-weight:700;border:2px solid transparent;flex:none}
+.vz-p.fala .av{border-color:#43d17a;box-shadow:0 0 10px #43d17a88}
+.vz-p .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e9dfc8}
+.vz-p .nm small{color:#9aa6bd;margin-left:6px}
+.vz-p input[type=range]{width:90px;accent-color:var(--gold)}
+.vz-p .mu{background:transparent;border:1px solid #2a3550;border-radius:6px;color:#cfd6e4;cursor:pointer;padding:2px 8px;font-size:12px}
+.vz-p .mu[data-on="1"]{border-color:#d83b3b;color:#ff8a7a}
+.vz-av{border:1px solid #2a3550;border-radius:10px;padding:8px 12px}.vz-av summary{cursor:pointer;color:#cfd6e4}.vz-av[open]{display:grid;gap:8px}
+@media (max-width:900px){.vz-p input[type=range]{width:60px}}
+
 /* ===== aba Patch (formato das notas de patch do albionzvz.com) ===== */
 #patchBox{display:flex;flex-direction:column;gap:22px;min-width:0}
 .pt-head{display:flex;flex-direction:column;gap:8px}.pt-head h2{margin:0}.pt-head p{margin:0}

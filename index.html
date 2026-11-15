@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="54804c09">
+<html lang="pt-BR" data-v="93844817">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=54804c09">
-<link rel="stylesheet" href="css/vip.css?v=54804c09">
-<link rel="stylesheet" href="css/avicons.css?v=54804c09">
-<link rel="stylesheet" href="css/souk.css?v=54804c09">
+<link rel="stylesheet" href="css/balcao.css?v=93844817">
+<link rel="stylesheet" href="css/vip.css?v=93844817">
+<link rel="stylesheet" href="css/avicons.css?v=93844817">
+<link rel="stylesheet" href="css/souk.css?v=93844817">
 </head>
 <body>
 <div class="wrap app">
@@ -555,6 +555,33 @@ html.em-atual .av-card{margin:0}
       <p class="lv-dica">Deixe esta aba aberta enquanto transmite. Para o som do jogo, escolha <b>Tela inteira</b> (o navegador só captura o som da tela toda ou de uma aba). Cabem até 5 espectadores ao mesmo tempo. Desmarque a última opção para só quem tem o link assistir.</p>
     </div>
     <div class="lv-entregue" id="lvEntregue" hidden><b>Esta live foi aberta no Albion Overlay.</b><span>Veja e transmita por lá. Se preferir aqui no navegador:</span><button id="lvAqui" type="button" class="of-btn">Usar aqui no navegador</button></div>
+    <div class="vz" id="vz">
+      <div class="vz-h"><b>Cinema · sala de voz</b><span class="lv-st" id="vzSt">vazia</span></div>
+      <div class="vz-ent" id="vzEnt">
+        <label class="vz-f">Seu nome<input id="vzNome" type="text" maxlength="24" autocomplete="off" placeholder="Como aparecer na sala"></label>
+        <label class="vz-f">Sala<input id="vzSala" type="text" maxlength="30" autocomplete="off" value="cinema" aria-label="Nome da sala"></label>
+        <button id="vzEntrar" type="button" class="of-btn">Entrar na sala</button>
+      </div>
+      <div class="vz-on" id="vzOn" hidden>
+        <div class="vz-bt">
+          <button id="vzMic" type="button" class="lv-b vz-b" data-on="1" aria-label="Desligar o microfone" title="Microfone"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/><path class="p-off" d="M4 4l16 16"/></svg></button>
+          <button id="vzSom" type="button" class="lv-b vz-b" data-on="1" aria-label="Silenciar o áudio da sala" title="Áudio (ouvir os outros)"><svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="7" rx="1.5"/><rect x="17" y="13" width="4" height="7" rx="1.5"/><path class="p-off" d="M4 4l16 16"/></svg></button>
+          <input id="vzVol" type="range" min="0" max="100" value="100" aria-label="Volume da sala">
+          <button id="vzSair" type="button" class="of-btn lv-sec">Sair da sala</button>
+        </div>
+        <div class="vz-gente" id="vzGente"></div>
+        <details class="vz-av"><summary>Microfone e áudio: opções</summary>
+          <label class="vz-f">Microfone<select id="vzMicDev"></select></label>
+          <label class="vz-f" id="vzSaidaF">Saída de áudio<select id="vzSaida"></select></label>
+          <label class="lv-chk"><input id="vzEco" type="checkbox" checked> Cancelar eco</label>
+          <label class="lv-chk"><input id="vzRuido" type="checkbox" checked> Reduzir ruído</label>
+          <label class="lv-chk"><input id="vzGanho" type="checkbox" checked> Ajustar volume do microfone sozinho</label>
+        </details>
+      </div>
+      <p class="lv-dica" id="vzDica">Use <b>fones de ouvido</b> para ninguém ouvir eco. Para transmitir o filme, a tela inteira com som funciona: o navegador tira da transmissão o som desta aba (a voz da sala), então ninguém se ouve de volta. O Discord, se estiver aberto, entra no som da tela inteira: use só uma das duas vozes, ou compartilhe apenas a janela ou aba do filme.</p>
+      <p class="lv-err" id="vzErr" hidden></p>
+      <div id="vzAudios" hidden></div>
+    </div>
     <div class="lv-lista" id="lvLista"></div>
     <form class="lv-colar" id="lvColar"><input id="lvLink" type="text" autocomplete="off" placeholder="Colar o link da live que saiu no Discord" aria-label="Link da live"><button type="submit" class="of-btn">Adicionar</button></form>
     <p class="lv-err" id="lvErr" hidden></p>
@@ -925,34 +952,35 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=54804c09"></script>
-<script src="js/base.js?v=54804c09"></script>
-<script src="js/precos.js?v=54804c09"></script>
-<script src="js/fx.js?v=54804c09"></script>
-<script src="js/biz.js?v=54804c09"></script>
-<script src="js/builds.js?v=54804c09"></script>
-<script src="js/nossas.js?v=54804c09"></script>
-<script src="js/ip.js?v=54804c09"></script>
-<script src="js/zvz.js?v=54804c09"></script>
-<script src="js/pvp.js?v=54804c09"></script>
-<script src="js/novos.js?v=54804c09"></script>
-<script src="js/guia.js?v=54804c09"></script>
-<script src="js/ui.js?v=54804c09"></script>
-<script src="js/avalon.js?v=54804c09"></script>
-<script src="js/oficina.js?v=54804c09"></script>
-<script src="js/patch.js?v=54804c09"></script>
-<script src="js/versao.js?v=54804c09"></script>
-<script src="js/bag.js?v=54804c09"></script>
-<script src="js/plano.js?v=54804c09"></script>
-<script src="js/pesca.js?v=54804c09"></script>
-<script src="js/listfil.js?v=54804c09"></script>
-<script src="js/fav.js?v=54804c09"></script>
-<script src="js/festas.js?v=54804c09"></script>
-<script src="js/transporte.js?v=54804c09"></script>
-<script src="js/rotacao.js?v=54804c09"></script>
-<script src="js/menucraft.js?v=54804c09"></script>
-<script src="js/compras.js?v=54804c09"></script>
-<script src="js/live.js?v=54804c09"></script>
-<script src="js/main.js?v=54804c09"></script>
+<script src="js/icons.js?v=93844817"></script>
+<script src="js/base.js?v=93844817"></script>
+<script src="js/precos.js?v=93844817"></script>
+<script src="js/fx.js?v=93844817"></script>
+<script src="js/biz.js?v=93844817"></script>
+<script src="js/builds.js?v=93844817"></script>
+<script src="js/nossas.js?v=93844817"></script>
+<script src="js/ip.js?v=93844817"></script>
+<script src="js/zvz.js?v=93844817"></script>
+<script src="js/pvp.js?v=93844817"></script>
+<script src="js/novos.js?v=93844817"></script>
+<script src="js/guia.js?v=93844817"></script>
+<script src="js/ui.js?v=93844817"></script>
+<script src="js/avalon.js?v=93844817"></script>
+<script src="js/oficina.js?v=93844817"></script>
+<script src="js/patch.js?v=93844817"></script>
+<script src="js/versao.js?v=93844817"></script>
+<script src="js/bag.js?v=93844817"></script>
+<script src="js/plano.js?v=93844817"></script>
+<script src="js/pesca.js?v=93844817"></script>
+<script src="js/listfil.js?v=93844817"></script>
+<script src="js/fav.js?v=93844817"></script>
+<script src="js/festas.js?v=93844817"></script>
+<script src="js/transporte.js?v=93844817"></script>
+<script src="js/rotacao.js?v=93844817"></script>
+<script src="js/menucraft.js?v=93844817"></script>
+<script src="js/compras.js?v=93844817"></script>
+<script src="js/live.js?v=93844817"></script>
+<script src="js/voz.js?v=93844817"></script>
+<script src="js/main.js?v=93844817"></script>
 </body>
 </html>
