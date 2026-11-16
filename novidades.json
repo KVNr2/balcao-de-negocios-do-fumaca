@@ -1,6 +1,23 @@
 {
  "itens": [
   {
+   "t": "2026-11-16T22:20:00Z",
+   "programa": "2.3.0",
+   "titulo": "Pesquisa de item pelo mouse e mapa de Avalon em painel pequeno",
+   "itens": [
+    "Albion Overlay 2.3.0: nova tecla de pesquisa de item (padrão Ctrl+Alt+P). Passe o mouse sobre o item no inventário (ou abra a tela de detalhes dele) e aperte a tecla: abre por cima do jogo um painel pequeno com os preços por cidade, pedido de venda e de compra, média de 7 e 30 dias. O programa lê o nome no tooltip, a qualidade pela cor da moldura e o encantamento pelo brilho e pelas bolinhas.",
+    "A tecla do mapa de Avalon agora também abre um painel pequeno, só com o mapa, recursos e masmorras."
+   ]
+  },
+  {
+   "t": "2026-11-16T22:19:00Z",
+   "titulo": "Painel de pesquisa de item e correção do pedido de compra por qualidade",
+   "itens": [
+    "Nova página painel-item (usada pelo overlay) com filtros de qualidade, encantamento, venda ou compra e cidades.",
+    "Pedido de compra agora vale para a qualidade dele ou melhor, como no jogo: para um item Excepcional, o maior pedido é o maior entre Normal, Bom e Excepcional. Antes o painel só olhava pedidos da qualidade exata e mostrava preço menor que o do jogo."
+   ]
+  },
+  {
    "t": "2026-11-16T14:05:00Z",
    "programa": "2.2.2",
    "titulo": "Modo Corrompida só desenha com o minimapa visível",

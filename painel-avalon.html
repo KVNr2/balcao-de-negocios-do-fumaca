@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mapa de Avalon do Albion</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<link rel="stylesheet" href="css/balcao.css">
+<style>
+html,body{height:100%;margin:0;overflow:hidden}
+body{background:var(--night);color:var(--parch);font:15px/1.4 var(--f-body);cursor:default;display:block}
+.pa{height:100%;display:flex;flex-direction:column;box-sizing:border-box;background:radial-gradient(120% 60% at 50% 0%,rgba(232,171,69,.10),transparent 70%),var(--cloth);border:1px solid var(--brass);border-radius:10px;overflow:hidden}
+.pa-bar{display:flex;align-items:center;gap:8px;padding:7px 10px;background:linear-gradient(180deg,var(--cloth-2),var(--cloth));border-bottom:1px solid var(--line);user-select:none;cursor:move}
+.pa-bar b{flex:1;text-align:center;font:600 14px var(--f-display);color:var(--parch-2,var(--parch));letter-spacing:.02em}
+.pa-bar button{all:unset;cursor:pointer;width:26px;height:26px;display:grid;place-items:center;border-radius:6px;color:var(--smoke);font-size:16px}
+.pa-bar button:hover,.pa-bar button:focus-visible{background:var(--night-2);color:var(--saffron)}
+.pa-corpo{flex:1;min-height:0;overflow:auto;padding:10px}
+.pa-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--brass);border-radius:8px;background:linear-gradient(180deg,#2a1d1b,var(--night-2));padding:9px 12px}
+.pa-hd img{width:34px;height:34px;flex:none}
+.pa-nome{font:700 19px/1.15 var(--f-display);color:var(--saffron);flex:1;min-width:140px}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;border:1px solid var(--line);background:var(--night-2);font-weight:800;font-size:13px}
+.tag.t4{color:#8fd19a}.tag.t6{color:#e6c56a}.tag.t8{color:#e58b6a}
+.ty{display:inline-flex;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:800;border:1px solid transparent}
+.ty.black{background:#000;color:#fff;border-color:#6b6b6b}.ty.red{background:#c4161c;color:#fff;border-color:#ff6b6f}.ty.royal{background:#1d4ea8;color:#fff;border-color:#6f9bf0}.ty.tunnel{background:#5b3a1c;color:#fff;border-color:#b98a55}.ty.ho{background:#5a2b86;color:#fff;border-color:#a77bd6}
+.pa-img{display:block;width:100%;height:auto;margin:10px 0 0;border-radius:10px;border:1px solid var(--line-soft)}
+.pa-mini{display:block;width:100%;margin-top:10px}
+.pa-mini .bg{fill:#17110d;stroke:rgba(255,255,255,.1);stroke-width:.4}.pa-mini .gr{stroke:rgba(255,255,255,.06);stroke-width:.3}
+h4{margin:12px 0 6px;font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--smoke)}
+.rec{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line-soft);border-radius:8px;background:rgba(255,255,255,.03);margin-bottom:5px}
+.rec img{width:28px;height:28px;flex:none}
+.rec .rn{font-weight:700;min-width:62px}
+.rec .tt{display:flex;gap:5px;flex-wrap:wrap;margin-left:auto}
+.zc{display:inline-flex;gap:5px;align-items:baseline;padding:2px 8px;border-radius:7px;background:rgba(255,255,255,.07);font-size:13px}.zc small{opacity:.75}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.it{display:inline-flex;align-items:center;gap:6px;padding:4px 5px 4px 11px;border-radius:999px;font-size:13px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,.25)}
+.it b{background:rgba(0,0,0,.35);border-radius:99px;padding:0 7px;font-size:13.5px}
+.it.solo{background:#a8283c}.it.grp{background:#9a5420}.it.raid{background:#7b45b8}.it.ho{background:#5a2b86}.it.mist{background:#1f7a62}
+.it.gold{background:#c9a227;color:#1a1a1a}.it.blue{background:#1d6fd6}.it.green{background:#2e8b3d}
+.it.none{background:rgba(255,255,255,.07);color:var(--parch);font-weight:600;padding:4px 11px}
+.vazio{padding:24px 8px;color:var(--smoke);text-align:center}
+</style></head><body>
+<div class="pa" role="dialog" aria-label="Mapa de Avalon">
+ <div class="pa-bar" id="bar"><span aria-hidden="true">🗺</span><b>Albion Overlay · Mapa de Avalon</b><button id="x" title="Fechar (Esc)" aria-label="Fechar">✕</button></div>
+ <div class="pa-corpo" id="c"><div class="vazio">Carregando o mapa…</div></div>
+</div>
+<script src="js/painel-avalon.js"></script>
+</body></html>

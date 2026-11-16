@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pesquisa de item do Albion</title>
+<link rel="icon" type="image/png" href="imagens/favicon.png" onerror="this.remove()">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<link rel="stylesheet" href="css/balcao.css">
+<style>
+html,body{height:100%;margin:0;overflow:hidden}
+body{background:var(--night);color:var(--parch);font:15px/1.4 var(--f-body);cursor:default;display:block}
+.pi{height:100%;display:flex;flex-direction:column;box-sizing:border-box;background:radial-gradient(120% 60% at 50% 0%,rgba(232,171,69,.10),transparent 70%),var(--cloth);border:1px solid var(--brass);border-radius:10px;overflow:hidden}
+.pi-bar{display:flex;align-items:center;gap:8px;padding:7px 10px;background:linear-gradient(180deg,var(--cloth-2),var(--cloth));border-bottom:1px solid var(--line);user-select:none;cursor:move}
+.pi-bar b{flex:1;text-align:center;font:600 14px var(--f-display);color:var(--parch-2,var(--parch));letter-spacing:.02em}
+.pi-bar button{all:unset;cursor:pointer;width:26px;height:26px;display:grid;place-items:center;border-radius:6px;color:var(--smoke);font-size:16px}
+.pi-bar button:hover,.pi-bar button:focus-visible{background:var(--night-2);color:var(--saffron)}
+.pi-card{margin:10px 10px 0;border:1px solid var(--brass);border-radius:8px;background:linear-gradient(180deg,#2a1d1b,var(--night-2));padding:10px 12px;display:flex;gap:12px;align-items:center}
+.pi-card img{width:64px;height:64px;flex:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
+.pi-nome{font:700 19px/1.15 var(--f-display);color:var(--saffron)}
+.pi-sub{margin-top:3px;color:var(--parch);font-size:14px}
+.pi-sub .e1{color:#7cc79a}.pi-sub .e2{color:#6aa9e8}.pi-sub .e3{color:#b98be8}.pi-sub .e4{color:#e8c34a}
+.pi-av{margin:6px 10px 0;padding:6px 9px;border-left:3px solid var(--loss);background:rgba(238,134,112,.08);color:var(--parch);font-size:13px;border-radius:0 6px 6px 0}
+.pi-f{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}
+.pi-f label{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--smoke);text-transform:uppercase;letter-spacing:.05em}
+.pi-f select,.pi-f summary{font:500 14px var(--f-body);text-transform:none;letter-spacing:0;color:var(--parch);background:var(--night-2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;cursor:pointer;width:100%;box-sizing:border-box}
+.pi-f select:focus-visible,.pi-f summary:focus-visible{outline:2px solid var(--saffron)}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--night-2)}
+.seg button{flex:1;all:unset;box-sizing:border-box;text-align:center;padding:6px 4px;font:500 14px var(--f-body);color:var(--parch);cursor:pointer;text-transform:none;letter-spacing:0}
+.seg button[aria-pressed=true]{background:var(--saffron);color:var(--saffron-ink);font-weight:700}
+details.cid{position:relative}
+details.cid[open] summary{border-color:var(--saffron)}
+details.cid .lista{position:absolute;z-index:5;left:0;right:0;margin-top:3px;background:var(--cloth-2);border:1px solid var(--brass);border-radius:8px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.lista label{flex-direction:row;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--parch);padding:4px 6px;cursor:pointer;border-radius:5px}
+.lista label:hover{background:var(--night-2)}
+.lista input{accent-color:var(--saffron);width:16px;height:16px;margin:0}
+.pi-prog{margin:0 10px 8px;display:flex;flex-direction:column;gap:4px}
+.pi-prog[hidden]{display:none}
+.pi-prog .t{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--smoke)}
+.pi-prog .sp{width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--saffron);border-radius:50%;animation:g .8s linear infinite}
+@keyframes g{to{transform:rotate(1turn)}}
+.pi-prog .tr{height:6px;background:var(--night-2);border:1px solid var(--line-soft);border-radius:4px;overflow:hidden}
+.pi-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brass),var(--saffron));transition:width .25s}
+.pi-tab{flex:1;min-height:0;overflow:auto;padding:0 10px 6px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{position:sticky;top:0;background:var(--cloth);text-align:left;font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--smoke);padding:5px 6px;border-bottom:1px solid var(--line)}
+th.n,td.n{text-align:right}
+td{padding:6px;border-bottom:1px solid var(--line-soft);font-size:14px;white-space:nowrap}
+tr.top td{background:rgba(232,171,69,.08)}
+tr.top td.p{color:var(--saffron);font-weight:700}
+td.q{color:var(--smoke);font-size:13px}
+td.idade{color:var(--smoke);font-size:13px}
+td.idade.velho{color:var(--loss)}
+td.m{color:var(--smoke);font-size:13px}
+.gain{color:var(--gain)}.loss{color:var(--loss)}
+.pi-vazio{padding:18px 8px;color:var(--smoke);text-align:center}
+.pi-rod{padding:6px 12px 8px;border-top:1px solid var(--line-soft);font-size:12px;color:var(--smoke);display:flex;justify-content:space-between;gap:8px}
+</style></head><body>
+<div class="pi" id="pi" role="dialog" aria-label="Pesquisa de item">
+ <div class="pi-bar" id="bar"><span aria-hidden="true">⚖</span><b>Albion Overlay · Pesquisa de item</b><button id="atu" title="Atualizar preços" aria-label="Atualizar preços">⟳</button><button id="x" title="Fechar (Esc)" aria-label="Fechar">✕</button></div>
+ <div class="pi-card"><img id="ic" alt=""><div><div class="pi-nome" id="nome">…</div><div class="pi-sub" id="sub"></div></div></div>
+ <div class="pi-av" id="av" hidden></div>
+ <div class="pi-f">
+  <label>Qualidade<select id="fq"><option value="0">Qualquer</option><option value="1">Normal</option><option value="2">Bom</option><option value="3">Excepcional</option><option value="4">Excelente</option><option value="5">Obra-prima</option></select></label>
+  <label>Encantamento<select id="fe"><option value="0">.0</option><option value="1">.1</option><option value="2">.2</option><option value="3">.3</option><option value="4">.4</option></select></label>
+  <label>Preço<div class="seg" id="ft"><button type="button" data-v="v" aria-pressed="true">Venda</button><button type="button" data-v="c" aria-pressed="false">Compra</button></div></label>
+  <label>Cidades<details class="cid" id="fc"><summary id="fcs">Todas</summary><div class="lista" id="fcl"></div></details></label>
+ </div>
+ <div class="pi-prog" id="pg" hidden><div class="t"><span class="sp"></span><b id="pgt">Consultando preços…</b><span id="pgn" style="margin-left:auto"></span></div><div class="tr"><i id="pgb"></i></div></div>
+ <div class="pi-tab"><table id="tb" aria-live="polite"><thead><tr><th>Cidade</th><th class="n">Preço</th><th>Qual.</th><th>Idade</th><th class="n">Méd. 7d</th><th class="n">Méd. 30d</th></tr></thead><tbody id="tbd"></tbody></table><div class="pi-vazio" id="vz" hidden></div></div>
+ <div class="pi-rod"><span id="fonte"></span></div>
+</div>
+<script src="js/painel-item.js"></script>
+</body></html>
