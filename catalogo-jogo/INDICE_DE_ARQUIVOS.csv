@@ -1,0 +1,144 @@
+﻿assunto;arquivo_do_jogo;json;tamanho_kb;tipo_raiz;principais_registros
+12-sistema-e-balanceamento;accessrights.bin;12-sistema-e-balanceamento/accessrights.json;17;accessrights;accessclass=15
+10-progressao-conquistas-e-missoes;achievements.bin;10-progressao-conquistas-e-missoes/achievements.json;1235;achievements;"templateachievement=674; achievement=30; template=24"
+12-sistema-e-balanceamento;advertisementpopups.bin;12-sistema-e-balanceamento/advertisementpopups.json;34;advertisementpopups;advertisement=153
+10-progressao-conquistas-e-missoes;albionjournal.bin;10-progressao-conquistas-e-missoes/albionjournal.json;1491;albionjournal;categories=1
+10-progressao-conquistas-e-missoes;albionjournalquests.bin;10-progressao-conquistas-e-missoes/albionjournalquests.json;53;journalquests;quest=27
+12-sistema-e-balanceamento;animationdata.bin;12-sistema-e-balanceamento/animationdata.json;0;AnimData;LayerBlendInfos=1
+12-sistema-e-balanceamento;animationtypes.bin;12-sistema-e-balanceamento/animationtypes.json;11;{http://www.w3.org/2001/XMLSchema}schema;"{http://www.w3.org/2001/XMLSchema}simpleType=9; {http://www.w3.org/2001/XMLSchema}attribute=4"
+09-pvp-guerra-e-ligas;arena.bin;09-pvp-guerra-e-ligas/arena.json;143;arena;"arenaregistrationtypes=1; arenacategories=1; arenarules=1; arenasettings=1; arenaseasons=1; arenaseasonrankdownmappings=1; arenaseasonranktemplates=1"
+09-pvp-guerra-e-ligas;arena_asia.bin;09-pvp-guerra-e-ligas/arena_asia.json;142;arena;"arenaregistrationtypes=1; arenacategories=1; arenarules=1; arenasettings=1; arenaseasons=1; arenaseasonrankdownmappings=1; arenaseasonranktemplates=1"
+09-pvp-guerra-e-ligas;arena_europe.bin;09-pvp-guerra-e-ligas/arena_europe.json;142;arena;"arenaregistrationtypes=1; arenacategories=1; arenarules=1; arenasettings=1; arenaseasons=1; arenaseasonrankdownmappings=1; arenaseasonranktemplates=1"
+01-itens;armory.bin;01-itens/armory.json;19;armory;"tagdefinitions=1; settings=1; activities=1"
+12-sistema-e-balanceamento;assetvfx.bin;12-sistema-e-balanceamento/assetvfx.json;226;AssetVfxInfos;AssetVfxInfo=600
+12-sistema-e-balanceamento;audio.bin;12-sistema-e-balanceamento/audio.json;398;AudioInfos;"WwiseEventInfo=1651; WwiseSwitchInfo=578; WwiseClusterStateOverwrite=88; WwiseGlobalEnvironmentEffect=8; DangerZoneSettings=5; QuestStateEvent=3; OverrideInfo=2; BattleMusicSystem=1"
+11-cosmeticos-e-personagem;avatars.bin;11-cosmeticos-e-personagem/avatars.json;34;avatars;"avatars=1; peraccountavatars=1; avatarrings=1; peraccountavatarrings=1"
+11-cosmeticos-e-personagem;avatars_asia.bin;11-cosmeticos-e-personagem/avatars_asia.json;34;avatars;"avatars=1; peraccountavatars=1; avatarrings=1; peraccountavatarrings=1"
+07-construcoes-e-territorio;buffshrines.bin;07-construcoes-e-territorio/buffshrines.json;14;Shrines;Shrine=37
+07-construcoes-e-territorio;buildings.bin;07-construcoes-e-territorio/buildings.json;1318;buildings;"castlegate=201; buildingreference=164; craftbuilding=133; labourer=77; playerbuilding=21; repairbuilding=8; factionbuilding=7; marketplacebuilding=4; farmbuilding=4; bankbuilding=3; fortificationtype=3; tutorialbuilding=2"
+03-monstros;cagedobjects.bin;03-monstros/cagedobjects.json;3;cagedobjects;"cagedwisp=3; cagedsmuggler=1; dragonarearunestone=1"
+06-recursos-e-coleta;carriables.bin;06-recursos-e-coleta/carriables.json;36;carriables;"crystal=3; carriablekey=3; wisp=2; siegebanner=2; factionbattlestandard=2; carriablesettings=1; energycore=1; smugglerscrate=1; helldungeonsoul=1"
+07-construcoes-e-territorio;castles.bin;07-construcoes-e-territorio/castles.json;6;Castles;Castle=2
+11-cosmeticos-e-personagem;characters.bin;11-cosmeticos-e-personagem/characters.json;34;CharacterData;"Races=1; Customizations=1; AvatarToCustomizationPresets=1; Characters=1"
+12-sistema-e-balanceamento;chatsettings.bin;12-sistema-e-balanceamento/chatsettings.json;3;ChatSettings;"ChatUi=1; Cooldowns=1"
+08-masmorras-e-eventos-pve;corrupteddungeons.bin;08-masmorras-e-eventos-pve/corrupteddungeons.json;3;corrupteddungeons;"globalsettings=1; difficulty=1; corrupteddungeonmaps=1; infamymilestones=1"
+01-itens;craftingmodifiers.bin;01-itens/craftingmodifiers.json;39;craftingmodifiers;"craftinglocation=140; refiningcategory=1"
+09-pvp-guerra-e-ligas;crystalleague.bin;09-pvp-guerra-e-ligas/crystalleague.json;562;crystalleague;"season=123; ruleset=73; chest=1; exit=1; clusterclosetimeaftermatch=1"
+09-pvp-guerra-e-ligas;crystalleague_asia.bin;09-pvp-guerra-e-ligas/crystalleague_asia.json;561;crystalleague;"season=123; ruleset=73; chest=1; exit=1; clusterclosetimeaftermatch=1"
+09-pvp-guerra-e-ligas;crystalleague_europe.bin;09-pvp-guerra-e-ligas/crystalleague_europe.json;561;crystalleague;"season=123; ruleset=73; chest=1; exit=1; clusterclosetimeaftermatch=1"
+09-pvp-guerra-e-ligas;crystalrealmgvg.bin;09-pvp-guerra-e-ligas/crystalrealmgvg.json;2;crystalrealmgvg;"reward=1; chest=1; exit=1; clusterclosetimeaftermatch=1"
+12-sistema-e-balanceamento;currencies.bin;12-sistema-e-balanceamento/currencies.json;1;currencies;currency=9
+08-masmorras-e-eventos-pve;dragonarea.bin;08-masmorras-e-eventos-pve/dragonarea.json;25;dragonarea;"globalsettings=1; dragonenergy=1; dragonattackevent=1; entrancetypes=1; modes=1; maps=1; difficultyleveluimapping=1; factionweightingtable=1; templates=1"
+08-masmorras-e-eventos-pve;dragonareatemplatemetadata.bin;08-masmorras-e-eventos-pve/dragonareatemplatemetadata.json;7;dragonareatemplatemetadata;"template=10; master=1"
+05-mundo-e-zonas;dynamicclusters.bin;05-mundo-e-zonas/dynamicclusters.json;146;dynamicclusters;cluster=384
+03-monstros;dynamichunt.bin;03-monstros/dynamichunt.json;270;tracking;"targets=1; globalsettings=1; hunts=1; quests=1"
+05-mundo-e-zonas;dynamictemplates.bin;05-mundo-e-zonas/dynamictemplates.json;278;dynamictemplates;"templatemappingpool=1; templatepools=1"
+11-cosmeticos-e-personagem;emotes.bin;11-cosmeticos-e-personagem/emotes.json;3;EmoteData;Emote=16
+12-sistema-e-balanceamento;eventbasedpopups.bin;12-sistema-e-balanceamento/eventbasedpopups.json;23;eventbasedpopups;"frequencyrules=1; popupqueue=1; popups=1"
+03-monstros;expeditionagents.bin;03-monstros/expeditionagents.json;2;expeditionagents;expeditionagent=5
+08-masmorras-e-eventos-pve;expeditioncategories.bin;08-masmorras-e-eventos-pve/expeditioncategories.json;8;expeditioncategories;expeditioncategory=12
+08-masmorras-e-eventos-pve;expeditions.bin;08-masmorras-e-eventos-pve/expeditions.json;17;expeditions;expedition=31
+07-construcoes-e-territorio;factionfortress.bin;07-construcoes-e-territorio/factionfortress.json;9;factionfortress;"fortressfight=1; fortressguards=1"
+09-pvp-guerra-e-ligas;factionwarfare.bin;09-pvp-guerra-e-ligas/factionwarfare.json;49;factionwarfare;"clustertypeoverride=144; duchy=26; clustertype=17; conflictzonetimer=8; objective=7; pvebonus=3; factions=1; global=1; factionbalancefactor=1; activityquotient=1; weeklyreport=1; factionpointbonus=1"
+09-pvp-guerra-e-ligas;factionwarfareredzoneevent.bin;09-pvp-guerra-e-ligas/factionwarfareredzoneevent.json;6;factionwarfareredzoneevent;redzoneevent=1
+09-pvp-guerra-e-ligas;factionwarfareredzoneevent_asia.bin;09-pvp-guerra-e-ligas/factionwarfareredzoneevent_asia.json;6;factionwarfareredzoneevent;redzoneevent=1
+09-pvp-guerra-e-ligas;factionwarfareredzoneevent_europe.bin;09-pvp-guerra-e-ligas/factionwarfareredzoneevent_europe.json;6;factionwarfareredzoneevent;redzoneevent=1
+01-itens;farmingmodifiers.bin;01-itens/farmingmodifiers.json;49;farmingmodifiers;location=37
+08-masmorras-e-eventos-pve;festivities.bin;08-masmorras-e-eventos-pve/festivities.json;32;festivities;"fixedevents=1; automatedevents=1; dailyevents=1; activityhubeventviews=1"
+07-construcoes-e-territorio;fortificationguards.bin;07-construcoes-e-territorio/fortificationguards.json;3;fortificationguards;"fortificationguardtype=3; factionfortressguardtype=3"
+12-sistema-e-balanceamento;gamedata.bin;12-sistema-e-balanceamento/gamedata.json;96;AO-GameData;"RecoveryVault=3; ServerSettings=1; ClientSettings=1; Items=1; Loot=1; ActiveBuffScaling=1; MobFocusFire=1; PlayerFocusFire=1; PlayerHealingSickness=1; ZergDebuff=1; RareResources=1; TravelSettings=1"
+12-sistema-e-balanceamento;gamedata_asia.bin;12-sistema-e-balanceamento/gamedata_asia.json;96;AO-GameData;"RecoveryVault=3; ServerSettings=1; ClientSettings=1; Items=1; Loot=1; ActiveBuffScaling=1; MobFocusFire=1; PlayerFocusFire=1; PlayerHealingSickness=1; ZergDebuff=1; RareResources=1; TravelSettings=1"
+12-sistema-e-balanceamento;gamedata_europe.bin;12-sistema-e-balanceamento/gamedata_europe.json;96;AO-GameData;"RecoveryVault=3; ServerSettings=1; ClientSettings=1; Items=1; Loot=1; ActiveBuffScaling=1; MobFocusFire=1; PlayerFocusFire=1; PlayerHealingSickness=1; ZergDebuff=1; RareResources=1; TravelSettings=1"
+12-sistema-e-balanceamento;guildfinder.bin;12-sistema-e-balanceamento/guildfinder.json;0;guildfinder;"settings=1; memberactivitypercentileweighting=1; beginneractivitypercentileweighting=1"
+12-sistema-e-balanceamento;guildfinder_asia.bin;12-sistema-e-balanceamento/guildfinder_asia.json;0;guildfinder;"settings=1; memberactivitypercentileweighting=1; beginneractivitypercentileweighting=1"
+12-sistema-e-balanceamento;guildfinder_europe.bin;12-sistema-e-balanceamento/guildfinder_europe.json;0;guildfinder;"settings=1; memberactivitypercentileweighting=1; beginneractivitypercentileweighting=1"
+11-cosmeticos-e-personagem;guildlogos.bin;11-cosmeticos-e-personagem/guildlogos.json;13;GuildLogoData;"Symbols=1; SymbolColors=1; Schemas=1; PredefinedLogos=1; Banners=1"
+09-pvp-guerra-e-ligas;gvgseasons.bin;09-pvp-guerra-e-ligas/gvgseasons.json;427;gvgseasons;"season=37; seasonwinnerpopup=1"
+09-pvp-guerra-e-ligas;gvgseasons_asia.bin;09-pvp-guerra-e-ligas/gvgseasons_asia.json;209;gvgseasons;"season=17; seasonwinnerpopup=1"
+09-pvp-guerra-e-ligas;gvgseasons_europe.bin;09-pvp-guerra-e-ligas/gvgseasons_europe.json;156;gvgseasons;"season=13; seasonwinnerpopup=1"
+06-recursos-e-coleta;harvestables.bin;06-recursos-e-coleta/harvestables.json;372;AO-Harvestables;Harvestable=89
+08-masmorras-e-eventos-pve;helldungeons.bin;08-masmorras-e-eventos-pve/helldungeons.json;12;helldungeons;"globalsettings=1; helldungeonsouldropsetups=1; helldungeonmodes=1; helldungeonmaps=1; helldungeondifficultyleveluimapping=1; factionweightingtable=1; helldungeontemplates=1"
+08-masmorras-e-eventos-pve;helldungeonstemplatemetadata.bin;08-masmorras-e-eventos-pve/helldungeonstemplatemetadata.json;8;helldungeonstemplatemetadata;"template=20; master=4"
+08-masmorras-e-eventos-pve;hellgate.bin;08-masmorras-e-eventos-pve/hellgate.json;8;hellgates;"globalsettings=1; hellgatemodes=1; hellgatemaps=1; infamymilestonetypes=1"
+07-construcoes-e-territorio;hideouts.bin;07-construcoes-e-territorio/hideouts.json;6;hideouts;"itemrecovery=1; hideout=1"
+10-progressao-conquistas-e-missoes;hints.bin;10-progressao-conquistas-e-missoes/hints.json;125;hints;"hint=384; texthint=1"
+01-itens;itemroles.bin;01-itens/itemroles.json;4;itemroles;"role=11; baserole=6"
+01-itens;items.bin;01-itens/items.json;8900;items;"simpleitem=1608; consumablefrominventoryitem=1368; equipmentitem=1153; weapon=771; furnitureitem=312; mountskin=166; consumableitem=153; journalitem=133; farmableitem=109; mount=109; labourercontract=77; transformationweapon=41"
+09-pvp-guerra-e-ligas;killemotes.bin;09-pvp-guerra-e-ligas/killemotes.json;3;killemotes;"globalsettings=1; emotes=1"
+09-pvp-guerra-e-ligas;killtrophy.bin;09-pvp-guerra-e-ligas/killtrophy.json;1;killtrophies;"killtrophy=4; killtrophysettings=1"
+01-itens;legendaryitems.bin;01-itens/legendaryitems.json;10;legendaries;"globalsettings=1; itemconfiguration=1; traitconfiguration=1"
+01-itens;loadouts.bin;01-itens/loadouts.json;1;loadouts;"settings=1; icons=1; colors=1; presets=1"
+10-progressao-conquistas-e-missoes;localquests.bin;10-progressao-conquistas-e-missoes/localquests.json;24;localquests;localquest=20
+12-sistema-e-balanceamento;loginpopups.bin;12-sistema-e-balanceamento/loginpopups.json;5;loginpopups;loginpopupconsentlist=3
+04-loot-e-tesouros;loot.bin;04-loot-e-tesouros/loot.json;1774;LootDefinition;Lootlist=2342
+04-loot-e-tesouros;lootchests.bin;04-loot-e-tesouros/lootchests.json;753;LootChests;"LootChest=339; LootChestSpawnpoint=202; LootChestSpawnpointPersonal=10; LootChestSpawnpointChestUpgrade=5; LootChestSpawnpointMobUpgrade=4; RareStateMappings=1"
+10-progressao-conquistas-e-missoes;lore.bin;10-progressao-conquistas-e-missoes/lore.json;5;lore;loresnippets=1
+09-pvp-guerra-e-ligas;matchtypes.bin;09-pvp-guerra-e-ligas/matchtypes.json;12;matchtypes;matchtype=13
+05-mundo-e-zonas;minimapgendata.bin;05-mundo-e-zonas/minimapgendata.json;362;minimapgendata;"texturesgenerated=1; floodfillpositions=1; templatedata=1; pregeneratedclustertextures=1; overlayoverrides=1"
+08-masmorras-e-eventos-pve;mists.bin;08-masmorras-e-eventos-pve/mists.json;180;mists;"globalsettings=1; mistdungeonsettings=1; mistsmodes=1; mistsdifficultyleveluimapping=1; mistsmaps=1; factionweightingtable=1; misttemplates=1; resourcepools=1"
+08-masmorras-e-eventos-pve;miststemplatemetadata.bin;08-masmorras-e-eventos-pve/miststemplatemetadata.json;56;miststemplatemetadata;"template=51; master=23; dungeon=3"
+03-monstros;mobfactions.bin;03-monstros/mobfactions.json;1;factions;faction=8
+12-sistema-e-balanceamento;mobilenotifications.bin;12-sistema-e-balanceamento/mobilenotifications.json;0;mobilenotifications;schedulednotification=3
+03-monstros;mobs.bin;03-monstros/mobs.json;11202;Mobs;Mob=5479
+12-sistema-e-balanceamento;moderationpunishmentescalation.bin;12-sistema-e-balanceamento/moderationpunishmentescalation.json;13;ChatModeration;PunishmentReason=28
+11-cosmeticos-e-personagem;mountskins.bin;11-cosmeticos-e-personagem/mountskins.json;26;mountskins;mountcategory=11
+11-cosmeticos-e-personagem;mountskins_asia.bin;11-cosmeticos-e-personagem/mountskins_asia.json;26;mountskins;mountcategory=11
+11-cosmeticos-e-personagem;mountskins_europe.bin;11-cosmeticos-e-personagem/mountskins_europe.json;26;mountskins;mountcategory=11
+04-loot-e-tesouros;multirewardobjects.bin;04-loot-e-tesouros/multirewardobjects.json;1;multirewardobjects;"helldungeonroomshrine=4; helldungeonsoulshrine=1"
+11-cosmeticos-e-personagem;namegenerators.bin;11-cosmeticos-e-personagem/namegenerators.json;113;namegenerators;namegenerator=45
+02-habilidades;orbtypes.bin;02-habilidades/orbtypes.json;3;orbtypes;orbtype=12
+05-mundo-e-zonas;outlandsteleportationportals.bin;05-mundo-e-zonas/outlandsteleportationportals.json;4;outlandsteleportationportals;"settings=1; destinationselection=1"
+07-construcoes-e-territorio;outpost.bin;07-construcoes-e-territorio/outpost.json;10;outposts;"outpost=11; guardsetups=1"
+09-pvp-guerra-e-ligas;personalseasons.bin;09-pvp-guerra-e-ligas/personalseasons.json;24;personalseasons;"personalseason=12; rewardresettime=1"
+04-loot-e-tesouros;piledobjects.bin;04-loot-e-tesouros/piledobjects.json;8;piledobjects;"smugglercratepile=9; factionfortressweaponcache=2"
+05-mundo-e-zonas;placeholderspots.bin;05-mundo-e-zonas/placeholderspots.json;8;PlaceholderSpots;Category=2
+05-mundo-e-zonas;placeholderspots_asia.bin;05-mundo-e-zonas/placeholderspots_asia.json;6;PlaceholderSpots;Category=2
+05-mundo-e-zonas;placeholderspots_europe.bin;05-mundo-e-zonas/placeholderspots_europe.json;5;PlaceholderSpots;Category=2
+12-sistema-e-balanceamento;playerreports.bin;12-sistema-e-balanceamento/playerreports.json;1;playerreports;category=4
+10-progressao-conquistas-e-missoes;progressiontables.bin;10-progressao-conquistas-e-missoes/progressiontables.json;76;progressiontables;table=16
+09-pvp-guerra-e-ligas;pvpchallenge.bin;09-pvp-guerra-e-ligas/pvpchallenge.json;248;pvpchallenge;"seasonchallenge=23; mightcategorytemplate=3; pvpchallengeobjectives=1; weeklychallenge=1"
+09-pvp-guerra-e-ligas;pvpchallenge_asia.bin;09-pvp-guerra-e-ligas/pvpchallenge_asia.json;237;pvpchallenge;"seasonchallenge=17; mightcategorytemplate=3; pvpchallengeobjectives=1; weeklychallenge=1"
+09-pvp-guerra-e-ligas;pvpchallenge_europe.bin;09-pvp-guerra-e-ligas/pvpchallenge_europe.json;220;pvpchallenge;"seasonchallenge=13; mightcategorytemplate=3; pvpchallengeobjectives=1; weeklychallenge=1"
+10-progressao-conquistas-e-missoes;questgiverobjects.bin;10-progressao-conquistas-e-missoes/questgiverobjects.json;5;questgiverobjects;questgiverobject=24
+10-progressao-conquistas-e-missoes;questgiverreferences.bin;10-progressao-conquistas-e-missoes/questgiverreferences.json;6;questgiverreferences;"questgiverobjectreferences=1; questgiversinworld=1"
+10-progressao-conquistas-e-missoes;questgivertypes.bin;10-progressao-conquistas-e-missoes/questgivertypes.json;16;questgivertypes;"factionquestgivertype=14; questgivertype=12"
+10-progressao-conquistas-e-missoes;quests.bin;10-progressao-conquistas-e-missoes/quests.json;126;quests;"quest=27; playerfactionquest=21"
+05-mundo-e-zonas;randomclusterattributes.bin;05-mundo-e-zonas/randomclusterattributes.json;0;randomclusterattributes;"factionsubsets=1; environments=1; flags=1; categories=1"
+08-masmorras-e-eventos-pve;randomdungeons.bin;08-masmorras-e-eventos-pve/randomdungeons.json;338;randomdungeons;"DungeonLifeTimes=1; DifficultyLevels=1; RandomLevelRerolls=1; ClusterTypeMappings=1; RandomDungeonNames=1; ReservationProfiles=1; FixedExits=1; RandomExitDistribution=1; RandomExitVisualizations=1; RandomExits=1; RandomDungeonGenerators=1"
+03-monstros;randomspawnbehaviors.bin;03-monstros/randomspawnbehaviors.json;1232;randomspawnbehaviors;spawnbehavior=959
+04-loot-e-tesouros;rareresourcedistribution.bin;04-loot-e-tesouros/rareresourcedistribution.json;6;RareResourceDistributions;RareResourceDistribution=17
+06-recursos-e-coleta;resourcedistpresets.bin;06-recursos-e-coleta/resourcedistpresets.json;362;presets;preset=748
+06-recursos-e-coleta;resourceprefabmappings.bin;06-recursos-e-coleta/resourceprefabmappings.json;574;mappings;mapping=84
+09-pvp-guerra-e-ligas;seasonstatues.bin;09-pvp-guerra-e-ligas/seasonstatues.json;4;seasonstatues;"statue=23; dynamicstatue=14"
+09-pvp-guerra-e-ligas;seasonstatues_asia.bin;09-pvp-guerra-e-ligas/seasonstatues_asia.json;4;seasonstatues;"statue=23; dynamicstatue=14"
+09-pvp-guerra-e-ligas;seasonstatues_europe.bin;09-pvp-guerra-e-ligas/seasonstatues_europe.json;4;seasonstatues;"statue=23; dynamicstatue=14"
+12-sistema-e-balanceamento;settings.bin;12-sistema-e-balanceamento/settings.json;0;settings;setting=15
+12-sistema-e-balanceamento;sockets.bin;12-sistema-e-balanceamento/sockets.json;251;SocketInfos;SocketInfo=425
+02-habilidades;spellanimmappings.bin;02-habilidades/spellanimmappings.json;0;SpellAnimationMappingInfos;MappingInfo=1
+02-habilidades;spells.bin;02-habilidades/spells.json;8106;spells;"activespell=8707; passivespell=322; togglespell=37; colortag=14"
+09-pvp-guerra-e-ligas;standings.bin;09-pvp-guerra-e-ligas/standings.json;4;standings;standing=4
+08-masmorras-e-eventos-pve;staticdungeons.bin;08-masmorras-e-eventos-pve/staticdungeons.json;11;staticdungeons;"globalsettings=1; events=1"
+10-progressao-conquistas-e-missoes;surveys.bin;10-progressao-conquistas-e-missoes/surveys.json;0;surveys;
+05-mundo-e-zonas;templatemetadata.bin;05-mundo-e-zonas/templatemetadata.json;208;templatemetadata;biome=2
+05-mundo-e-zonas;territorytypes.bin;05-mundo-e-zonas/territorytypes.json;13;territorytypes;"AlliancePenaltySettings=1; territorytype=1"
+05-mundo-e-zonas;tilebiomereferences.bin;05-mundo-e-zonas/tilebiomereferences.json;18;tilebiomereferences;tileref=23
+05-mundo-e-zonas;times.bin;05-mundo-e-zonas/times.json;9;Times;"DateTime=115; Time=13"
+05-mundo-e-zonas;times_asia.bin;05-mundo-e-zonas/times_asia.json;9;Times;"DateTime=115; Time=12"
+05-mundo-e-zonas;times_europe.bin;05-mundo-e-zonas/times_europe.json;9;Times;"DateTime=115; Time=14"
+02-habilidades;transformations.bin;02-habilidades/transformations.json;18;transformations;"transformation=8; passivetransformation=6"
+04-loot-e-tesouros;treasuredistribution.bin;04-loot-e-tesouros/treasuredistribution.json;584;TreasureDistribution;"GameobjectDistribution=1; TreasureDestinations=1; TreasureLootchests=1; TreasureHarvestables=1; TreasureMobs=1; TreasureHuntTracks=1; TreasureShrines=1; TreasurePiles=1; TreasureCagedObjects=1; TreasureDragons=1; TreasureDragonAreaEntrances=1; ScheduledEvents=1"
+04-loot-e-tesouros;treasuredistribution_asia.bin;04-loot-e-tesouros/treasuredistribution_asia.json;584;TreasureDistribution;"GameobjectDistribution=1; TreasureDestinations=1; TreasureLootchests=1; TreasureHarvestables=1; TreasureMobs=1; TreasureHuntTracks=1; TreasureShrines=1; TreasurePiles=1; TreasureCagedObjects=1; TreasureDragons=1; TreasureDragonAreaEntrances=1; ScheduledEvents=1"
+04-loot-e-tesouros;treasuredistribution_europe.bin;04-loot-e-tesouros/treasuredistribution_europe.json;584;TreasureDistribution;"GameobjectDistribution=1; TreasureDestinations=1; TreasureLootchests=1; TreasureHarvestables=1; TreasureMobs=1; TreasureHuntTracks=1; TreasureShrines=1; TreasurePiles=1; TreasureCagedObjects=1; TreasureDragons=1; TreasureDragonAreaEntrances=1; ScheduledEvents=1"
+04-loot-e-tesouros;treasures.bin;04-loot-e-tesouros/treasures.json;6;treasures;treasure=7
+05-mundo-e-zonas;tunnelsystem.bin;05-mundo-e-zonas/tunnelsystem.json;13;tunnelsystem;"tunnelexitsettings=1; tunnelexittypes=1; tunnelexitpresets=1; tunnelpresets=1"
+10-progressao-conquistas-e-missoes;tutorial.bin;10-progressao-conquistas-e-missoes/tutorial.json;8;tutorial;"state=49; clustergroup=1; travelplanner=1; unlockachievementskippedtutorial=1; startstate=1; endstate=1; startgear=1"
+12-sistema-e-balanceamento;vfxprefabdata.bin;12-sistema-e-balanceamento/vfxprefabdata.json;69;vfxprefabdata;vfx=1039
+12-sistema-e-balanceamento;visualevents.bin;12-sistema-e-balanceamento/visualevents.json;0;visualevents;visualevent=1
+11-cosmeticos-e-personagem;wardrobe.bin;11-cosmeticos-e-personagem/wardrobe.json;53;wardrobe;wardrobecategory=7
+11-cosmeticos-e-personagem;wardrobe_asia.bin;11-cosmeticos-e-personagem/wardrobe_asia.json;53;wardrobe;wardrobecategory=7
+11-cosmeticos-e-personagem;wardrobe_europe.bin;11-cosmeticos-e-personagem/wardrobe_europe.json;53;wardrobe;wardrobecategory=7
+03-monstros;worldbosses.bin;03-monstros/worldbosses.json;6;worldbosses;boss=12
+12-sistema-e-balanceamento;worldbosses_asia.bin;12-sistema-e-balanceamento/worldbosses_asia.json;6;worldbosses;boss=12
+05-mundo-e-zonas;worldsettings.bin;05-mundo-e-zonas/worldsettings.json;308;AO-WorldSettings;"archetypes=1; clustertypes=1; clustervaluelookups=1; islands=1; timeregions=1; worldmap=1; partialhostilecountsettings=1"
+05-mundo-e-zonas;worldsettings_asia.bin;05-mundo-e-zonas/worldsettings_asia.json;308;AO-WorldSettings;"archetypes=1; clustertypes=1; clustervaluelookups=1; islands=1; timeregions=1; worldmap=1; partialhostilecountsettings=1"
+05-mundo-e-zonas;worldsettings_europe.bin;05-mundo-e-zonas/worldsettings_europe.json;308;AO-WorldSettings;"archetypes=1; clustertypes=1; clustervaluelookups=1; islands=1; timeregions=1; worldmap=1; partialhostilecountsettings=1"
