@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-11-16T14:05:00Z",
+   "programa": "2.2.2",
+   "titulo": "Modo Corrompida só desenha com o minimapa visível",
+   "itens": [
+    "Albion Overlay 2.2.2: a rota da Corrupted Lair agora some quando algo do jogo tampa o minimapa (inventário, baú, mapa grande) e volta sozinha quando ele reaparece, em vez de ficar desenhada por cima da janela."
+   ]
+  },
+  {
    "t": "2026-11-15T21:55:00Z",
    "titulo": "Live: isolador de voz nas salas e ícone de opções",
    "itens": [
