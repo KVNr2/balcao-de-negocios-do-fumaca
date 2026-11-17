@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-11-17T21:20:00Z",
+   "titulo": "Mapa de Avalon mais limpo e pesquisa de item no visual do site",
+   "itens": [
+    "Mapas de Avalon: ao clicar num mapa, a janela mostra o mapa grande e, ao lado, primeiro o que tem no mapa (dungeons, baús, portais) e depois os recursos com o total e a quantidade por tier. Tier e tipo (Low Black, Royal, Tunnel…) ficam em destaque embaixo do nome.",
+    "Pesquisa de item do overlay (Ctrl+Alt+P): rótulos, botões Venda/Compra e campos no mesmo padrão do site.",
+    "Mercado: o botão \"Filtros\" só aparece em tela estreita (celular ou overlay pequeno); em tela larga ele aparecia cinza por engano."
+   ]
+  },
+  {
    "t": "2026-11-17T20:30:00Z",
    "titulo": "Ficha: barrinha pela soma da linha",
    "itens": [
