@@ -123,7 +123,8 @@ function skinRows(tb){
   for(const body of tb.tBodies) for(const tr of body.rows){
     if(tr.classList.contains("of-drow")||tr.classList.contains("total")||tr.classList.contains("bm-row")) continue;
     tr.classList.add("bm-row");
-    const cells=[...tr.cells].filter(c=>c.classList.contains("gain")||c.classList.contains("loss")); const last=cells[cells.length-1];
+    // só células de número decidem a cor da linha (na Pesca, "Zona Preta" vem em vermelho como aviso de risco e pintava a linha de prejuízo)
+    const cells=[...tr.cells].filter(c=>c.classList.contains("num")&&(c.classList.contains("gain")||c.classList.contains("loss"))); const last=cells[cells.length-1];
     tr.classList.add(last?(last.classList.contains("gain")?"is-gain":"is-loss"):"is-flat");
   }
 }

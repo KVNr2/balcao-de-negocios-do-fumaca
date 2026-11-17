@@ -348,13 +348,8 @@ nav.tabs button[aria-selected="true"]::before{left:0;top:8px;width:3px;height:au
 .of-lh,.oflist .of-row{grid-template-columns:390px 112px 112px 150px max-content}
 .of-lh{background:var(--night-2);border-bottom:1px solid var(--line-soft);font:600 13.5px var(--f-body);color:var(--brass)}
 .of-lh span:nth-child(2),.of-lh span:nth-child(3),.of-lh span:nth-child(4){text-align:right}
-.oflist .of-row{align-items:center;padding:14px 16px 14px 14px;background:var(--cloth);border:1px solid var(--line-soft);border-left:3px solid var(--line);border-radius:12px;transition:background-color .12s}
-.oflist .of-row.is-gain,.oflist .of-row.is-loss{background:var(--cloth);border-color:var(--line-soft)}
-.oflist .of-row.is-gain{border-left-color:var(--gain)}
-.oflist .of-row.is-loss{border-left-color:var(--loss)}
-.oflist .of-row.is-gain:hover,.oflist .of-row.is-gain.open,.oflist .of-row.is-loss:hover,.oflist .of-row.is-loss.open{background-color:var(--cloth-2)}
-.oflist .of-row.open{outline:0;border-color:var(--brass)}
-.oflist .of-row .itemcell,.oflist .of-row.is-gain .itemcell,.oflist .of-row.is-loss .itemcell,.oflist .of-row.is-gain:hover .itemcell,.oflist .of-row.is-gain.open .itemcell,.oflist .of-row.is-loss:hover .itemcell,.oflist .of-row.is-loss.open .itemcell{background:inherit;box-shadow:none}
+.oflist .of-row{align-items:center;padding:14px 16px 14px 14px;border-radius:12px;transition:background-color .12s}
+.oflist .of-row.open{outline:0}
 .oflist .ihead{display:grid;grid-template-columns:var(--ic-row,52px) minmax(0,1fr) auto auto;align-items:start;gap:12px}
 .oflist .inm{gap:3px;max-width:none}
 .oflist .inm strong{font:600 17px/1.2 var(--f-display);color:var(--parch)}
@@ -381,3 +376,44 @@ nav.tabs button[aria-selected="true"]::before{left:0;top:8px;width:3px;height:au
 .oflist .of-pr b{font:600 19px var(--f-display);font-variant-numeric:tabular-nums lining-nums}
 .oflist .of-hs{font:500 13px var(--f-body);letter-spacing:0;text-transform:none;color:var(--smoke)}
 .oflist .of-hs b{color:var(--parch-2)}
+
+/* ===== rodada 2 (17/11): uma linha de lucro para todas as listas e tabelas, com verde discreto ===== */
+:root{--row-bg:var(--cloth);--row-gain-bg:#283229;--row-gain-hover:#2a3c2f;--row-loss-bg:#301c1c;--row-loss-hover:#3b2121;--row-gain-edge:var(--gain);--row-loss-edge:var(--loss);--row-line:var(--line-soft);
+  --c-gain-bg:var(--row-gain-bg);--c-loss-bg:var(--row-loss-bg);--c-gain-bd:rgba(124,199,154,.3);--c-loss-bd:rgba(238,134,112,.3)}
+/* lista (Refino, Craft) */
+.oflist .of-row,.oflist .of-row.is-flat{background:var(--row-bg);border:1px solid var(--row-line);border-left:3px solid var(--line)}
+.oflist .of-row.is-gain{background:var(--row-gain-bg);border-color:var(--row-line);border-left-color:var(--row-gain-edge)}
+.oflist .of-row.is-loss{background:var(--row-loss-bg);border-color:var(--row-line);border-left-color:var(--row-loss-edge)}
+.oflist .of-row.is-gain:hover,.oflist .of-row.is-gain.open{background:var(--row-gain-hover)}
+.oflist .of-row.is-loss:hover,.oflist .of-row.is-loss.open{background:var(--row-loss-hover)}
+.oflist .of-row:not(.is-gain):not(.is-loss):hover,.oflist .of-row:not(.is-gain):not(.is-loss).open{background:var(--cloth-2)}
+.oflist .of-row .itemcell,.oflist .of-row.is-gain .itemcell,.oflist .of-row.is-loss .itemcell,.oflist .of-row.is-gain:hover .itemcell,.oflist .of-row.is-gain.open .itemcell,.oflist .of-row.is-loss:hover .itemcell,.oflist .of-row.is-loss.open .itemcell{background:inherit;box-shadow:none}
+/* tabelas (Encantar, Cozinha, Fazenda, Pesca, Mercado, Mercado Negro, Trabalhadores e as demais .tbl) */
+.bm2t tbody tr.bm-row td,.bm2t tbody tr.bm-row.is-flat td,.mk2t tbody tr.mk-row.is-flat td{background:var(--row-bg);border-top-color:var(--row-line);border-bottom-color:var(--row-line)}
+.bm2t tbody tr.bm-row td:first-child{border-left:3px solid var(--line)}
+.bm2t tbody tr.bm-row td:last-child{border-right-color:var(--row-line)}
+.bm2t tbody tr.bm-row.is-gain td{background:var(--row-gain-bg);border-top-color:var(--row-line);border-bottom-color:var(--row-line)}
+.bm2t tbody tr.bm-row.is-loss td{background:var(--row-loss-bg);border-top-color:var(--row-line);border-bottom-color:var(--row-line)}
+.bm2t tbody tr.bm-row.is-gain td:first-child{border-left-color:var(--row-gain-edge)}
+.bm2t tbody tr.bm-row.is-loss td:first-child{border-left-color:var(--row-loss-edge)}
+.bm2t tbody tr.bm-row.is-gain td:last-child,.bm2t tbody tr.bm-row.is-loss td:last-child{border-right-color:var(--row-line)}
+.bm2t tbody tr.bm-row.is-gain:hover td,.bm2t tbody tr.bm-row.is-gain.open td{background:var(--row-gain-hover)}
+.bm2t tbody tr.bm-row.is-loss:hover td,.bm2t tbody tr.bm-row.is-loss.open td{background:var(--row-loss-hover)}
+.bm2t tbody tr.bm-row.is-flat:hover td,.mk2t tbody tr.mk-row.is-flat:hover td{background:var(--cloth-2)}
+/* tabela antiga das oficinas (of2t) */
+.of2t tbody tr.of-row.is-gain td,.of2t tbody tr.of-row.is-gain td:first-child{background:var(--row-gain-bg);border-top-color:var(--row-line);border-bottom-color:var(--row-line)}
+.of2t tbody tr.of-row.is-loss td,.of2t tbody tr.of-row.is-loss td:first-child{background:var(--row-loss-bg);border-top-color:var(--row-line);border-bottom-color:var(--row-line)}
+.of2t tbody tr.of-row.is-gain td:first-child{border-left:3px solid var(--row-gain-edge)}
+.of2t tbody tr.of-row.is-loss td:first-child{border-left:3px solid var(--row-loss-edge)}
+.of2t tbody tr.of-row.is-gain:hover td,.of2t tbody tr.of-row.is-gain.open td,.of2t tbody tr.of-row.is-gain:hover td:first-child,.of2t tbody tr.of-row.is-gain.open td:first-child{background:var(--row-gain-hover)}
+.of2t tbody tr.of-row.is-loss:hover td,.of2t tbody tr.of-row.is-loss.open td,.of2t tbody tr.of-row.is-loss:hover td:first-child,.of2t tbody tr.of-row.is-loss.open td:first-child{background:var(--row-loss-hover)}
+/* destaque "O que mais rende" (Cozinha, Fazenda, Pesca) */
+.ganho-top{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:4px 20px;padding:14px 18px;border-radius:12px;background:var(--row-gain-bg);border:1px solid rgba(124,199,154,.3);border-left:3px solid var(--row-gain-edge)}
+.ganho-top .gt-l{grid-column:1;font:600 13.5px var(--f-body);letter-spacing:.01em;text-transform:none;color:var(--brass)}
+.ganho-top .gt-v{grid-column:2;grid-row:1 / span 2;align-self:center;font:600 26px var(--f-display);color:var(--gain)}
+.ganho-top .gt-t{grid-column:1;flex-basis:auto;font-size:15px;color:var(--parch-2)}
+.ganho-top.neg{display:block;background:var(--row-loss-bg);border-color:rgba(238,134,112,.3);border-left-color:var(--row-loss-edge)}
+/* cartões do Para você: mesmo verde e mesmo filete das linhas */
+.vc-tile{border-radius:12px;border-left-width:3px}
+.vc-tile.gain{background:var(--row-gain-bg);border-left-color:var(--row-gain-edge)}
+.vc-tile.gain .vc-s{color:var(--gain)}
