@@ -443,3 +443,44 @@ nav.tabs button[aria-selected="true"]::before{left:0;top:8px;width:3px;height:au
 .msel-n{font-size:13.5px;color:var(--smoke)}
 .msel-f{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:8px;border-top:1px solid var(--line-soft)}
 .msel-f .btn.sm{height:34px}
+
+/* cabeçalho flutuante das listas longas (ui.js) */
+.fhead{position:fixed;z-index:30;overflow:hidden;background:var(--night-2);border:1px solid var(--line-soft);border-top:0;border-radius:0 0 10px 10px;box-shadow:0 8px 18px rgba(0,0,0,.45)}
+.fhead .fhead-in{display:table;border-spacing:0}
+.fhead div.fhead-in{display:grid}
+.fhead table.fhead-in th{position:static!important}
+.fhead>.fhead-box{overflow:visible!important;max-height:none!important;border:0!important;margin:0!important;padding:0!important;background:none!important;box-shadow:none!important;border-radius:0!important}
+/* botão de ordenar no título da coluna: mesmo estilo em todas as tabelas (antes só Cozinha e Fazenda tinham) */
+th .lf-hs{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:5px;padding:3px 6px;margin:-3px -6px;cursor:pointer;border-radius:6px;font:inherit;color:inherit;white-space:normal}
+th .lf-hs:hover{color:var(--parch);background:rgba(239,226,196,.05)}
+th .lf-hs.on{color:var(--saffron)}
+th .lf-hs:focus-visible{outline:2px solid var(--saffron);outline-offset:1px}
+
+/* linha das oficinas mais baixa: fechada mostra o essencial (vende ~34/dia, melhor craft e o lucro dele);
+   2ª cidade, soma das cidades, dias para vender e o lucro por unidade do material aparecem ao abrir a linha */
+.oflist .of-row:not(.open) .of-vd small,.oflist .of-row:not(.open) .of-bc small{display:none}
+.oflist .of-row:not(.open) .of-vd,.oflist .of-row:not(.open) .of-bc{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 6px}
+
+/* "Mais filtros" (Mercado e Mercado Negro) */
+details.maisf{flex-basis:100%;order:99}
+details.maisf>summary{display:inline-flex;align-items:center;gap:4px;height:var(--chip-h);padding:0 12px;border-radius:999px;border:1px solid var(--line);color:var(--parch-2);font:600 14.5px var(--f-body);cursor:pointer;list-style:none}
+details.maisf>summary::-webkit-details-marker{display:none}
+details.maisf>summary::before{content:"+";font-weight:700;color:var(--brass);margin-right:2px}
+details.maisf[open]>summary::before{content:"−"}
+details.maisf>summary:hover{border-color:var(--brass);color:var(--parch)}
+details.maisf.on>summary{border-color:var(--brass);background:rgba(232,171,69,.12);color:var(--parch)}
+.maisf-box{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+
+/* fontes da identidade em todo o site: El Messiri nos títulos, Alegreya Sans no resto (botões não herdam a fonte por padrão) */
+button{font-family:var(--f-body)}
+.bweapons.msel{display:inline-flex;grid-template-columns:none;flex-wrap:nowrap;width:auto}
+.msel-o.ic{grid-template-columns:18px 28px minmax(0,1fr) auto}
+.msel-o.ic img{width:28px;height:28px}
+.bfilters{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+
+/* barra geral de custo das builds; a barra de cada cartão só aparece com o cartão aberto */
+.bld-geral{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:4px 0 12px;padding:12px 14px;border-radius:12px;background:var(--night-2);border:1px solid var(--line-soft)}
+.bld-geral .bld-gt{font:600 14px var(--f-body);color:var(--brass)}
+.bld-geral .bld-gc{display:inline-flex;align-items:center;gap:8px;font:600 14px var(--f-body);color:var(--brass)}
+.bld-geral select{height:var(--ctl-h)}
+.bcard:not(.open) .bld-cost>.bld-g{display:none}

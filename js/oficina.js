@@ -585,8 +585,8 @@ async function renderMk(partial=false,forcar=false){
   if(MK.ord.k==="vol"){ const ids=slice.filter(x=>MK_SEEN.has(seen(x.id))).slice(0,400).map(x=>x.id); try{ await lfEnsureVol(ids,true,null,note); }catch(e){} if(tok!==MK_TOK) return; }   // ordenar por vendas precisa do número antes
   const spr=x=>x.x.smax&&x.x.smin?x.x.smax.p-x.x.smin.p:0; let rows=slice.filter(x=>MK_SEEN.has(seen(x.id))||FAVON).map(x=>({...x,x:extremes(x.id,mq)})).filter(x=>FAVON||!MK.only||x.x.smin||x.x.bmax).sort(mkCmp(mq)); const achados=rows.length; if(!FAVON&&rows.length>SHOWN) rows=rows.slice(0,SHOWN);
   const cities=MK.city?[MK.city]:SHOP_LOCS;
-  /* tela estreita: preço das cidades encurtado (7,98M, 187,2 mil); o valor inteiro fica no título */
-  const NARROW=matchMedia("(max-width:1600px)").matches&&cities.length>3, fmtC=v=>!NARROW?fmt(v):v>=1e6?(v/1e6).toLocaleString("pt-BR",{maximumFractionDigits:2})+"M":v>=1e4?(v/1e3).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mil":fmt(v);
+  /* tela estreita: preço das cidades encurtado (8M, 187,2K); o valor inteiro fica no título */
+  const NARROW=matchMedia("(max-width:1600px)").matches&&cities.length>3, fmtC=v=>!NARROW?fmt(v):fmtS(v);
   tb.classList.toggle("mk-narrow",NARROW);
   tb._mk={cities,fmtC,mq}; tb.textContent=""; const hr=tb.createTHead().insertRow();
   const hsort=(th,k)=>{ th.className="bm-sort"; th.tabIndex=0; th.setAttribute("role","button"); const on=MK.ord.k===k; th.setAttribute("aria-sort",on?(MK.ord.d>0?"ascending":"descending"):"none"); th.title="Ordenar por esta coluna (não refaz a consulta)"; if(on) th.append(" "+(MK.ord.d>0?"▲":"▼")); th.addEventListener("click",()=>mkOrdenar(k)); th.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); mkOrdenar(k); } }); return th; };
