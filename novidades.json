@@ -1,6 +1,13 @@
 {
  "itens": [
   {
+   "t": "2026-11-17T20:30:00Z",
+   "titulo": "Ficha: barrinha pela soma da linha",
+   "itens": [
+    "A barrinha embaixo de cada arma ou peça agora mostra a soma da linha sobre o máximo (ex.: 634/960 = 66%), como no jogo. Antes ela contava só quantos itens tinham alguma spec."
+   ]
+  },
+  {
    "t": "2026-11-17T20:20:00Z",
    "titulo": "Ficha: soma da spec de cada linha",
    "itens": [
