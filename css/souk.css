@@ -507,3 +507,5 @@ button{font-family:var(--f-body)}
   .gav-btn:hover{background:var(--cloth-2);border-color:var(--brass);color:var(--parch)}
   .gav-btn:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
 }
+/* etiqueta "Linha 1006/1200": soma da spec de todos os itens da linha / máximo (itens × 120) */
+.spchip.ln{background:color-mix(in srgb,var(--saffron) 14%,transparent);color:var(--saffron);font-variant-numeric:tabular-nums}
