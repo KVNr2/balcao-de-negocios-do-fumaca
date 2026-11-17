@@ -5,7 +5,8 @@ const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}, del(k){try{localStorage.removeItem(k)}catch(e){}} };
 const fmt = n => (n==null||!isFinite(n)) ? "—" : Math.round(n).toLocaleString("pt-BR");
 const sgn = n => (n>0?"+":"")+fmt(n);
-const fmtS = n => { if(n==null||!isFinite(n)) return "—"; const a=Math.abs(n); if(a>=1e6) return (n/1e6).toLocaleString("pt-BR",{maximumFractionDigits:1})+"M"; if(a>=1e4) return Math.round(n/1e3).toLocaleString("pt-BR")+" mil"; return fmt(n); };
+// valor curto no padrão do jogo: 20,4M acima de 1 milhão, 735,3K entre mil e um milhão (K = mil, M = milhão), 1,5B acima de 1 bilhão; abaixo de mil, o número inteiro
+const fmtS = n => { if(n==null||!isFinite(n)) return "—"; const a=Math.abs(n), f=(v,u)=>v.toLocaleString("pt-BR",{maximumFractionDigits:1})+u; if(a>=1e9) return f(n/1e9,"B"); if(a>=1e6) return f(n/1e6,"M"); if(a>=1e3) return f(n/1e3,"K"); return fmt(n); };
 const dec = n => n.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1});
 const el = (tag, props={}, ...kids) => { const e=document.createElement(tag); for(const [k,v] of Object.entries(props)){ if(k==="class") e.className=v; else if(k==="text") e.textContent=v; else if(k==="role"||k.startsWith("data-")||k.startsWith("aria-")) e.setAttribute(k,v); else e[k]=v; } for(const c of kids) if(c!=null) e.append(c); return e; };
 
@@ -1630,7 +1631,7 @@ function msel(host,o){
   const list=el("div",{class:"msel-list"}); p.append(list);
   const rows=o.opts.map(x=>{ const lab=el("label",{class:"msel-o"}), cb=el("input",{type:"checkbox"}); cb.checked=sel.has(x.k);
     cb.addEventListener("change",()=>{ cb.checked?sel.add(x.k):sel.delete(x.k); v.textContent=resumo(); });
-    lab.append(cb,el("span",{class:"msel-t",text:x.t})); if(x.n!=null) lab.append(el("span",{class:"msel-n num",text:String(x.n)})); list.append(lab); return {x,lab,cb}; });
+    if(x.ic){ lab.classList.add("ic"); lab.append(cb,x.ic(),el("span",{class:"msel-t",text:x.t})); } else lab.append(cb,el("span",{class:"msel-t",text:x.t})); if(x.n!=null) lab.append(el("span",{class:"msel-n num",text:String(x.n)})); list.append(lab); return {x,lab,cb}; });
   if(q) q.addEventListener("input",()=>{ const s=q.value.trim().toLowerCase(); rows.forEach(r=>r.lab.hidden=!!s&&!r.x.t.toLowerCase().includes(s)); });
   const ft=el("div",{class:"msel-f"}), lim=el("button",{type:"button",class:"linkbtn",text:"Limpar"}), ok=el("button",{type:"button",class:"btn sm",text:"Pronto"});
   lim.addEventListener("click",()=>{ sel.clear(); rows.forEach(r=>r.cb.checked=false); v.textContent=resumo(); }); ft.append(lim,ok); p.append(ft);

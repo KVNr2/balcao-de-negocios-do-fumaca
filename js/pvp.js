@@ -57,9 +57,9 @@ function pvCard(b,d){
   pvPrep(b); b._qi=[]; const open=pvOpen===b.id; const card=el("article",{class:"bcard"+(open?" open":"")});
   const top=el("div",{class:"bc-top"}); const wi=qImg(b,"w",b.w,"nico zbig"); top.append(wi||el("span",{class:"btile"}));
   const mid=el("div",{class:"bc-mid"}); const h4=el("h4"); h4.append(el("span",{text:b.t})); mid.append(h4);
-  const nv=gbSpec(b), lv=nv>=SPEC_MIN?3:nv>0?2:0; const meta=el("div",{class:"bc-meta"});
+  const meta=el("div",{class:"bc-meta"});
   meta.append(el("span",{class:"tag",text:`${b.v}V · ${b.d}D`}),el("span",{class:"tag mute",text:`${b.jog} ${b.jog===1?"jogador":"jogadores"}`}));
-  if(b.l) meta.append(el("span",{class:"tag"+(lv>=2?" good":""),text:nv?`${b.nome}: spec ${nv}`:`${b.nome}: sem spec`}));
+  { const t=gbSpecTag(b); if(t) meta.append(t); }
   const gaps=gbGaps(b); if(gaps.length) meta.append(el("span",{class:"tag bad",text:`Sem spec em ${gaps.join(" e ")}`}));
   mid.append(meta); top.append(mid);
   const ib=albionBadge(b); const rt=el("div",{class:"bc-r"});
@@ -93,7 +93,7 @@ function pvComp(x,nv){
   return card;
 }
 function pvJog(p,d){
-  const r=el("div",{class:"pv-pl"}); const l=el("div",{class:"pv-pl-n"}); l.append(el("b",{text:p.nome}),el("small",{class:"muted",text:(p.guild||"sem guilda")+(p.xp!=null?` · fama de PvP: ${p.xp} mi`:"")})); r.append(l);
+  const r=el("div",{class:"pv-pl"}); const l=el("div",{class:"pv-pl-n"}); l.append(el("b",{text:p.nome}),el("small",{class:"muted",text:(p.guild||"sem guilda")+(p.xp!=null?` · fama de PvP: ${fmtS(p.xp*1e6)}`:"")})); r.append(l);
   const s=el("div",{class:"pv-pl-s"}); s.append(el("b",{text:p.wr.toLocaleString("pt-BR")+"%",title:"winrate"}),el("small",{text:`${p.v} ${p.v===1?"kill":"kills"} · ${p.d} ${p.d===1?"morte":"mortes"} · ${p.n} lutas`}),el("small",{text:p.ip?`IP ${p.ip}`:""})); r.append(s);
   const bs=el("div",{class:"pv-pb"});
   for(const [k,q,g] of p.b){ const {w,o}=pvKey(k); let src=g&&Object.keys(g).length?g:null, tip=false;
@@ -104,7 +104,7 @@ function pvJog(p,d){
     if(src){ try{ ln.append(gbStrip(bb)); }catch(e){} } bs.append(ln); }
   r.append(bs); return r;
 }
-function renderPvp(){
+function renderPvp(){ if(typeof bldBarraGeral==="function") bldBarraGeral();
   const host=$("pvList"); if(!host) return;
   if(!PVP){ if(!renderPvp._l){ renderPvp._l=1; need("pvp").then(d=>{ PVP=d; renderPvp(); }).catch(()=>{ $("pvNote").textContent="Os dados do PVP ainda não foram gerados. Eles aparecem depois da primeira atualização automática."; }); } return; }
   const j=PVP.janela; $("pvNote").textContent=`${PVP.fonte}. ${Object.values(PVP.conteudos).reduce((a,c)=>a+c.builds.length,0).toLocaleString("pt-BR")} builds, vindas de ${j.eventos.toLocaleString("pt-BR")} mortes dos últimos ${j.dias} dias${j.por_servidor?` (${[["us","Américas"],["eu","Europa"],["sgp","Ásia"]].filter(([k])=>j.por_servidor[k]).map(([k,n])=>`${n} ${j.por_servidor[k].toLocaleString("pt-BR")}`).join(" · ")})`:""} · atualizado em ${new Date(PVP.atualizado).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}.`;
@@ -136,7 +136,7 @@ function renderPvp(){
   }
   pvTierBox(host,d);
   let l=d.builds.filter(b=>!pvR||pvRole(b.wc)===pvR); pvSort=$("pvSort").value||pvSort;
-  if(pvSort==="wilson") l.sort((a,b)=>pvWilson(b.v,b.n+0)-pvWilson(a.v,a.n)); else if(pvSort==="wr") l.sort((a,b)=>b.wr-a.wr||b.n-a.n); else if(pvSort==="spec"){ l.forEach(pvPrep); l.sort((a,b)=>(gbSpec(b)-gbSpec(a))||(b.n-a.n)); } else l.sort((a,b)=>b.n-a.n);
+  if(pvSort==="wilson") l.sort((a,b)=>pvWilson(b.v,b.n+0)-pvWilson(a.v,a.n)); else if(pvSort==="wr") l.sort((a,b)=>b.wr-a.wr||b.n-a.n); else if(pvSort==="spec"){ l.forEach(pvPrep); l.sort((a,b)=>(gbSoma(b)-gbSoma(a))||(gbSpec(b)-gbSpec(a))||(b.n-a.n)); } else l.sort((a,b)=>b.n-a.n);
   $("pvCount").textContent=`${l.length} builds${pvR?` de ${pvRoleNome(pvR).toLowerCase()}`:""} com 4 lutas ou mais · ${d.eventos.toLocaleString("pt-BR")} mortes${PVP.janela.fama_min?` de jogadores com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
   if(!l.length){ host.append(el("p",{class:"empty",text:"Nenhuma build desta função neste conteúdo e tamanho de grupo."})); return; }
   const pg=pgSlice("pvB",l,[pvC,pvT,pvV,pvSort,pvR].join("|"),renderPvp); pg.items.forEach(b=>host.append(pvCard(b,d))); host.append(pg.bar);
