@@ -2,7 +2,7 @@
 let COMPS = null, bLine = "", bSort = "pop", bOpen = null, W2LINE = null, CODE2EN = null;
 const ROLE_PT = {rdps:"Dano à distância", mdps:"Dano corpo a corpo", front:"Frente", frontdps:"Frente e dano", healer:"Curandeiro"};
 const LINE_ICON = {espada:"MAIN_SWORD",machado:"MAIN_AXE",maca:"MAIN_MACE",martelo:"MAIN_HAMMER",lanca:"MAIN_SPEAR",bordao:"2H_QUARTERSTAFF",adaga:"MAIN_DAGGER",luvas:"2H_KNUCKLES_SET1",arco:"2H_BOW",besta:"2H_CROSSBOW",metamorfo:"2H_SHAPESHIFTER_SET1",fogo:"MAIN_FIRESTAFF",gelo:"MAIN_FROSTSTAFF",arcano:"MAIN_ARCANESTAFF",sagrado:"MAIN_HOLYSTAFF",natureza:"MAIN_NATURESTAFF",maldito:"MAIN_CURSEDSTAFF"};
-let GB = null, bCont = "";
+let GB = null, bCont = [];
 function buildIdx(){
   if(W2LINE||!SPECS||!GEAR) return;
   W2LINE={}; for(const g of SPECS.g){ if(!g.k.startsWith("c:")) continue; for(const it of g.it) W2LINE[it[0]]=g.k.slice(2); }
@@ -54,7 +54,7 @@ function compCard(r){
   if(groups.length>show.length) row.append(el("span",{class:"cc-more",text:`+${groups.length-show.length}`}));
   card.append(row); return card;
 }
-function goBuild(code){ const other=(GB||[]).find(x=>x.wc===code); if(!other) return false; bCont=""; bLine=""; bOpen=other.id; renderBuilds(); const t2=document.querySelector(".bcard.open"); if(t2) t2.scrollIntoView({block:"center",behavior:"smooth"}); return true; }
+function goBuild(code){ const other=(GB||[]).find(x=>x.wc===code); if(!other) return false; bCont=[]; bLine=""; bOpen=other.id; renderBuilds(); const t2=document.querySelector(".bcard.open"); if(t2) t2.scrollIntoView({block:"center",behavior:"smooth"}); return true; }
 function synergyPanel(b){
   const box=el("div",{class:"bsyn"});
   if(!COMPS){ box.textContent="Abrindo as composições…"; return box; }
@@ -375,9 +375,9 @@ function renderBuilds(){
   gbPrep();
   const only=$("bOnlyMine").checked;
   const cc=$("bCont"); cc.textContent="";
-  const mk=(k,t,n)=>{ const b=el("button",{type:"button","aria-pressed":String(bCont===k),text:`${t} (${n})`,title:k?"Quantidade de builds salvas no site; aqui aparecem as mais votadas":""}); b.addEventListener("click",()=>{ bCont=k; bLine=""; bOpen=null; renderBuilds(); }); cc.append(b); };
-  mk("","Todos",GB.length+" mais votadas"); for(const c of GBC) mk(c.k,c.nome,c.total.toLocaleString("pt-BR"));
-  let list=GB.filter(b=>(!bCont||b.k===bCont)&&(!only||gbSpec(b)>=SPEC_MIN));
+  // conteúdo: seleção múltipla compacta (eram 29 fichas em 2 a 3 linhas)
+  msel(cc,{label:"Conteúdo",all:`Todos (${GB.length} mais votadas)`,opts:GBC.map(c=>({k:c.k,t:c.nome,n:c.total.toLocaleString("pt-BR")})),sel:bCont,onChange:s=>{ bCont=s; bLine=""; bOpen=null; renderBuilds(); }});
+  let list=GB.filter(b=>(!bCont.length||bCont.includes(b.k))&&(!only||gbSpec(b)>=SPEC_MIN));
   const present=new Set(list.map(b=>b.l));
   const grid=$("bWeapons"); grid.textContent="";
   const all=el("button",{type:"button",class:"bw all","aria-pressed":String(!bLine),text:"Todas"}); all.addEventListener("click",()=>{ bLine=""; renderBuilds(); }); grid.append(all);
@@ -388,7 +388,7 @@ function renderBuilds(){
   else list=list.slice().sort((a,b)=>b.pop-a.pop);
   $("bCount").textContent=list.length?`${list.length} ${list.length===1?"build":"builds"} · dados de ${(GB_DATE||"").split("-").reverse().join("/")}`:"";
   if(!list.length){ host.append(el("p",{class:"empty",text:only?"Nenhuma build deste conteúdo usa uma arma sua com spec 70 ou mais. Desmarque o filtro para ver todas.":"Nenhuma build nesta seleção."})); return; }
-  const pg=pgSlice("bList",list,[bCont,bLine,only,bSort].join("|"),renderBuilds);
+  const pg=pgSlice("bList",list,[bCont.join(","),bLine,only,bSort].join("|"),renderBuilds);
   renderConj();
   for(const b of pg.items) host.append(buildCard(b));
   host.append(pg.bar);
@@ -429,7 +429,7 @@ function cjVaga(c,id,grupo,i){
   if(!id){ v.append(el("span",{class:"cj-n",text:String(i+1)}),el("span",{class:"muted",text:CJ_ED===c.id?"Vaga livre: use Pôr no conjunto numa build abaixo":"Vaga livre"})); return v; }
   const im=b?itemImg(b.wc,[8,7,6,5,4]):el("span",{class:"btile"}); im.classList&&im.classList.add("cj-im");
   const nm=el("button",{type:"button",class:"cj-nome",text:b?(b.t||b.nome):"Build que saiu da lista",title:"Abrir esta build na lista"});
-  nm.addEventListener("click",()=>{ if(b){ bCont=b.k; bLine=b.l||""; bOpen=b.id; renderBuilds(); setTimeout(()=>{ const o=document.querySelector("#bList .bcard.open"); if(o) o.scrollIntoView({behavior:"smooth",block:"start"}); },60); } });
+  nm.addEventListener("click",()=>{ if(b){ bCont=[b.k]; bLine=b.l||""; bOpen=b.id; renderBuilds(); setTimeout(()=>{ const o=document.querySelector("#bList .bcard.open"); if(o) o.scrollIntoView({behavior:"smooth",block:"start"}); },60); } });
   v.append(el("span",{class:"cj-n",text:String(i+1)}),im,el("div",{class:"cj-tx"},nm,el("small",{class:"muted",text:b?[contName(b.k),roleOf(b.t)].filter(Boolean).join(", "):""})));
   if(CJ_ED===c.id){
     const ac=el("div",{class:"cj-va"});
