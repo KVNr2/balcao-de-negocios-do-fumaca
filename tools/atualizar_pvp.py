@@ -10,7 +10,7 @@ import pvp_comum as C
 import papel_arma
 B = "https://gameinfo.albiononline.com/api/gameinfo"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/130.0 Safari/537.36", "Accept": "application/json"}
-DIAS = 30; PAGINAS = int(os.environ.get("PVP_PAGINAS", "3")); ORCAMENTO = int(os.environ.get("PVP_MINUTOS", "25")) * 60; SEMENTES_POR = int(os.environ.get("PVP_SEMENTES", "45")); CONF = 0.7
+DIAS = 30; PAGINAS = int(os.environ.get("PVP_PAGINAS", "3")); ORCAMENTO = int(os.environ.get("PVP_MINUTOS", "25")) * 60; SEMENTES_POR = int(os.environ.get("PVP_SEMENTES", "45")); CONF = 0.8
 CONT = ["hg2", "hg5", "corrompida", "solo", "depths", "al"]
 SLOT = {"MainHand": "w", "OffHand": "o", "Head": "h", "Armor": "a", "Shoes": "s", "Cape": "c", "Potion": "p", "Food": "f"}
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)

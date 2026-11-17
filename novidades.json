@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-11-17T05:00:00Z",
+   "titulo": "PVP: classificador reforçado e só mortes de confiança alta",
+   "itens": [
+    "Mais 500 mortes rotuladas no killboard-1 (escolhidas entre as que o modelo mais duvidava), somando 2.687 rótulos verdadeiros. Hellgate 5v5 passou de 28 para 140 exemplos.",
+    "As builds agora usam só mortes em que o classificador tem confiança de pelo menos 80% (antes 70%). Nos testes, o acerto dessas mortes é de cerca de 94% e entra menos morte de mundo aberto. Sobra menos volume, com builds mais limpas."
+   ]
+  },
+  {
    "t": "2026-11-17T04:30:00Z",
    "titulo": "PVP: classificador novo e builds com peças realmente usadas juntas",
    "itens": [
