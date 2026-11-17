@@ -387,7 +387,7 @@ function renderBuilds(){ if(typeof bldBarraGeral==="function") bldBarraGeral();
   const only=$("bOnlyMine").checked;
   const cc=$("bCont"); cc.textContent="";
   // conteúdo: seleção múltipla compacta (eram 29 fichas em 2 a 3 linhas)
-  msel(cc,{label:"Conteúdo",all:`Todos (${GB.length} mais votadas)`,opts:GBC.map(c=>({k:c.k,t:c.nome,n:c.total.toLocaleString("pt-BR")})),sel:bCont,onChange:s=>{ bCont=s; bLine=[]; bOpen=null; renderBuilds(); }});
+  msel(cc,{label:"Conteúdo",all:`Todos (${GB.length} mais votadas)`,opts:GBC.map(c=>({k:c.k,t:c.nome,n:fmt(c.total)})),sel:bCont,onChange:s=>{ bCont=s; bLine=[]; bOpen=null; renderBuilds(); }});
   let list=GB.filter(b=>(!bCont.length||bCont.includes(b.k))&&(!only||gbOk(b)));
   const present=new Set(list.map(b=>b.l));
   const grid=$("bWeapons"); grid.textContent="";

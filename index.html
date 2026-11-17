@@ -41,8 +41,8 @@ html.em-atual .av-card{margin:0}
   </a>
   <span class="status" id="whenBox" title="Quando os preços foram lidos"><i class="pulse" aria-hidden="true"></i><span class="fl">Preços</span> <strong id="when">carregando…</strong></span>
   <div class="facts" aria-label="Situação do mercado">
-    <span class="gold" id="goldBox" title="Quanto custa 1 ouro em prata"><span class="fl">Ouro</span> <strong class="num" id="goldV">8.382</strong> <svg id="goldSpark" viewBox="0 0 96 22" aria-hidden="true"></svg></span>
-    <span title="Premium de 30 dias (3.750 ouro) em prata"><span class="fl">Premium</span> <strong class="num" id="premV">31,4M</strong></span>
+    <span class="gold" id="goldBox" title="Quanto custa 1 ouro em prata"><span class="fl">Ouro</span> <strong class="num" id="goldV">8382</strong> <svg id="goldSpark" viewBox="0 0 96 22" aria-hidden="true"></svg></span>
+    <span title="Premium de 30 dias (3750 ouro) em prata"><span class="fl">Premium</span> <strong class="num" id="premV">31,4M</strong></span>
     <span class="patchchip"><span class="fl">Patch</span> <strong>Dragonfire 4</strong></span>
     <button type="button" id="reload" class="linkbtn" title="Buscar os preços de novo agora"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg><span>Atualizar preços</span></button>
   </div>
@@ -149,7 +149,7 @@ html.em-atual .av-card{margin:0}
   <section class="panel" id="p-plano" role="tabpanel" aria-labelledby="t-plano" hidden>
     <p class="aside">O que fazer hoje com o seu foco, o seu dinheiro e os lotes da ilha. Preencha, clique em Montar plano e veja a lista na ordem.</p>
     <div class="row-ctl src-ctl pp-ctl">
-      <label class="f">Foco<input type="number" id="ppFoc" min="500" max="30000" step="500" style="width:110px"><small class="f-hint">Quanto foco você quer gastar hoje (30.000 é a reserva cheia do Premium). Vale para o plano e para a ilha.</small></label>
+      <label class="f">Foco<input type="number" id="ppFoc" min="500" max="30000" step="500" style="width:110px"><small class="f-hint">Quanto foco você quer gastar hoje (30K é a reserva cheia do Premium). Vale para o plano e para a ilha.</small></label>
       <label class="f" title="Cada lote é uma fazenda de 9 sementes, um pasto de 9 animais ou um canil de 4 montarias raras. O mesmo número vale na Cozinha e na Ilha e fazenda.">Lotes na ilha<input type="number" id="plLotes" min="0" max="999" placeholder="0" style="width:100px"></label>
       <label class="f">Dinheiro para investir<input type="number" id="ppCap" min="0" step="1000000" placeholder="sem limite" style="width:140px"><small class="f-hint">Quanta prata você topa empatar em materiais e taxas. Vazio = sem limite.</small></label>
       <label class="f">Vender em até (dias)<input type="number" id="ppDias" min="1" max="30" step="1" style="width:90px"><small class="f-hint">Em quantos dias você quer ter vendido tudo. Menos dias, listas menores e mais seguras.</small></label>
@@ -299,7 +299,7 @@ html.em-atual .av-card{margin:0}
         <div class="form">
           <label class="f">Taxa da estação<input id="fee" type="number" min="0" step="10" value="500"><span class="hint">pratas por 100 de nutrição</span></label>
           <label class="f"><span id="focusLbl">Custo de foco por barra</span><input id="focusCost" type="number" min="1"><span class="hint" id="focusHint">da sua ficha</span></label>
-          <label class="f">Foco para gastar<input id="focusPool" type="number" min="0" step="500" value="10000"><span class="hint">Premium gera 10.000 por dia</span></label>
+          <label class="f">Foco para gastar<input id="focusPool" type="number" min="0" step="500" value="10000"><span class="hint">Premium gera 10K por dia</span></label>
         </div>
         <div class="form">
           <div class="ctl">Foco<div class="seg" role="group" aria-label="Foco"><button type="button" data-g="focus" data-v="1" aria-pressed="true">Com foco</button><button type="button" data-g="focus" data-v="0" aria-pressed="false">Sem foco</button></div></div>
@@ -319,7 +319,7 @@ html.em-atual .av-card{margin:0}
           <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
             <p>Bônus de produção = 0,18 da cidade real + 0,40 da cidade com bônus do recurso + 0,59 do foco + bônus diário. Taxa de retorno = bônus ÷ (1 + bônus): 36,7% sem foco e 53,9% com foco. O retorno vale para todos os insumos.</p>
             <p>Taxa da estação = valor de item × 0,1125 × taxa ÷ 100. Imposto de venda 4% com Premium e 8% sem, mais 2,5% para criar a ordem.</p>
-            <p>Custo de foco = custo base × 0,5 elevado a (eficiência ÷ 10.000). A eficiência sai da sua ficha. Preço típico = mediana entre as cidades reais com oferta.</p>
+            <p>Custo de foco = custo base × 0,5 elevado a (eficiência ÷ 10K). A eficiência sai da sua ficha. Preço típico = mediana entre as cidades reais com oferta.</p>
           </div>
         </details>
       </div>
@@ -383,7 +383,7 @@ html.em-atual .av-card{margin:0}
         </aside>
         <div class="of2-main">
           <div class="of-sortw"><span class="of-ct">Ordenar por</span><div class="seg sm of-sort" role="group" aria-label="Ordenar a lista"><button type="button" data-sort="profit" aria-pressed="true">Lucro</button><button type="button" data-sort="pct" aria-pressed="false">Lucro %</button><button type="button" data-sort="day" aria-pressed="false" title="Ordena pelo lucro que dá para realizar em 1 dia, limitado pelas unidades que o mercado vende por dia">Lucro por dia</button><button type="button" data-sort="vol" aria-pressed="false" title="Ordena pelas unidades que o mercado vende por dia na cidade de venda (média de 7 dias)">Vendas por dia</button><button type="button" data-sort="focus" aria-pressed="false" title="Quanto o foco rende a mais por ponto gasto">Ganho por foco</button></div></div>
-          <div class="of-filw" role="group" aria-label="Filtros da lista"><span class="of-ct">Filtrar</span><label class="of-fil">Lucro mínimo<input id="ofFP" type="text" inputmode="decimal" placeholder="qualquer (ex.: 10k)" title="Aceita 10.000, 10k ou 1,5m"></label><label class="of-fil">Lucro % mínimo<input id="ofFPct" type="number" step="1" placeholder="qualquer"></label><label class="of-fil">Vende por dia, no mínimo<input id="ofFV" type="number" min="0" step="1" placeholder="qualquer"></label><button type="button" class="linkbtn of-fclr" id="ofFClear" hidden>Limpar filtros</button><small class="muted" id="ofFCount"></small></div>
+          <div class="of-filw" role="group" aria-label="Filtros da lista"><span class="of-ct">Filtrar</span><label class="of-fil">Lucro mínimo<input id="ofFP" type="text" inputmode="decimal" placeholder="qualquer (ex.: 10k)" title="Aceita 10000, 10k ou 1,5m"></label><label class="of-fil">Lucro % mínimo<input id="ofFPct" type="number" step="1" placeholder="qualquer"></label><label class="of-fil">Vende por dia, no mínimo<input id="ofFV" type="number" min="0" step="1" placeholder="qualquer"></label><button type="button" class="linkbtn of-fclr" id="ofFClear" hidden>Limpar filtros</button><small class="muted" id="ofFCount"></small></div>
           <p class="small muted" id="ofNote"></p>
           <div class="tbl"><div id="ofTable" class="oflist"></div></div>
           <details class="more of-foot"><summary>Como a conta é feita</summary><p class="tiny muted" id="ofFoot">Os atalhos de retorno são 15,2% (sem bônus), 24,8% (cidade com bônus) e 47,9% (cidade com bônus e foco). Em Categoria, "Todas as armas/armaduras" compara tudo de uma vez, com um tier escolhido. Vendendo ao Mercado Negro vale a melhor ordem de compra de lá, só com a taxa de venda. Taxas de criação de ordem: 2,5%. O artefato não volta no retorno. Qualidade só muda o preço de venda; a fabricação dá a qualidade ao acaso. Vendas por dia: média dos últimos 7 dias na cidade de venda. Os controles de Premium, bônus diário e taxa valem para o site todo.</p></details>

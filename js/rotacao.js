@@ -1,9 +1,9 @@
 /* Rotação de craft: um ou mais crafts fixos por cidade; uma visita (a uma cidade) a cada N dias, passando pelas cidades em rodízio.
-   O foco é do personagem, não da cidade: cada visita usa o foco que encheu desde a anterior (10.000 por dia no Premium, até 30.000).
+   O foco é do personagem, não da cidade: cada visita usa o foco que encheu desde a anterior (10K por dia no Premium, até 30K).
    Cada cidade volta a ser visitada depois de N × cidades dias: é o tempo das ordens encherem e da venda escoar.
    Cada material é comprado na cidade real onde sai mais barato (ordem de compra ou na hora) e levado até a cidade do craft.
    Você escolhe quantas peças fazer de cada item; o site sugere um número e guarda o que você escrever.
-   Na visita: o foco acumulado (até 30.000) vai primeiro no item que mais rende por ponto de foco, e cada item fica limitado
+   Na visita: o foco acumulado (até 30K) vai primeiro no item que mais rende por ponto de foco, e cada item fica limitado
    ao que você consegue vender no prazo escolhido (vendas por dia × a sua parte delas × dias). */
 const ROT_CIDADES=["Lymhurst","Fort Sterling","Bridgewatch","Martlock","Thetford"];
 const ROT=(()=>{ const d={cidades:[...ROT_CIDADES],itens:{},ultima:{},dias:3,cash:"",minPct:"",minVol:"",v:2};

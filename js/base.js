@@ -3,11 +3,17 @@ let DATA = {itens:{}};
 const $ = id => document.getElementById(id);
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}, del(k){try{localStorage.removeItem(k)}catch(e){}} };
-const fmt = n => (n==null||!isFinite(n)) ? "—" : Math.round(n).toLocaleString("pt-BR");
+/* números no formato do Albion: abaixo de mil, inteiro sem separador (735); de mil para cima, K = mil, M = milhão, B = bilhão, com 1 decimal (735,3K, 20,4M, 1,2B) */
+const fmt = n => { if(n==null||!isFinite(n)) return "—"; const r=Math.round(n), a=Math.abs(r); if(a<1000) return String(r);
+  const f=(v,u)=>{ let t=v.toLocaleString("pt-BR",{maximumFractionDigits:1,useGrouping:false}); return t+u; };
+  if(a>=999950000) return f(n/1e9,"B"); if(a>=999950) return f(n/1e6,"M"); return f(n/1e3,"K"); };
+const fmtS = fmt;
 const sgn = n => (n>0?"+":"")+fmt(n);
 // valor curto no padrão do jogo: 20,4M acima de 1 milhão, 735,3K entre mil e um milhão (K = mil, M = milhão), 1,5B acima de 1 bilhão; abaixo de mil, o número inteiro
-const fmtS = n => { if(n==null||!isFinite(n)) return "—"; const a=Math.abs(n), f=(v,u)=>v.toLocaleString("pt-BR",{maximumFractionDigits:1})+u; if(a>=1e9) return f(n/1e9,"B"); if(a>=1e6) return f(n/1e6,"M"); if(a>=1e3) return f(n/1e3,"K"); return fmt(n); };
-const dec = n => n.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1});
+
+const dec = n => Math.abs(n)>=999.95 ? fmt(n) : n.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1});
+/* texto vindo de dados (ex.: fonte do PVP) com número em ponto de milhar: troca para K/M/B */
+const fmtTxt = t => String(t==null?"":t).replace(/(?<![\d.,])\d{1,3}(?:\.\d{3})+(?![\d])/g, m=>fmt(+m.replace(/\./g,"")));
 const el = (tag, props={}, ...kids) => { const e=document.createElement(tag); for(const [k,v] of Object.entries(props)){ if(k==="class") e.className=v; else if(k==="text") e.textContent=v; else if(k==="role"||k.startsWith("data-")||k.startsWith("aria-")) e.setAttribute(k,v); else e[k]=v; } for(const c of kids) if(c!=null) e.append(c); return e; };
 
 /* ================= game constants ================= */
@@ -187,7 +193,7 @@ const spMax = g => g ? Math.max(g.m||0,...Object.values(g.s||{}).map(x=>+x||0)) 
 const wl = k => band(Math.max(PF.armas[k]||0, spMax((PF.sp||{})["c:"+k])));
 const armorLv = t => band(PF.armaduras[t]||0);
 /* eficiência de foco pela regra do jogo: 250 por nível da própria spec, 15 por nível das specs irmãs, 30 por nível de maestria.
-   10.000 de eficiência cortam o foco pela metade. Se a pessoa digitou o custo de foco que o jogo mostra, ele manda. */
+   10K de eficiência cortam o foco pela metade. Se a pessoa digitou o custo de foco que o jogo mostra, ele manda. */
 function fceRule(m,specs,own){ const all=Object.values(specs||{}).reduce((a,b)=>a+(+b||0),0), o=+((specs||{})[own])||0; return 250*o+15*(all-o)+30*(+m||0); }
 const fceObs = (obs,base) => obs>0&&obs<base ? 10000*Math.log2(base/obs) : null;
 const refFCEt = (res,t) => { const r=PF.refino[res]||{}; return fceObs(r.obs,FOCUS_REF[2][0]) ?? fceRule(r.m,r.s,t); };
@@ -261,14 +267,14 @@ const prevId = (res,t,e) => t===4 ? `T3_${RES[res].ref}` : idOf(t-1,RES[res].ref
 
 /* ================= models ================= */
 const st={res:"metal",focus:1,daily:0,prem:1,sell:"order",bc:"brumas"};
-/* FOCO por dia (igual em todas as abas): Premium gera 10.000 por dia e guarda até 30.000; sem Premium não há foco. O foco só aumenta o retorno de recursos ao refinar/craftar. */
+/* FOCO por dia (igual em todas as abas): Premium gera 10K por dia e guarda até 30K; sem Premium não há foco. O foco só aumenta o retorno de recursos ao refinar/craftar. */
 const FOC_DIA=10000, FOC_MAX=30000, FOC_UIS=new Set();
 const focBud=()=>{ let v=store.get("focBud"); if(v==null||v==="") v=store.get("wkFocBud"); return v==null||v===""?(st.prem?FOC_DIA:0):Math.max(0,Math.min(FOC_MAX,Math.round(+v)||0)); };
 const focSet=v=>store.set("focBud",String(Math.max(0,Math.min(FOC_MAX,Math.round(+v||0)))));
 /* painel do foco por dia (barra, número e atalhos); onChange recalcula a aba. _sync() atualiza os valores e desliga tudo sem Premium. */
 function focBudUI(onChange,note){ const box=el("div",{class:"wk-foc"}); const w=el("div",{class:"wk-fbud"}), rng=el("input",{type:"range",min:"0",max:String(FOC_MAX),step:"500","aria-label":"Foco por dia"}), num=el("input",{type:"number",min:"0",max:String(FOC_MAX),step:"500","aria-label":"Foco por dia"}), pre=el("div",{class:"seg",role:"group","aria-label":"Atalhos de foco"}), hint=el("p",{class:"tiny wk-foct"});
   const f=el("div",{class:"f wk-fcol"}); f.append(el("span",{text:"Foco disponível por dia"}),w); w.append(rng,num,pre);
-  [[10000,"1 dia · 10.000","Um dia de foco do Premium"],[20000,"2 dias · 20.000","Dois dias guardados"],[30000,"Cheio · 30.000","Reserva cheia (máximo)"]].forEach(([v,t,tt])=>{ const b=el("button",{type:"button",text:t,title:tt}); b.dataset.f=String(v); b.addEventListener("click",()=>{ focSet(v); box._sync(); if(onChange) onChange(); }); pre.append(b); });
+  [[10000,"1 dia · 10K","Um dia de foco do Premium"],[20000,"2 dias · 20K","Dois dias guardados"],[30000,"Cheio · 30K","Reserva cheia (máximo)"]].forEach(([v,t,tt])=>{ const b=el("button",{type:"button",text:t,title:tt}); b.dataset.f=String(v); b.addEventListener("click",()=>{ focSet(v); box._sync(); if(onChange) onChange(); }); pre.append(b); });
   num.addEventListener("change",()=>{ focSet(num.value); box._sync(); if(onChange) onChange(); }); rng.addEventListener("input",()=>{ num.value=rng.value; }); rng.addEventListener("change",()=>{ focSet(rng.value); box._sync(); if(onChange) onChange(); });
   box.append(f,hint);
   box._sync=()=>{ const v=focBud(); rng.disabled=num.disabled=false; rng.value=num.value=String(v); pre.querySelectorAll("button").forEach(b=>{ b.disabled=false; b.setAttribute("aria-pressed",String(+b.dataset.f===v)); });
@@ -862,13 +868,13 @@ const gearIcon=name=>{ try{ const k=typeof gearKey==="function"&&GEAR?gearKey(na
 function renderRecs(){
   const r=bestRefining(), box=$("recRefino"); box.textContent="";
   if(!r.length) box.append(el("li",{class:"empty",text:"Com os preços de agora, nenhum refino dá lucro com segurança."}));
-  r.slice(0,3).forEach(x=>{ const R=RES[x.res]; const rt=refRoute(x.res,x.t,x.e); box.append(recItem(`${R.refName} T${x.t}.${x.e} em ${R.city}`,[`${sgn(x.m.p1)} por ${R.u}, uns ${fmtS(x.day)} com 10.000 de foco`,rt?`Compre ${R.rawName.toLowerCase()} em ${rt.rawC} e venda em ${rt.barC}: ${sgn(rt.p1)} por ${R.u}${routeWarn([rt.rawC,R.city,rt.barC])?"; "+routeWarn([rt.rawC,R.city,rt.barC]):""}`:null,`Custo de foco ${x.m.fc} por ${R.u}${refFCE(x.res)>0?"":", sem spec"}. Sem foco: ${sgn(x.m.p0)}`],idOf(x.t,R.ref,x.e))); });
+  r.slice(0,3).forEach(x=>{ const R=RES[x.res]; const rt=refRoute(x.res,x.t,x.e); box.append(recItem(`${R.refName} T${x.t}.${x.e} em ${R.city}`,[`${sgn(x.m.p1)} por ${R.u}, uns ${fmtS(x.day)} com 10K de foco`,rt?`Compre ${R.rawName.toLowerCase()} em ${rt.rawC} e venda em ${rt.barC}: ${sgn(rt.p1)} por ${R.u}${routeWarn([rt.rawC,R.city,rt.barC])?"; "+routeWarn([rt.rawC,R.city,rt.barC]):""}`:null,`Custo de foco ${x.m.fc} por ${R.u}${refFCE(x.res)>0?"":", sem spec"}. Sem foco: ${sgn(x.m.p0)}`],idOf(x.t,R.ref,x.e))); });
   const cbox=$("recCraft"); cbox.textContent="";
   const lines=Object.keys(PF.craft).filter(k=>PF.craft[k].lv>0);
   if(!lines.length){ cbox.append(el("li",{class:"empty",text:"Marque na sua ficha as peças que você fabrica para ver o melhor craft."})); }
   else{ const c=bestCraft();
     if(!c.length) cbox.append(el("li",{class:"empty",text: lines.every(k=>loadedFam.has(k)) ? "Com os preços de agora, nenhuma das suas linhas dá lucro com segurança." : "Buscando preços das peças…"}));
-    c.slice(0,3).forEach(x=>{ const k=x.slot+"_"+x.mat; cbox.append(recItem(`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e} em ${CRAFT_CITY[k]}`,[`${sgn(x.m.p1)} por peça, uns ${fmtS(x.day)} com 10.000 de foco`,`Custo de foco ${fmt(x.m.fc)} por peça. Venda típica ${fmt(x.m.item.p)}`,(()=>{ const r=craftRoute(x.slot,x.mat,x.s,x.t,x.e); return r?`Barras em ${r.barC}, venda em ${r.itemC}: ${sgn(r.p1)} por peça`:null; })()],gearId(x.t,x.slot,x.mat,x.s,x.e))); }); }
+    c.slice(0,3).forEach(x=>{ const k=x.slot+"_"+x.mat; cbox.append(recItem(`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e} em ${CRAFT_CITY[k]}`,[`${sgn(x.m.p1)} por peça, uns ${fmtS(x.day)} com 10K de foco`,`Custo de foco ${fmt(x.m.fc)} por peça. Venda típica ${fmt(x.m.item.p)}`,(()=>{ const r=craftRoute(x.slot,x.mat,x.s,x.t,x.e); return r?`Barras em ${r.barC}, venda em ${r.itemC}: ${sgn(r.p1)} por peça`:null; })()],gearId(x.t,x.slot,x.mat,x.s,x.e))); }); }
   for(const [c,id] of [["brumas","recBrumas"],["corrompidas","recCorr"]]){
     const b=rankBuilds(c,true).slice(0,3), bx=$(id); bx.textContent="";
     if(!b.length) bx.append(el("li",{class:"empty",text:"Nenhuma build da lista usa as armas da sua ficha."}));
@@ -905,9 +911,9 @@ function renderHero(){
   if(!best){ ans.textContent=`${who}, nenhum refino ou craft da sua ficha dá lucro seguro com os preços de agora.`; $("heroOthers").textContent=""; return; }
   const x=best.x, b=el("b");
   const n=el("span",{class:"num",text:sgn(x.m.p1)});
-  if(best.kind==="ref"){ const R=RES[x.res]; b.textContent=`${R.refName.toLowerCase()} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais refinando `,b,` em ${R.city}: `,n,` por ${R.u}, uns ${fmtS(x.day)} com 10.000 de foco.`); }
-  else if(best.kind==="cook"){ b.textContent=x.name; ans.append(`${who} o seu foco rende mais ${x.kind==="f"?"cozinhando":"preparando"} `,b,` em ${COOK_CITY[x.kind]}: `,n,` por fornada, uns ${fmtS(x.day)} com 10.000 de foco.`); }
-  else{ b.textContent=`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais fabricando `,b,` em ${CRAFT_CITY[x.slot+"_"+x.mat]}: `,n,` por peça, uns ${fmtS(x.day)} com 10.000 de foco.`); }
+  if(best.kind==="ref"){ const R=RES[x.res]; b.textContent=`${R.refName.toLowerCase()} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais refinando `,b,` em ${R.city}: `,n,` por ${R.u}, uns ${fmtS(x.day)} com 10K de foco.`); }
+  else if(best.kind==="cook"){ b.textContent=x.name; ans.append(`${who} o seu foco rende mais ${x.kind==="f"?"cozinhando":"preparando"} `,b,` em ${COOK_CITY[x.kind]}: `,n,` por fornada, uns ${fmtS(x.day)} com 10K de foco.`); }
+  else{ b.textContent=`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais fabricando `,b,` em ${CRAFT_CITY[x.slot+"_"+x.mat]}: `,n,` por peça, uns ${fmtS(x.day)} com 10K de foco.`); }
   { const hid=best.kind==="ref"?idOf(x.t,RES[x.res].ref,x.e):best.kind==="cook"?x.m.id:gearId(x.t,x.slot,x.mat,x.s,x.e), box=ans.parentNode;
     for(const o of box.querySelectorAll(".hero-ic,.ledger")) o.remove();
     // livro-caixa ao lado da frase: ícone, nome, cidade e as contas em linhas com pontilhado
@@ -917,7 +923,7 @@ function renderHero(){
     const row=(k,v,cls)=>{ const r=el("div",{class:"led-r"}); r.append(el("span",{class:"led-k",text:k}),el("span",{class:"led-d","aria-hidden":"true"}),el("span",{class:"num led-v"+(cls?" "+cls:""),text:v})); led.append(r); };
     row(`Por ${unit}, com foco`,sgn(x.m.p1),"gain big");
     if(typeof x.m.p0==="number"&&isFinite(x.m.p0)) row(`Por ${unit}, sem foco`,sgn(Math.round(x.m.p0)),x.m.p0>=0?"gain":"loss");
-    row("Com 10.000 de foco",(x.day>0?"+":"")+fmtS(x.day));
+    row("Com 10K de foco",(x.day>0?"+":"")+fmtS(x.day));
     box.classList.add("has-led"); box.append(led); }
   if(window.gsap&&!RM){ const o={v:0}; gsap.to(o,{v:x.m.p1,duration:1.1,ease:"power2.out",onUpdate:()=>n.textContent=sgn(o.v)}); }
   $("heroOthers").textContent="";
@@ -1414,7 +1420,7 @@ function cookPanel(m){
   right.append(card("cost","Custos detalhados (−)",[[`Ingredientes${fN}`,fmt(m.cost*N)],[`Retorno de recursos (${dec(rr*100)}%${m.fix>0?", o ingrediente raro não volta":""})`,"−"+fmt(m.ret*rr*N)],["Taxa da estação",fmt(m.fee*N)]],[N>1?"Custo total":"Custo da fornada",fmt((m.ret*(1-rr)+m.fix+m.fee)*N)]));
   const lines=[[`Venda (${fmt(m.q*N)} × ${fmt(m.item.p)})`,fmt(bruto)],[`Taxas de venda (${dec((taxBase()+(m.item.mode==="ordem"?0.025:0))*100)}%${m.item.mode==="ordem"?", com os 2,5% do anúncio":""})`,"−"+fmt(bruto-m.net*N)],["Líquido da venda",fmt(m.net*N)],[N>1?"Foco no total":"Foco por fornada",fmt(focMix(N,m.fc,m.p1,m.p0).foc)]];
   if(N>1) lines.push(["Lucro por fornada",sgn(m.p1)]);
-  lines.push(["Com 10.000 de foco",sgn(m.day)+" por dia"],["Por ponto de foco",dec(m.spf)+" pratas"]);
+  lines.push(["Com 10K de foco",sgn(m.day)+" por dia"],["Por ponto de foco",dec(m.spf)+" pratas"]);
   const v=lfVol(m.id); if(v!=null&&v>=0) lines.push(["O mercado vende por dia",`${fmtU(v)} (você faz ${fmt(m.q*N)})`]);
   const sc=bestCity(m.id,st.sell==="instant"?1:0,"max"); if(sc) lines.push(["Melhor cidade para vender",`${sc.c}, ${fmt(sc.p)} cada`]);
   { const mx=focMix(N,m.fc,m.p1,m.p0); if(mx.parcial){ lines.push(["Com o teto de foco",mixTxt(mx)],["Sem foco, cada fornada dá",sgn(m.p0)]); }
@@ -1428,7 +1434,7 @@ function renderCookRecs(){
   if(!has){ box.append(el("li",{class:"empty",text:"Marque cozinha ou alquimia na sua ficha para ver o que rende mais."})); return; }
   if(!COOK_LOADED){ box.append(el("li",{class:"empty",text:"Buscando preços dos ingredientes…"})); ensureCook().then(ok=>{ if(ok){ renderCookRecs(); renderHero(); } }); return; }
   const c=bestCook(); if(!c.length){ box.append(el("li",{class:"empty",text:"Com os preços de agora, nada da cozinha ou da alquimia dá lucro com segurança."})); return; }
-  c.slice(0,3).forEach(m=>box.append(recItem(`${m.name} em ${COOK_CITY[m.kind]}`,[`${sgn(m.p1)} por fornada de ${m.q}, uns ${fmtS(m.day)} com 10.000 de foco`,`Custo de foco ${fmt(m.fc)}. Venda típica ${fmt(m.item.p)} cada`,BUILD_FOOD.includes(m.id)?"As builds usam":null],m.id)));
+  c.slice(0,3).forEach(m=>box.append(recItem(`${m.name} em ${COOK_CITY[m.kind]}`,[`${sgn(m.p1)} por fornada de ${m.q}, uns ${fmtS(m.day)} com 10K de foco`,`Custo de foco ${fmt(m.fc)}. Venda típica ${fmt(m.item.p)} cada`,BUILD_FOOD.includes(m.id)?"As builds usam":null],m.id)));
 }
 
 /* ================= histórico ================= */
