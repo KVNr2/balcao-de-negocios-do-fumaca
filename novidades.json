@@ -4,8 +4,7 @@
    "t": "2026-11-17T20:20:00Z",
    "titulo": "Ficha: soma da spec de cada linha",
    "itens": [
-    "Cada linha com spec mostra a soma de todos os itens sobre o máximo, como no jogo: por exemplo \"Linha 1006/1200\". Máximo = itens × 120: armas 960, couro 1200 (com o set de Dragão), placa e pano 1080, mão secundária 720.",
-    "Luvas de guerra: as Mãos Pretas faltavam na linha e foram incluídas (agora 9 itens, máximo 1080)."
+    "Cada linha com spec mostra a soma de todos os itens sobre o máximo, como no jogo: por exemplo \"Linha 1006/1200\". Máximo = itens × 120: armas 960, couro 1200 (com o set de Dragão), placa e pano 1080, mão secundária 720 (conferido com o catálogo do jogo)."
    ]
   },
   {
