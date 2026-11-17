@@ -545,3 +545,18 @@ button{font-family:var(--f-body)}
 .av-z2 .av-zsub .tag,.av-z2 .av-zsub .av-ty{font:700 15px/1 var(--f-body);padding:6px 12px;border-radius:999px}
 .av-z2 .av-zrota{font:500 14px var(--f-body);color:var(--saffron)}
 .av-z2 .av-zsub .tag{background:color-mix(in srgb,currentColor 18%,transparent);border:1px solid color-mix(in srgb,currentColor 55%,transparent)}
+/* tags e quantidades em destaque dentro da lista */
+.av-z2 .av-zl2{align-items:start}
+.av-z2 .av-zl2 .av-ri{margin-top:2px}
+.av-z2 .av-zl2t{gap:6px}
+.av-z2 .av-zt{display:flex;flex-wrap:wrap;gap:5px}
+.av-z2 .av-zc{display:inline-flex;align-items:baseline;gap:5px;padding:3px 8px;border-radius:7px;background:var(--cloth-2);border:1px solid var(--line-soft);font-size:12px}
+.av-z2 .av-zc small{color:var(--smoke)}
+.av-z2 .av-zc b{color:var(--parch);font-weight:700}
+.av-z2 .av-zl2>.av-rq{font:700 15px/1 var(--f-body);color:var(--saffron-ink,#1a1208);background:var(--saffron);padding:5px 9px;border-radius:8px}
+.av-z2 .av-zg{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.av-z2 .av-zg .av-it{font-size:14px}
+.av-z2 .av-zbody{grid-template-columns:minmax(0,1fr) 330px}
+.av-z2 .av-zc{padding:2px 7px;gap:4px}
+.av-z2 .av-zl2{padding:6px 2px}
+.av-z2 .av-zg{flex-direction:row;flex-wrap:wrap}
