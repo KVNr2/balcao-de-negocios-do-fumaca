@@ -111,7 +111,7 @@ document.querySelectorAll(".tbl table").forEach(tb=>{ if(tb.classList.contains("
 /* ================= menu lateral: recolher em ícones ================= */
 (function(){
   const app=document.querySelector(".wrap.app"), btn=document.getElementById("navToggle"); if(!app||!btn) return;
-  document.querySelectorAll("nav.tabs [role=tab]").forEach(b=>{ const t=b.querySelector(".tl"); if(t) b.title=t.textContent; });
+  // sem title nos itens: com o menu aberto o nome já está escrito, e recolhido a etiqueta .tl aparece no hover (o title duplicava a dica)
   const set=on=>{ app.classList.toggle("rail",on); btn.setAttribute("aria-expanded",String(!on)); btn.title=on?"Expandir o menu":"Recolher o menu"; };
   set(store.get("rail")==="1");
   btn.addEventListener("click",()=>{ const on=!app.classList.contains("rail"); set(on); store.set("rail",on?"1":"0"); });
