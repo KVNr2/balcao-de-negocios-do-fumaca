@@ -47,10 +47,10 @@ const pgTableGroups=tb=>{ if(tb.tBodies.length>1) return [...tb.tBodies].map(b=>
 const SORT = {};
 function cellValue(td){
   if(!td) return {n:-Infinity,s:""};
-  const sel=td.querySelector("select"); const s=(sel?sel.options[sel.selectedIndex].text:td.textContent).trim();
-  const m=s.replace(/−/g,"-").match(/[-+]?\d[\d.]*(,\d+)?/);
+  const sel=td.querySelector("select"); let s=(sel?sel.options[sel.selectedIndex].text:td.textContent).trim();
+  const m=s.replace(/−/g,"-").match(/[-+]?\d[\d.]*(,\d+)?/); s=s.replace(/−/g,"-");
   if(m&&/^[-+−]?\s*\d/.test(s)){ const n=parseFloat(m[0].replace(/\./g,"").replace(",","."));
-    const mult=/\d\s*M\b/.test(s)?1e6:/\d\s*mil\b/.test(s)?1e3:1; return {n:n*mult,s}; }
+    const u=(s.slice(m.index+m[0].length).match(/^\s*(B|M|K|mil)\b/)||[])[1]; const mult=u==="B"?1e9:u==="M"?1e6:(u==="K"||u==="mil")?1e3:1; return {n:n*mult,s}; }
   return {n:null,s};
 }
 function applySort(tb){

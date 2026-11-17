@@ -74,7 +74,7 @@ async function renderPlano(){
 { const l=$("plLotes"); if(l){ let tm; l.addEventListener("input",()=>{ const v=Math.round(+l.value); SRC.lotes=v>0?v:0; srcSave(); const fp=$("fzPlots"); if(fp&&v>0) fp.value=String(v); clearTimeout(tm); tm=setTimeout(renderPlano,350); }); } }
 
 /* ================= Onde gastar o foco =================
-   Um foco fixo (30.000 por padrão, a reserva cheia) e a pergunta: o que fazer com ele para ganhar mais prata?
+   Um foco fixo (30K por padrão, a reserva cheia) e a pergunta: o que fazer com ele para ganhar mais prata?
    Entram equipamentos, comidas e poções, refino e a rega das plantas da ilha. A ordem é pelo lucro com foco por
    ponto de foco (o foco é o que acaba primeiro), e cada item tem teto no que o mercado compra no prazo escolhido,
    contando só a sua parte das vendas. A coluna Sem foco mostra quanto a mesma coisa daria sem gastar foco. */

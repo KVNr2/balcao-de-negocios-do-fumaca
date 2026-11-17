@@ -212,7 +212,7 @@ function ofApplyMode(mode){
   $("ofFind").placeholder=ref?"Nome do recurso":"Nome do item";
   { const sc=$("ofSRCard"); if(sc) sc.hidden=ref; }
   if(OF2.footC==null) OF2.footC=$("ofFoot").textContent;
-  $("ofFoot").textContent=ref?"Atalhos de retorno: 15,3% (estação sem bônus), 36,7% (cidade com o bônus de refino daquele recurso) e 53,9% (cidade com bônus e foco). Cada unidade refinada usa a quantidade do tier de matéria-prima (T4 usa 2, T5 usa 3, T6 usa 4, T7 e T8 usam 5) mais 1 unidade refinada do tier anterior, com o mesmo encantamento (T4 usa a de T3). O retorno vale para os dois, e é arredondado para cima na compra. Bônus de refino: Thetford minério, Lymhurst fibra, Martlock pelego, Fort Sterling madeira, Bridgewatch pedra. Taxa da estação = valor do item × 0,1125 × taxa ÷ 100. O custo de foco cai pela metade a cada 10.000 de eficiência, que sai das specs de refino da sua ficha. Premium gera 10.000 de foco por dia. O produto refinado não tem qualidade, então só o preço importa. Os controles de Premium, bônus diário e taxa valem para o site todo.":OF2.footC;
+  $("ofFoot").textContent=ref?"Atalhos de retorno: 15,3% (estação sem bônus), 36,7% (cidade com o bônus de refino daquele recurso) e 53,9% (cidade com bônus e foco). Cada unidade refinada usa a quantidade do tier de matéria-prima (T4 usa 2, T5 usa 3, T6 usa 4, T7 e T8 usam 5) mais 1 unidade refinada do tier anterior, com o mesmo encantamento (T4 usa a de T3). O retorno vale para os dois, e é arredondado para cima na compra. Bônus de refino: Thetford minério, Lymhurst fibra, Martlock pelego, Fort Sterling madeira, Bridgewatch pedra. Taxa da estação = valor do item × 0,1125 × taxa ÷ 100. O custo de foco cai pela metade a cada 10K de eficiência, que sai das specs de refino da sua ficha. Premium gera 10K de foco por dia. O produto refinado não tem qualidade, então só o preço importa. Os controles de Premium, bônus diário e taxa valem para o site todo.":OF2.footC;
   ofFillCats(); OF2.open.clear();
 }
 function setupOf(){
@@ -783,7 +783,7 @@ function ofRefQtyUI(){ const f=OF2.refFoc, q=$("ofQty");
   $("ofRcS").textContent=f?"cada item mostra quantas unidades esse foco refina, o lucro, onde comprar e onde vender":"quantas unidades refinar de cada item, sem gastar foco";
   q.setAttribute("aria-label",f?"Foco a gastar no refino":"Unidades a refinar"); q.step=f?"500":"1"; q.value=String(f?focBud():OF2.refQty); }
 
-/* número digitado do jeito brasileiro: 10.000, 1,5 mil, 10k, 2,5m */
+/* número digitado do jeito brasileiro: 10K, 1,5 mil, 10k, 2,5m */
 function numBR(v){ let t=String(v).trim().toLowerCase().replace(/\s+/g,"").replace(/mil$/,"k"); let mult=1;
   if(/[km]$/.test(t)){ mult=t.endsWith("k")?1e3:1e6; t=t.slice(0,-1); }
   if(t.includes(".")&&t.includes(",")) t=t.replace(/\./g,"").replace(",",".");

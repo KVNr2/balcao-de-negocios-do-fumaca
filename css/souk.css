@@ -484,3 +484,9 @@ button{font-family:var(--f-body)}
 .bld-geral .bld-gc{display:inline-flex;align-items:center;gap:8px;font:600 14px var(--f-body);color:var(--brass)}
 .bld-geral select{height:var(--ctl-h)}
 .bcard:not(.open) .bld-cost>.bld-g{display:none}
+/* cartão fechado: sem a barra de tier/set/cidade, a lista de peças sobe para a mesma linha do total (sem faixa vazia em cima) */
+.bcard:not(.open) .bld-cost{flex-wrap:nowrap;align-items:center}
+.bcard:not(.open) .bld-cost .bld-por{order:0;flex:1 1 auto;width:auto;min-width:0}
+.bcard:not(.open) .bld-cost .bld-tags,.bcard:not(.open) .bld-cost .bld-tot,.bcard:not(.open) .bld-cost>.bc-more,.bcard:not(.open) .bld-cost .bld-msg{order:1;flex:0 0 auto}
+.bcard:not(.open) .bld-cost .bld-tot{flex-direction:column;align-items:flex-end;gap:0;padding-left:12px;border-left:1px solid var(--line-soft)}
+@media (max-width:900px){.bcard:not(.open) .bld-cost{flex-wrap:wrap}.bcard:not(.open) .bld-cost .bld-por{flex-basis:100%}}

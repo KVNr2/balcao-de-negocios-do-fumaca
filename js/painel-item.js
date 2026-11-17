@@ -14,7 +14,7 @@ var S={id:(P.get("id")||"").replace(/[^A-Za-z0-9_]/g,""),e:Math.max(0,Math.min(4
   prices:null,hist:{},gen:0,quando:0};
 
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function fmt(n){return n>0?Math.round(n).toLocaleString("pt-BR"):"—"}
+function fmt(n){return n>0?window.fmtS?fmtS(n):String(Math.round(n)):"—"}
 var tier=(/^T(\d)/.exec(S.id)||[])[1]||"";
 
 /* ---------- limite da API (mesmos contadores do site: localStorage apiStamps / apiBlock) ---------- */

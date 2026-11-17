@@ -107,7 +107,7 @@ function pvJog(p,d){
 function renderPvp(){ if(typeof bldBarraGeral==="function") bldBarraGeral();
   const host=$("pvList"); if(!host) return;
   if(!PVP){ if(!renderPvp._l){ renderPvp._l=1; need("pvp").then(d=>{ PVP=d; renderPvp(); }).catch(()=>{ $("pvNote").textContent="Os dados do PVP ainda não foram gerados. Eles aparecem depois da primeira atualização automática."; }); } return; }
-  const j=PVP.janela; $("pvNote").textContent=`${PVP.fonte}. ${Object.values(PVP.conteudos).reduce((a,c)=>a+c.builds.length,0).toLocaleString("pt-BR")} builds, vindas de ${j.eventos.toLocaleString("pt-BR")} mortes dos últimos ${j.dias} dias${j.por_servidor?` (${[["us","Américas"],["eu","Europa"],["sgp","Ásia"]].filter(([k])=>j.por_servidor[k]).map(([k,n])=>`${n} ${j.por_servidor[k].toLocaleString("pt-BR")}`).join(" · ")})`:""} · atualizado em ${new Date(PVP.atualizado).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}.`;
+  const j=PVP.janela; $("pvNote").textContent=`${fmtTxt(PVP.fonte)}. ${fmt(Object.values(PVP.conteudos).reduce((a,c)=>a+c.builds.length,0))} builds, vindas de ${fmt(j.eventos)} mortes dos últimos ${j.dias} dias${j.por_servidor?` (${[["us","Américas"],["eu","Europa"],["sgp","Ásia"]].filter(([k])=>j.por_servidor[k]).map(([k,n])=>`${n} ${fmt(j.por_servidor[k])}`).join(" · ")})`:""} · atualizado em ${new Date(PVP.atualizado).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}.`;
   const cs=$("pvCont"); cs.textContent=""; for(const [k,n] of PV_CONT){ const tot=Object.keys(PVP.conteudos).filter(x=>pvChs(k).includes(x.split(":")[0])).reduce((a,x)=>a+(PVP.conteudos[x].nb??PVP.conteudos[x].builds.length),0); const b=el("button",{type:"button","aria-pressed":String(pvGr(pvC)===k),text:k==="al"?`${n} (em construção)`:`${n} (${tot} ${tot===1?"build":"builds"})`}); b.addEventListener("click",()=>{ if(pvGr(pvC)!==k){ pvC=pvChs(k)[0]; pvT=0; } pvOpen=null; renderPvp(); }); cs.append(b); }
   const tams=Object.keys(PVP.conteudos).filter(x=>pvChs(pvGr(pvC)).includes(x.split(":")[0])).map(x=>({c:x.split(":")[0],t:+x.split(":")[1]})).sort((a,b)=>a.t-b.t);
   if(!tams.some(x=>x.c===pvC&&x.t===pvT)){ const u=tams.filter(x=>x.c===pvC).pop()||tams[tams.length-1]; if(u){ pvC=u.c; pvT=u.t; } else pvT=0; }
@@ -137,7 +137,7 @@ function renderPvp(){ if(typeof bldBarraGeral==="function") bldBarraGeral();
   pvTierBox(host,d);
   let l=d.builds.filter(b=>!pvR||pvRole(b.wc)===pvR); pvSort=$("pvSort").value||pvSort;
   if(pvSort==="wilson") l.sort((a,b)=>pvWilson(b.v,b.n+0)-pvWilson(a.v,a.n)); else if(pvSort==="wr") l.sort((a,b)=>b.wr-a.wr||b.n-a.n); else if(pvSort==="spec"){ l.forEach(pvPrep); l.sort((a,b)=>(gbSoma(b)-gbSoma(a))||(gbSpec(b)-gbSpec(a))||(b.n-a.n)); } else l.sort((a,b)=>b.n-a.n);
-  $("pvCount").textContent=`${l.length} builds${pvR?` de ${pvRoleNome(pvR).toLowerCase()}`:""} com 4 lutas ou mais · ${d.eventos.toLocaleString("pt-BR")} mortes${PVP.janela.fama_min?` de jogadores com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
+  $("pvCount").textContent=`${l.length} builds${pvR?` de ${pvRoleNome(pvR).toLowerCase()}`:""} com 4 lutas ou mais · ${fmt(d.eventos)} mortes${PVP.janela.fama_min?` de jogadores com ${PVP.janela.fama_min} mi de fama de PvP ou mais`:""}`;
   if(!l.length){ host.append(el("p",{class:"empty",text:"Nenhuma build desta função neste conteúdo e tamanho de grupo."})); return; }
   const pg=pgSlice("pvB",l,[pvC,pvT,pvV,pvSort,pvR].join("|"),renderPvp); pg.items.forEach(b=>host.append(pvCard(b,d))); host.append(pg.bar);
 }
