@@ -346,8 +346,8 @@ function gaveta(box,manter,rotulo){
   bt.addEventListener("click",()=>{ box.classList.toggle("gav-aberta"); upd(); }); upd();
   if(kids[manter]) kids[manter].before(bt); else box.append(bt);
 }
-gaveta(document.querySelector("#ofRoot .of2-side"),1,"Mais opções (receita, compra, venda, filtros)");
-gaveta(document.querySelector("#p-mk > .row-ctl"),1,"Mais filtros (categoria, tier, qualidade, cidade)");
+gaveta(document.querySelector("#ofRoot .of2-side"),1,"Mais opções");
+gaveta(document.querySelector("#p-mk > .row-ctl"),1,"Filtros");
 /* dica de primeiro uso: na primeira vez que o mouse passa num ícone de item, avisa que o botão direito abre o menu */
 { let dica=false; try{ dica=localStorage.getItem("dicaMenuItem")==="1"; }catch(e){}
   if(!dica){ const f=ev=>{ const im=ev.target.closest&&ev.target.closest("img[data-item]"); if(!im) return; document.removeEventListener("mouseover",f,true);
