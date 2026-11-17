@@ -83,11 +83,11 @@ function avZoom(m,pic){
   const R=sec("Recursos");
   for(const k of Object.keys(AV_RES)){ const n=avRes(m,k); if(!n) continue; const ts=Object.keys(m.r[k]).map(Number).sort((a,b)=>a-b), mt=ts[ts.length-1];
     const row=el("div",{class:"av-zl2"}); row.append(fullImg(`T${mt}_${k}`,"av-ri")||el("i",{class:"av-rd r-"+AV_RES[k][1]}));
-    const tx=el("div",{class:"av-zl2t"}); tx.append(el("span",{text:AV_RES[k][0]}),el("small",{text:ts.map(t=>`T${t} ${m.r[k][t]}`).join(" · ")}));
-    row.append(tx,el("b",{text:String(n)})); R.append(row); }
+    const tx=el("div",{class:"av-zl2t"}), tt=el("div",{class:"av-zt"}); ts.forEach(t=>tt.append(el("span",{class:"av-zc",title:`Tier ${t}`},el("small",{text:`T${t}`}),el("b",{text:`×${m.r[k][t]}`}))));
+    tx.append(el("span",{text:AV_RES[k][0]}),tt); row.append(tx,el("b",{class:"av-rq",title:"Quantidade no mapa",text:`×${n}`})); R.append(row); }
   if(!R.querySelector(".av-zl2")) R.append(el("p",{class:"av-zvz",text:"Sem recursos"}));
   const D=sec("No mapa"), inf=avInfo(m);
-  inf.forEach(i=>{ const row=el("div",{class:"av-zl2",title:i.tip}); row.append(el("i",{class:"av-zdot "+i.cls}),el("div",{class:"av-zl2t"},el("span",{text:i.txt})),el("b",{text:String(i.n)})); D.append(row); });
+  const dg=el("div",{class:"av-zg"}); inf.forEach(i=>dg.append(avTag(i,true))); if(inf.length) D.append(dg);
   if(!inf.length) D.append(el("p",{class:"av-zvz",text:"Sem dungeons nem baús"}));
   body.append(mid,side); box.append(top,body); ov.append(box);
   const close=()=>{ ov.remove(); document.removeEventListener("keydown",key); }, key=e=>{ if(e.key==="Escape") close(); };
