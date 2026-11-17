@@ -1011,7 +1011,7 @@ function renderSpecs(){
         { const sv=spGet(g.k).s||{}, vals=g.it.map(([k])=>+sv[k]||0).filter(v=>v>0), m=spMastery(g.k); sumS.textContent="";
           const chip=(t,c)=>sumS.append(el("span",{class:"spchip "+(c||""),text:t}));
           if(base==="sem spec"){ chip("sem spec","off"); } else { if(m) chip("Maestria "+m,"m"); if(vals.length) chip(`${vals.length}/${g.it.length} itens`,"n"); if(vals.length) chip(`Linha ${vals.reduce((x,y)=>x+y,0)}/${g.it.length*(g.max||100)}`,"ln"); if(vals.length) chip("Maior "+Math.max(...vals),"mx"); if(combate&&m) chip("Usa até T"+tierFromMastery(m),"t"); if(g.k.startsWith("a:")&&(m||vals.length)){ const [slot,mat]=g.k.slice(2).split("_"); chip("Foco T6.0: "+fmt(craftFocus(slot,mat,6,0,1)),"f"); } }
-          d.style.setProperty("--p",(g.it.length?Math.round(vals.length/g.it.length*100):0)+"%"); d.classList.toggle("has",base!=="sem spec"); } refreshSubs();
+          d.style.setProperty("--p",(g.it.length?Math.min(100,Math.round(vals.reduce((x,y)=>x+y,0)/(g.it.length*(g.max||100))*100)):0)+"%");   /* barra = soma da linha ÷ máximo (itens × 120), como no jogo */ d.classList.toggle("has",base!=="sem spec"); } refreshSubs();
         if(tierIc){ const t=icT(spMastery(g.k),spGet(g.k).t2); icons.forEach(im=>im._tier(t)); } if(combate) lockRows(); };
       /* sem maestria (abaixo do T4) não dá para usar item nenhuma da linha: some o nome e o ícone, a não ser que o item já tenha nível */
       const rows=[], hint=el("p",{class:"tiny muted splock",text:"Digite a maestria da linha para liberar as armas e peças. Sem maestria não dá para usar nenhuma delas.",hidden:true});
@@ -1586,7 +1586,7 @@ function arvoreSecao(box,sumId,def){ if(!box||!SPECS) return; if(box.contains(do
     const vals=()=>o.itens.map(([c])=>+o.getV(c)||0).filter(v=>v>0);
     const upd=()=>{ const v=vals(), m=o.getM()||0, any=m>0||v.length>0; sumS.textContent=""; const chip=(t,c)=>sumS.append(el("span",{class:"spchip "+(c||""),text:t}));
       if(!any) chip("sem spec","off"); else { if(m) chip("Maestria "+m,"m"); if(v.length) chip(`${v.length}/${o.itens.length} itens`,"n"); if(v.length) chip(`Linha ${v.reduce((x,y)=>x+y,0)}/${o.itens.length*(o.max||100)}`,"ln"); if(v.length) chip("Maior "+Math.max(...v),"mx"); if(o.tier) chip("Usa até T"+o.tier(),"t"); }
-      d.style.setProperty("--p",Math.round(v.length/o.itens.length*100)+"%"); d.classList.toggle("has",any); sumS.classList.toggle("on",any); };
+      d.style.setProperty("--p",Math.min(100,Math.round(v.reduce((x,y)=>x+y,0)/(o.itens.length*(o.max||100))*100))+"%"); d.classList.toggle("has",any); sumS.classList.toggle("on",any); };
     let built=false; const body=el("div",{class:"spgrid"}); d.append(body);
     d.addEventListener("toggle",()=>{ if(d.open) ARV_OPEN.add(o.id); else ARV_OPEN.delete(o.id); if(!d.open||built) return; built=true;
       body.append(tagIn("Maestria",numIn(o.getM()||0,o.mmax||100,"Maestria de "+o.nome,v=>{ o.setM(v); salvar(); },"—"),o.semIcCorpo?null:o.ic()));
