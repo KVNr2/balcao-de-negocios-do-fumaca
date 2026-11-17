@@ -490,3 +490,20 @@ button{font-family:var(--f-body)}
 .bcard:not(.open) .bld-cost .bld-tags,.bcard:not(.open) .bld-cost .bld-tot,.bcard:not(.open) .bld-cost>.bc-more,.bcard:not(.open) .bld-cost .bld-msg{order:1;flex:0 0 auto}
 .bcard:not(.open) .bld-cost .bld-tot{flex-direction:column;align-items:flex-end;gap:0;padding-left:12px;border-left:1px solid var(--line-soft)}
 @media (max-width:900px){.bcard:not(.open) .bld-cost{flex-wrap:wrap}.bcard:not(.open) .bld-cost .bld-por{flex-basis:100%}}
+
+/* janela do item: nome comprido quebra dentro da coluna da esquerda, sem invadir as ofertas */
+.dlg-grid>.dlg-l,.dlg-grid>.dlg-r{min-width:0}
+.dlg2 .dlg-h{align-items:flex-start;min-width:0}
+.dlg2 .dlg-h>div:last-child{min-width:0;flex:1 1 auto}
+.dlg2 .dlg-h h2{font-size:clamp(18px,1.6vw,22px);overflow-wrap:anywhere;hyphens:auto}
+#dlgSub{overflow-wrap:anywhere;word-break:break-all;line-height:1.3}
+
+/* gaveta de filtros (janela estreita, ex.: overlay): botão no padrão do site */
+.gav-btn{-webkit-appearance:none;appearance:none}
+@media (max-width:700px){
+  .gav-btn{display:flex;align-items:center;gap:8px;width:100%;min-height:var(--ctl-h);margin:6px 0;padding:0 14px;border:1px solid var(--line-soft);border-radius:var(--r-ctl,10px);background:var(--cloth-2);color:var(--parch);font:600 14px/1.2 var(--f-body);text-align:left;cursor:pointer}
+  .gav-btn::before{content:"▾";color:var(--saffron)}
+  .gav-btn[aria-expanded="true"]::before{content:"▴"}
+  .gav-btn:hover{background:var(--cloth-2);border-color:var(--brass);color:var(--parch)}
+  .gav-btn:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+}
