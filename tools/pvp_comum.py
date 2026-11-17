@@ -28,15 +28,64 @@ def feat(e):
             "mountK": bool(_eq(K).get("Mount")), "mountV": bool(_eq(V).get("Mount")), "bagV": bool(_eq(V).get("Bag")),
             "invV": sum(1 for v in (V.get("Inventory") or []) if v), "fame": e.get("TotalVictimKillFame"), "potionV": bool(_eq(V).get("Potion")),
             "ipMaxPart": max(ips) if ips else 0, "ipMinPart": min(ips) if ips else 0, "potT": pot.split("@")[0], "mountT": mnt.split("@")[0],
-            "nTes": _conta(V, "TREASURE"), "nDrag": _conta(V, "DRAGON")}
-FEATS = ["nGM", "nPart", "ipK", "ipV", "mountK", "mountV", "bagV", "invV", "fame", "potionV", "ipMaxPart", "ipMinPart", "potCombate", "potCresc", "direboar", "nTes", "nDrag"]
+            "nTes": _conta(V, "TREASURE"), "nDrag": _conta(V, "DRAGON"), "extra": extra(e)}
+FEATS_BASE = ["nGM", "nPart", "ipK", "ipV", "mountK", "mountV", "bagV", "invV", "fame", "potionV", "ipMaxPart", "ipMinPart", "potCombate", "potCresc", "direboar", "nTes", "nDrag"]
+# características do catálogo do jogo (1.32.040): poder de item base de cada peça (tier + encantamento + família), tier equivalente (tier + encantamento) e a fama normalizada pelo tier
+EXTRA = ["bK", "bV", "dK", "dV", "rK", "rV", "brK", "brV", "spK", "spV", "dMin", "dMax", "brMin", "brMax", "ipMaxAll", "ipMinAll", "mountTierV", "logFame", "fameBase", "nJog"]
+FEATS = FEATS_BASE + EXTRA
+_OFF = None
+def _offsets():
+    global _OFF
+    if _OFF is None:
+        try: _OFF = json.load(open(os.path.join(HERE, "pvp-ip-base.json")))
+        except Exception: _OFF = {}
+    return _OFF
+def _te(t):
+    """(tier, encantamento) de um tipo de item como T6_HEAD_LEATHER_SET1@2"""
+    import re
+    m = re.match(r"T(\d)_(.+?)(?:@(\d))?$", t or "")
+    return (int(m.group(1)), int(m.group(3) or 0), m.group(2)) if m else None
+def base_ip(t):
+    x = _te(t)
+    return 100 * (x[0] + x[1]) + 300 + _offsets().get(x[2], 0) if x else None
+def _pstat(p):
+    e = _eq(p); b = []; tt = []
+    for sl in ("MainHand", "Head", "Armor", "Shoes"):
+        ty = _t(e.get(sl))
+        if not ty: continue
+        x = _te(ty)
+        if x: b.append(base_ip(ty)); tt.append(x[0] + x[1])
+    ip = p.get("AverageItemPower") or 0
+    if len(b) < 3 or not ip: return None
+    bm = sum(b) / len(b)
+    return {"b": bm, "d": ip - bm, "r": ip / bm, "br": sum(tt) / len(tt), "sp": max(tt) - min(tt), "ip": ip}
+def extra(e, fame=None):
+    """as características do catálogo (lista na ordem de EXTRA) de uma morte; vale para o evento da API e para o evento desempacotado do acervo"""
+    import math
+    K, V = e["Killer"], e["Victim"]; ps = list(e.get("Participants") or [])
+    if not any(p.get("_g") for p in ps): ps = ps + grupo(e)
+    allp = [K, V] + ps; S = [_pstat(p) for p in allp]; sk, sv = S[0], S[1]; sg = [x for x in S if x]
+    g = lambda x, k, d=0: x[k] if x else d
+    f = [g(sk, "b"), g(sv, "b"), g(sk, "d"), g(sv, "d"), g(sk, "r", 1), g(sv, "r", 1), g(sk, "br"), g(sv, "br"), g(sk, "sp"), g(sv, "sp")]
+    f += [min(x["d"] for x in sg), max(x["d"] for x in sg), min(x["br"] for x in sg), max(x["br"] for x in sg), max(x["ip"] for x in sg), min(x["ip"] for x in sg)] if sg else [0] * 6
+    import re
+    mt = re.match(r"T(\d)", _t(_eq(V).get("Mount"))); f.append(int(mt.group(1)) if mt else 0)
+    fame = fame if fame is not None else (e.get("TotalVictimKillFame") or 0)
+    f.append(math.log10(fame + 1)); f.append(fame / (g(sv, "b", 1) or 1)); f.append(len(allp))
+    return [round(float(v), 3) for v in f]
+def completar(x, e):
+    """vetor guardado no acervo com menos características que o modelo atual: acrescenta as do catálogo, calculadas do evento desempacotado"""
+    x = list(x or [])
+    if len(x) < len(FEATS_BASE): x += [0.0] * (len(FEATS_BASE) - len(x))
+    return x[:len(FEATS_BASE)] + (extra(e, x[8] if len(x) > 8 else None) if len(x) < len(FEATS) else x[len(FEATS_BASE):len(FEATS)])
 def vetor(f):
     pt = f.get("potT") or ""
-    x = [float(f.get(k) or 0) for k in FEATS[:12]]
+    x = [float(f.get(k) or 0) for k in FEATS_BASE[:12]]
     x.append(1.0 if any(c in pt for c in COMBATE) else 0.0)
     x.append(1.0 if ("REVIVE" in pt or "HEAL" in pt) else 0.0)
     x.append(1.0 if "DIREBOAR" in (f.get("mountT") or "") else 0.0)
     x.append(float(f.get("nTes") or 0)); x.append(float(f.get("nDrag") or 0))
+    x += [float(v) for v in (f.get("extra") or [0.0] * len(EXTRA))]
     return x
 def _folha(a, x):
     n = 0

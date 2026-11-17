@@ -1,53 +1,44 @@
 #!/usr/bin/env python3
 """Treina o classificador de conteúdo das mortes (floresta de árvores) e grava tools/pvp-arvore.json.
-Rótulos de verdade: tools/sonda-eventos.json (killboard-1, servidor US). Opcional: PVP_DADOS=pasta do acervo do coletor; mortes ali
-com confiança alta entram como exemplos extras (auto-treino), mas só se a validação nos rótulos de verdade não piorar.
+Rótulos de verdade: tools/rotulos-eventos.jsonl.gz (killboard-1, servidores US, EU e ASIA) com o equipamento de cada morte (montado por tools/montar_rotulos.py).
+Características: as do evento (FEATS_BASE) mais as do catálogo do jogo (EXTRA: poder base das peças, tier equivalente, fama normalizada).
 Uso: python3 tools/treinar_pvp.py [--gravar]"""
-import glob, gzip, json, os, sys
+import collections, gzip, json, os, sys
 import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pvp_comum as C
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import StratifiedKFold
-HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
-E = [e for e in json.load(open(os.path.join(HERE, "sonda-eventos.json"))) if e["srv"] == "us" and e["lab"] != "gank"]
-X = np.array([C.vetor(e) for e in E]); y = np.array([e["lab"] for e in E])
-def rf(): return RandomForestClassifier(n_estimators=80, min_samples_leaf=2, max_depth=14, random_state=0, n_jobs=-1)
-# exemplos extras do acervo (só com vetor de características e confiança guardados pelo coletor)
-XP = np.zeros((0, X.shape[1])); yp = np.array([])
-d = os.environ.get("PVP_DADOS", "")
-if d:
-    ex = []
-    for f in glob.glob(os.path.join(d, "eventos", "*.jsonl.gz")):
-        for l in gzip.open(f, "rt", encoding="utf-8"):
-            try: r = json.loads(l)
-            except Exception: continue
-            if r.get("x") and (r.get("q") or 0) >= 0.9: ex.append((r["x"], r["c"]))
-    if ex: XP = np.array([a for a, _ in ex], dtype=float); yp = np.array([b for _, b in ex])
-    print("exemplos extras do acervo (confiança >= 0,9):", len(ex))
-def cv(extra):
-    acc = []
-    for tr, te in StratifiedKFold(5, shuffle=True, random_state=0).split(X, y):
-        Xt, yt = X[tr], y[tr]
-        if extra and len(yp): Xt = np.vstack([Xt, XP]); yt = np.concatenate([yt, yp])
-        acc.append((rf().fit(Xt, yt).predict(X[te]) == y[te]).mean())
-    return float(np.mean(acc))
-a0 = cv(False); print("acurácia só com rótulos de verdade:", round(a0, 3))
-usar = False
-if len(yp) >= 200:
-    a1 = cv(True); print("acurácia com exemplos do acervo:", round(a1, 3)); usar = a1 >= a0 - 0.002 and a1 > a0
-Xf, yf = (np.vstack([X, XP]), np.concatenate([y, yp])) if usar else (X, y)
-m = rf().fit(Xf, yf); print("modelo final com", len(yf), "exemplos", "(inclui acervo)" if usar else "(só rótulos de verdade)")
+from sklearn.model_selection import StratifiedKFold, cross_val_predict
+HERE = os.path.dirname(os.path.abspath(__file__))
+MAPA = {"gank": "nenhum"}        # ganking no mundo aberto não é nenhum dos conteúdos classificados
+R = [json.loads(l) for l in gzip.open(os.path.join(HERE, "rotulos-eventos.jsonl.gz"), "rt", encoding="utf-8")]
+R = [r for r in R if r.get("x")]
+y = np.array([MAPA.get(r["lab"], r["lab"]) for r in R]); srv = np.array([r["srv"] for r in R])
+X = np.array([C.completar(r["x"], C.desempacotar(r)) for r in R], dtype=float)
+print("exemplos:", len(y), dict(collections.Counter(y)), "servidores:", dict(collections.Counter(srv)))
+def rf(seed=0): return RandomForestClassifier(n_estimators=80, min_samples_leaf=2, max_depth=14, random_state=seed, n_jobs=-1)
+def cv(cols, seeds=3):
+    ac = []; p = None
+    for s in range(seeds):
+        p = cross_val_predict(rf(s), X[:, cols], y, cv=StratifiedKFold(5, shuffle=True, random_state=s)); ac.append(float((p == y).mean()))
+    return float(np.mean(ac)), p
+n0 = len(C.FEATS_BASE)
+a0, _ = cv(list(range(n0))); a1, p1 = cv(list(range(X.shape[1])))
+print("acurácia (validação cruzada) só com as características do evento:", round(a0, 3), "| com as do catálogo:", round(a1, 3))
+for s in sorted(set(srv)): m = srv == s; print("  servidor", s, ":", int(m.sum()), "mortes, acerto", round(float((p1[m] == y[m]).mean()), 3))
+cl = sorted(set(y)); print("  por conteúdo (precisão / revocação):")
+for c in cl:
+    tp = int(((p1 == c) & (y == c)).sum()); print("   ", c, round(tp / max(1, int((p1 == c).sum())), 3), round(tp / max(1, int((y == c).sum())), 3), "n=", int((y == c).sum()))
+m = rf().fit(X, y)
 trees = []
 for est in m.estimators_:
     T = est.tree_; v = T.value[:, 0, :]; v = v / v.sum(axis=1, keepdims=True)
-    trees.append({"f": [int(i) for i in T.feature], "t": [round(float(t), 2) for t in T.threshold], "e": [int(i) for i in T.children_left], "d": [int(i) for i in T.children_right], "p": v.round(3).tolist()})
-out = {"classes": [str(c) for c in m.classes_], "trees": trees, "n": int(len(yf)), "acc_cv": round(a0, 3), "feats": C.FEATS}
-# confere que a leitura em Python (a do coletor) dá o mesmo que o sklearn
+    trees.append({"f": [int(i) for i in T.feature], "t": [round(float(t), 3) for t in T.threshold], "e": [int(i) for i in T.children_left], "d": [int(i) for i in T.children_right], "p": v.round(3).tolist()})
+out = {"classes": [str(c) for c in m.classes_], "trees": trees, "n": int(len(y)), "acc_cv": round(a1, 3), "feats": C.FEATS}
 bad = 0
-for e in E[:200]:
-    pr = C.prever(out, e); ref = dict(zip(m.classes_, m.predict_proba(np.array([C.vetor(e)]))[0]))
+for r, x in list(zip(R, X))[:200]:
+    pr = C.prever_vetor(out, list(x)); ref = dict(zip(m.classes_, m.predict_proba(np.array([x]))[0]))
     if max(pr, key=pr.get) != max(ref, key=ref.get): bad += 1
-print("divergências na conferência:", bad, "de 200")
+print("divergências na conferência (leitura em Python x sklearn):", bad, "de 200")
 if "--gravar" in sys.argv:
     json.dump(out, open(os.path.join(HERE, "pvp-arvore.json"), "w"), separators=(",", ":")); print("gravado:", os.path.getsize(os.path.join(HERE, "pvp-arvore.json")) // 1024, "KB")

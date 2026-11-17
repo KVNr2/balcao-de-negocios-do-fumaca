@@ -32,6 +32,14 @@ def topo(cn, n=1):
         b = base(ty) or ty; r = g.setdefault(b, [0, ty, 0]); r[0] += q
         if q > r[2]: r[1], r[2] = ty, q
     return [r[1] for r in sorted(g.values(), key=lambda r: -r[0])[:n]]
+def faixa(p):
+    """tier equivalente do equipamento (tier + encantamento, médias de arma/cabeça/peito/botas) e a dispersão entre as peças; None se faltar peça"""
+    eq = p.get("Equipment") or {}; v = []
+    for sl in ("MainHand", "Head", "Armor", "Shoes"):
+        m = re.match(r"T(\d)_.*?(?:@(\d))?$", (eq.get(sl) or {}).get("Type") or "")
+        if not m: return None
+        v.append(int(m.group(1)) + int(m.group(2) or 0))
+    return round(sum(v) / 4), max(v) - min(v)
 def chave(p):
     eq = p.get("Equipment") or {}; w = base((eq.get("MainHand") or {}).get("Type"))
     if not w: return None
@@ -121,13 +129,14 @@ def main():
     for e in eventos.values():
         try:
             if datetime.datetime.strptime(e["TimeStamp"][:19], "%Y-%m-%dT%H:%M:%S") < corte: continue
-            if e.get("_x") and e.get("_m") != arv.get("_v"): pr = C.prever_vetor(arv, e["_x"])   # modelo mudou: reclassifica com o atual
+            if e.get("_x") and e.get("_m") != arv.get("_v"): pr = C.prever_vetor(arv, C.completar(e["_x"], e))   # modelo mudou: reclassifica com o atual (as características do catálogo saem do equipamento guardado)
             elif "_c" in e: pr = {e["_c"]: 1.0}
             else: pr = C.prever(arv, C.feat(e))
         except Exception: continue
         c = max(pr, key=pr.get)
         if c not in CONT or pr[c] < CONF or not C.cabe(c, e): continue
-        if C.eh_al(c, e): c = "al"      # Terras Antigas: mortes que o modelo chamou de solo mas têm item de dragão e IP na faixa do AL
+        # Terras Antigas desativado (17/11/2026): sem rótulo confiável, a aba mostra "em construção"
+        # if C.eh_al(c, e): c = "al"      # Terras Antigas: mortes que o modelo chamou de solo mas têm item de dragão e IP na faixa do AL
         cl.append((c, e))
         venc, v = pessoas(e)
         for p in venc + [v]: cnt_j[(c, p.get("Id"))] += 1
@@ -159,8 +168,21 @@ def main():
         def reg(p, ganhou):
             k = chave(p)
             if not k: return
-            b = A["b"].setdefault(k, {"v": 0, "d": 0, "ip": [], "jog": set(), "gear": collections.defaultdict(collections.Counter), "par": collections.Counter()})
+            b = A["b"].setdefault(k, {"v": 0, "d": 0, "ip": [], "jog": set(), "gear": collections.defaultdict(collections.Counter), "par": collections.Counter(), "gb": {}, "ipb": collections.defaultdict(list), "nbr": collections.Counter(), "lob": {}, "lip": {}})
             b["v" if ganhou else "d"] += 1; b["jog"].add(p.get("Id"))
+            fx = faixa(p)
+            if fx and fx[1] <= 1:
+                br_ = fx[0]; b["nbr"][br_] += 1
+                if p.get("AverageItemPower"): b["ipb"][br_].append(p["AverageItemPower"])
+                gbb = b["gb"].setdefault(br_, collections.defaultdict(collections.Counter))
+                for sl, js in SLOT.items():
+                    ty = ((p.get("Equipment") or {}).get(sl) or {}).get("Type")
+                    if ty: gbb[js][ty] += 1
+                # conjunto real: arma, mão secundária, cabeça, peito e botas de UM jogador numa morte, contado dentro da faixa de tier dele
+                lo = "|".join(((p.get("Equipment") or {}).get(sl) or {}).get("Type") or "" for sl in ("MainHand", "OffHand", "Head", "Armor", "Shoes"))
+                b["lob"].setdefault(br_, collections.Counter())[lo] += 1
+                lp = b["lip"].setdefault((br_, lo), [])
+                if p.get("AverageItemPower") and len(lp) < 30: lp.append(p["AverageItemPower"])
             if p.get("AverageItemPower"): b["ip"].append(p["AverageItemPower"])
             for sl, js in SLOT.items():
                 ty = ((p.get("Equipment") or {}).get(sl) or {}).get("Type")
@@ -279,9 +301,26 @@ def main():
             if n < MINB: continue
             w, o = k.split("|")
             row = {"id": f"{c}{t}:{k}", "k": c, "wc": w, "n": n, "v": b["v"], "d": b["d"], "wr": round(100 * b["v"] / n, 1), "jog": len(b["jog"]), "ip": round(sum(b["ip"]) / len(b["ip"])) if b["ip"] else 0}
-            for js, cn in b["gear"].items():
+            fonte_g = b["gear"]
+            if b["nbr"]:
+                # faixa mais usada (empate: a mais alta): as peças vêm só de quem usa essa faixa, para a build não misturar tiers
+                br_ = max(b["nbr"], key=lambda q: (b["nbr"][q], q)); fonte_g = b["gb"][br_]
+                row["eq"] = br_; row["neq"] = round(100 * b["nbr"][br_] / sum(b["nbr"].values()))
+                if b["ipb"][br_]: row["ip"] = round(sum(b["ipb"][br_]) / len(b["ipb"][br_]))
+            for js, cn in fonte_g.items():
                 top = topo(cn, 2)
                 row[js] = top
+            if b["nbr"] and b["lob"].get(br_):
+                # a build mostrada é um conjunto que alguém realmente usou, o mais frequente dentro da faixa mais usada; o 2º lugar de cada slot vem do 2º conjunto mais usado
+                (lo1, n1), *resto = b["lob"][br_].most_common(2)
+                P1 = lo1.split("|"); P2 = resto[0][0].split("|") if resto else None
+                for idx, js in enumerate(("w", "o", "h", "a", "s")):
+                    if not P1[idx]: continue
+                    alt = [P2[idx]] if P2 and P2[idx] and P2[idx] != P1[idx] else []
+                    row[js] = [P1[idx]] + alt
+                row["nlo"] = n1; row["plo"] = round(100 * n1 / b["nbr"][br_])
+                ips1 = b["lip"].get((br_, lo1))
+                if ips1: row["ip"] = round(sum(ips1) / len(ips1))
             if not any(row.get(sl) for sl in ("h", "a", "s")): continue   # sem cabeça, peito e botas nos dados: não é uma build, só uma arma
             if row.get("w"):
                 if len(row["w"]) > 1: row["w2"] = row["w"][1]

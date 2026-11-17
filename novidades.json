@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-11-17T04:30:00Z",
+   "titulo": "PVP: classificador novo e builds com peças realmente usadas juntas",
+   "itens": [
+    "Classificador de conteúdo refeito com o catálogo do jogo (tier, encantamento, IP base, montaria, bolsa) e treinado com 2.187 mortes rotuladas dos três servidores. Em teste com mortes que ele não viu, acertou cerca de 90%, contra 78% do anterior.",
+    "Builds agora mostram um conjunto que a pessoa realmente vestiu, dentro da faixa de tier mais usada, em vez de misturar a peça mais comum de cada espaço.",
+    "Terras Antigas ficou como \"em construção\": não há fonte confiável para separar essas mortes, então a aba não mostra builds até haver um jeito seguro de identificar."
+   ]
+  },
+  {
    "t": "2026-11-16T22:20:00Z",
    "programa": "2.3.0",
    "titulo": "Pesquisa de item pelo mouse e mapa de Avalon em painel pequeno",
