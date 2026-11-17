@@ -13,6 +13,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 MAPA = {"gank": "nenhum"}        # ganking no mundo aberto não é nenhum dos conteúdos classificados
 R = [json.loads(l) for l in gzip.open(os.path.join(HERE, "rotulos-eventos.jsonl.gz"), "rt", encoding="utf-8")]
 R = [r for r in R if r.get("x")]
+# correções: mortes sem etiqueta no killboard-1 que são de duplas em sessão de Hellgate 2v2 (sem montaria, 6+ abates da dupla em 1 h); lista fixa porque o acervo só guarda 30 dias
+COR = json.load(open(os.path.join(HERE, "rotulos-correcoes.json"))) if os.path.exists(os.path.join(HERE, "rotulos-correcoes.json")) else {}
+for r in R: r["lab"] = COR.get(r["srv"], {}).get(str(r["id"]), r["lab"])
+R = [r for r in R if r["lab"] != "zvz"]
 y = np.array([MAPA.get(r["lab"], r["lab"]) for r in R]); srv = np.array([r["srv"] for r in R])
 X = np.array([C.completar(r["x"], C.desempacotar(r)) for r in R], dtype=float)
 print("exemplos:", len(y), dict(collections.Counter(y)), "servidores:", dict(collections.Counter(srv)))

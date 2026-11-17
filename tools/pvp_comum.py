@@ -153,4 +153,9 @@ def eh_al(c, e):
     except Exception: return False
     x = e.get("_x") or []
     return AL_IP[0] <= m <= AL_IP[1] and len(x) > 8 and x[8] > 0
+def eh_slayer(x, e):
+    """Corrompida Slayer (regra, sem rótulo externo): 1v1, ninguém com montaria, IP informado dos dois entre 1150 e 1500
+    (acima do teto do Stalker, que é ~1115) e equipamento base >= 1050 (a entrada do Slayer pede 1100 de IP base)."""
+    if not x or x[0] > 1 or x[1] > 1 or x[4] or x[5] or min(x[2], x[3]) < 1150 or max(x[2], x[3]) > 1500: return False
+    v = completar(x, e); return v[FEATS.index("bK")] >= 1050 and v[FEATS.index("bV")] >= 1050
 def cabe(c, e): return n_venc(e) <= MAX_VENC.get(c, 99)

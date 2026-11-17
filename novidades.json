@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-11-17T06:00:00Z",
+   "titulo": "PVP: Hellgate 2v2 mais limpo, Corrompidas separadas em Stalker e Slayer",
+   "itens": [
+    "A aba \"Brumas (solo)\" passou a se chamar \"Solo (mundo aberto e Brumas)\": a fonte dos rótulos junta todo abate solo em mundo aberto, e ainda não há como separar só as Brumas.",
+    "Hellgate 2v2: 57 mortes de duplas em sessão de Hellgate (sem montaria, vários abates seguidos) estavam sem etiqueta na fonte e foram corrigidas no treino. A precisão do 2v2 subiu de 83% para 94% nos testes.",
+    "Corrompidas agora têm dois botões: Stalker e Slayer (experimental). O Slayer é identificado por regra (1v1, sem montaria, IP acima do teto do Stalker e equipamento base a partir de 1100) e ainda não tem conferência externa."
+   ]
+  },
+  {
    "t": "2026-11-17T05:00:00Z",
    "titulo": "PVP: classificador reforçado e só mortes de confiança alta",
    "itens": [

@@ -4,8 +4,8 @@ let PVP = null, pvC = "hg2", pvV = "build", pvT = 0, pvSort = "wilson", pvOpen =
 const PV_ROLES = [["tank","Tanks"],["healer","Curandeiros"],["support","Suportes"],["range","Ranged"],["melee","Melee"]];
 const pvRole = w => (PVP&&PVP.roles&&PVP.roles[w])||"";
 const pvRoleNome = r => (PV_ROLES.find(x=>x[0]===r)||[0,r])[1];
-const PV_CONT = [["hg","Hellgate"],["corrompida","Corrompidas"],["solo","Brumas (solo)"],["depths","Profundezas"],["al","Terras Antigas"]];
-const pvGr = k => (k==="hg2"||k==="hg5")?"hg":k, pvChs = k => k==="hg"?["hg2","hg5"]:[k];
+const PV_CONT = [["hg","Hellgate"],["corrompida","Corrompidas"],["solo","Solo (mundo aberto e Brumas)"],["depths","Profundezas"],["al","Terras Antigas"]];
+const pvGr = k => (k==="hg2"||k==="hg5")?"hg":k==="slayer"?"corrompida":k, pvChs = k => k==="hg"?["hg2","hg5"]:k==="corrompida"?["corrompida","slayer"]:[k];
 const PV_TAM = t => t===1?"Solo":`Grupo de ${t}`;
 const pvWilson = (v,n) => { if(!n) return 0; const z=1.64, p=v/n, d=1+z*z/n; return (p+z*z/(2*n)-z*Math.sqrt((p*(1-p)+z*z/(4*n))/n))/d; };
 const pvKey = k => { const [w,o]=k.split("|"); return {w,o}; };
@@ -113,7 +113,7 @@ function renderPvp(){
   if(!tams.some(x=>x.c===pvC&&x.t===pvT)){ const u=tams.filter(x=>x.c===pvC).pop()||tams[tams.length-1]; if(u){ pvC=u.c; pvT=u.t; } else pvT=0; }
   if(pvGr(pvC)==="al"){ for(const i of ["pvTam","pvView","pvRole"]){ const x=$(i); if(x){ x.textContent=""; x.hidden=true; } } for(const i of ["pvSortW","pvJSortW","pvRefresh"]){ const x=$(i); if(x) x.hidden=true; } $("pvCount").textContent=""; host.textContent=""; host.append(el("p",{class:"empty",text:"Terras Antigas ainda está em construção. Nenhuma fonte separa essas mortes das de outros conteúdos, então preferimos não mostrar builds sem classificação confiável. Quando houver um jeito seguro de identificar, a aba volta."})); return; }
   $("pvTam").hidden=false; $("pvView").hidden=false;
-  const ts=$("pvTam"); ts.textContent=""; for(const x of tams){ const b=el("button",{type:"button","aria-pressed":String(pvC===x.c&&pvT===x.t),text:PV_TAM(x.t)}); b.addEventListener("click",()=>{ pvC=x.c; pvT=x.t; pvOpen=null; renderPvp(); }); ts.append(b); }
+  const ts=$("pvTam"); ts.textContent=""; for(const x of tams){ const b=el("button",{type:"button","aria-pressed":String(pvC===x.c&&pvT===x.t),text:x.c==="corrompida"?"Stalker":x.c==="slayer"?"Slayer (experimental)":PV_TAM(x.t)}); b.addEventListener("click",()=>{ pvC=x.c; pvT=x.t; pvOpen=null; renderPvp(); }); ts.append(b); }
   const vs=$("pvView"); vs.textContent=""; const dc0=PVP.conteudos[`${pvC}:${pvT}`], temComp=["hg2","hg5","depths"].includes(pvC)&&!!dc0&&pvT>1; if(pvV==="comp"&&!temComp) pvV="build";
   for(const [k,n] of (temComp?[["build","Por build"],["comp","Por composição"],["jog","Por jogador"]]:[["build","Por build"],["jog","Por jogador"]])){ const b=el("button",{type:"button","aria-pressed":String(pvV===k),text:n}); b.addEventListener("click",()=>{ pvV=k; pvOpen=null; renderPvp(); }); vs.append(b); }
   const rs=$("pvRole"); if(rs){ rs.textContent=""; rs.hidden=pvV==="jog"||!PVP.roles; const dR=PVP.conteudos[`${pvC}:${pvT}`];
