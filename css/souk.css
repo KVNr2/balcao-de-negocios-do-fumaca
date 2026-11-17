@@ -212,3 +212,275 @@ details.spg summary>.sps{grid-area:s;justify-self:start;align-self:start;text-al
 .fee-ui input[type=number]{width:100px}
 .fee-ui .f-hint{display:block}
 .ck-src .ck-sub{padding-left:14px;opacity:.85}
+
+/* =====================================================================
+   Refino visual (17/11/2026). Protótipo: claude.ai/artifact/1ukj8Q2hH7pj1sTq4PAMaj
+   Mesma identidade; muda a hierarquia:
+   - açafrão cheio só na ação principal (Atualizar preços) e no botão principal de cada formulário;
+   - filtros selecionados em latão, segmentos com filete de açafrão embaixo;
+   - placas penduradas para a troca de conteúdo; rótulos sem caixa alta;
+   - item ativo do menu igual ao do overlay (barra de açafrão à esquerda).
+   Para desfazer: apagar este bloco até o fim do arquivo.
+   ===================================================================== */
+:root{--ctl-h:40px;--chip-h:32px;--r-ctl:8px;--r-panel:12px}
+
+/* rótulos: sem caixa alta espaçada */
+.lb-k,
+nav.tabs .grp,
+.mu dt,
+details.guide dt,
+.lang,
+td.mkp .city,
+table.dlgt th,
+.vip-top .bn b,
+.vip-top .bn small,
+.vip-top .status,
+.vip-top .facts>*,
+.ph-t,
+.ph-k,
+h2,
+h3,
+.deal .tag,
+details.guide summary,
+details.spsubn>summary,
+.kb-l,
+.v-k,
+.of-g h3,
+.of-city,
+.of-hs,
+.of-ct,
+.of-lines b,
+.of-pc h4,
+.of-rec,
+.of2t thead th,
+.of-xh,
+.of-xhd,
+.of-xtot,
+.of-lh,
+.bm2t thead th,
+.bm2t .hist-h,
+.mk2t td.mkp .city,
+.mu-body dt,
+.rk-chip,
+.heat-top .ht-l,
+.pf-prog-t b,
+.vc-n,
+.nb-skg h5,
+.ip-badge .ip-l,
+.arv-sec,
+.bm-tag,
+.hist-tile small,
+.zobs-ip small,
+.bcard .bld-k,
+.bld-k,
+.av-rt,
+.wk-fl,
+.av-zl h4,
+.av-zrt h4,
+.pv-wr small,
+.pv-big small,
+.pv-st small,
+.pv-armt th,
+.v-tag,
+.pc-lt th,
+.pl-t th,
+.pt-live,
+.pt-ct .pt-kick,
+.pt-badge,
+.dz-lado-h{text-transform:none!important;letter-spacing:.01em!important}
+
+/* segmentos: tecido aceso + filete de açafrão (o fundo açafrão fica só para a ação principal) */
+.seg button{min-height:calc(var(--ctl-h) - 2px);transition:color .12s,background-color .12s,border-color .12s}
+.seg button:hover{color:var(--parch)}
+.seg button[aria-pressed="true"]{background:var(--cloth-2);color:var(--parch);box-shadow:inset 0 -2px 0 var(--saffron)}
+
+/* fichas (.seg.wrap): latão aceso quando selecionadas */
+.seg.wrap button,.seg.wrap button:last-child{min-height:var(--chip-h)!important;padding:0 12px;border-color:var(--line);background:none;color:var(--parch-2);box-shadow:none}
+.seg.wrap button:hover{border-color:var(--brass);color:var(--parch)}
+.seg.wrap button[aria-pressed="true"]{background:rgba(232,171,69,.12);border-color:var(--brass);color:var(--parch);box-shadow:none}
+
+/* placas penduradas: escolha principal da tela (conteúdo do PVP) */
+#pvCont.seg.wrap{gap:6px;padding-top:0;border-top:1px solid var(--line)}
+#pvCont.seg.wrap button,#pvCont.seg.wrap button:last-child{min-height:44px!important;padding:0 16px;border:1px solid var(--line);border-top:3px solid var(--line);border-radius:0 0 9px 9px;background:var(--cloth);font:500 16px var(--f-display);color:var(--parch-2)}
+#pvCont.seg.wrap button:hover{border-top-color:var(--brass)}
+#pvCont.seg.wrap button[aria-pressed="true"]{border-top-color:var(--saffron);background:var(--cloth-2);color:var(--parch)}
+#pvCont.seg.wrap button[aria-pressed="true"]::before{content:"";display:inline-block;width:10px;height:10px;margin-right:8px;vertical-align:.02em;background:var(--saffron);clip-path:polygon(50% 0,63% 37%,100% 50%,63% 63%,50% 100%,37% 63%,0 50%,37% 37%)}
+
+/* botões repetidos em cada linha (Detalhe, Abrir essa build...) não disputam com a ação principal */
+.btn.mn-craft{background:var(--cloth);color:var(--parch);border:1px solid var(--line)}
+.btn.mn-craft:hover{background:var(--cloth-2);border-color:var(--brass)}
+
+/* menu lateral: item ativo igual ao do overlay */
+nav.tabs button[aria-selected="true"]{background:linear-gradient(90deg,rgba(232,171,69,.16),rgba(232,171,69,0));border-color:transparent;color:var(--saffron);box-shadow:none}
+nav.tabs button[aria-selected="true"] .ic{stroke:var(--saffron)}
+nav.tabs button[aria-selected="true"]::before{left:0;top:8px;width:3px;height:auto;bottom:8px;border-radius:0 3px 3px 0;background:var(--saffron);clip-path:none}
+.rail nav.tabs button[aria-selected="true"]::before{left:0}
+
+/* bolsa na barra superior (bag.js a põe dentro de .vip-top quando a barra existe) */
+.bag-fab.na-barra{position:static;flex:none;height:var(--ctl-h);padding:0 12px;border-radius:var(--r-ctl);border:1px solid var(--line);background:var(--cloth);color:var(--parch);box-shadow:none;font:600 14px var(--f-body)}
+.bag-fab.na-barra:hover{border-color:var(--brass);background:var(--cloth-2)}
+.bag-fab.na-barra svg{width:18px;height:18px}
+.bag-fab.na-barra .bf-t{font:600 14px var(--f-body)}
+.bag-fab.na-barra b{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--cloth-2);border:1px solid #6b5238;font-size:12.5px;opacity:1}
+.bag-fab.na-barra.vazia b{display:none}
+@media (max-width:720px){.bag-fab.na-barra .bf-t{display:none}}
+
+/* livro-caixa da Mercadoria do dia: contas ao lado da frase, rótulo, pontilhado e valor */
+.deal.sheet.has-led{grid-template-columns:minmax(0,760px) minmax(260px,360px);column-gap:48px;justify-content:start;align-items:center}
+.deal.sheet.has-led>*{grid-column:1}
+.deal.sheet.has-led>.ledger{grid-column:2;grid-row:1 / span 3}
+.deal.sheet.has-led .answer{padding-right:0}
+.ledger{display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:12px;background:rgba(0,0,0,.2);border:1px solid var(--line-soft)}
+.ledger .led-h{display:flex;align-items:center;gap:12px;margin-bottom:2px}
+.deal .ledger .hero-ic{position:static;flex:none}
+.deal .ledger .hero-ic img{width:56px;height:56px;border-radius:12px}
+.ledger .led-h b{display:block;font:600 18px/1.2 var(--f-display);color:var(--parch)}
+.ledger .led-h span{font-size:14px;color:var(--smoke)}
+.led-r{display:flex;align-items:baseline;gap:8px;font-size:15px}
+.led-k{color:var(--parch-2)}
+.led-d{flex:1;min-width:14px;border-bottom:1px dotted #6b5238;transform:translateY(-4px)}
+.led-v{font-weight:600;color:var(--parch)}
+.led-v.gain{color:var(--gain)}.led-v.loss{color:var(--loss)}
+.led-v.big{font:600 22px var(--f-display)}
+@media (max-width:760px){.deal.sheet.has-led{grid-template-columns:minmax(0,1fr)}.deal.sheet.has-led>.ledger{grid-column:1;grid-row:auto}}
+
+/* linha das oficinas (Refino, Craft, Cozinha): tecido com faixa de lucro à esquerda, números alinhados à direita */
+@media (min-width:1601px){.of-lh,.oflist .of-row{grid-template-columns:390px 112px 112px 150px minmax(0,1fr)}}
+/* cabeçalho com o mesmo recuo da linha (filete 3 px + 14 px; direita 16 px + borda), para cada título ficar em cima do seu número */
+.of-lh{padding:8px 17px 8px 18px;background:var(--night-2);border-bottom:1px solid var(--line-soft);font:600 13.5px var(--f-body);color:var(--brass)}
+.of-lh .of-hs{padding:4px 14px}
+.of-lh .of-hs:first-child{padding-left:0}
+.of-lh .of-hs:nth-child(2),.of-lh .of-hs:nth-child(3),.of-lh .of-hs:nth-child(4){justify-content:flex-end;text-align:right}
+.of-lh .of-hs:last-child{justify-content:flex-start;padding-left:6px}
+.oflist .of-row{align-items:center;padding:14px 16px 14px 14px;border-radius:12px;transition:background-color .12s}
+.oflist .of-row.open{outline:0}
+.oflist .ihead{display:grid;grid-template-columns:var(--ic-row,52px) minmax(0,1fr) auto auto;align-items:start;gap:12px}
+.oflist .inm{gap:3px;max-width:none}
+.oflist .inm strong{font:600 17px/1.2 var(--f-display);color:var(--parch)}
+.oflist .inm>small:empty{display:none}
+.oflist .of-rec{border:0;background:none;padding:0;font:500 14px var(--f-body);color:var(--parch-2)}
+.oflist .of-bon{display:inline-block;padding:1px 8px;border-radius:999px;background:rgba(79,176,163,.12);border:1px solid rgba(79,176,163,.35);color:var(--tile-2);font:600 12.5px var(--f-body)}
+.oflist .of-bc,.oflist .of-vd{display:block;font-size:13.5px;line-height:1.4;color:var(--smoke)}
+.oflist .of-bc .wk-fl,.oflist .of-vd .wk-fl{font:600 13px var(--f-body);color:var(--brass);margin-right:4px}
+.oflist .of-bcgo{font-weight:600;text-align:left}
+.oflist .of-stat{padding:0 14px;text-align:right;align-self:center;min-width:0}
+.oflist .of-stat b{font:600 19px/1.15 var(--f-display);font-variant-numeric:tabular-nums lining-nums}
+.oflist .of-stat small{margin-top:2px;font:600 13px var(--f-body);letter-spacing:.01em;text-transform:none;color:var(--brass)}
+.oflist .of-stat.loss b{color:var(--parch-2)}
+.oflist .of-stat.sale b{color:var(--parch)}
+.oflist .of-stat.gain b{color:var(--gain);font-size:22px}
+.oflist .of-stat.loss:nth-of-type(4) b{color:var(--loss);font-size:22px}
+.oflist .of-pct{display:block;margin-top:2px;padding:0;border:0;background:none;font:600 13.5px var(--f-body);color:var(--gain)}
+.oflist .of-stat.loss .of-pct{color:var(--loss)}
+.oflist .of-flow{gap:20px}
+.oflist .of-flow .of-blk{padding-left:20px;gap:12px}
+.oflist .of-tile img{width:44px;height:44px}
+.oflist .of-city{font:600 14.5px var(--f-body);color:var(--parch);letter-spacing:0;text-transform:none}
+.oflist .of-pill{padding:1px 7px;border-radius:999px;font:600 12px var(--f-body);letter-spacing:0;text-transform:none;line-height:1.5}
+.oflist .of-pr b{font:600 19px var(--f-display);font-variant-numeric:tabular-nums lining-nums}
+.oflist .of-bi .of-hs{font:500 13px var(--f-body);letter-spacing:0;text-transform:none;color:var(--smoke)}
+.oflist .of-bi .of-hs b{color:var(--parch-2)}
+
+/* ===== rodada 2 (17/11): uma linha de lucro para todas as listas e tabelas, com verde discreto ===== */
+:root{--row-bg:var(--cloth);--row-gain-bg:#283229;--row-gain-hover:#2a3c2f;--row-loss-bg:#301c1c;--row-loss-hover:#3b2121;--row-gain-edge:var(--gain);--row-loss-edge:var(--loss);--row-line:var(--line-soft);
+  --c-gain-bg:var(--row-gain-bg);--c-loss-bg:var(--row-loss-bg);--c-gain-bd:rgba(124,199,154,.3);--c-loss-bd:rgba(238,134,112,.3)}
+/* lista (Refino, Craft) */
+.oflist .of-row,.oflist .of-row.is-flat{background:var(--row-bg);border:1px solid var(--row-line);border-left:3px solid var(--line)}
+.oflist .of-row.is-gain{background:var(--row-gain-bg);border-color:var(--row-line);border-left-color:var(--row-gain-edge)}
+.oflist .of-row.is-loss{background:var(--row-loss-bg);border-color:var(--row-line);border-left-color:var(--row-loss-edge)}
+.oflist .of-row.is-gain:hover,.oflist .of-row.is-gain.open{background:var(--row-gain-hover)}
+.oflist .of-row.is-loss:hover,.oflist .of-row.is-loss.open{background:var(--row-loss-hover)}
+.oflist .of-row:not(.is-gain):not(.is-loss):hover,.oflist .of-row:not(.is-gain):not(.is-loss).open{background:var(--cloth-2)}
+.oflist .of-row .itemcell,.oflist .of-row.is-gain .itemcell,.oflist .of-row.is-loss .itemcell,.oflist .of-row.is-gain:hover .itemcell,.oflist .of-row.is-gain.open .itemcell,.oflist .of-row.is-loss:hover .itemcell,.oflist .of-row.is-loss.open .itemcell{background:inherit;box-shadow:none}
+/* tabelas (Encantar, Cozinha, Fazenda, Pesca, Mercado, Mercado Negro, Trabalhadores e as demais .tbl) */
+.bm2t tbody tr.bm-row td,.bm2t tbody tr.bm-row.is-flat td,.mk2t tbody tr.mk-row.is-flat td{background:var(--row-bg);border-top-color:var(--row-line);border-bottom-color:var(--row-line)}
+.bm2t tbody tr.bm-row td:first-child{border-left:3px solid var(--line)}
+.bm2t tbody tr.bm-row td:last-child{border-right-color:var(--row-line)}
+.bm2t tbody tr.bm-row.is-gain td{background:var(--row-gain-bg);border-top-color:var(--row-line);border-bottom-color:var(--row-line)}
+.bm2t tbody tr.bm-row.is-loss td{background:var(--row-loss-bg);border-top-color:var(--row-line);border-bottom-color:var(--row-line)}
+.bm2t tbody tr.bm-row.is-gain td:first-child{border-left-color:var(--row-gain-edge)}
+.bm2t tbody tr.bm-row.is-loss td:first-child{border-left-color:var(--row-loss-edge)}
+.bm2t tbody tr.bm-row.is-gain td:last-child,.bm2t tbody tr.bm-row.is-loss td:last-child{border-right-color:var(--row-line)}
+.bm2t tbody tr.bm-row.is-gain:hover td,.bm2t tbody tr.bm-row.is-gain.open td{background:var(--row-gain-hover)}
+.bm2t tbody tr.bm-row.is-loss:hover td,.bm2t tbody tr.bm-row.is-loss.open td{background:var(--row-loss-hover)}
+.bm2t tbody tr.bm-row.is-flat:hover td,.mk2t tbody tr.mk-row.is-flat:hover td{background:var(--cloth-2)}
+/* tabela antiga das oficinas (of2t) */
+.of2t tbody tr.of-row.is-gain td,.of2t tbody tr.of-row.is-gain td:first-child{background:var(--row-gain-bg);border-top-color:var(--row-line);border-bottom-color:var(--row-line)}
+.of2t tbody tr.of-row.is-loss td,.of2t tbody tr.of-row.is-loss td:first-child{background:var(--row-loss-bg);border-top-color:var(--row-line);border-bottom-color:var(--row-line)}
+.of2t tbody tr.of-row.is-gain td:first-child{border-left:3px solid var(--row-gain-edge)}
+.of2t tbody tr.of-row.is-loss td:first-child{border-left:3px solid var(--row-loss-edge)}
+.of2t tbody tr.of-row.is-gain:hover td,.of2t tbody tr.of-row.is-gain.open td,.of2t tbody tr.of-row.is-gain:hover td:first-child,.of2t tbody tr.of-row.is-gain.open td:first-child{background:var(--row-gain-hover)}
+.of2t tbody tr.of-row.is-loss:hover td,.of2t tbody tr.of-row.is-loss.open td,.of2t tbody tr.of-row.is-loss:hover td:first-child,.of2t tbody tr.of-row.is-loss.open td:first-child{background:var(--row-loss-hover)}
+/* destaque "O que mais rende" (Cozinha, Fazenda, Pesca) */
+.ganho-top{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:4px 20px;padding:14px 18px;border-radius:12px;background:var(--row-gain-bg);border:1px solid rgba(124,199,154,.3);border-left:3px solid var(--row-gain-edge)}
+.ganho-top .gt-l{grid-column:1;font:600 13.5px var(--f-body);letter-spacing:.01em;text-transform:none;color:var(--brass)}
+.ganho-top .gt-v{grid-column:2;grid-row:1 / span 2;align-self:center;font:600 26px var(--f-display);color:var(--gain)}
+.ganho-top .gt-t{grid-column:1;flex-basis:auto;font-size:15px;color:var(--parch-2)}
+.ganho-top.neg{display:block;background:var(--row-loss-bg);border-color:rgba(238,134,112,.3);border-left-color:var(--row-loss-edge)}
+/* cartões do Para você: mesmo verde e mesmo filete das linhas */
+.vc-tile{border-radius:12px;border-left-width:3px}
+.vc-tile.gain{background:var(--row-gain-bg);border-left-color:var(--row-gain-edge)}
+.vc-tile.gain .vc-s{color:var(--gain)}
+@media (max-width:1600px){.oflist .of-stat{padding:0 8px}.of-lh .of-hs{padding:4px 8px}.of-lh .of-hs:first-child{padding-left:0}.oflist .of-stat b{font-size:17px}.oflist .of-stat.gain b,.oflist .of-stat.loss:nth-of-type(4) b{font-size:19px}}
+
+/* seleção múltipla compacta (Builds: conteúdo) */
+.msel{position:relative;display:inline-flex;align-items:center;gap:6px;max-width:100%}
+.msel-b{display:inline-flex;align-items:center;gap:8px;height:var(--ctl-h);max-width:min(560px,100%);padding:0 12px;border-radius:var(--r-ctl);border:1px solid var(--line);background:var(--night-2);color:var(--parch);font:500 15px var(--f-body);cursor:pointer}
+.msel-b:hover{border-color:var(--brass)}
+.msel-b[aria-expanded="true"]{border-color:var(--brass);background:var(--cloth-2)}
+.msel-l{font-weight:600;color:var(--brass);flex:none}
+.msel-v{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.msel-c{width:14px;height:14px;flex:none;fill:none;stroke:var(--brass);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.msel-x{width:32px;height:32px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--parch-2);font:600 18px/1 var(--f-body);cursor:pointer}
+.msel-x:hover{border-color:var(--brass);color:var(--parch)}
+.msel-p{position:absolute;z-index:40;top:calc(100% + 6px);left:0;width:min(380px,92vw);display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:var(--cloth);border:1px solid var(--line);box-shadow:0 14px 34px rgba(0,0,0,.55)}
+.msel-q{height:36px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--night-2);color:var(--parch);font:500 15px var(--f-body)}
+.msel-list{display:flex;flex-direction:column;max-height:min(360px,50vh);overflow:auto;margin:0 -4px}
+.msel-o{display:grid;grid-template-columns:18px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:36px;padding:0 8px;border-radius:8px;cursor:pointer;font-size:15px;color:var(--parch-2)}
+.msel-o:hover{background:var(--cloth-2);color:var(--parch)}
+.msel-o input{accent-color:var(--saffron);width:16px;height:16px;margin:0}
+.msel-o:has(input:checked){color:var(--parch)}
+.msel-n{font-size:13.5px;color:var(--smoke)}
+.msel-f{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:8px;border-top:1px solid var(--line-soft)}
+.msel-f .btn.sm{height:34px}
+
+/* cabeçalho flutuante das listas longas (ui.js) */
+.fhead{position:fixed;z-index:30;overflow:hidden;background:var(--night-2);border:1px solid var(--line-soft);border-top:0;border-radius:0 0 10px 10px;box-shadow:0 8px 18px rgba(0,0,0,.45)}
+.fhead .fhead-in{display:table;border-spacing:0}
+.fhead div.fhead-in{display:grid}
+.fhead table.fhead-in th{position:static!important}
+.fhead>.fhead-box{overflow:visible!important;max-height:none!important;border:0!important;margin:0!important;padding:0!important;background:none!important;box-shadow:none!important;border-radius:0!important}
+/* botão de ordenar no título da coluna: mesmo estilo em todas as tabelas (antes só Cozinha e Fazenda tinham) */
+th .lf-hs{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:5px;padding:3px 6px;margin:-3px -6px;cursor:pointer;border-radius:6px;font:inherit;color:inherit;white-space:normal}
+th .lf-hs:hover{color:var(--parch);background:rgba(239,226,196,.05)}
+th .lf-hs.on{color:var(--saffron)}
+th .lf-hs:focus-visible{outline:2px solid var(--saffron);outline-offset:1px}
+
+/* linha das oficinas mais baixa: fechada mostra o essencial (vende ~34/dia, melhor craft e o lucro dele);
+   2ª cidade, soma das cidades, dias para vender e o lucro por unidade do material aparecem ao abrir a linha */
+.oflist .of-row:not(.open) .of-vd small,.oflist .of-row:not(.open) .of-bc small{display:none}
+.oflist .of-row:not(.open) .of-vd,.oflist .of-row:not(.open) .of-bc{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 6px}
+
+/* "Mais filtros" (Mercado e Mercado Negro) */
+details.maisf{flex-basis:100%;order:99}
+details.maisf>summary{display:inline-flex;align-items:center;gap:4px;height:var(--chip-h);padding:0 12px;border-radius:999px;border:1px solid var(--line);color:var(--parch-2);font:600 14.5px var(--f-body);cursor:pointer;list-style:none}
+details.maisf>summary::-webkit-details-marker{display:none}
+details.maisf>summary::before{content:"+";font-weight:700;color:var(--brass);margin-right:2px}
+details.maisf[open]>summary::before{content:"−"}
+details.maisf>summary:hover{border-color:var(--brass);color:var(--parch)}
+details.maisf.on>summary{border-color:var(--brass);background:rgba(232,171,69,.12);color:var(--parch)}
+.maisf-box{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+
+/* fontes da identidade em todo o site: El Messiri nos títulos, Alegreya Sans no resto (botões não herdam a fonte por padrão) */
+button{font-family:var(--f-body)}
+.bweapons.msel{display:inline-flex;grid-template-columns:none;flex-wrap:nowrap;width:auto}
+.msel-o.ic{grid-template-columns:18px 28px minmax(0,1fr) auto}
+.msel-o.ic img{width:28px;height:28px}
+.bfilters{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+
+/* barra geral de custo das builds; a barra de cada cartão só aparece com o cartão aberto */
+.bld-geral{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:4px 0 12px;padding:12px 14px;border-radius:12px;background:var(--night-2);border:1px solid var(--line-soft)}
+.bld-geral .bld-gt{font:600 14px var(--f-body);color:var(--brass)}
+.bld-geral .bld-gc{display:inline-flex;align-items:center;gap:8px;font:600 14px var(--f-body);color:var(--brass)}
+.bld-geral select{height:var(--ctl-h)}
+.bcard:not(.open) .bld-cost>.bld-g{display:none}

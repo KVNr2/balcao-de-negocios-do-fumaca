@@ -111,7 +111,7 @@ document.querySelectorAll(".tbl table").forEach(tb=>{ if(tb.classList.contains("
 /* ================= menu lateral: recolher em ícones ================= */
 (function(){
   const app=document.querySelector(".wrap.app"), btn=document.getElementById("navToggle"); if(!app||!btn) return;
-  document.querySelectorAll("nav.tabs [role=tab]").forEach(b=>{ const t=b.querySelector(".tl"); if(t) b.title=t.textContent; });
+  // sem title nos itens: com o menu aberto o nome já está escrito, e recolhido a etiqueta .tl aparece no hover (o title duplicava a dica)
   const set=on=>{ app.classList.toggle("rail",on); btn.setAttribute("aria-expanded",String(!on)); btn.title=on?"Expandir o menu":"Recolher o menu"; };
   set(store.get("rail")==="1");
   btn.addEventListener("click",()=>{ const on=!app.classList.contains("rail"); set(on); store.set("rail",on?"1":"0"); });
@@ -123,7 +123,8 @@ function skinRows(tb){
   for(const body of tb.tBodies) for(const tr of body.rows){
     if(tr.classList.contains("of-drow")||tr.classList.contains("total")||tr.classList.contains("bm-row")) continue;
     tr.classList.add("bm-row");
-    const cells=[...tr.cells].filter(c=>c.classList.contains("gain")||c.classList.contains("loss")); const last=cells[cells.length-1];
+    // só células de número decidem a cor da linha (na Pesca, "Zona Preta" vem em vermelho como aviso de risco e pintava a linha de prejuízo)
+    const cells=[...tr.cells].filter(c=>c.classList.contains("num")&&(c.classList.contains("gain")||c.classList.contains("loss"))); const last=cells[cells.length-1];
     tr.classList.add(last?(last.classList.contains("gain")?"is-gain":"is-loss"):"is-flat");
   }
 }
@@ -178,8 +179,8 @@ function iniciarLimpar(){
   limparFiltros({scope:"ofRoot",after:"ofFind",focus:"ofFind",
     defs:[["ofFind",""],["ofCat",()=>{ const s=document.getElementById("ofCat"); return s&&s.options[0]?s.options[0].value:""; }],["ofTier",""],["ofEnch",""],["ofQual","0"]]});
   limparFiltros({scope:"p-builds",into:document.querySelector("#p-builds .row-ctl"),defs:[["bOnlyMine",false]],
-    count:()=>(typeof bCont!=="undefined"&&bCont?1:0)+(typeof bLine!=="undefined"&&bLine?1:0),
-    reset:()=>{ bCont=""; bLine=""; bOpen=null; renderBuilds(); }});
+    count:()=>(typeof bCont!=="undefined"&&bCont.length?1:0)+(typeof bLine!=="undefined"&&bLine.length?1:0),
+    reset:()=>{ bCont=[]; bLine=[]; bOpen=null; renderBuilds(); }});
   limparFiltros({scope:"p-avalon",btn:document.getElementById("avClear"),
     count:()=>typeof AV==="undefined"||!AV.inited?0:(AV.q.trim()?1:0)+(AV.tier?1:0)+(AV.type?1:0)+AV.res.size+AV.extra.size,reset:()=>{}, });
 }
@@ -352,3 +353,56 @@ gaveta(document.querySelector("#p-mk > .row-ctl"),1,"Mais filtros (categoria, ti
   if(!dica){ const f=ev=>{ const im=ev.target.closest&&ev.target.closest("img[data-item]"); if(!im) return; document.removeEventListener("mouseover",f,true);
       try{ localStorage.setItem("dicaMenuItem","1"); }catch(e){} if(typeof toast==="function") toast(matchMedia("(hover:none)").matches?"Dica: segure o dedo num ícone de item para abrir o menu dele (preços, vendas por dia, fabricar, lista de compras).":"Dica: clique com o botão direito num ícone de item para abrir o menu dele (preços, vendas por dia, fabricar, lista de compras)."); };
     document.addEventListener("mouseover",f,true); } }
+
+/* ================= cabeçalho flutuante nas listas longas =================
+   As tabelas rolam com a página (o invólucro tem rolagem lateral, então position:sticky não funciona).
+   Quando o cabeçalho de uma lista sai da tela, uma cópia dele fica presa logo abaixo da barra de cima,
+   com as mesmas larguras e acompanhando a rolagem lateral. Clicar num título da cópia ordena a lista de verdade. */
+(function(){
+  const fh=el("div",{class:"fhead","aria-hidden":"true"}); fh.hidden=true; document.body.append(fh);
+  let cur=null, key="", raf=0;
+  const topY=()=>{ const t=document.querySelector("header.vip-top"); if(!t||getComputedStyle(t).display==="none") return 0; return t.getBoundingClientRect().bottom+14; };
+  const headOf=w=>w.querySelector(":scope > table > thead, :scope table.bm2t > thead, :scope .of-lh");
+  function build(w,h){
+    fh.textContent=""; let c;
+    if(h.tagName==="THEAD"){ const t=h.parentElement, tb=document.createElement("table"); tb.className=t.className; tb.style.width=t.offsetWidth+"px"; tb.style.margin="0";
+      const ch=h.cloneNode(true); const os=h.querySelectorAll("th"), cs=ch.querySelectorAll("th"); os.forEach((o,i)=>{ if(cs[i]) cs[i].style.width=cs[i].style.minWidth=cs[i].style.maxWidth=o.getBoundingClientRect().width+"px"; });
+      tb.append(ch); c=tb; }
+    else { c=h.cloneNode(true); c.style.width=h.offsetWidth+"px"; }
+    c.classList.add("fhead-in"); const box=el("div",{class:w.className+" fhead-box"}); box.append(c); fh.append(box);   // mesma classe do invólucro: os estilos de cabeçalho (.tbl th button…) valem na cópia
+    fh.onclick=e=>{ const sel=h.tagName==="THEAD"?"th":".of-hs"; const a=e.target.closest(sel); if(!a) return; const i=[...fh.querySelectorAll(sel)].indexOf(a); const o=h.querySelectorAll(sel)[i]; if(o){ o.click(); setTimeout(ask,60); } };
+  }
+  function upd(){ raf=0;
+    const y=topY(), panel=[...document.querySelectorAll("section.panel")].find(p=>!p.hidden); let hit=null;
+    if(panel) for(const w of panel.querySelectorAll(".tbl")){ if(!w.offsetParent) continue; const h=headOf(w); if(!h||!h.offsetParent) continue;
+      const r=h.getBoundingClientRect(), wr=w.getBoundingClientRect(); if(r.top<y&&wr.bottom>y+r.height+60){ hit=[w,h]; break; } }
+    if(!hit){ fh.hidden=true; cur=null; return; }
+    const [w,h]=hit, k=h.textContent+"|"+h.offsetWidth; if(cur!==w||k!==key){ build(w,h); cur=w; key=k; }
+    const wr=w.getBoundingClientRect(); fh.hidden=false; fh.style.top=y+"px"; fh.style.left=wr.left+"px"; fh.style.width=w.clientWidth+"px";
+    fh.firstChild.style.transform=`translateX(${-w.scrollLeft}px)`; fh.firstChild.style.width=w.scrollWidth+"px";
+  }
+  const ask=()=>{ if(!raf) raf=requestAnimationFrame(upd); };
+  addEventListener("scroll",ask,{passive:true}); addEventListener("resize",()=>{ key=""; ask(); });
+  document.addEventListener("scroll",e=>{ if(e.target&&e.target.classList&&e.target.classList.contains("tbl")) ask(); },{capture:true,passive:true});
+  new MutationObserver(()=>{ key=""; ask(); }).observe(document.querySelector("main")||document.body,{childList:true,subtree:true});
+})();
+
+/* ================= "Mais filtros": os filtros secundários ficam recolhidos, com a contagem dos que estão ativos ================= */
+function maisFiltros(row,nodes){
+  nodes=nodes.filter(Boolean); if(!row||!nodes.length) return;
+  const d=el("details",{class:"maisf"}), s=el("summary"), n=el("span",{class:"maisf-n"}), box=el("div",{class:"maisf-box"});
+  s.append("Mais filtros",n); d.append(s,box); nodes.forEach(x=>{ x.classList.remove("gav-x"); box.append(x); }); if(row.classList.contains("gav")) d.classList.add("gav-x"); row.append(d);
+  const segDef=new Map(); box.querySelectorAll(".seg").forEach(g=>segDef.set(g,[...g.querySelectorAll("button")].findIndex(b=>b.getAttribute("aria-pressed")==="true")));
+  const conta=()=>{ let k=0;
+    box.querySelectorAll("input").forEach(i=>{ if(i.closest("[hidden]")) return; if(i.type==="checkbox"){ if(i.checked!==i.defaultChecked) k++; } else if(i.placeholder&&i.value!=="") k++; });   // campos de filtro têm placeholder ("qualquer"); números de configuração não
+    box.querySelectorAll("select").forEach(x=>{ if(!x.hidden&&x.selectedIndex>0) k++; });
+    segDef.forEach((i0,g)=>{ const i=[...g.querySelectorAll("button")].findIndex(b=>b.getAttribute("aria-pressed")==="true"); if(i!==i0) k++; });
+    n.textContent=k?` (${k} ${k===1?"ativo":"ativos"})`:""; d.classList.toggle("on",k>0); };
+  box.addEventListener("change",conta); box.addEventListener("input",conta); box.addEventListener("click",()=>setTimeout(conta,0)); setTimeout(conta,800);
+}
+{ const q=s=>document.querySelector(s), lab=id=>{ const e=document.getElementById(id); return e&&e.closest("label"); };
+  // Mercado Negro: ficam à vista busca, categoria, tipo, tier e o modo (fabricar ou revender)
+  maisFiltros(q("#p-mercado > .row-ctl"),[lab("bmEnch"),lab("bmQualS"),q("#bmBuyCL"),q('#p-mercado .seg[aria-label^="Conta"]'),lab("bmFocus"),q("#bmFocBox"),lab("bmAtivo"),lab("bmMinVol")]);
+  // Mercado: ficam à vista busca, categoria, tipo e tier
+  maisFiltros(q("#p-mk > .row-ctl"),[lab("mkEnch"),lab("mkQual"),lab("mkCity"),lab("mkOnly")]);
+}

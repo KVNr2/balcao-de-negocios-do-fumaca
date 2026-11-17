@@ -5,7 +5,8 @@ const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}, del(k){try{localStorage.removeItem(k)}catch(e){}} };
 const fmt = n => (n==null||!isFinite(n)) ? "—" : Math.round(n).toLocaleString("pt-BR");
 const sgn = n => (n>0?"+":"")+fmt(n);
-const fmtS = n => { if(n==null||!isFinite(n)) return "—"; const a=Math.abs(n); if(a>=1e6) return (n/1e6).toLocaleString("pt-BR",{maximumFractionDigits:1})+"M"; if(a>=1e4) return Math.round(n/1e3).toLocaleString("pt-BR")+" mil"; return fmt(n); };
+// valor curto no padrão do jogo: 20,4M acima de 1 milhão, 735,3K entre mil e um milhão (K = mil, M = milhão), 1,5B acima de 1 bilhão; abaixo de mil, o número inteiro
+const fmtS = n => { if(n==null||!isFinite(n)) return "—"; const a=Math.abs(n), f=(v,u)=>v.toLocaleString("pt-BR",{maximumFractionDigits:1})+u; if(a>=1e9) return f(n/1e9,"B"); if(a>=1e6) return f(n/1e6,"M"); if(a>=1e3) return f(n/1e3,"K"); return fmt(n); };
 const dec = n => n.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1});
 const el = (tag, props={}, ...kids) => { const e=document.createElement(tag); for(const [k,v] of Object.entries(props)){ if(k==="class") e.className=v; else if(k==="text") e.textContent=v; else if(k==="role"||k.startsWith("data-")||k.startsWith("aria-")) e.setAttribute(k,v); else e[k]=v; } for(const c of kids) if(c!=null) e.append(c); return e; };
 
@@ -907,7 +908,17 @@ function renderHero(){
   if(best.kind==="ref"){ const R=RES[x.res]; b.textContent=`${R.refName.toLowerCase()} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais refinando `,b,` em ${R.city}: `,n,` por ${R.u}, uns ${fmtS(x.day)} com 10.000 de foco.`); }
   else if(best.kind==="cook"){ b.textContent=x.name; ans.append(`${who} o seu foco rende mais ${x.kind==="f"?"cozinhando":"preparando"} `,b,` em ${COOK_CITY[x.kind]}: `,n,` por fornada, uns ${fmtS(x.day)} com 10.000 de foco.`); }
   else{ b.textContent=`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais fabricando `,b,` em ${CRAFT_CITY[x.slot+"_"+x.mat]}: `,n,` por peça, uns ${fmtS(x.day)} com 10.000 de foco.`); }
-  { const hid=best.kind==="ref"?idOf(x.t,RES[x.res].ref,x.e):best.kind==="cook"?x.m.id:gearId(x.t,x.slot,x.mat,x.s,x.e); const old=ans.parentNode.querySelector(".hero-ic"); if(old) old.remove(); const hi=el("span",{class:"hero-ic"}); hi.append(iconImg(apiIcon(hid),84)); ans.parentNode.prepend(hi); }
+  { const hid=best.kind==="ref"?idOf(x.t,RES[x.res].ref,x.e):best.kind==="cook"?x.m.id:gearId(x.t,x.slot,x.mat,x.s,x.e), box=ans.parentNode;
+    for(const o of box.querySelectorAll(".hero-ic,.ledger")) o.remove();
+    // livro-caixa ao lado da frase: ícone, nome, cidade e as contas em linhas com pontilhado
+    const unit=best.kind==="ref"?RES[x.res].u:best.kind==="cook"?"fornada":"peça", city=best.kind==="ref"?RES[x.res].city:best.kind==="cook"?COOK_CITY[x.kind]:CRAFT_CITY[x.slot+"_"+x.mat];
+    const led=el("div",{class:"ledger"}), hi=el("span",{class:"hero-ic"}); hi.append(iconImg(apiIcon(hid),56));
+    const hd=el("div",{class:"led-h"}), tx=el("div"); tx.append(el("b",{text:b.textContent.charAt(0).toUpperCase()+b.textContent.slice(1)}),el("span",{text:`Em ${city}`})); hd.append(hi,tx); led.append(hd);
+    const row=(k,v,cls)=>{ const r=el("div",{class:"led-r"}); r.append(el("span",{class:"led-k",text:k}),el("span",{class:"led-d","aria-hidden":"true"}),el("span",{class:"num led-v"+(cls?" "+cls:""),text:v})); led.append(r); };
+    row(`Por ${unit}, com foco`,sgn(x.m.p1),"gain big");
+    if(typeof x.m.p0==="number"&&isFinite(x.m.p0)) row(`Por ${unit}, sem foco`,sgn(Math.round(x.m.p0)),x.m.p0>=0?"gain":"loss");
+    row("Com 10.000 de foco",(x.day>0?"+":"")+fmtS(x.day));
+    box.classList.add("has-led"); box.append(led); }
   if(window.gsap&&!RM){ const o={v:0}; gsap.to(o,{v:x.m.p1,duration:1.1,ease:"power2.out",onUpdate:()=>n.textContent=sgn(o.v)}); }
   $("heroOthers").textContent="";
   $("heroOthers").append(el("span",{class:"muted",text:"Com o custo de foco da sua ficha e o preço típico das cidades. Confira o preço no jogo antes de comprar."}));
@@ -1604,3 +1615,32 @@ function renderCaca(){ arvoreSecao($("pfCaca"),"cacaSum",({ico,cartao})=>{ const
   return [{nome:"Rastreador aprendiz (1/1)",cartoes:[()=>cartao({id:"c-rast",nome:"Rastreador experiente",ic:()=>ico("2H_TOOL_TRACKING",tier,false),
     itens:CACA.map(([c,l])=>[c,l,CACA_ITEM[c]?t=>ico(CACA_ITEM[c],t,false):pegadas]),tier,getM:()=>spGet("z:rastreio").m||0,setM:v=>{ rast().m=v; },mmax:100,max:100,
     getV:c=>(spGet("z:rastreio").s||{})[c],setV:(c,v)=>{ const st=rast(); st.s=st.s||{}; if(v) st.s[c]=v; else delete st.s[c]; }})]}]; }); }
+
+/* ================= seleção múltipla compacta (troca listas longas de fichas por um botão que abre uma lista com caixas)
+   msel(host,{label,all,opts:[{k,t,n}],sel:[k...],onChange(sel)}). A escolha vale quando a lista fecha (Pronto, Esc ou clique fora),
+   assim a página não redesenha a cada caixa marcada. ================= */
+function msel(host,o){
+  host.textContent=""; host.classList.remove("seg","wrap"); host.classList.add("msel"); host.removeAttribute("role");
+  const sel=new Set(o.sel||[]), name=k=>{ const x=o.opts.find(p=>p.k===k); return x?x.t:k; };
+  const resumo=()=>sel.size===0?(o.all||"Todos"):sel.size<=2?[...sel].map(name).join(", "):`${sel.size} selecionados`;
+  const b=el("button",{type:"button",class:"msel-b","aria-haspopup":"true","aria-expanded":"false"});
+  const v=el("span",{class:"msel-v",text:resumo()});
+  b.append(el("span",{class:"msel-l",text:o.label}),v); b.insertAdjacentHTML("beforeend",'<svg class="msel-c" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>');
+  const p=el("div",{class:"msel-p",role:"group","aria-label":o.label}); p.hidden=true;
+  let q=null; if(o.opts.length>8){ q=el("input",{type:"search",class:"msel-q",placeholder:"Procurar…","aria-label":"Procurar em "+o.label}); p.append(q); }
+  const list=el("div",{class:"msel-list"}); p.append(list);
+  const rows=o.opts.map(x=>{ const lab=el("label",{class:"msel-o"}), cb=el("input",{type:"checkbox"}); cb.checked=sel.has(x.k);
+    cb.addEventListener("change",()=>{ cb.checked?sel.add(x.k):sel.delete(x.k); v.textContent=resumo(); });
+    if(x.ic){ lab.classList.add("ic"); lab.append(cb,x.ic(),el("span",{class:"msel-t",text:x.t})); } else lab.append(cb,el("span",{class:"msel-t",text:x.t})); if(x.n!=null) lab.append(el("span",{class:"msel-n num",text:String(x.n)})); list.append(lab); return {x,lab,cb}; });
+  if(q) q.addEventListener("input",()=>{ const s=q.value.trim().toLowerCase(); rows.forEach(r=>r.lab.hidden=!!s&&!r.x.t.toLowerCase().includes(s)); });
+  const ft=el("div",{class:"msel-f"}), lim=el("button",{type:"button",class:"linkbtn",text:"Limpar"}), ok=el("button",{type:"button",class:"btn sm",text:"Pronto"});
+  lim.addEventListener("click",()=>{ sel.clear(); rows.forEach(r=>r.cb.checked=false); v.textContent=resumo(); }); ft.append(lim,ok); p.append(ft);
+  const ini=[...(o.sel||[])].sort().join("|");
+  const fechar=foco=>{ if(p.hidden) return; p.hidden=true; b.setAttribute("aria-expanded","false"); document.removeEventListener("pointerdown",fora,true); document.removeEventListener("keydown",esc,true);
+    if(foco) b.focus(); const now=[...sel].sort().join("|"); if(now!==ini) o.onChange([...sel]); };
+  const fora=e=>{ if(!host.contains(e.target)) fechar(false); }, esc=e=>{ if(e.key==="Escape"){ e.preventDefault(); fechar(true); } };
+  b.addEventListener("click",()=>{ if(!p.hidden) return fechar(false); p.hidden=false; b.setAttribute("aria-expanded","true"); document.addEventListener("pointerdown",fora,true); document.addEventListener("keydown",esc,true); (q||rows[0]&&rows[0].cb||ok).focus(); });
+  ok.addEventListener("click",()=>fechar(true));
+  host.append(b,p);
+  if(sel.size){ const x=el("button",{type:"button",class:"msel-x","aria-label":"Limpar "+o.label,title:"Limpar",text:"×"}); x.addEventListener("click",()=>o.onChange([])); host.append(x); }
+}

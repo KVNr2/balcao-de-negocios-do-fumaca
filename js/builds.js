@@ -1,8 +1,8 @@
 /* ================= aba Builds: cartões com ícones + combinações do Top Comps ================= */
-let COMPS = null, bLine = "", bSort = "pop", bOpen = null, W2LINE = null, CODE2EN = null;
+let COMPS = null, bLine = [], bSort = "pop", bOpen = null, W2LINE = null, CODE2EN = null;
 const ROLE_PT = {rdps:"Dano à distância", mdps:"Dano corpo a corpo", front:"Frente", frontdps:"Frente e dano", healer:"Curandeiro"};
 const LINE_ICON = {espada:"MAIN_SWORD",machado:"MAIN_AXE",maca:"MAIN_MACE",martelo:"MAIN_HAMMER",lanca:"MAIN_SPEAR",bordao:"2H_QUARTERSTAFF",adaga:"MAIN_DAGGER",luvas:"2H_KNUCKLES_SET1",arco:"2H_BOW",besta:"2H_CROSSBOW",metamorfo:"2H_SHAPESHIFTER_SET1",fogo:"MAIN_FIRESTAFF",gelo:"MAIN_FROSTSTAFF",arcano:"MAIN_ARCANESTAFF",sagrado:"MAIN_HOLYSTAFF",natureza:"MAIN_NATURESTAFF",maldito:"MAIN_CURSEDSTAFF"};
-let GB = null, bCont = "";
+let GB = null, bCont = [];
 function buildIdx(){
   if(W2LINE||!SPECS||!GEAR) return;
   W2LINE={}; for(const g of SPECS.g){ if(!g.k.startsWith("c:")) continue; for(const it of g.it) W2LINE[it[0]]=g.k.slice(2); }
@@ -54,7 +54,7 @@ function compCard(r){
   if(groups.length>show.length) row.append(el("span",{class:"cc-more",text:`+${groups.length-show.length}`}));
   card.append(row); return card;
 }
-function goBuild(code){ const other=(GB||[]).find(x=>x.wc===code); if(!other) return false; bCont=""; bLine=""; bOpen=other.id; renderBuilds(); const t2=document.querySelector(".bcard.open"); if(t2) t2.scrollIntoView({block:"center",behavior:"smooth"}); return true; }
+function goBuild(code){ const other=(GB||[]).find(x=>x.wc===code); if(!other) return false; bCont=[]; bLine=[]; bOpen=other.id; renderBuilds(); const t2=document.querySelector(".bcard.open"); if(t2) t2.scrollIntoView({block:"center",behavior:"smooth"}); return true; }
 function synergyPanel(b){
   const box=el("div",{class:"bsyn"});
   if(!COMPS){ box.textContent="Abrindo as composições…"; return box; }
@@ -89,9 +89,18 @@ function gbPrep(){
   buildIdx(); if(!GB||!W2LINE) return;
   for(const b of GB){ if(b.wc) continue; b.wc=b.w.replace(/^T\d_/,"").replace(/@\d$/,""); b.l=W2LINE[b.wc]||""; b.nome=codeName(b.wc); }
 }
-const SPEC_MIN = 70;
+const SPEC_MED = 75;   // média por arma da linha: 75 em 8 armas = 600 de 960 (a soma que o jogo mostra no centro da linha de maestria)
 /* spec da arma específica da build (não a maestria da linha): vem de PF.sp["c:linha"].s[código da arma] */
 const gbSpec = b => b.l ? (+(((PF.sp||{})["c:"+b.l]||{}).s||{})[b.wc]||0) : 0;
+/* soma das specs de todas as armas da linha, igual ao número no centro da linha de maestria no jogo (ex.: 674/960 nos arcos: 8 armas, cristal incluído) */
+function gbLinha(b){ if(!b.l||typeof SPECS==="undefined"||!SPECS) return null; const g=SPECS.g.find(x=>x.k==="c:"+b.l); if(!g) return null;
+  const its=g.it, sp=(((PF.sp||{})["c:"+b.l]||{}).s)||{}; const soma=its.reduce((a,[c])=>a+(+sp[c]||0),0), max=its.length*120;
+  return {soma,max,min:Math.round(SPEC_MED*its.length)}; }
+const gbOk = b => { const L=gbLinha(b); return !!L&&L.soma>=L.min; };
+const gbSoma = b => { const L=gbLinha(b); return L?L.soma:0; };
+function gbSpecTag(b){ if(!b.l) return null; const L=gbLinha(b), nv=gbSpec(b);
+  if(!L||!L.soma) return el("span",{class:"tag",text:`${b.nome}: sem spec`});
+  return el("span",{class:"tag"+(L.soma>=L.min?" good":""),text:`${b.nome}: spec ${nv} · linha ${L.soma}/${L.max}`,title:`Soma das specs das armas desta linha: ${L.soma} de ${L.max}. A partir de ${L.min} (média ${SPEC_MED} por arma) a build conta como sua.`}); }
 function gbGaps(b){ const miss=new Set(); for(const sl of ["h","a","s"]) for(const id of (b[sl]||[]).slice(0,1)){ const m=/^T\d_(?:HEAD|ARMOR|SHOES)_(PLATE|LEATHER|CLOTH)/.exec(id); const t=m&&({PLATE:"placa",LEATHER:"couro",CLOTH:"pano"})[m[1]]; if(t&&armorLv(t)<1) miss.add(t); } return [...miss]; }
 /* IP de cada peça embaixo do ícone; a mais baixa fica em vermelho (o que puxa a média para baixo) */
 /* "Qualidade de todas as peças" sobe para a barra de controles (junto de Set e Tier) */
@@ -219,6 +228,7 @@ function tpCusto(id,de){ const m=/^T(\d)_(.+?)(?:@\d)?$/.exec(id||""); if(!m||!P
 let BLD_CITY=(()=>{ try{ const c=localStorage.getItem("bldCity2"); return c||"best"; }catch(e){ return "best"; } })();
 const bldCities=()=>BLD_CITY==="best"?ROYAL_LOCS:[BLD_CITY], bldOnde=()=>BLD_CITY==="best"?"nenhuma cidade da royal":BLD_CITY;
 const BLD_PANELS=new Set();
+const BLD_BARS=new Set();   // builds com barra montada: a barra geral troca o tier de todas de uma vez
 let BLD_TIER=(()=>{ try{ const t=+localStorage.getItem("bldTier"); return t>=4&&t<=8?t:0; }catch(e){ return 0; } })();   // tier escolhido vale para todas as builds e não se perde ao abrir o card
 function costPanel(b,get,ui){
   const box=el("div",{class:"bld-cost"}); const cs=el("select",{"aria-label":"Cidade de compra",title:"Onde comprar. \"Mais barata (base Lymhurst)\" procura cada peça nas 5 cidades da royal: fica Lymhurst se a economia em outra cidade não pagar o teleporte de volta com a peça (calculado pelo peso dela; peças de 500 mil ou mais precisam também de mais de 10% de diferença). Passe o mouse na peça para ver. Caerleon aparece ao lado quando é mais barato, mas só entra no total se a peça não existir na royal. Preço de cada peça, nesta ordem: pedido de venda atual (cada versão equivalente troca de qualidade se preciso, e vale a de menor preço; T8 = 8.0, 7.1, 6.2, 5.3, 4.4); média de 7 dias; média de 30 dias"});
@@ -227,6 +237,7 @@ function costPanel(b,get,ui){
   const seg=(selEl,label,lab)=>{ const g=el("div",{class:"bld-seg",role:"group","aria-label":label}); const bs=[...selEl.options].map(o=>{ const bt=el("button",{type:"button",text:lab(o),title:o.text,"aria-pressed":"false"}); bt.addEventListener("click",()=>{ selEl.value=o.value; selEl.dispatchEvent(new Event("change")); g._sync(); }); g.append(bt); return [o.value,bt]; });
     g._sync=()=>bs.forEach(([v,bt])=>bt.setAttribute("aria-pressed",String(selEl.value===v))); g._sync(); return g; };
   const tierSeg=seg(ui.tsel,"Tier das peças",o=>o.value==="0"?"Original":`T${o.value}`), setSeg=ui.sel?seg(ui.sel,"Set",o=>`Set ${+o.value+1}`):null;
+  ui.tsel.addEventListener("change",()=>tierSeg._sync());
   const grp=(cap,x)=>{ const d=el("div",{class:"bld-g"}); d.append(el("span",{class:"bld-k",text:cap}),x); return d; };
   const tags=el("div",{class:"bld-tags"}), por=el("div",{class:"bld-por"}); box.append(grp("Tier",tierSeg)); if(setSeg) box.append(grp("Set",setSeg)); box.append(grp("Cidade",cs),tags,out,ui.btn,ui.msg,por);
   let seen=false, run=0;
@@ -286,7 +297,7 @@ function costPanel(b,get,ui){
     const wn=[]; if(miss) wn.push(`faltam ${miss} ${miss===1?"item":"itens"} sem preço: ${names.slice(0,3).join(", ")}${names.length>3?"…":""}`); if(est7) wn.push(`${est7} com estimativa de 7 dias`); if(old) wn.push(`${old} com estimativa de 30 dias`);
     if(wn.length) out.append(el("span",{class:"bld-warn",text:wn.join(" · "),title:(miss?`Sem vendas em ${bldOnde()} nos últimos 30 dias: ${names.join(", ")}. O total não inclui.\n`:"")+"Passe o mouse no valor para ver peça por peça."}));
   };
-  cs.addEventListener("change",()=>{ BLD_CITY=cs.value; try{ localStorage.setItem("bldCity2",BLD_CITY); }catch(e){} BLD_PANELS.forEach(p=>p._sync()); });
+  cs.addEventListener("change",()=>{ BLD_CITY=cs.value; try{ localStorage.setItem("bldCity2",BLD_CITY); }catch(e){} BLD_PANELS.forEach(p=>p._sync()); document.querySelectorAll(".bld-geral").forEach(g=>g._sync&&g._sync()); });
   box._sync=()=>{ cs.value=BLD_CITY; box._upd(); }; BLD_PANELS.add(box);
   const start=()=>{ if(!seen){ seen=true; box._upd(); } };
   if("IntersectionObserver" in window){ const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)) start(); }); io.observe(box); } else start();
@@ -294,13 +305,14 @@ function costPanel(b,get,ui){
   return box;
 }
 function albionBar(b,badge,costValue,opts){
-  const bar=el("div",{class:"kx-alb"}); let set=b._set||0, tier=b._tier||0, setSel=null; const qf=bQf(b);
+  const bar=el("div",{class:"kx-alb"}); let set=b._set||0, tier=b._tier!=null?b._tier:BLD_TIER, setSel=null; const qf=bQf(b);
   const refresh=()=>{ b._tier=tier; if(badge) badge._upd(set,tier,qf); bQApply(b); if(b._cost) b._cost._upd(); }; b._refresh=refresh;
   const hasAlt=!!(b.w2||[b.o,b.h,b.a,b.s,b.c,b.p,b.f].some(a=>a&&a[1]));
   if(hasAlt){ const sel=el("select",{"aria-label":"Set"}); sel.append(el("option",{value:"0",text:"Set 1 (recomendado)"}),el("option",{value:"1",text:"Set 2 (alternativa)"})); sel.addEventListener("change",()=>{ set=+sel.value; b._set=set; refresh(); }); sel.value=String(set); setSel=sel; }
   const tsel=el("select",{"aria-label":"Tier das peças"});
   tsel.append(el("option",{value:"0",text:"Tier original"})); [4,5,6,7,8].forEach(t=>tsel.append(el("option",{value:String(t),text:`T${t} equivalente`}))); tsel.value=String(tier); tsel.title="O tier vale para o IP, o custo, os ícones e o texto copiado ao Albion. Cada peça usa o equivalente mais barato (T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4).";
   tsel.addEventListener("change",()=>{ tier=+tsel.value; b._tier=tier; refresh(); });
+  b._setTier=t=>{ tsel.value=String(t); tsel.dispatchEvent(new Event("change")); }; BLD_BARS.add(b);
   if(opts&&opts.qBar){ const ql=el("label",{class:"alb-tier",title:"Qualidade das peças: muda o IP e o texto copiado ao Albion. Bom +20, Excepcional +40, Excelente +60, Obra-prima +100 de IP por peça."}); const qs=qSelect(bQ(b).a,false,"Qualidade das peças"); qs.addEventListener("change",()=>{ bQ(b).a=+qs.value; refresh(); }); ql.append(qs); bar.append(ql); }
   const btn=el("button",{type:"button",class:"bc-more",text:"Copiar para o Albion",title:"Copia o carregamento com o tier escolhido. No jogo: Loadouts > Colar texto (ou Começar da área de transferência)."});
   const msg=el("span",{class:"bld-msg muted small",role:"status"});
@@ -349,9 +361,8 @@ function buildCard(b){
   const top=el("div",{class:"bc-top"});
   const wi=qImg(b,"w",b.w,"nico zbig"); top.append(wi||el("span",{class:"btile"}));
   const mid=el("div",{class:"bc-mid"}); const h=el("h4"); h.append(b.t||b.nome); mid.append(h);
-  const nv=gbSpec(b); const lv=nv>=SPEC_MIN?3:nv>0?2:0;
   const meta=el("div",{class:"bc-meta"}); meta.append(el("span",{class:"tag",text:contName(b.k)}));
-  if(b.l) meta.append(el("span",{class:"tag"+(lv>=2?" good":""),text:nv?`${b.nome}: spec ${nv}`:`${b.nome}: sem spec`}));
+  { const t=gbSpecTag(b); if(t) meta.append(t); }
   const gaps=gbGaps(b); if(gaps.length) meta.append(el("span",{class:"tag bad",text:`Sem spec em ${gaps.join(" e ")}`}));
   (b.tg||[]).slice(0,3).forEach(t=>meta.append(el("span",{class:"tag mute",text:t})));
   mid.append(meta); top.append(mid);
@@ -367,7 +378,7 @@ function buildCard(b){
 const CONT_EXTRA = {COLETA:"Coleta"};   // tipos de conteúdo que só existem nas Nossas builds
 const contName = k => { const c=(GBC||[]).find(x=>x.k===k); return c?c.nome:(CONT_EXTRA[k]||k); };
 let GBC = null;
-function renderBuilds(){
+function renderBuilds(){ if(typeof bldBarraGeral==="function") bldBarraGeral();
   const host=$("bList"); if(!host) return; host.textContent="";
   if(!COMPS&&!renderBuilds._l){ renderBuilds._l=1; need("comps").then(c=>{ COMPS=c; renderBuilds(); }).catch(()=>{}); }
   if(!GB&&!renderBuilds._g){ renderBuilds._g=1; need("builds-grind").then(d=>{ GB=d.builds; GBC=d.conteudos; GB_DATE=d.atualizado; gbPrep(); renderBuilds(); }).catch(()=>{ $("bCount").textContent="As builds ainda não foram carregadas."; }); }
@@ -375,20 +386,21 @@ function renderBuilds(){
   gbPrep();
   const only=$("bOnlyMine").checked;
   const cc=$("bCont"); cc.textContent="";
-  const mk=(k,t,n)=>{ const b=el("button",{type:"button","aria-pressed":String(bCont===k),text:`${t} (${n})`,title:k?"Quantidade de builds salvas no site; aqui aparecem as mais votadas":""}); b.addEventListener("click",()=>{ bCont=k; bLine=""; bOpen=null; renderBuilds(); }); cc.append(b); };
-  mk("","Todos",GB.length+" mais votadas"); for(const c of GBC) mk(c.k,c.nome,c.total.toLocaleString("pt-BR"));
-  let list=GB.filter(b=>(!bCont||b.k===bCont)&&(!only||gbSpec(b)>=SPEC_MIN));
+  // conteúdo: seleção múltipla compacta (eram 29 fichas em 2 a 3 linhas)
+  msel(cc,{label:"Conteúdo",all:`Todos (${GB.length} mais votadas)`,opts:GBC.map(c=>({k:c.k,t:c.nome,n:c.total.toLocaleString("pt-BR")})),sel:bCont,onChange:s=>{ bCont=s; bLine=[]; bOpen=null; renderBuilds(); }});
+  let list=GB.filter(b=>(!bCont.length||bCont.includes(b.k))&&(!only||gbOk(b)));
   const present=new Set(list.map(b=>b.l));
   const grid=$("bWeapons"); grid.textContent="";
-  const all=el("button",{type:"button",class:"bw all","aria-pressed":String(!bLine),text:"Todas"}); all.addEventListener("click",()=>{ bLine=""; renderBuilds(); }); grid.append(all);
-  for(const [l,code] of Object.entries(LINE_ICON)){ if(!present.has(l)&&bLine!==l) continue; const b=el("button",{type:"button",class:"bw","aria-pressed":String(bLine===l),title:LINE_NAME[l]}); b.append(itemImg(code,[8,7,6,5,4,3])); b.addEventListener("click",()=>{ bLine=bLine===l?"":l; renderBuilds(); }); grid.append(b); }
-  if(bLine) list=list.filter(b=>b.l===bLine);
+  // arma: seleção múltipla com ícone e nome (eram 18 ícones sem nome)
+  const nl=new Map(); list.forEach(b=>{ if(b.l) nl.set(b.l,(nl.get(b.l)||0)+1); });
+  msel(grid,{label:"Arma",all:"Todas",opts:Object.entries(LINE_ICON).filter(([l])=>present.has(l)||bLine.includes(l)).map(([l,code])=>({k:l,t:LINE_NAME[l]||l,n:nl.get(l)||0,ic:()=>itemImg(code,[8,7,6,5,4,3])})),sel:bLine,onChange:s=>{ bLine=s; bOpen=null; renderBuilds(); }});
+  if(bLine.length) list=list.filter(b=>bLine.includes(b.l));
   if(bSort==="nome") list=list.slice().sort((a,b)=>a.nome.localeCompare(b.nome,"pt"));
-  else if(bSort==="spec") list=list.slice().sort((a,b)=>(gbSpec(b)-gbSpec(a))||(b.pop-a.pop));
+  else if(bSort==="spec") list=list.slice().sort((a,b)=>(gbSoma(b)-gbSoma(a))||(gbSpec(b)-gbSpec(a))||(b.pop-a.pop));
   else list=list.slice().sort((a,b)=>b.pop-a.pop);
   $("bCount").textContent=list.length?`${list.length} ${list.length===1?"build":"builds"} · dados de ${(GB_DATE||"").split("-").reverse().join("/")}`:"";
-  if(!list.length){ host.append(el("p",{class:"empty",text:only?"Nenhuma build deste conteúdo usa uma arma sua com spec 70 ou mais. Desmarque o filtro para ver todas.":"Nenhuma build nesta seleção."})); return; }
-  const pg=pgSlice("bList",list,[bCont,bLine,only,bSort].join("|"),renderBuilds);
+  if(!list.length){ host.append(el("p",{class:"empty",text:only?`Nenhuma build deste conteúdo usa uma linha de arma em que você tenha média ${SPEC_MED} por arma (por exemplo 600 de 960). Desmarque o filtro para ver todas.`:"Nenhuma build nesta seleção."})); return; }
+  const pg=pgSlice("bList",list,[bCont.join(","),bLine.join(","),only,bSort].join("|"),renderBuilds);
   renderConj();
   for(const b of pg.items) host.append(buildCard(b));
   host.append(pg.bar);
@@ -429,7 +441,7 @@ function cjVaga(c,id,grupo,i){
   if(!id){ v.append(el("span",{class:"cj-n",text:String(i+1)}),el("span",{class:"muted",text:CJ_ED===c.id?"Vaga livre: use Pôr no conjunto numa build abaixo":"Vaga livre"})); return v; }
   const im=b?itemImg(b.wc,[8,7,6,5,4]):el("span",{class:"btile"}); im.classList&&im.classList.add("cj-im");
   const nm=el("button",{type:"button",class:"cj-nome",text:b?(b.t||b.nome):"Build que saiu da lista",title:"Abrir esta build na lista"});
-  nm.addEventListener("click",()=>{ if(b){ bCont=b.k; bLine=b.l||""; bOpen=b.id; renderBuilds(); setTimeout(()=>{ const o=document.querySelector("#bList .bcard.open"); if(o) o.scrollIntoView({behavior:"smooth",block:"start"}); },60); } });
+  nm.addEventListener("click",()=>{ if(b){ bCont=[b.k]; bLine=b.l?[b.l]:[]; bOpen=b.id; renderBuilds(); setTimeout(()=>{ const o=document.querySelector("#bList .bcard.open"); if(o) o.scrollIntoView({behavior:"smooth",block:"start"}); },60); } });
   v.append(el("span",{class:"cj-n",text:String(i+1)}),im,el("div",{class:"cj-tx"},nm,el("small",{class:"muted",text:b?[contName(b.k),roleOf(b.t)].filter(Boolean).join(", "):""})));
   if(CJ_ED===c.id){
     const ac=el("div",{class:"cj-va"});
@@ -478,4 +490,21 @@ function renderConj(){
   novo.addEventListener("click",()=>{ const c={id:"c"+Date.now().toString(36),nome:`Conjunto ${CJ.length+1}`,min:4,max:7,p:[],o:[]}; CJ.push(c); CJ_ED=c.id; cjSalvar(); renderBuilds(); });
   head.append(novo); box.append(head);
   if(CJ.length){ const l=el("div",{class:"cj-lista"}); CJ.slice().sort((a,b)=>(b.id===CJ_ED)-(a.id===CJ_ED)).forEach(c=>l.append(cjCartao(c))); box.append(l); }
+}
+
+/* ================= barra geral de custo (Builds e PVP): tier e cidade valem para todos os cartões.
+   Antes cada cartão repetia a sua barra (20 a 30 cópias por página); agora ela só aparece dentro do cartão aberto, para mudar só aquela build. ================= */
+function bldBarraGeral(){
+  for(const id of ["bList","pvList"]){ const host=$(id); if(!host||host.previousElementSibling&&host.previousElementSibling.classList.contains("bld-geral")) continue;
+    const box=el("div",{class:"bld-geral",role:"group","aria-label":"Custo das builds"});
+    box.append(el("span",{class:"bld-gt",text:"Custo das builds em"}));
+    const ts=el("div",{class:"seg",role:"group","aria-label":"Tier das peças"});
+    const opts=[[0,"Tier original"],[4,"T4"],[5,"T5"],[6,"T6"],[7,"T7"],[8,"T8"]];
+    const sync=()=>{ ts.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(+x.dataset.t===BLD_TIER))); cs.value=BLD_CITY; };
+    opts.forEach(([t,tx])=>{ const x=el("button",{type:"button",text:tx,title:t?`Cada peça vira o equivalente mais barato de T${t} (T8 = 8.0, 7.1, 6.2, 5.3 ou 4.4)`:"Peças no tier da build"}); x.dataset.t=t;
+      x.addEventListener("click",()=>{ BLD_TIER=t; try{ localStorage.setItem("bldTier",String(t)); }catch(e){} BLD_BARS.forEach(b=>{ if(b._setTier) b._setTier(t); }); document.querySelectorAll(".bld-geral").forEach(g=>g._sync()); }); ts.append(x); });
+    const cs=el("select",{"aria-label":"Cidade de compra"}); cs.append(el("option",{value:"best",text:"Mais barata (base Lymhurst)"})); SHOP_LOCS.forEach(c=>cs.append(el("option",{value:c,text:c})));
+    cs.addEventListener("change",()=>{ BLD_CITY=cs.value; try{ localStorage.setItem("bldCity2",BLD_CITY); }catch(e){} BLD_PANELS.forEach(p=>p._sync()); document.querySelectorAll(".bld-geral").forEach(g=>g._sync()); });
+    const lc=el("label",{class:"bld-gc"}); lc.append("Cidade",cs);
+    box.append(ts,lc,el("span",{class:"muted small",text:"Para mudar só uma build, abra o cartão dela."})); box._sync=sync; sync(); host.before(box); }
 }
