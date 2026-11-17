@@ -907,7 +907,17 @@ function renderHero(){
   if(best.kind==="ref"){ const R=RES[x.res]; b.textContent=`${R.refName.toLowerCase()} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais refinando `,b,` em ${R.city}: `,n,` por ${R.u}, uns ${fmtS(x.day)} com 10.000 de foco.`); }
   else if(best.kind==="cook"){ b.textContent=x.name; ans.append(`${who} o seu foco rende mais ${x.kind==="f"?"cozinhando":"preparando"} `,b,` em ${COOK_CITY[x.kind]}: `,n,` por fornada, uns ${fmtS(x.day)} com 10.000 de foco.`); }
   else{ b.textContent=`${gearName(x.slot,x.mat,x.s)} T${x.t}.${x.e}`; ans.append(`${who} o seu foco rende mais fabricando `,b,` em ${CRAFT_CITY[x.slot+"_"+x.mat]}: `,n,` por peça, uns ${fmtS(x.day)} com 10.000 de foco.`); }
-  { const hid=best.kind==="ref"?idOf(x.t,RES[x.res].ref,x.e):best.kind==="cook"?x.m.id:gearId(x.t,x.slot,x.mat,x.s,x.e); const old=ans.parentNode.querySelector(".hero-ic"); if(old) old.remove(); const hi=el("span",{class:"hero-ic"}); hi.append(iconImg(apiIcon(hid),84)); ans.parentNode.prepend(hi); }
+  { const hid=best.kind==="ref"?idOf(x.t,RES[x.res].ref,x.e):best.kind==="cook"?x.m.id:gearId(x.t,x.slot,x.mat,x.s,x.e), box=ans.parentNode;
+    for(const o of box.querySelectorAll(".hero-ic,.ledger")) o.remove();
+    // livro-caixa ao lado da frase: ícone, nome, cidade e as contas em linhas com pontilhado
+    const unit=best.kind==="ref"?RES[x.res].u:best.kind==="cook"?"fornada":"peça", city=best.kind==="ref"?RES[x.res].city:best.kind==="cook"?COOK_CITY[x.kind]:CRAFT_CITY[x.slot+"_"+x.mat];
+    const led=el("div",{class:"ledger"}), hi=el("span",{class:"hero-ic"}); hi.append(iconImg(apiIcon(hid),56));
+    const hd=el("div",{class:"led-h"}), tx=el("div"); tx.append(el("b",{text:b.textContent.charAt(0).toUpperCase()+b.textContent.slice(1)}),el("span",{text:`Em ${city}`})); hd.append(hi,tx); led.append(hd);
+    const row=(k,v,cls)=>{ const r=el("div",{class:"led-r"}); r.append(el("span",{class:"led-k",text:k}),el("span",{class:"led-d","aria-hidden":"true"}),el("span",{class:"num led-v"+(cls?" "+cls:""),text:v})); led.append(r); };
+    row(`Por ${unit}, com foco`,sgn(x.m.p1),"gain big");
+    if(typeof x.m.p0==="number"&&isFinite(x.m.p0)) row(`Por ${unit}, sem foco`,sgn(Math.round(x.m.p0)),x.m.p0>=0?"gain":"loss");
+    row("Com 10.000 de foco",(x.day>0?"+":"")+fmtS(x.day));
+    box.classList.add("has-led"); box.append(led); }
   if(window.gsap&&!RM){ const o={v:0}; gsap.to(o,{v:x.m.p1,duration:1.1,ease:"power2.out",onUpdate:()=>n.textContent=sgn(o.v)}); }
   $("heroOthers").textContent="";
   $("heroOthers").append(el("span",{class:"muted",text:"Com o custo de foco da sua ficha e o preço típico das cidades. Confira o preço no jogo antes de comprar."}));

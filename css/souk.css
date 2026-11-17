@@ -324,3 +324,60 @@ nav.tabs button[aria-selected="true"]::before{left:0;top:8px;width:3px;height:au
 .bag-fab.na-barra b{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--cloth-2);border:1px solid #6b5238;font-size:12.5px;opacity:1}
 .bag-fab.na-barra.vazia b{display:none}
 @media (max-width:720px){.bag-fab.na-barra .bf-t{display:none}}
+
+/* livro-caixa da Mercadoria do dia: contas ao lado da frase, rótulo, pontilhado e valor */
+.deal.sheet.has-led{grid-template-columns:minmax(0,760px) minmax(260px,360px);column-gap:48px;justify-content:start;align-items:center}
+.deal.sheet.has-led>*{grid-column:1}
+.deal.sheet.has-led>.ledger{grid-column:2;grid-row:1 / span 3}
+.deal.sheet.has-led .answer{padding-right:0}
+.ledger{display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:12px;background:rgba(0,0,0,.2);border:1px solid var(--line-soft)}
+.ledger .led-h{display:flex;align-items:center;gap:12px;margin-bottom:2px}
+.deal .ledger .hero-ic{position:static;flex:none}
+.deal .ledger .hero-ic img{width:56px;height:56px;border-radius:12px}
+.ledger .led-h b{display:block;font:600 18px/1.2 var(--f-display);color:var(--parch)}
+.ledger .led-h span{font-size:14px;color:var(--smoke)}
+.led-r{display:flex;align-items:baseline;gap:8px;font-size:15px}
+.led-k{color:var(--parch-2)}
+.led-d{flex:1;min-width:14px;border-bottom:1px dotted #6b5238;transform:translateY(-4px)}
+.led-v{font-weight:600;color:var(--parch)}
+.led-v.gain{color:var(--gain)}.led-v.loss{color:var(--loss)}
+.led-v.big{font:600 22px var(--f-display)}
+@media (max-width:760px){.deal.sheet.has-led{grid-template-columns:minmax(0,1fr)}.deal.sheet.has-led>.ledger{grid-column:1;grid-row:auto}}
+
+/* linha das oficinas (Refino, Craft, Cozinha): tecido com faixa de lucro à esquerda, números alinhados à direita */
+.of-lh,.oflist .of-row{grid-template-columns:390px 112px 112px 150px max-content}
+.of-lh{background:var(--night-2);border-bottom:1px solid var(--line-soft);font:600 13.5px var(--f-body);color:var(--brass)}
+.of-lh span:nth-child(2),.of-lh span:nth-child(3),.of-lh span:nth-child(4){text-align:right}
+.oflist .of-row{align-items:center;padding:14px 16px 14px 14px;background:var(--cloth);border:1px solid var(--line-soft);border-left:3px solid var(--line);border-radius:12px;transition:background-color .12s}
+.oflist .of-row.is-gain,.oflist .of-row.is-loss{background:var(--cloth);border-color:var(--line-soft)}
+.oflist .of-row.is-gain{border-left-color:var(--gain)}
+.oflist .of-row.is-loss{border-left-color:var(--loss)}
+.oflist .of-row.is-gain:hover,.oflist .of-row.is-gain.open,.oflist .of-row.is-loss:hover,.oflist .of-row.is-loss.open{background-color:var(--cloth-2)}
+.oflist .of-row.open{outline:0;border-color:var(--brass)}
+.oflist .of-row .itemcell,.oflist .of-row.is-gain .itemcell,.oflist .of-row.is-loss .itemcell,.oflist .of-row.is-gain:hover .itemcell,.oflist .of-row.is-gain.open .itemcell,.oflist .of-row.is-loss:hover .itemcell,.oflist .of-row.is-loss.open .itemcell{background:inherit;box-shadow:none}
+.oflist .ihead{display:grid;grid-template-columns:var(--ic-row,52px) minmax(0,1fr) auto auto;align-items:start;gap:12px}
+.oflist .inm{gap:3px;max-width:none}
+.oflist .inm strong{font:600 17px/1.2 var(--f-display);color:var(--parch)}
+.oflist .inm>small:empty{display:none}
+.oflist .of-rec{border:0;background:none;padding:0;font:500 14px var(--f-body);color:var(--parch-2)}
+.oflist .of-bon{display:inline-block;padding:1px 8px;border-radius:999px;background:rgba(79,176,163,.12);border:1px solid rgba(79,176,163,.35);color:var(--tile-2);font:600 12.5px var(--f-body)}
+.oflist .of-bc,.oflist .of-vd{display:block;font-size:13.5px;line-height:1.4;color:var(--smoke)}
+.oflist .of-bc .wk-fl,.oflist .of-vd .wk-fl{font:600 13px var(--f-body);color:var(--brass);margin-right:4px}
+.oflist .of-bcgo{font-weight:600;text-align:left}
+.oflist .of-stat{padding:0 14px;text-align:right;align-self:center}
+.oflist .of-stat b{font:600 19px/1.15 var(--f-display);font-variant-numeric:tabular-nums lining-nums}
+.oflist .of-stat small{margin-top:2px;font:600 13px var(--f-body);letter-spacing:.01em;text-transform:none;color:var(--brass)}
+.oflist .of-stat.loss b{color:var(--parch-2)}
+.oflist .of-stat.sale b{color:var(--parch)}
+.oflist .of-stat.gain b{color:var(--gain);font-size:22px}
+.oflist .of-stat.loss:nth-of-type(4) b{color:var(--loss);font-size:22px}
+.oflist .of-pct{display:block;margin-top:2px;padding:0;border:0;background:none;font:600 13.5px var(--f-body);color:var(--gain)}
+.oflist .of-stat.loss .of-pct{color:var(--loss)}
+.oflist .of-flow{gap:20px}
+.oflist .of-flow .of-blk{padding-left:20px;gap:12px}
+.oflist .of-tile img{width:44px;height:44px}
+.oflist .of-city{font:600 14.5px var(--f-body);color:var(--parch);letter-spacing:0;text-transform:none}
+.oflist .of-pill{padding:1px 7px;border-radius:999px;font:600 12px var(--f-body);letter-spacing:0;text-transform:none;line-height:1.5}
+.oflist .of-pr b{font:600 19px var(--f-display);font-variant-numeric:tabular-nums lining-nums}
+.oflist .of-hs{font:500 13px var(--f-body);letter-spacing:0;text-transform:none;color:var(--smoke)}
+.oflist .of-hs b{color:var(--parch-2)}
