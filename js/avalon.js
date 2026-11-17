@@ -89,6 +89,7 @@ function avZoom(m,pic){
   const D=sec("No mapa"), inf=avInfo(m);
   const dg=el("div",{class:"av-zg"}); inf.forEach(i=>dg.append(avTag(i,true))); if(inf.length) D.append(dg);
   if(!inf.length) D.append(el("p",{class:"av-zvz",text:"Sem dungeons nem baús"}));
+  side.prepend(D);   /* primeiro o que tem no mapa (baús, dungeons, portais), depois os recursos */
   body.append(mid,side); box.append(top,body); ov.append(box);
   const close=()=>{ ov.remove(); document.removeEventListener("keydown",key); }, key=e=>{ if(e.key==="Escape") close(); };
   ov.addEventListener("click",e=>{ if(e.target===ov||e.target===x) close(); }); document.addEventListener("keydown",key);
