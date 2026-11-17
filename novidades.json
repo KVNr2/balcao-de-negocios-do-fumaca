@@ -1,6 +1,23 @@
 {
  "itens": [
   {
+   "t": "2026-11-17T20:00:00Z",
+   "titulo": "Janela do item e filtros em tela estreita",
+   "itens": [
+    "Janela do item: nome comprido quebra a linha dentro da coluna, sem passar por cima das ofertas.",
+    "Em janela estreita (celular ou overlay pequeno), o botão que mostra os filtros do Mercado, do Refino e do Craft segue o visual do site."
+   ]
+  },
+  {
+   "t": "2026-11-17T20:05:00Z",
+   "programa": "2.3.1",
+   "titulo": "Overlay no visual novo",
+   "itens": [
+    "Albion Overlay 2.3.1: a barra lateral usa as fontes do site.",
+    "A janelinha de pesquisa de item (Ctrl+Alt+P) mostra os preços em K, M e B, como no jogo."
+   ]
+  },
+  {
    "t": "2026-11-17T19:40:00Z",
    "titulo": "Números só em K, M e B",
    "itens": [

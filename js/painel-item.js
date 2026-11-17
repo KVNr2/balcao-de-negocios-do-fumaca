@@ -14,7 +14,7 @@ var S={id:(P.get("id")||"").replace(/[^A-Za-z0-9_]/g,""),e:Math.max(0,Math.min(4
   prices:null,hist:{},gen:0,quando:0};
 
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function fmt(n){return n>0?window.fmtS?fmtS(n):String(Math.round(n)):"—"}
+function fmt(n){ if(!(n>0)) return "—"; const r=Math.round(n); if(r<1000) return String(r); const f=(v,u)=>v.toLocaleString("pt-BR",{maximumFractionDigits:1,useGrouping:false})+u; return r>=999950000?f(n/1e9,"B"):r>=999950?f(n/1e6,"M"):f(n/1e3,"K"); }   // K = mil, M = milhão, B = bilhão (como no Albion)
 var tier=(/^T(\d)/.exec(S.id)||[])[1]||"";
 
 /* ---------- limite da API (mesmos contadores do site: localStorage apiStamps / apiBlock) ---------- */
