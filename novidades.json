@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-11-17T19:40:00Z",
+   "titulo": "Números só em K, M e B",
+   "itens": [
+    "Todo valor de mil para cima aparece como no Albion: 8,4K (mil), 20,4M (milhão), 1,3B (bilhão). Abaixo de mil, o número inteiro, sem ponto.",
+    "Ordenar pela coluna entende K, M e B.",
+    "Builds e PVP: no cartão fechado, a lista de peças fica na mesma linha do total, sem a faixa vazia em cima."
+   ]
+  },
+  {
    "t": "2026-11-17T19:15:00Z",
    "titulo": "Visual padronizado em todo o site",
    "itens": [
