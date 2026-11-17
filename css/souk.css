@@ -540,3 +540,8 @@ button{font-family:var(--f-body)}
 .av-z2 .av-zvz{margin:4px 2px;color:var(--smoke);font-size:14px}
 @media (max-width:900px){.av-z2 .av-zbody{grid-template-columns:1fr}.av-z2 .av-zside{max-height:none}.av-z2 .av-zbox{overflow:auto;max-height:100%}}
 .av-z2 .av-zbox:focus{outline:none}
+/* tier e tipo do mapa em destaque, nas cores de sempre */
+.av-z2 .av-zt2 p.av-zsub{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
+.av-z2 .av-zsub .tag,.av-z2 .av-zsub .av-ty{font:700 15px/1 var(--f-body);padding:6px 12px;border-radius:999px}
+.av-z2 .av-zrota{font:500 14px var(--f-body);color:var(--saffron)}
+.av-z2 .av-zsub .tag{background:color-mix(in srgb,currentColor 18%,transparent);border:1px solid color-mix(in srgb,currentColor 55%,transparent)}

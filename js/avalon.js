@@ -73,7 +73,8 @@ function avZoom(m,pic){
   const ov=el("div",{id:"avZoom",class:"av-zoom av-z2",role:"dialog","aria-modal":"true","aria-label":`Mapa ${m.n}`});
   const box=el("div",{class:"av-zbox"}), top=el("header",{class:"av-ztop"});
   const x=el("button",{type:"button",class:"av-zx","aria-label":"Fechar",text:"×"});
-  const tit=el("div",{class:"av-zt2"}); tit.append(el("h3",{text:m.n}),el("p",{text:`T${m.t} · ${avTypeTxt(m.y)}`+(AV.saved.some(z=>z.i===m.i)?" · na sua rota":"")}));
+  const tit=el("div",{class:"av-zt2"}); const sub=el("p",{class:"av-zsub"}); sub.append(el("span",{class:"tag t"+m.t,text:`T${m.t}`}),el("span",{class:"av-ty "+avTyCls(m.y),text:avTypeTxt(m.y)})); if(AV.saved.some(z=>z.i===m.i)) sub.append(el("span",{class:"av-zrota",text:"★ na sua rota"}));
+  tit.append(el("h3",{text:m.n}),sub);
   top.append(avTyIcon(m),tit,x);
   const body=el("div",{class:"av-zbody"});
   const mid=el("div",{class:"av-zmid"}); mid.append(pic?el("img",{class:"av-zimg",src:`imagens/avalon/${pic}`,alt:`Mapa ${m.n}`}):avMini(m));
