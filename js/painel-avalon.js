@@ -28,20 +28,19 @@ function mini(m){   /* sem foto: minimapa desenhado com as posições do jogo (m
 function tag(cls,txt,n){return n>0?'<span class="it '+cls+'">'+esc(txt)+'<b>×'+n+"</b></span>":""}
 
 function desenhar(m,pic){
-  var c=CLS(m.y),ty=G(m.y).toLowerCase(),h='';
-  h+='<div class="pa-hd"><img src="'+esc(TYIMG[c==="red"?"red":ty]||"")+'" alt="">'+'<span class="pa-nome">'+esc(m.n)+'</span><span class="tag t'+m.t+'">T'+m.t+'</span><span class="ty '+c+'">'+esc(YPT[m.y]||m.y)+"</span></div>";
-  h+=pic?'<img class="pa-img" src="imagens/avalon/'+esc(pic)+'" alt="Mapa '+esc(m.n)+'">':mini(m);
-  h+="<h4>Recursos no mapa</h4>";
+  var c=CLS(m.y),ty=G(m.y).toLowerCase(),h='',side='';
+  h+='<div class="pa-hd"><img src="'+esc(TYIMG[c==="red"?"red":ty]||"")+'" alt=""><div class="pa-tt"><h3 class="pa-nome">'+esc(m.n)+'</h3><div class="pa-sub"><span class="tag t'+m.t+'">T'+m.t+'</span><span class="ty '+c+'">'+esc(YPT[m.y]||m.y)+"</span></div></div></div>";
+  /* à direita: primeiro o que tem no mapa (dungeons, baús), depois os recursos */
+  var dg=(m.s||0)+(m.g||0)+(m.e||0)+(m.ho||0)+(m.mi||0)+(m.cb||0)+(m.cg||0)+(m.cy||0);
+  side+='<section><h4>No mapa</h4><div class="tags">'+(dg?"":'<span class="it none">Sem dungeons nem baús</span>')+tag("solo","Dungeon solo",m.s)+tag("grp","Dungeon de grupo",m.g)+tag("raid","Raid",m.e)+tag("ho","Hideout",m.ho||0)+tag("mist","Brecilien",m.mi||0)+tag("blue","Baú azul",m.cb)+tag("green","Baú verde",m.cg)+tag("gold","Baú dourado",m.cy)+"</div></section>";
+  side+="<section><h4>Recursos</h4>";
   var any=false;
   Object.keys(RES).forEach(function(k){var n=soma(m.r&&m.r[k]);if(!n)return;any=true;
     var ts=Object.keys(m.r[k]).map(Number).sort(function(a,b){return a-b}),mt=ts[ts.length-1];
-    h+='<div class="rec"><img src="icons/T'+mt+"_"+k+'.webp" alt="" onerror="this.onerror=null;this.src=\'https://render.albiononline.com/v1/item/T'+mt+"_"+k+'.png?size=64\'"><span class="rn">'+RES[k]+"</span>"+'<span class="tt">'+ts.map(function(t){return '<span class="zc"><small>T'+t+"</small><b>×"+m.r[k][t]+"</b></span>"}).join("")+"</span></div>"});
-  if(!any)h+='<div class="vazio" style="padding:6px">Sem recursos</div>';
-  h+="<h4>Dungeons e baús</h4><div class=\"tags\">";
-  var dg=(m.s||0)+(m.g||0)+(m.e||0);
-  if(!dg)h+='<span class="it none">Sem dungeons</span>';
-  h+=tag("solo","Dungeon solo",m.s)+tag("grp","Dungeon de grupo",m.g)+tag("raid","Raid",m.e)+tag("ho","Hideout",m.ho||0)+tag("mist","Brecilien",m.mi||0)+tag("blue","Baú azul",m.cb)+tag("green","Baú verde",m.cg)+tag("gold","Baú dourado",m.cy);
-  h+="</div>";
+    side+='<div class="rec"><img src="icons/T'+mt+"_"+k+'.webp" alt="" onerror="this.onerror=null;this.src=\'https://render.albiononline.com/v1/item/T'+mt+"_"+k+'.png?size=64\'"><div class="rt"><span class="rn">'+RES[k]+'</span><span class="tt">'+ts.map(function(t){return '<span class="zc"><small>T'+t+"</small><b>×"+m.r[k][t]+"</b></span>"}).join("")+'</span></div><b class="rq">×'+n+"</b></div>"});
+  if(!any)side+='<div class="vazio" style="padding:6px">Sem recursos</div>';
+  side+="</section>";
+  h+='<div class="pa-grid"><div>'+(pic?'<img class="pa-img" src="imagens/avalon/'+esc(pic)+'" alt="Mapa '+esc(m.n)+'">':mini(m))+'</div><aside class="pa-side">'+side+"</aside></div>";
   $("c").innerHTML=h;
 }
 function vazio(t){$("c").innerHTML='<div class="vazio">'+esc(t)+"</div>"}
