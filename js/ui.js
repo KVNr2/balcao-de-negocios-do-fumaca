@@ -179,8 +179,8 @@ function iniciarLimpar(){
   limparFiltros({scope:"ofRoot",after:"ofFind",focus:"ofFind",
     defs:[["ofFind",""],["ofCat",()=>{ const s=document.getElementById("ofCat"); return s&&s.options[0]?s.options[0].value:""; }],["ofTier",""],["ofEnch",""],["ofQual","0"]]});
   limparFiltros({scope:"p-builds",into:document.querySelector("#p-builds .row-ctl"),defs:[["bOnlyMine",false]],
-    count:()=>(typeof bCont!=="undefined"&&bCont?1:0)+(typeof bLine!=="undefined"&&bLine?1:0),
-    reset:()=>{ bCont=""; bLine=""; bOpen=null; renderBuilds(); }});
+    count:()=>(typeof bCont!=="undefined"&&bCont.length?1:0)+(typeof bLine!=="undefined"&&bLine?1:0),
+    reset:()=>{ bCont=[]; bLine=""; bOpen=null; renderBuilds(); }});
   limparFiltros({scope:"p-avalon",btn:document.getElementById("avClear"),
     count:()=>typeof AV==="undefined"||!AV.inited?0:(AV.q.trim()?1:0)+(AV.tier?1:0)+(AV.type?1:0)+AV.res.size+AV.extra.size,reset:()=>{}, });
 }

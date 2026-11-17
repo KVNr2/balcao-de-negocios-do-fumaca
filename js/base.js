@@ -1614,3 +1614,32 @@ function renderCaca(){ arvoreSecao($("pfCaca"),"cacaSum",({ico,cartao})=>{ const
   return [{nome:"Rastreador aprendiz (1/1)",cartoes:[()=>cartao({id:"c-rast",nome:"Rastreador experiente",ic:()=>ico("2H_TOOL_TRACKING",tier,false),
     itens:CACA.map(([c,l])=>[c,l,CACA_ITEM[c]?t=>ico(CACA_ITEM[c],t,false):pegadas]),tier,getM:()=>spGet("z:rastreio").m||0,setM:v=>{ rast().m=v; },mmax:100,max:100,
     getV:c=>(spGet("z:rastreio").s||{})[c],setV:(c,v)=>{ const st=rast(); st.s=st.s||{}; if(v) st.s[c]=v; else delete st.s[c]; }})]}]; }); }
+
+/* ================= seleção múltipla compacta (troca listas longas de fichas por um botão que abre uma lista com caixas)
+   msel(host,{label,all,opts:[{k,t,n}],sel:[k...],onChange(sel)}). A escolha vale quando a lista fecha (Pronto, Esc ou clique fora),
+   assim a página não redesenha a cada caixa marcada. ================= */
+function msel(host,o){
+  host.textContent=""; host.classList.remove("seg","wrap"); host.classList.add("msel"); host.removeAttribute("role");
+  const sel=new Set(o.sel||[]), name=k=>{ const x=o.opts.find(p=>p.k===k); return x?x.t:k; };
+  const resumo=()=>sel.size===0?(o.all||"Todos"):sel.size<=2?[...sel].map(name).join(", "):`${sel.size} selecionados`;
+  const b=el("button",{type:"button",class:"msel-b","aria-haspopup":"true","aria-expanded":"false"});
+  const v=el("span",{class:"msel-v",text:resumo()});
+  b.append(el("span",{class:"msel-l",text:o.label}),v); b.insertAdjacentHTML("beforeend",'<svg class="msel-c" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>');
+  const p=el("div",{class:"msel-p",role:"group","aria-label":o.label}); p.hidden=true;
+  let q=null; if(o.opts.length>8){ q=el("input",{type:"search",class:"msel-q",placeholder:"Procurar…","aria-label":"Procurar em "+o.label}); p.append(q); }
+  const list=el("div",{class:"msel-list"}); p.append(list);
+  const rows=o.opts.map(x=>{ const lab=el("label",{class:"msel-o"}), cb=el("input",{type:"checkbox"}); cb.checked=sel.has(x.k);
+    cb.addEventListener("change",()=>{ cb.checked?sel.add(x.k):sel.delete(x.k); v.textContent=resumo(); });
+    lab.append(cb,el("span",{class:"msel-t",text:x.t})); if(x.n!=null) lab.append(el("span",{class:"msel-n num",text:String(x.n)})); list.append(lab); return {x,lab,cb}; });
+  if(q) q.addEventListener("input",()=>{ const s=q.value.trim().toLowerCase(); rows.forEach(r=>r.lab.hidden=!!s&&!r.x.t.toLowerCase().includes(s)); });
+  const ft=el("div",{class:"msel-f"}), lim=el("button",{type:"button",class:"linkbtn",text:"Limpar"}), ok=el("button",{type:"button",class:"btn sm",text:"Pronto"});
+  lim.addEventListener("click",()=>{ sel.clear(); rows.forEach(r=>r.cb.checked=false); v.textContent=resumo(); }); ft.append(lim,ok); p.append(ft);
+  const ini=[...(o.sel||[])].sort().join("|");
+  const fechar=foco=>{ if(p.hidden) return; p.hidden=true; b.setAttribute("aria-expanded","false"); document.removeEventListener("pointerdown",fora,true); document.removeEventListener("keydown",esc,true);
+    if(foco) b.focus(); const now=[...sel].sort().join("|"); if(now!==ini) o.onChange([...sel]); };
+  const fora=e=>{ if(!host.contains(e.target)) fechar(false); }, esc=e=>{ if(e.key==="Escape"){ e.preventDefault(); fechar(true); } };
+  b.addEventListener("click",()=>{ if(!p.hidden) return fechar(false); p.hidden=false; b.setAttribute("aria-expanded","true"); document.addEventListener("pointerdown",fora,true); document.addEventListener("keydown",esc,true); (q||rows[0]&&rows[0].cb||ok).focus(); });
+  ok.addEventListener("click",()=>fechar(true));
+  host.append(b,p);
+  if(sel.size){ const x=el("button",{type:"button",class:"msel-x","aria-label":"Limpar "+o.label,title:"Limpar",text:"×"}); x.addEventListener("click",()=>o.onChange([])); host.append(x); }
+}

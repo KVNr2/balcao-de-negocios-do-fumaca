@@ -345,9 +345,13 @@ nav.tabs button[aria-selected="true"]::before{left:0;top:8px;width:3px;height:au
 @media (max-width:760px){.deal.sheet.has-led{grid-template-columns:minmax(0,1fr)}.deal.sheet.has-led>.ledger{grid-column:1;grid-row:auto}}
 
 /* linha das oficinas (Refino, Craft, Cozinha): tecido com faixa de lucro à esquerda, números alinhados à direita */
-.of-lh,.oflist .of-row{grid-template-columns:390px 112px 112px 150px max-content}
-.of-lh{background:var(--night-2);border-bottom:1px solid var(--line-soft);font:600 13.5px var(--f-body);color:var(--brass)}
-.of-lh span:nth-child(2),.of-lh span:nth-child(3),.of-lh span:nth-child(4){text-align:right}
+@media (min-width:1601px){.of-lh,.oflist .of-row{grid-template-columns:390px 112px 112px 150px minmax(0,1fr)}}
+/* cabeçalho com o mesmo recuo da linha (filete 3 px + 14 px; direita 16 px + borda), para cada título ficar em cima do seu número */
+.of-lh{padding:8px 17px 8px 18px;background:var(--night-2);border-bottom:1px solid var(--line-soft);font:600 13.5px var(--f-body);color:var(--brass)}
+.of-lh .of-hs{padding:4px 14px}
+.of-lh .of-hs:first-child{padding-left:0}
+.of-lh .of-hs:nth-child(2),.of-lh .of-hs:nth-child(3),.of-lh .of-hs:nth-child(4){justify-content:flex-end;text-align:right}
+.of-lh .of-hs:last-child{justify-content:flex-start;padding-left:6px}
 .oflist .of-row{align-items:center;padding:14px 16px 14px 14px;border-radius:12px;transition:background-color .12s}
 .oflist .of-row.open{outline:0}
 .oflist .ihead{display:grid;grid-template-columns:var(--ic-row,52px) minmax(0,1fr) auto auto;align-items:start;gap:12px}
@@ -359,7 +363,7 @@ nav.tabs button[aria-selected="true"]::before{left:0;top:8px;width:3px;height:au
 .oflist .of-bc,.oflist .of-vd{display:block;font-size:13.5px;line-height:1.4;color:var(--smoke)}
 .oflist .of-bc .wk-fl,.oflist .of-vd .wk-fl{font:600 13px var(--f-body);color:var(--brass);margin-right:4px}
 .oflist .of-bcgo{font-weight:600;text-align:left}
-.oflist .of-stat{padding:0 14px;text-align:right;align-self:center}
+.oflist .of-stat{padding:0 14px;text-align:right;align-self:center;min-width:0}
 .oflist .of-stat b{font:600 19px/1.15 var(--f-display);font-variant-numeric:tabular-nums lining-nums}
 .oflist .of-stat small{margin-top:2px;font:600 13px var(--f-body);letter-spacing:.01em;text-transform:none;color:var(--brass)}
 .oflist .of-stat.loss b{color:var(--parch-2)}
@@ -374,8 +378,8 @@ nav.tabs button[aria-selected="true"]::before{left:0;top:8px;width:3px;height:au
 .oflist .of-city{font:600 14.5px var(--f-body);color:var(--parch);letter-spacing:0;text-transform:none}
 .oflist .of-pill{padding:1px 7px;border-radius:999px;font:600 12px var(--f-body);letter-spacing:0;text-transform:none;line-height:1.5}
 .oflist .of-pr b{font:600 19px var(--f-display);font-variant-numeric:tabular-nums lining-nums}
-.oflist .of-hs{font:500 13px var(--f-body);letter-spacing:0;text-transform:none;color:var(--smoke)}
-.oflist .of-hs b{color:var(--parch-2)}
+.oflist .of-bi .of-hs{font:500 13px var(--f-body);letter-spacing:0;text-transform:none;color:var(--smoke)}
+.oflist .of-bi .of-hs b{color:var(--parch-2)}
 
 /* ===== rodada 2 (17/11): uma linha de lucro para todas as listas e tabelas, com verde discreto ===== */
 :root{--row-bg:var(--cloth);--row-gain-bg:#283229;--row-gain-hover:#2a3c2f;--row-loss-bg:#301c1c;--row-loss-hover:#3b2121;--row-gain-edge:var(--gain);--row-loss-edge:var(--loss);--row-line:var(--line-soft);
@@ -417,3 +421,25 @@ nav.tabs button[aria-selected="true"]::before{left:0;top:8px;width:3px;height:au
 .vc-tile{border-radius:12px;border-left-width:3px}
 .vc-tile.gain{background:var(--row-gain-bg);border-left-color:var(--row-gain-edge)}
 .vc-tile.gain .vc-s{color:var(--gain)}
+@media (max-width:1600px){.oflist .of-stat{padding:0 8px}.of-lh .of-hs{padding:4px 8px}.of-lh .of-hs:first-child{padding-left:0}.oflist .of-stat b{font-size:17px}.oflist .of-stat.gain b,.oflist .of-stat.loss:nth-of-type(4) b{font-size:19px}}
+
+/* seleção múltipla compacta (Builds: conteúdo) */
+.msel{position:relative;display:inline-flex;align-items:center;gap:6px;max-width:100%}
+.msel-b{display:inline-flex;align-items:center;gap:8px;height:var(--ctl-h);max-width:min(560px,100%);padding:0 12px;border-radius:var(--r-ctl);border:1px solid var(--line);background:var(--night-2);color:var(--parch);font:500 15px var(--f-body);cursor:pointer}
+.msel-b:hover{border-color:var(--brass)}
+.msel-b[aria-expanded="true"]{border-color:var(--brass);background:var(--cloth-2)}
+.msel-l{font-weight:600;color:var(--brass);flex:none}
+.msel-v{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.msel-c{width:14px;height:14px;flex:none;fill:none;stroke:var(--brass);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.msel-x{width:32px;height:32px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--parch-2);font:600 18px/1 var(--f-body);cursor:pointer}
+.msel-x:hover{border-color:var(--brass);color:var(--parch)}
+.msel-p{position:absolute;z-index:40;top:calc(100% + 6px);left:0;width:min(380px,92vw);display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:var(--cloth);border:1px solid var(--line);box-shadow:0 14px 34px rgba(0,0,0,.55)}
+.msel-q{height:36px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--night-2);color:var(--parch);font:500 15px var(--f-body)}
+.msel-list{display:flex;flex-direction:column;max-height:min(360px,50vh);overflow:auto;margin:0 -4px}
+.msel-o{display:grid;grid-template-columns:18px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:36px;padding:0 8px;border-radius:8px;cursor:pointer;font-size:15px;color:var(--parch-2)}
+.msel-o:hover{background:var(--cloth-2);color:var(--parch)}
+.msel-o input{accent-color:var(--saffron);width:16px;height:16px;margin:0}
+.msel-o:has(input:checked){color:var(--parch)}
+.msel-n{font-size:13.5px;color:var(--smoke)}
+.msel-f{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:8px;border-top:1px solid var(--line-soft)}
+.msel-f .btn.sm{height:34px}
