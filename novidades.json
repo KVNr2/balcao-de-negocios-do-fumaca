@@ -1,6 +1,21 @@
 {
  "itens": [
   {
+   "t": "2026-11-17T19:15:00Z",
+   "titulo": "Visual padronizado em todo o site",
+   "itens": [
+    "Todas as abas seguem o mesmo padrão: linhas com lucro em verde discreto, prejuízo em vermelho discreto, mesmos cartões, botões e filtros.",
+    "Valores no formato do Albion: 735,3K (mil), 20,4M (milhão) e B para bilhão.",
+    "Fontes da identidade em todo o site (El Messiri nos títulos, Alegreya Sans no texto).",
+    "Builds: conteúdo e armas viraram listas de múltipla escolha (armas com ícone e quantidade).",
+    "Spec agora é pela soma da linha de armas, cristal incluído: pelo menos 600 de 960 (média 75 por arma). A etiqueta mostra, por exemplo, \"linha 674/960\".",
+    "Builds e PVP: uma barra só no topo para Tier e Cidade do custo; para mudar só uma build, abra o cartão dela.",
+    "Refino e Craft: linhas mais compactas e colunas alinhadas com os valores. Cabeçalho das tabelas fica fixo ao rolar.",
+    "Mercado e Mercado Negro: filtros menos usados ficam em \"Mais filtros\", com a contagem dos ativos.",
+    "Bolsa no topo da página (no overlay continua flutuante)."
+   ]
+  },
+  {
    "t": "2026-11-17T06:00:00Z",
    "titulo": "PVP: Hellgate 2v2 mais limpo, Corrompidas separadas em Stalker e Slayer",
    "itens": [
