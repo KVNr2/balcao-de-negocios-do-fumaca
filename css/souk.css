@@ -641,3 +641,8 @@ button.dz-av{padding:0;font:700 16px var(--f-body);cursor:pointer}
 .dz-avbts .linkbtn{color:var(--parch-2);font-size:14px}
 .dz-avfoto:focus-within{outline:2px solid var(--saffron);outline-offset:2px}
 .dz-avnota{color:var(--smoke);font-size:12px;line-height:1.35}
+.dz-avcores{display:flex;gap:8px;justify-content:center}
+.dz-avcores button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.dz-avcores button[aria-pressed="true"]{border-color:var(--saffron);box-shadow:0 0 0 2px rgba(232,171,69,.35)}
+.dz-avcores button:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+.dz-avpick{width:316px}
