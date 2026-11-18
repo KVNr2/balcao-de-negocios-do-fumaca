@@ -115,6 +115,7 @@ Medidas: `--ctl-h: 40px` (campos e botões), `--chip-h: 32px`, `--r-ctl: 8px` (c
 | **Quantidade em destaque** | Caixinha `--saffron` com texto `--saffron-ink`: `×12`. |
 | **Janela (diálogo)** | `--cloth`, borda `--line`, raio 14, sombra `0 14px 40px rgba(0,0,0,.5)`. Título em El Messiri `--parch`. Nas janelas do overlay, o toldo listrado no topo (7 px, `--madder` e `--parch` em faixas de 26 px) e o ícone do escudo ao lado do título. |
 | **Barra de carregamento** | Faixa açafrão sobre `--night-2`, com o texto do que está sendo consultado e a contagem (`6300 de 10067 itens · 63%`). Obrigatória em consulta pesada. |
+| **Avatar das salas de voz** | Medalhão redondo: fundo de uma das 6 cores (vinho `#8e2c2c`, azulejo `#2f7d74`, noite `#2c1f1f`, anil `#33406e`, oliva `#55602f`, cobre `#7a4a24`), anel latão e um dos 16 emblemas (lanterna, estrela, lua, espada, escudo, poção, moeda, peixe, machado, orbe, picareta, folha, chama, coroa, tenda, arco) em pergaminho e açafrão. Desenhados em SVG no `js/voz.js`, sem biblioteca de fora. |
 | **Foco** | Contorno 2 px `--saffron`, afastado 2 px. Nunca remover sem pôr outro no lugar. |
 
 **Onde pode haver degradê:** só nos elementos de marca, ou seja, a barra do topo com o toldo listrado, o item ativo da barra lateral (filete açafrão) e a barra de carregamento. Em cartões, janelas e botões, cor lisa.

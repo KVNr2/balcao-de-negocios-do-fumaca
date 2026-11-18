@@ -50,9 +50,35 @@
   function cor(n){ var h = 0; n = String(n || "?"); for(var i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0; return CORES[h % CORES.length]; }
   /* avatar: "db:estilo:semente" = DiceBear (estilos de licença CC0, sem crédito obrigatório); "foto:<md5>" = foto pequena buscada uma vez (voz_foto);
      sem avatar, a inicial do nome numa cor tirada do nome */
-  var AV_ESTILOS = ["lorelei-neutral", "notionists-neutral", "pixel-art-neutral", "thumbs"], fotos = {}, fotoPedida = {};
+  /* avatares autorais do Balcão (medalhão com fundo de cor, anel latão e um emblema), desenhados aqui mesmo em SVG: valor "db:fumaca:<emblema>-<fundo>".
+     Avatares antigos da DiceBear ("db:<estilo>:<semente>") continuam aparecendo. */
+  var fotos = {}, fotoPedida = {};
+  const P="#efe2c4", S="#e8ab45", B="#b98c46", D="#1d1206";
+  const FUNDOS={vinho:"#8e2c2c",azulejo:"#2f7d74",noite:"#2c1f1f",anil:"#33406e",oliva:"#55602f",cobre:"#7a4a24"};
+  const EMB={
+   lanterna:`<g transform="translate(32 31) scale(1.18) translate(-32 -31)"><path d="M27 15h10l3 5H24z" fill="${B}"/><circle cx="32" cy="13" r="2" fill="none" stroke="${B}" stroke-width="1.5"/><path d="M24 20h16l3 11-3 12H24l-3-12z" fill="${D}" stroke="${B}" stroke-width="1.6"/><path d="M26.5 23h11l2 8-2 9h-11l-2-9z" fill="${S}"/><path d="M32 25l1.6 4.4 4.4 1.6-4.4 1.6L32 37l-1.6-4.4L26 31l4.4-1.6z" fill="${D}" opacity=".7"/><path d="M24 44h16l-3 4h-10z" fill="${B}"/></g>`,
+   estrela:`<path d="M32 12l5 15 15 5-15 5-5 15-5-15-15-5 15-5z" fill="${S}"/><path d="M32 22l2.4 7.6L42 32l-7.6 2.4L32 42l-2.4-7.6L22 32l7.6-2.4z" fill="${P}"/>`,
+   lua:`<circle cx="29" cy="33" r="17" fill="${P}"/><circle cx="37" cy="27" r="14.5" fill="%BG%"/><path d="M44 36l1.4 3.6 3.6 1.4-3.6 1.4L44 46l-1.4-3.6-3.6-1.4 3.6-1.4z" fill="${S}"/>`,
+   espada:`<path d="M32 10l4 6v22h-8V16z" fill="${P}"/><path d="M32 12v26" stroke="#cdbd9c" stroke-width="1.2"/><rect x="22" y="38" width="20" height="4" rx="2" fill="${S}"/><rect x="30" y="42" width="4" height="8" fill="${B}"/><circle cx="32" cy="52.5" r="3" fill="${S}"/>`,
+   escudo:`<path d="M32 11l17 6v12c0 11-7 19-17 24c-10-5-17-13-17-24V17z" fill="${P}"/><path d="M32 15l13 4.6V29c0 8.6-5.3 14.9-13 19z" fill="${S}"/><path d="M32 22v20M24 30h16" stroke="${D}" stroke-width="2.2" opacity=".55"/>`,
+   pocao:`<rect x="27" y="10" width="10" height="5" rx="1.5" fill="${B}"/><path d="M28.5 15h7v8l9 12c3 5-1 14-8 14h-9c-7 0-11-9-8-14l9-12z" fill="${P}"/><path d="M19.6 37h24.8c1.8 4.8-1.6 10-7.4 10h-10c-5.8 0-9.2-5.2-7.4-10z" fill="${S}"/><circle cx="27" cy="41" r="1.8" fill="${P}"/><circle cx="34" cy="43" r="1.2" fill="${P}"/>`,
+   moeda:`<circle cx="32" cy="32" r="18" fill="${S}"/><circle cx="32" cy="32" r="14" fill="none" stroke="${D}" stroke-width="1.6" opacity=".45"/><path d="M32 22l2.6 7.4L42 32l-7.4 2.6L32 42l-2.6-7.4L22 32l7.4-2.6z" fill="${D}" opacity=".55"/>`,
+   peixe:`<path d="M12 32c7-10 21-12 32-4l8-6v20l-8-6c-11 8-25 6-32-4z" fill="${P}"/><circle cx="21" cy="30" r="2.2" fill="${D}"/><path d="M30 25c3 4 3 10 0 14" fill="none" stroke="${S}" stroke-width="2.4" stroke-linecap="round"/>`,
+   machado:`<rect x="30" y="12" width="4" height="40" rx="2" fill="${B}"/><path d="M34 14c9 0 15 6 15 14s-6 13-15 13z" fill="${P}"/><path d="M34 18c6 1 10 5 10 10s-4 9-10 10z" fill="${S}"/>`,
+   orbe:`<rect x="30.5" y="30" width="3" height="24" rx="1.5" fill="${B}"/><circle cx="32" cy="22" r="11" fill="${S}"/><circle cx="32" cy="22" r="11" fill="none" stroke="${P}" stroke-width="2"/><circle cx="28.5" cy="18.5" r="3" fill="${P}" opacity=".8"/><path d="M22 31c3 3 17 3 20 0" stroke="${P}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+   picareta:`<rect x="30" y="20" width="4" height="34" rx="2" fill="${B}" transform="rotate(-35 32 37)"/><path d="M13 26c9-11 29-13 40-4c-12-3-27-2-40 4z" fill="${P}" transform="rotate(-35 32 30)"/>`,
+   folha:`<path d="M15 47c0-21 13-33 35-35c0 22-12 35-33 35z" fill="${P}"/><path d="M17 46C26 37 33 29 44 18" stroke="${S}" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M27 36l-1-8M33 30l-.5-7M27 36l8 0M33 30l7.5-.4" stroke="${S}" stroke-width="1.8" stroke-linecap="round"/>`,
+   chama:`<path d="M32 10c3 9 14 13 14 26a14 14 0 0 1-28 0c0-8 5-11 7-17c2 4 2 7 5 9c1-7 0-12 2-18z" fill="${S}"/><path d="M32 30c1.5 5 7 6 7 12a7 7 0 0 1-14 0c0-4 3-5 4-9c1 2 2 3 3 3z" fill="${P}"/>`,
+   coroa:`<path d="M14 44l-2-22 11 9 9-15 9 15 11-9-2 22z" fill="${S}"/><rect x="14" y="44" width="36" height="6" rx="1.5" fill="${P}"/><circle cx="32" cy="38" r="2.6" fill="${P}"/><circle cx="22" cy="40" r="1.8" fill="${P}"/><circle cx="42" cy="40" r="1.8" fill="${P}"/>`,
+   tenda:`<path d="M10 28l22-14 22 14z" fill="${P}"/><path d="M14 28h36" stroke="${B}" stroke-width="2"/><path d="M14 28l4 4 4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4" fill="none" stroke="#8e2c2c" stroke-width="3"/><rect x="17" y="32" width="30" height="18" fill="${D}" opacity=".55"/><path d="M27 50V38h10v12" fill="${S}"/>`,
+   arco:`<path d="M24 12c16 6 16 34 0 40" fill="none" stroke="${P}" stroke-width="3.4" stroke-linecap="round"/><path d="M24 12v40" stroke="${S}" stroke-width="1.4"/><path d="M14 32h32" stroke="${B}" stroke-width="2.2"/><path d="M46 32l-6-4v8z" fill="${S}"/><path d="M14 32l-3-3M14 32l-3 3" stroke="${P}" stroke-width="1.8" stroke-linecap="round"/>`
+  };
+  
+  function svgFumaca(emb, fundo){ if(!EMB[emb] || !FUNDOS[fundo]) return ""; var x = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="' + FUNDOS[fundo] + '"/><circle cx="32" cy="32" r="29.5" fill="none" stroke="' + B + '" stroke-width="1.5" opacity=".7"/>' + EMB[emb].replace(/%BG%/g, FUNDOS[fundo]) + "</svg>"; return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(x); }
   function avUrl(av){
-    var m = /^db:([a-z-]{3,24}):([A-Za-z0-9_-]{1,32})$/.exec(av || ""); if(m) return "https://api.dicebear.com/9.x/" + m[1] + "/svg?seed=" + encodeURIComponent(m[2]);
+    var m = /^db:([a-z-]{3,24}):([A-Za-z0-9_-]{1,32})$/.exec(av || "");
+    if(m && m[1] === "fumaca"){ var q = m[2].split("-"); return svgFumaca(q[0], q[1]); }
+    if(m) return "https://api.dicebear.com/9.x/" + m[1] + "/svg?seed=" + encodeURIComponent(m[2]);
     if(/^data:image\//.test(av || "")) return av;
     var f = /^foto:([0-9a-f]{32})$/.exec(av || ""); if(f) return fotos[f[1]] || "";
     return "";
@@ -508,19 +534,27 @@
     $("vzEco").checked = p.eco; $("vzRuido").checked = p.ruido; $("vzGanho").checked = p.ganho; $("vzGate").checked = p.gate;
     $("vzMais").addEventListener("click", function(){ abrirNovo($("vzNovo").hidden); });
     function atualizaEuAv(){ pintarAv($("vzEuAv"), $("vzNome").value.trim(), meuAv()); }
-    /* escolha do avatar: 12 opções da DiceBear (4 estilos x 3 sementes), "Outras opções" sorteia de novo; "Usar uma foto" reduz a foto para 64 px */
-    var pick = $("vzAvPick"), grade = $("vzAvGrade"), semBase = rnd(5);
+    /* escolha do avatar: 16 emblemas autorais e 6 cores de fundo */
+    var pick = $("vzAvPick"), grade = $("vzAvGrade"), cores = $("vzAvCores");
     function usarAv(v){ ls("lv:avatar", v); atualizaEuAv(); if(dentro) desenharGente(); marcarAv(); }
-    function marcarAv(){ var v = meuAv(); grade.querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.av === v)); }); }
+    function atual(){ var m = /^db:fumaca:([a-z]+)-([a-z]+)$/.exec(meuAv()); return m ? { e: m[1], f: m[2] } : null; }
+    var fundoSel = (atual() || {}).f || "vinho";
+    function marcarAv(){ var a = atual();
+      grade.querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-pressed", String(!!a && b.dataset.e === a.e)); });
+      cores.querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.f === fundoSel)); }); }
     function montarGrade(){
       grade.textContent = "";
-      AV_ESTILOS.forEach(function(st){ for(var i = 0; i < 3; i++){ var v = "db:" + st + ":" + semBase + i, b = document.createElement("button"); b.type = "button"; b.dataset.av = v; b.setAttribute("aria-label", "Avatar " + (grade.children.length + 1));
-        var im = document.createElement("img"); im.src = avUrl(v); im.alt = ""; im.loading = "lazy"; b.appendChild(im); b.addEventListener("click", function(){ usarAv(this.dataset.av); }); grade.appendChild(b); } });
+      Object.keys(EMB).forEach(function(e){ var b = document.createElement("button"); b.type = "button"; b.dataset.e = e; b.setAttribute("aria-label", "Avatar " + e); b.title = e.charAt(0).toUpperCase() + e.slice(1);
+        var im = document.createElement("img"); im.src = svgFumaca(e, fundoSel); im.alt = ""; b.appendChild(im); b.addEventListener("click", function(){ usarAv("db:fumaca:" + this.dataset.e + "-" + fundoSel); }); grade.appendChild(b); });
       marcarAv();
     }
-    function abrirPick(abrir){ pick.hidden = !abrir; $("vzEuAv").setAttribute("aria-expanded", String(abrir)); if(abrir){ if(!grade.children.length) montarGrade(); } }
+    function montarCores(){
+      cores.textContent = "";
+      Object.keys(FUNDOS).forEach(function(f){ var b = document.createElement("button"); b.type = "button"; b.dataset.f = f; b.style.background = FUNDOS[f]; b.setAttribute("aria-label", "Fundo " + f); b.title = "Fundo " + f;
+        b.addEventListener("click", function(){ fundoSel = this.dataset.f; var a = atual(); montarGrade(); if(a) usarAv("db:fumaca:" + a.e + "-" + fundoSel); }); cores.appendChild(b); });
+    }
+    function abrirPick(abrir){ pick.hidden = !abrir; $("vzEuAv").setAttribute("aria-expanded", String(abrir)); if(abrir){ if(!cores.children.length) montarCores(); montarGrade(); } }
     $("vzEuAv").addEventListener("click", function(){ abrirPick(pick.hidden); });
-    $("vzAvOutros").addEventListener("click", function(){ semBase = rnd(5); montarGrade(); });
     $("vzAvSem").addEventListener("click", function(){ usarAv(""); });
     $("vzAvFechar").addEventListener("click", function(){ abrirPick(false); $("vzEuAv").focus(); });
     document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !pick.hidden) abrirPick(false); });
