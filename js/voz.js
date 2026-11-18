@@ -23,7 +23,8 @@
   var eu = "", sala = "", nome = "", dentro = false, entrando = false, timer = 0, gen = 0, usadoT = 0, privadaNova = false;
   var mic = null, micOn = true, somOn = true, volGeral = 1;
   var pessoas = [], conns = {}, ctx = null, medidor = 0, loc = null;
-  var tela = null, vt = {}, canais = [], pretoT = 0;
+  var tela = null, vt = {}, canais = [], pretoT = 0, avEnviado = null;
+  function meuAv(){ var v = ls("lv:avatar"); return typeof v === "string" ? v : ""; }
 
   function ls(k, v){ try{ if(v === undefined) return JSON.parse(localStorage.getItem(k) || "null"); if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); }catch(e){} return null; }
   function rpc(nomeFn, args){
@@ -47,7 +48,27 @@
   function limparSala(t){ return String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40); }
   var CORES = ["#2f7d74", "#b98c46", "#8e2c2c", "#4a6fa5", "#7a5c9e", "#a0652d", "#4f8f4f", "#a04a7a"];
   function cor(n){ var h = 0; n = String(n || "?"); for(var i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0; return CORES[h % CORES.length]; }
-  function avatar(n, cls){ var a = document.createElement("span"); a.className = "dz-av" + (cls ? " " + cls : ""); a.textContent = (n || "?").trim().charAt(0).toUpperCase() || "?"; a.style.background = cor(n); return a; }
+  /* avatar: "db:estilo:semente" = DiceBear (estilos de licença CC0, sem crédito obrigatório); "foto:<md5>" = foto pequena buscada uma vez (voz_foto);
+     sem avatar, a inicial do nome numa cor tirada do nome */
+  var AV_ESTILOS = ["lorelei-neutral", "notionists-neutral", "pixel-art-neutral", "thumbs"], fotos = {}, fotoPedida = {};
+  function avUrl(av){
+    var m = /^db:([a-z-]{3,24}):([A-Za-z0-9_-]{1,32})$/.exec(av || ""); if(m) return "https://api.dicebear.com/9.x/" + m[1] + "/svg?seed=" + encodeURIComponent(m[2]);
+    if(/^data:image\//.test(av || "")) return av;
+    var f = /^foto:([0-9a-f]{32})$/.exec(av || ""); if(f) return fotos[f[1]] || "";
+    return "";
+  }
+  function pedirFoto(av){
+    var f = /^foto:([0-9a-f]{32})$/.exec(av || ""); if(!f || fotos[f[1]] || fotoPedida[f[1]]) return; fotoPedida[f[1]] = 1;
+    rpc("voz_foto", { p_hash: f[1] }).then(function(r){ if(typeof r === "string" && /^data:image\//.test(r)){ fotos[f[1]] = r; document.querySelectorAll('[data-av="' + av + '"]').forEach(function(e){ pintarAv(e, null, av); }); } }).catch(function(){ fotoPedida[f[1]] = 0; });
+  }
+  function pintarAv(a, n, av){
+    var u = avUrl(av);
+    if(n != null) a.dataset.nome = n; n = a.dataset.nome || "";
+    a.dataset.av = av || "";
+    if(u){ a.textContent = ""; a.style.background = "var(--cloth-2) center/cover no-repeat url(\"" + u.replace(/"/g, "%22") + "\")"; a.classList.add("com-img"); }
+    else { a.textContent = (n || "?").trim().charAt(0).toUpperCase() || "?"; a.style.background = n ? cor(n) : ""; a.classList.remove("com-img"); if(av) pedirFoto(av); }
+  }
+  function avatar(n, cls, av){ var a = document.createElement("span"); a.className = "dz-av" + (cls ? " " + cls : ""); pintarAv(a, n, av); return a; }
   function prefs(){ var p = ls("vz:prefs") || {}; return { eco: p.eco !== false, ruido: p.ruido !== false, ganho: p.ganho !== false, gate: p.gate !== false, micDev: p.micDev || "", saida: p.saida || "" }; }
   function salvarPrefs(){ ls("vz:prefs", { eco: $("vzEco").checked, ruido: $("vzRuido").checked, ganho: $("vzGanho").checked, gate: $("vzGate").checked, micDev: $("vzMicDev").value || "", saida: $("vzSaida").value || "" }); }
 
@@ -344,7 +365,8 @@
   /* ---- ciclo de presença ---- */
   function sync(g){
     if(g !== gen || !dentro) return;
-    rpc("voz_sync", { p_sala: sala, p_eu: eu, p_nome: nome, p_tela: !!tela }).then(function(r){
+    var avM = meuAv(), avArgs = { p_sala: sala, p_eu: eu, p_nome: nome, p_tela: !!tela }; if(avM !== avEnviado) avArgs.p_avatar = avM;
+    rpc("voz_sync", avArgs).then(function(r){ if(r && r.ok) avEnviado = avM;
       if(g !== gen || !dentro) return;
       falhas = 0;
       if(!r || !r.ok){ sair(r && r.err === "cheia" ? "A sala está cheia (máximo de " + MAX + " pessoas)." : ((r && r.err) || "Perdi a conexão com a sala.")); return; }
@@ -376,7 +398,7 @@
     pessoas.forEach(function(p){
       var me = p.eu === eu, c = conns[p.eu];
       var t = document.createElement("div"); t.className = "dz-t" + (me ? " eu" : ""); t.dataset.id = me ? "eu" : p.eu;
-      var av = avatar(p.nome, "dz-av-g"); t.appendChild(av);
+      var av = avatar(p.nome, "dz-av-g", p.eu === eu ? meuAv() : p.av); t.appendChild(av);
       var nm = document.createElement("div"); nm.className = "dz-t-n"; nm.textContent = p.nome || "Alguém";
       var sm = document.createElement("small"); sm.textContent = me ? (mic ? (micOn ? "você" : "você · microfone desligado") : "você · só ouvindo") : (c && c.ok ? "" : "conectando…"); nm.appendChild(sm); t.appendChild(nm);
       if(p.tela){ var ao = document.createElement("span"); ao.className = "dz-live"; ao.textContent = "AO VIVO"; t.appendChild(ao); }
@@ -414,7 +436,7 @@
         var ul = document.createElement("div"); ul.className = "dz-m";
         gente.forEach(function(g){
           var li = document.createElement("div"); li.className = "dz-mi"; if(aqui && g.eu) li.dataset.id = g.eu === eu ? "eu" : g.eu;
-          li.appendChild(avatar(g.nome, "dz-av-p")); var s = document.createElement("span"); s.className = "t"; s.textContent = g.nome; li.appendChild(s);
+          li.appendChild(avatar(g.nome, "dz-av-p", g.av)); var s = document.createElement("span"); s.className = "t"; s.textContent = g.nome; li.appendChild(s);
           if(g.tela){ var l = document.createElement("span"); l.className = "dz-live"; l.textContent = "AO VIVO"; li.appendChild(l); }
           ul.appendChild(li);
         });
@@ -448,7 +470,7 @@
       mic = null;
       erro(e && e.name === "NotAllowedError" ? "Microfone não liberado: você entra só ouvindo. Libere o microfone no cadeado do navegador e entre de novo para falar." : e && e.name === "Tempo" ? "O navegador não respondeu ao pedido do microfone: você entra só ouvindo." : "Não achei um microfone: você entra só ouvindo.");
     }).then(function(){
-      $("vzCriar").disabled = false; sala = s; eu = rnd(16); dentro = true; entrando = false; pessoas = []; conns = {}; vt = {}; tela = null; gen++; loc = {}; usadoT = 0; falhas = 0;
+      $("vzCriar").disabled = false; sala = s; eu = rnd(16); avEnviado = null; dentro = true; entrando = false; pessoas = []; conns = {}; vt = {}; tela = null; gen++; loc = {}; usadoT = 0; falhas = 0;
       micOn = true; somOn = true; $("vzSom").dataset.on = "1"; $("vzSom").setAttribute("aria-label", "Silenciar o áudio da sala");
       $("vzMic").disabled = !mic; aplicarMicOn(); if(mic) ligarMedidor("eu", mic);
       modo(true); listarAparelhos(); atualizarTelaUi(); $("vzSt").textContent = "entrando…"; sync(gen);
@@ -485,7 +507,37 @@
     var p = prefs(); $("vzNome").value = ls("lv:nome") || "";
     $("vzEco").checked = p.eco; $("vzRuido").checked = p.ruido; $("vzGanho").checked = p.ganho; $("vzGate").checked = p.gate;
     $("vzMais").addEventListener("click", function(){ abrirNovo($("vzNovo").hidden); });
-    function atualizaEuAv(){ var n = $("vzNome").value.trim(), a = $("vzEuAv"); a.textContent = (n.charAt(0) || "?").toUpperCase(); a.style.background = n ? cor(n) : ""; }
+    function atualizaEuAv(){ pintarAv($("vzEuAv"), $("vzNome").value.trim(), meuAv()); }
+    /* escolha do avatar: 12 opções da DiceBear (4 estilos x 3 sementes), "Outras opções" sorteia de novo; "Usar uma foto" reduz a foto para 64 px */
+    var pick = $("vzAvPick"), grade = $("vzAvGrade"), semBase = rnd(5);
+    function usarAv(v){ ls("lv:avatar", v); atualizaEuAv(); if(dentro) desenharGente(); marcarAv(); }
+    function marcarAv(){ var v = meuAv(); grade.querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.av === v)); }); }
+    function montarGrade(){
+      grade.textContent = "";
+      AV_ESTILOS.forEach(function(st){ for(var i = 0; i < 3; i++){ var v = "db:" + st + ":" + semBase + i, b = document.createElement("button"); b.type = "button"; b.dataset.av = v; b.setAttribute("aria-label", "Avatar " + (grade.children.length + 1));
+        var im = document.createElement("img"); im.src = avUrl(v); im.alt = ""; im.loading = "lazy"; b.appendChild(im); b.addEventListener("click", function(){ usarAv(this.dataset.av); }); grade.appendChild(b); } });
+      marcarAv();
+    }
+    function abrirPick(abrir){ pick.hidden = !abrir; $("vzEuAv").setAttribute("aria-expanded", String(abrir)); if(abrir){ if(!grade.children.length) montarGrade(); } }
+    $("vzEuAv").addEventListener("click", function(){ abrirPick(pick.hidden); });
+    $("vzAvOutros").addEventListener("click", function(){ semBase = rnd(5); montarGrade(); });
+    $("vzAvSem").addEventListener("click", function(){ usarAv(""); });
+    $("vzAvFechar").addEventListener("click", function(){ abrirPick(false); $("vzEuAv").focus(); });
+    document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !pick.hidden) abrirPick(false); });
+    $("vzAvFoto").addEventListener("change", function(){
+      var f = this.files && this.files[0]; this.value = ""; if(!f) return;
+      if(!/^image\//.test(f.type)){ erro("Escolha um arquivo de imagem."); return; }
+      var img = new Image(), url = URL.createObjectURL(f);
+      img.onload = function(){
+        var c = document.createElement("canvas"); c.width = c.height = 64; var g = c.getContext("2d"), l = Math.min(img.width, img.height);
+        g.drawImage(img, (img.width - l) / 2, (img.height - l) / 2, l, l, 0, 0, 64, 64); URL.revokeObjectURL(url);
+        var d = c.toDataURL("image/jpeg", 0.82); if(d.length > 15000) d = c.toDataURL("image/jpeg", 0.6);
+        if(d.length > 15000){ erro("Não consegui reduzir essa foto. Tente outra."); return; }
+        erro(""); usarAv(d);
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); erro("Não consegui abrir essa imagem."); };
+      img.src = url;
+    });
     $("vzNome").addEventListener("input", atualizaEuAv); atualizaEuAv();
     $("vzNovo").addEventListener("submit", function(e){ e.preventDefault(); var s = $("vzSala").value; if(!s.trim()){ erro("Escreva o nome da sala nova."); $("vzSala").focus(); return; } entrar($("vzPriv").checked ? limparSala(s).slice(0, 30) + "-" + rnd(6) : s, $("vzPriv").checked); $("vzSala").value = ""; $("vzPriv").checked = false; });
     $("vzConv").addEventListener("click", function(){

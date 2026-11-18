@@ -617,3 +617,27 @@ button{font-family:var(--f-body)}
 .lv-cnt{margin-left:8px}
 .lv-card .of-btn:disabled{background:var(--cloth-2);color:var(--smoke);border:1px solid var(--line);opacity:1;cursor:default}
 .lv-th{margin-top:0}
+/* avatar nas salas de voz */
+.dz-eu{position:relative}
+button.dz-av{padding:0;font:700 16px var(--f-body);cursor:pointer}
+.dz-av-eu{border:2px solid var(--line)}
+.dz-av-eu:hover,.dz-av-eu[aria-expanded="true"]{border-color:var(--saffron)}
+.dz-av-eu:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+.dz-av.com-img{color:transparent}
+.dz-avpick{position:absolute;left:10px;bottom:calc(100% + 8px);z-index:30;width:300px;display:grid;gap:10px;padding:14px;border:1px solid var(--line);border-radius:var(--r-panel);background:var(--cloth);box-shadow:0 14px 40px rgba(0,0,0,.5)}
+.dz-avpick[hidden]{display:none}
+.dz-avpick-h{display:flex;align-items:center;justify-content:space-between}
+.dz-avpick-h b{font:600 18px var(--f-display);color:var(--parch)}
+.dz-avx{width:30px;height:30px;border-radius:8px;border:1px solid var(--line-soft);background:transparent;color:var(--parch-2);font-size:18px;cursor:pointer}
+.dz-avx:hover{border-color:var(--brass);color:var(--parch)}
+.dz-avgrade{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.dz-avgrade button{aspect-ratio:1;padding:0;border-radius:50%;border:2px solid var(--line-soft);background:var(--cloth-2);overflow:hidden;cursor:pointer}
+.dz-avgrade button img{width:100%;height:100%;display:block}
+.dz-avgrade button:hover{border-color:var(--brass)}
+.dz-avgrade button[aria-pressed="true"]{border-color:var(--saffron);box-shadow:0 0 0 2px rgba(232,171,69,.35)}
+.dz-avgrade button:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+.dz-avbts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dz-avbts .of-btn{height:34px;display:inline-flex;align-items:center;padding:0 12px;font-size:14px;cursor:pointer}
+.dz-avbts .linkbtn{color:var(--parch-2);font-size:14px}
+.dz-avfoto:focus-within{outline:2px solid var(--saffron);outline-offset:2px}
+.dz-avnota{color:var(--smoke);font-size:12px;line-height:1.35}
