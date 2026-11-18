@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-11-18T02:40:00Z",
+   "titulo": "Live: Transmissões e Salas de voz separadas",
+   "itens": [
+    "A aba Live tem dois lados: Transmissões (lives do /live do Discord) e Salas de voz. Os números ao lado mostram quantas lives estão no ar e quantas pessoas estão nas salas.",
+    "Transmissões: a live que você assiste fica no topo, as outras em cartões lado a lado, e a caixa para colar o link fica ao lado do título.",
+    "Salas de voz: botão Nova sala no lugar do +. A sala cinema fixa saiu: qualquer pessoa abre uma sala quando quiser, e ela some quando fica vazia.",
+    "Visual da aba inteira na identidade do site."
+   ]
+  },
+  {
    "t": "2026-11-18T02:15:00Z",
    "titulo": "Busca de mapas pelo começo das palavras",
    "itens": [
