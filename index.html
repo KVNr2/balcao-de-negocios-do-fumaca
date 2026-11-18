@@ -543,6 +543,12 @@ html.em-atual .av-card{margin:0}
   </section>
 
   <section class="panel" id="p-live" role="tabpanel" aria-labelledby="t-live" hidden>
+    <div class="seg lv-nav" role="tablist" aria-label="Live">
+      <button type="button" role="tab" id="lvTabT" aria-controls="lvViewT" aria-selected="true" aria-pressed="true">Transmissões<span class="lv-cnt" id="lvCntT"></span></button>
+      <button type="button" role="tab" id="lvTabV" aria-controls="lvViewV" aria-selected="false" aria-pressed="false">Salas de voz<span class="lv-cnt" id="lvCntV"></span></button>
+    </div>
+    <div class="lv-view" id="lvViewT" role="tabpanel" aria-labelledby="lvTabT">
+    <div class="lv-entregue" id="lvEntregue" hidden><b>Esta live foi aberta no Albion Overlay.</b><span>Veja e transmita por lá. Se preferir aqui no navegador:</span><button id="lvAqui" type="button" class="of-btn">Usar aqui no navegador</button></div>
     <div class="lv-emit" id="lvEmit" hidden>
       <div class="lv-emit-h"><b id="lvEmitTit">Você vai transmitir</b><span id="lvEmitSt" class="lv-st">parado</span></div>
       <div class="lv-emit-bt">
@@ -554,12 +560,30 @@ html.em-atual .av-card{margin:0}
       <video id="lvPrev" muted autoplay playsinline hidden></video>
       <p class="lv-dica">Deixe esta aba aberta enquanto transmite. Para o som do jogo, escolha <b>Tela inteira</b> (o navegador só captura o som da tela toda ou de uma aba). Cabem até 5 espectadores ao mesmo tempo. Desmarque a última opção para só quem tem o link assistir.</p>
     </div>
-    <div class="lv-entregue" id="lvEntregue" hidden><b>Esta live foi aberta no Albion Overlay.</b><span>Veja e transmita por lá. Se preferir aqui no navegador:</span><button id="lvAqui" type="button" class="of-btn">Usar aqui no navegador</button></div>
+    <div class="lv-wrap" id="lvWrap" hidden>
+      <div class="lv-stage" id="lvStage">
+        <video id="lvVideo" autoplay playsinline muted></video>
+        <span class="lv-badge" id="lvBadge" hidden>AO VIVO</span>
+        <span class="lv-somdica" id="lvSomDica" hidden>Sem som: use o botão de volume</span>
+        <div class="lv-msg" id="lvMsg" hidden></div>
+        <div class="lv-bar" id="lvBar">
+          <button class="lv-b" id="lvMute" type="button" aria-label="Ligar o som"><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path class="p-on" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="p-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg></button>
+          <input id="lvVol" type="range" min="0" max="100" value="80" aria-label="Volume">
+          <span class="lv-tit" id="lvTit"></span>
+          <button class="lv-b" id="lvFull" type="button" aria-label="Tela cheia" title="Tela cheia"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div class="lv-th"><h3>No ar agora</h3><form class="lv-colar" id="lvColar"><input id="lvLink" type="text" autocomplete="off" placeholder="Colar o link de uma live do Discord" aria-label="Link da live"><button type="submit" class="of-btn lv-sec">Adicionar</button></form></div>
+    <p class="lv-err" id="lvErr" hidden></p>
+    <div class="lv-lista" id="lvLista"></div>
+    </div>
+    <div class="lv-view" id="lvViewV" role="tabpanel" aria-labelledby="lvTabV" hidden>
     <div class="dz" id="vz">
       <aside class="dz-lado" aria-label="Salas de voz">
-        <div class="dz-lado-h"><span>Salas de voz</span><button id="vzMais" type="button" class="dz-ib" aria-label="Criar sala nova" aria-expanded="false" title="Criar sala nova"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div>
+        <div class="dz-lado-h"><span>Salas de voz</span><button id="vzMais" type="button" class="dz-novo-b" aria-expanded="false" title="Criar sala nova"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nova sala</button></div>
         <form class="dz-novo" id="vzNovo" hidden>
-          <input id="vzSala" type="text" maxlength="30" autocomplete="off" placeholder="Nome da sala (ex.: filmes de terror)" aria-label="Nome da sala nova">
+          <input id="vzSala" type="text" maxlength="30" autocomplete="off" placeholder="Nome da sala" aria-label="Nome da sala nova">
           <label class="lv-chk"><input id="vzPriv" type="checkbox"> Privada: fora da lista, só entra por convite</label>
           <button id="vzCriar" type="submit" class="of-btn">Criar e entrar</button>
         </form>
@@ -575,7 +599,7 @@ html.em-atual .av-card{margin:0}
         <div class="dz-vazio" id="vzVazio">
           <span class="dz-vazio-i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></span>
           <h3>Escolha uma sala para conversar</h3>
-          <p>Clique numa sala da lista ou crie uma nova no botão +. Quem entra fala por microfone e pode transmitir a tela com som para todos assistirem juntos.</p>
+          <p>Clique numa sala da lista ou crie uma em Nova sala. Quem entra fala por microfone e pode transmitir a tela com som para todos assistirem juntos.</p>
           <p class="dz-vazio-d" id="vzDica">Use <b>fones de ouvido</b> para ninguém ouvir eco. Se o Discord estiver aberto, o som dele entra na transmissão da tela inteira: compartilhe só a janela ou a aba do filme. Uma pessoa transmite por vez e cabem 6 por sala.</p>
         </div>
         <div class="dz-on" id="vzOn" hidden>
@@ -614,24 +638,8 @@ html.em-atual .av-card{margin:0}
         <div id="vzAudios" hidden></div>
       </section>
     </div>
-    <div class="lv-lista" id="lvLista"></div>
-    <form class="lv-colar" id="lvColar"><input id="lvLink" type="text" autocomplete="off" placeholder="Colar o link da live que saiu no Discord" aria-label="Link da live"><button type="submit" class="of-btn">Adicionar</button></form>
-    <p class="lv-err" id="lvErr" hidden></p>
-    <p class="lv-ocultar"><button type="button" class="linkbtn" id="lvOcultar">Não vou usar a Live: esconder esta aba</button></p>
-    <div class="lv-wrap" id="lvWrap" hidden>
-      <div class="lv-stage" id="lvStage">
-        <video id="lvVideo" autoplay playsinline muted></video>
-        <span class="lv-badge" id="lvBadge" hidden>AO VIVO</span>
-        <span class="lv-somdica" id="lvSomDica" hidden>Sem som: use o botão de volume</span>
-        <div class="lv-msg" id="lvMsg" hidden></div>
-        <div class="lv-bar" id="lvBar">
-          <button class="lv-b" id="lvMute" type="button" aria-label="Ligar o som"><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path class="p-on" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="p-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg></button>
-          <input id="lvVol" type="range" min="0" max="100" value="80" aria-label="Volume">
-          <span class="lv-tit" id="lvTit"></span>
-          <button class="lv-b" id="lvFull" type="button" aria-label="Tela cheia" title="Tela cheia"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
-        </div>
-      </div>
     </div>
+    <p class="lv-ocultar"><button type="button" class="linkbtn" id="lvOcultar">Não vou usar a Live: esconder esta aba</button></p>
   </section>
 
   <section class="panel" id="p-versao" role="tabpanel" aria-labelledby="t-versao" hidden>

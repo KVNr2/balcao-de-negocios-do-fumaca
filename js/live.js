@@ -83,7 +83,7 @@
     var lista = todas();
     if(!lista.length){
       var v = document.createElement("div"); v.className = "lv-vazio";
-      v.innerHTML = "<b>Ninguém está transmitindo agora</b>Quando alguém digitar /live no Discord e começar, a live aparece aqui sozinha.";
+      v.innerHTML = "<b>Ninguém está transmitindo agora</b><span>Quando alguém digitar <code>/live</code> no Discord e começar, a live aparece aqui sozinha. Para transmitir a sua tela, digite <code>/live</code> no Discord: o bot manda só para você o link de transmitir.</span>";
       L.appendChild(v); return;
     }
     lista.forEach(function(x){
