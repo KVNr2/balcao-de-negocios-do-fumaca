@@ -100,7 +100,16 @@ async function renderVersao(){
   const REPO="https://api.github.com/repos/KVNr2/balcao-de-negocios-do-fumaca";
   const gh=u=>fetch(REPO+u,{headers:{Accept:"application/vnd.github+json"}}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); });
   (async()=>{ try{
-    const base=(await gh("/commits?path=versao.json&per_page=1"))[0]; const cmp=await gh(`/compare/${base.sha}...main`);
+    /* o que está no ar = commit da última publicação do GitHub Pages que terminou com sucesso
+       (antes era o último commit que mexeu em versao.json, mas commits só de novidades.json não mudam versao.json
+       e ficavam "faltando" para sempre) */
+    let baseSha=null;
+    for(const d of await gh("/deployments?environment=github-pages&per_page=5")){
+      const st=await gh(`/deployments/${d.id}/statuses?per_page=1`);
+      if(st[0]&&st[0].state==="success"){ baseSha=d.sha; break; }
+    }
+    if(!baseSha) baseSha=(await gh("/commits?path=versao.json&per_page=1"))[0].sha;
+    const cmp=await gh(`/compare/${baseSha}...main`);
     if(tok!==VTOK) return; pend.textContent=""; let n=cmp.ahead_by||0;
     /* commits que só mexeram no programa (.exe) ou em ferramentas não mudam o site: não são "atualização a caminho" */
     if(n&&Array.isArray(cmp.files)&&cmp.files.length&&cmp.files.every(f=>/^(programa|tools)\//.test(f.filename))) n=0;
