@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-11-18T03:35:00Z",
+   "titulo": "Avatares do Balcão nas salas de voz",
+   "itens": [
+    "Salas de voz: os avatares agora são desenhos próprios do Balcão, com 16 emblemas (lanterna, estrela, lua, espada, escudo, poção, moeda, peixe, machado, orbe, picareta, folha, chama, coroa, tenda e arco) e 6 cores de fundo.",
+    "Continua dando para usar uma foto ou só a inicial do nome."
+   ]
+  },
+  {
    "t": "2026-11-18T02:40:00Z",
    "titulo": "Live: Transmissões e Salas de voz separadas",
    "itens": [
