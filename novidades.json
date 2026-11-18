@@ -1,6 +1,13 @@
 {
  "itens": [
   {
+   "t": "2026-11-18T03:50:00Z",
+   "titulo": "Aviso de versão nova do site",
+   "itens": [
+    "Quando o site é atualizado e você está com ele aberto (no navegador ou no overlay), aparece embaixo o aviso \"O site foi atualizado\", com Atualizar agora e Depois. A página nunca recarrega sozinha, para não interromper sala de voz nem live."
+   ]
+  },
+  {
    "t": "2026-11-18T03:35:00Z",
    "titulo": "Avatares do Balcão nas salas de voz",
    "itens": [
