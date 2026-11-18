@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-11-18T05:05:00Z",
+   "programa": "2.3.4",
+   "titulo": "Modo Safari no minimapa",
+   "itens": [
+    "Albion Overlay 2.3.4: novo Modo Safari, que marca no minimapa do jogo os baús de Avalon que valem a pena, os mobs de cristal e os aspectos de coleta.",
+    "Baús: assim que você entra num mapa de Avalon, aparecem os baús médios (chefe Guerreiro ou Mago) e os grandes (chefe Cavaleiro). Os baús menores ficam de fora, e o baú some do mapa quando o chefe não é um desses.",
+    "Mobs de cristal (aranha, cobra e besouro) e aspectos aparecem quando o jogo avisa que estão por perto; os pontos onde os aspectos nascem em Avalon aparecem já na entrada.",
+    "As marcas só aparecem com o minimapa aberto. Liga e desliga pelo ícone do overlay na bandeja do Windows (Modo Safari, com uma opção para baús, cristal e aspectos)."
+   ]
+  },
+  {
    "t": "2026-11-18T03:50:00Z",
    "titulo": "Aviso de versão nova do site",
    "itens": [
