@@ -1,6 +1,21 @@
 {
  "itens": [
   {
+   "t": "2026-11-18T01:35:00Z",
+   "titulo": "Mapa de Avalon do overlay igual ao do site",
+   "itens": [
+    "A janelinha do Mapa de Avalon do overlay tem o mesmo desenho da janela do site: mapa grande à esquerda e, à direita, primeiro dungeons e baús e depois os recursos, com o tier e o tipo em destaque."
+   ]
+  },
+  {
+   "t": "2026-11-18T01:40:00Z",
+   "programa": "2.3.2",
+   "titulo": "Mapa de Avalon do overlay em formato paisagem",
+   "itens": [
+    "Albion Overlay 2.3.2: o atalho do Mapa de Avalon abre uma janela larga, no mesmo formato do site."
+   ]
+  },
+  {
    "t": "2026-11-17T21:20:00Z",
    "titulo": "Mapa de Avalon mais limpo e pesquisa de item no visual do site",
    "itens": [
