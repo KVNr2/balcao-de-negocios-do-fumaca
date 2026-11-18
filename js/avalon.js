@@ -17,7 +17,8 @@ function avMatch(m){
   if(AV.type&&(AV.type==="ROYAL"?m.y!=="ROYAL":AV_TYPE_G(m.y)!==AV.type&&m.y!==AV.type)) return false;
   for(const k of AV.res) if(!avRes(m,k)) return false;
   for(const k of AV.extra) if(!AV_EXTRA[k][1](m)) return false;
-  if(AV.q){ const n=m._n; for(const w of avNorm(AV.q).split(" ")) if(w&&!n.includes(w)) return false; }
+  if(AV.q&&AV.qExato){ return m._n===avNorm(AV.q); }   /* nome lido pelo OCR do overlay: só o mapa com o nome completo igual */
+  if(AV.q){ const ws=(" "+m._n).replace(/[^a-z0-9]+/g," "); for(const w of avNorm(AV.q).split(" ")) if(w&&!ws.includes(" "+w)) return false; }   /* cada termo casa só no começo de uma palavra do nome: "te ay" acha "Tetitos - Ayoslum" e não "Hurites - Ouaylos" */
   return true;
 }
 const AV_MC={o:"#c98b4a",w:"#b07a46",f:"#7fc16b",h:"#d9b78e",s:"#a9a9b4"}, AV_MN={o:"Minério",w:"Madeira",f:"Fibra",h:"Couro",s:"Pedra",D:"Dungeon solo",G:"Dungeon de grupo",E:"Raid",P:"Portal",B:"Portal da Brecilien"};
@@ -140,7 +141,7 @@ function avSavedUI(){
   avRoute();
 }
 function avHistUI(){ const h=$("avHist"); h.textContent=""; if(!AV.hist.length) return; h.append(el("span",{class:"muted small",text:"Buscas recentes: "}));
-  AV.hist.forEach(q=>{ const b=el("button",{type:"button",class:"av-chip",text:q}); b.addEventListener("click",()=>{ $("avQ").value=q; AV.q=q; AV.shown=60; renderAv(); }); h.append(b); });
+  AV.hist.forEach(q=>{ const b=el("button",{type:"button",class:"av-chip",text:q}); b.addEventListener("click",()=>{ $("avQ").value=q; AV.qExato=false; AV.q=q; AV.shown=60; renderAv(); }); h.append(b); });
   const c=el("button",{type:"button",class:"linkbtn",text:"limpar"}); c.addEventListener("click",()=>{ AV.hist=[]; store.set("avHist","[]"); avHistUI(); }); h.append(c); }
 function avInit(){
   AV.inited=true; AV.saved=avRead("avSaved",[]).filter(x=>x&&x.i); AV.hist=avRead("avHist",[]);
@@ -149,8 +150,8 @@ function avInit(){
   const mk=(host,obj,set)=>{ for(const k in obj){ const b=el("button",{type:"button","aria-pressed":"false",text:Array.isArray(obj[k])?obj[k][0]:obj[k]}); b.addEventListener("click",()=>{ if(set.has(k)) set.delete(k); else set.add(k); b.setAttribute("aria-pressed",String(set.has(k))); AV.shown=60; renderAv(); }); host.append(b); } };
   mk($("avRes"),AV_RES,AV.res); mk($("avExtra"),AV_EXTRA,AV.extra);
   $("avSort").addEventListener("change",()=>{ AV.sort=$("avSort").value; renderAv(); });
-  let tmr; $("avQ").addEventListener("input",()=>{ AV.q=$("avQ").value; AV.shown=60; renderAv(); clearTimeout(tmr); tmr=setTimeout(()=>{ const q=AV.q.trim(); if(q.length<3) return; AV.hist=[q,...AV.hist.filter(x=>x!==q)].slice(0,15); store.set("avHist",JSON.stringify(AV.hist)); avHistUI(); },1500); });
-  $("avClear").addEventListener("click",()=>{ AV.q="";AV.tier=0;AV.type="";AV.res.clear();AV.extra.clear();AV.shown=60; $("avQ").value=""; $("avType").value=""; document.querySelectorAll("#avTier button,#avRes button,#avExtra button").forEach((b,i)=>b.setAttribute("aria-pressed",String(b.parentElement.id==="avTier"&&b.textContent==="Todos"))); renderAv(); });
+  let tmr; $("avQ").addEventListener("input",()=>{ AV.qExato=false; AV.q=$("avQ").value; AV.shown=60; renderAv(); clearTimeout(tmr); tmr=setTimeout(()=>{ const q=AV.q.trim(); if(q.length<3) return; AV.hist=[q,...AV.hist.filter(x=>x!==q)].slice(0,15); store.set("avHist",JSON.stringify(AV.hist)); avHistUI(); },1500); });
+  $("avClear").addEventListener("click",()=>{ AV.q=""; AV.qExato=false;AV.tier=0;AV.type="";AV.res.clear();AV.extra.clear();AV.shown=60; $("avQ").value=""; $("avType").value=""; document.querySelectorAll("#avTier button,#avRes button,#avExtra button").forEach((b,i)=>b.setAttribute("aria-pressed",String(b.parentElement.id==="avTier"&&b.textContent==="Todos"))); renderAv(); });
   $("avMore").addEventListener("click",()=>{ AV.shown+=60; renderAv(); });
   const tz=$("avTz"); AV_TZ.forEach(([v,t])=>tz.append(el("option",{value:v,text:t}))); tz.value=store.get("avTz")||"local"; $("avFmt").value=store.get("avFmt")||"rel";
   const setNow=()=>{ const d=new Date(), tzv=$("avTz").value, ms=d.getTime(); const o=tzv==="local"?-d.getTimezoneOffset()*60000:avTzOff(ms,tzv); $("avNow").value=new Date(ms+o).toISOString().slice(0,16); };
@@ -184,6 +185,6 @@ async function avMapaAtual(id){
 /* Overlay: o atalho "Ler mapa de Avalon sob o mouse" manda o nome lido; limpa os filtros e pesquisa por ele. */
 window.addEventListener("message",async e=>{
   const q=e.data&&e.data.avBusca; if(typeof q!=="string"||e.origin!==location.origin||e.source!==window.parent) return;
-  try{ await renderAv(); $("avClear").click(); AV.q=q.trim(); $("avQ").value=AV.q; AV.shown=60; await renderAv(); }catch(x){}
+  try{ await renderAv(); $("avClear").click(); AV.q=q.trim(); $("avQ").value=AV.q; AV.qExato=!!(AV.data&&AV.data.some(m=>m._n===avNorm(AV.q))); AV.shown=60; await renderAv(); }catch(x){}   /* se o OCR não bater com nenhum nome inteiro, cai na busca normal pelo começo das palavras */
   try{ window.parent.postMessage({avOk:1},location.origin); }catch(x){}
 });
