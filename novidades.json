@@ -1,6 +1,13 @@
 {
  "itens": [
   {
+   "t": "2026-11-18T05:45:00Z",
+   "titulo": "Aba Versão: aviso de publicação corrigido",
+   "itens": [
+    "O aviso \"Faltam N atualizações entrarem no ar\" agora confere a última publicação do site que terminou com sucesso. Antes, mudanças só nas novidades ou só no programa ficavam aparecendo como pendentes mesmo já estando no ar."
+   ]
+  },
+  {
    "t": "2026-11-18T05:05:00Z",
    "programa": "2.3.4",
    "titulo": "Modo Safari no minimapa",
