@@ -646,3 +646,9 @@ button.dz-av{padding:0;font:700 16px var(--f-body);cursor:pointer}
 .dz-avcores button[aria-pressed="true"]{border-color:var(--saffron);box-shadow:0 0 0 2px rgba(232,171,69,.35)}
 .dz-avcores button:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
 .dz-avpick{width:316px}
+/* aviso de versão nova do site */
+.site-novo{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9000;width:min(560px,calc(100% - 32px));display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 16px 14px 18px;border:1px solid var(--line);border-radius:var(--r-panel);background:var(--cloth);box-shadow:0 14px 40px rgba(0,0,0,.55),inset 3px 0 0 var(--saffron)}
+.site-novo-t{flex:1 1 260px;display:grid;gap:2px}
+.site-novo-t b{font:600 18px var(--f-display);color:var(--parch)}
+.site-novo-t span{font-size:14px;color:var(--parch-2)}
+.site-novo-b{display:flex;gap:8px;margin-left:auto}

@@ -116,3 +116,28 @@ async function renderVersao(){
     fetch(url+"?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{ const raw=f(j)||""; const dd=new Date(/T/.test(raw)?raw:raw+"T00:00:00Z"); if(isNaN(dd)){ v.textContent=raw||"sem data"; return; } v.textContent=/T/.test(raw)?`${fmtDH(dd)} (${haQuanto(dd)})`:dd.toLocaleDateString("pt-BR",{timeZone:"UTC"}); }).catch(()=>{ v.textContent="indisponível"; });
   }
 }
+
+/* ---- aviso de versão nova do site (no site e dentro do overlay) ----
+   A página aberta não se atualiza sozinha: quem deixa o site ou o overlay aberto por horas continuava na versão antiga sem saber.
+   A cada 5 minutos (e ao voltar para a aba) compara o carimbo desta página com o versao.json publicado; se mudou, mostra um aviso
+   com "Atualizar agora" (recarrega) e "Depois" (some por 30 minutos). Nunca recarrega sozinho: quem está numa sala de voz ou
+   assistindo a uma live não é interrompido. */
+(function(){
+  const meu=document.documentElement.dataset.v||""; if(!meu) return;
+  let adiado=0, aberto=null;
+  function aviso(nova){
+    if(aberto||Date.now()<adiado) return;
+    const box=el("div",{class:"site-novo",role:"status","aria-live":"polite"});
+    const tx=el("div",{class:"site-novo-t"}); tx.append(el("b",{text:"O site foi atualizado"}), el("span",{text:"Atualize para ver as mudanças. Se estiver numa sala de voz ou assistindo a uma live, ela será interrompida."}));
+    const depois=el("button",{type:"button",class:"btn ghost",text:"Depois"}), agora=el("button",{type:"button",class:"btn",text:"Atualizar agora"});
+    depois.addEventListener("click",()=>{ box.remove(); aberto=null; adiado=Date.now()+30*60e3; });
+    agora.addEventListener("click",()=>{ agora.disabled=true; agora.textContent="Atualizando…"; location.reload(); });
+    const bt=el("div",{class:"site-novo-b"}); bt.append(depois,agora); box.append(tx,bt); document.body.append(box); aberto=box;
+  }
+  async function conferir(){
+    if(document.hidden) return;
+    try{ const j=await fetch("versao.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()); if(j&&j.v&&j.v!==meu) aviso(j.v); }catch(e){}
+  }
+  setInterval(conferir,5*60e3); setTimeout(conferir,60e3);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) conferir(); });
+})();
