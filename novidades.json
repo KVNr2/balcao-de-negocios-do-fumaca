@@ -1,6 +1,24 @@
 {
  "itens": [
   {
+   "t": "2026-11-18T02:15:00Z",
+   "titulo": "Busca de mapas pelo começo das palavras",
+   "itens": [
+    "Mapas de Avalon: cada termo da busca casa com o começo de uma palavra do nome. \"te ay\" acha só \"Tetitos - Ayoslum\".",
+    "Quando o nome vem da leitura da tela do overlay, a busca exige o nome completo.",
+    "Guia da identidade visual (cores, letras, componentes e logos) guardado no repositório, na pasta identidade-visual."
+   ]
+  },
+  {
+   "t": "2026-11-18T02:20:00Z",
+   "programa": "2.3.3",
+   "titulo": "Mensagens do overlay num padrão só",
+   "itens": [
+    "Albion Overlay 2.3.3: todas as mensagens (boas-vindas, fechar, atualização, atalho, desinstalar) têm o mesmo visual do site, com toldo, escudo e botões à direita, sem a barra de título do Windows.",
+    "Nas boas-vindas, o overlay pergunta se pode coletar os preços do mercado para ajudar a manter a base atualizada, com a opção de iniciar junto com o Windows. Dá para mudar depois em Configurações."
+   ]
+  },
+  {
    "t": "2026-11-18T01:35:00Z",
    "titulo": "Mapa de Avalon do overlay igual ao do site",
    "itens": [
