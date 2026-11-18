@@ -1,6 +1,6 @@
-/* ================= Live: salas de voz estilo canal do Discord (padrão "cinema") =================
+/* ================= Live: salas de voz estilo canal do Discord =================
    Lista de salas com quem está dentro de cada uma (como os canais de voz do Discord): qualquer pessoa cria uma sala nova e ela aparece
-   na lista de todos (a sala "cinema" sempre existe; as outras somem depois de 24 h sem uso; salas privadas não aparecem, só entra quem souber o nome).
+   na lista de todos (somem logo que ficam vazias; salas privadas não aparecem, só entra quem souber o nome).
    Dentro da sala: conversa por microfone e transmissão de tela com som (uma pessoa por vez, para todos da sala assistirem juntos).
    A voz e o vídeo vão direto de navegador para navegador (WebRTC, malha: cada um fala com cada um, até 6 pessoas). O Supabase só leva as mensagens
    de combinação (SDP) pelas funções voz_sync / voz_enviar / voz_sair / voz_usar / voz_canais (consulta a cada ~1,5 s enquanto se está na sala).
@@ -422,7 +422,7 @@
       }
       L.appendChild(row);
     });
-    if(!lista.length){ var v = document.createElement("p"); v.className = "dz-sem"; v.textContent = "Nenhuma sala ainda."; L.appendChild(v); }
+    if(!lista.length){ var v = document.createElement("p"); v.className = "dz-sem"; v.textContent = "Nenhuma sala aberta. Crie a primeira em Nova sala."; L.appendChild(v); }
   }
   function listarCanais(){
     if(document.hidden) return Promise.resolve();
@@ -516,4 +516,42 @@
   }
   window.vzEstado = function(){ return { rn: rnOk, dentro: dentro, sala: sala, eu: eu, pessoas: pessoas.length, conectados: Object.keys(conns).filter(function(k){ return conns[k].ok; }).length, mic: !!mic, micOn: micOn, somOn: somOn, transmitindo: !!tela, assistindo: Object.keys(vt).length }; };
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
+})();
+
+/* ================= Live: duas vistas (Transmissões e Salas de voz) =================
+   A aba tem um seletor no topo. A escolha fica guardada (lv:vista). Entrar numa sala, chegar por convite de sala ou estar transmitindo numa
+   sala leva para Salas de voz; abrir um link de live, assistir ou transmitir pelo /live leva para Transmissões. Os números ao lado mostram
+   quantas lives estão no ar e quantas pessoas estão nas salas. */
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var tT = $("lvTabT"), tV = $("lvTabV"); if(!tT || !tV) return;
+  function ls(k, v){ try{ if(v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); }catch(e){} return null; }
+  function mostrar(v, guardar){
+    var voz = v === "voz";
+    $("lvViewT").hidden = voz; $("lvViewV").hidden = !voz;
+    tT.setAttribute("aria-selected", String(!voz)); tT.setAttribute("aria-pressed", String(!voz));
+    tV.setAttribute("aria-selected", String(voz)); tV.setAttribute("aria-pressed", String(voz));
+    if(guardar) ls("lv:vista", v);
+  }
+  tT.addEventListener("click", function(){ mostrar("trans", true); });
+  tV.addEventListener("click", function(){ mostrar("voz", true); });
+  [tT, tV].forEach(function(b, i){ b.addEventListener("keydown", function(e){ if(e.key === "ArrowRight" || e.key === "ArrowLeft"){ var o = i ? tT : tV; o.focus(); o.click(); } }); });
+  function contar(){
+    var nT = document.querySelectorAll("#lvLista .lv-dot.on").length, nV = document.querySelectorAll("#vzCanais ul li").length;
+    $("lvCntT").textContent = nT ? String(nT) : ""; $("lvCntT").title = nT ? (nT === 1 ? "1 live no ar" : nT + " lives no ar") : "";
+    $("lvCntV").textContent = nV ? String(nV) : ""; $("lvCntV").title = nV ? (nV === 1 ? "1 pessoa nas salas" : nV + " pessoas nas salas") : "";
+  }
+  var vis = function(id){ var e = $(id); return !!(e && !e.hidden); };
+  var antes = { on: false, conv: false, emit: false, wrap: false };
+  function seguir(){
+    var a = { on: vis("vzOn"), conv: vis("vzConvite"), emit: vis("lvEmit") || vis("lvEntregue"), wrap: vis("lvWrap") };
+    if((a.on && !antes.on) || (a.conv && !antes.conv)) mostrar("voz", false);
+    else if((a.emit && !antes.emit) || (a.wrap && !antes.wrap)) mostrar("trans", false);
+    antes = a; contar();
+  }
+  var mo = new MutationObserver(seguir);
+  ["lvLista", "vzCanais"].forEach(function(id){ var e = $(id); if(e) mo.observe(e, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] }); });
+  ["vzOn", "vzConvite", "lvEmit", "lvEntregue", "lvWrap"].forEach(function(id){ var e = $(id); if(e) mo.observe(e, { attributes: true, attributeFilter: ["hidden"] }); });
+  mostrar(ls("lv:vista") === "voz" ? "voz" : "trans", false); seguir();
 })();
