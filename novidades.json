@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-11-22T23:47:23Z",
+   "programa": "2.3.6",
+   "titulo": "Portais: lembretes das Terras Ancestrais",
+   "itens": [
+    "Aba nova Portais, no site e no menu do Albion Overlay: lembretes dos portais para as Terras Ancestrais em qualquer mapa (azul, amarelo, vermelho, preto ou de Avalon).",
+    "Pesquisa do mapa pelo nome entre os 815 mapas do jogo, com a zona e o tier.",
+    "Para cada portal: tamanho (pequeno 1 a 5, médio 5 a 7, grande 15 a 20), o tempo para abrir ou, se já está aberto, para fechar, e quantos minutos antes avisar.",
+    "Com o Albion Overlay 2.3.6 aberto, o aviso aparece por cima do jogo com um som de sino. Só no site, o aviso aparece na página enquanto ela estiver aberta."
+   ]
+  },
+  {
    "t": "2026-11-22T23:26:19Z",
    "programa": "2.3.5",
    "titulo": "Albion Overlay 2.3.5: Safari mais preciso",

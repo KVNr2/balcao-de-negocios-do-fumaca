@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-v="978accef">
+<html lang="pt-BR" data-v="50215ac2">
 <head>
 <script>/* se o navegador guardou um index.html velho, compara com versao.txt (sem cache) e recarrega uma vez */(function(){try{var v=document.documentElement.dataset.v;fetch("versao.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){t=t.trim();if(t&&v&&t!==v&&sessionStorage.getItem("rl")!==t){sessionStorage.setItem("rl",t);fetch(location.pathname,{cache:"reload"}).catch(function(){}).then(function(){location.reload()})}}).catch(function(){})}catch(e){}})()</script>
 <meta charset="utf-8">
@@ -26,10 +26,10 @@ html.em-atual .av-card{margin:0}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="css/balcao.css?v=978accef">
-<link rel="stylesheet" href="css/vip.css?v=978accef">
-<link rel="stylesheet" href="css/avicons.css?v=978accef">
-<link rel="stylesheet" href="css/souk.css?v=978accef">
+<link rel="stylesheet" href="css/balcao.css?v=50215ac2">
+<link rel="stylesheet" href="css/vip.css?v=50215ac2">
+<link rel="stylesheet" href="css/avicons.css?v=50215ac2">
+<link rel="stylesheet" href="css/souk.css?v=50215ac2">
 </head>
 <body>
 <div class="wrap app">
@@ -76,6 +76,7 @@ html.em-atual .av-card{margin:0}
       <button role="tab" id="t-prata" aria-controls="p-prata" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1.6 3.2c3.6 1.6 5.6 4.8 5.6 7.8a5 5 0 0 1-5 5h-4a5 5 0 0 1-5-5c0-3 2-6.2 5.6-7.8z"/><path d="M12 11v5M10.5 12.3h2.3a1 1 0 0 1 0 2h-1.6a1 1 0 0 0 0 2h2.3"/></svg><span class="tl">Onde está a prata</span><em class="fl">fl. 11</em></button>
       <span class="grp" aria-hidden="true">Estrada</span>
       <button role="tab" id="t-avalon" aria-controls="p-avalon" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 3.5v5.5M12 15v5.5M3.5 12H9M15 12h5.5"/></svg><span class="tl">Avalon</span><em class="fl">Estradas</em></button>
+      <button role="tab" id="t-portais" aria-controls="p-portais" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="6" ry="8.5"/><path d="M12 7.5c1.8 1.2 2.5 2.8 2.5 4.5S13.8 15.3 12 16.5"/><path d="M4 20.5h16"/></svg><span class="tl">Portais</span><em class="fl">Terras Ancestrais</em></button>
       <span class="grp" aria-hidden="true">Combate</span>
       <button role="tab" id="t-builds" aria-controls="p-builds" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 3.5H20v5.5L9.5 19.5l-5-5z"/><path d="M6 13l5 5M3.5 20.5L6 18"/></svg><span class="tl">Builds</span><em class="fl">fl. 13</em></button>
       <button role="tab" id="t-zvz" aria-controls="p-zvz" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l11 11M20 4L9 15"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg><span class="tl">Build ZvZ</span></button>
@@ -445,6 +446,30 @@ html.em-atual .av-card{margin:0}
     <p class="ganho-top" id="ckSum" hidden></p>
     <div class="tbl"><table id="ckTable" class="nosort"></table></div>
     <p class="tiny muted">Taxa da estação estimada pela nutrição: a da comida vem do jogo; a da poção é a soma da nutrição dos ingredientes, por poção. Confira o valor que aparece no jogo.</p>
+  </section>
+
+  <!-- PORTAIS -->
+  <section class="panel" id="p-portais" role="tabpanel" aria-labelledby="t-portais" hidden>
+    <p class="aside">Lembretes dos portais para as Terras Ancestrais (Ancient Lands). Escolha o mapa, o tamanho e o tempo que aparece no jogo: o lembrete conta até o portal abrir (ou fechar, se ele já está aberto) e avisa quantos minutos antes você quiser.</p>
+    <div class="sheet">
+      <h2>Novo lembrete</h2>
+      <div class="pt-form">
+        <div class="ctl pt-busca">Mapa
+          <input id="ptQ" type="search" placeholder="Nome do mapa (ex.: Whitebank Cross)" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ptRes" aria-label="Pesquisar mapa pelo nome">
+          <div id="ptRes" class="pt-res" role="listbox" aria-label="Mapas encontrados" hidden></div>
+          <div id="ptSel" class="pt-sel" hidden></div>
+        </div>
+        <div class="ctl">Zona<select id="ptCor" aria-label="Filtrar a pesquisa pela zona"><option value="">Todas</option><option value="azul">Azul</option><option value="amarela">Amarela</option><option value="vermelha">Vermelha</option><option value="preta">Preta</option><option value="avalon">Avalon</option></select></div>
+        <div class="ctl">Tamanho<div class="seg" id="ptTam" role="group" aria-label="Tamanho do portal"><button type="button" data-v="p" aria-pressed="true">Pequeno 1–5</button><button type="button" data-v="m" aria-pressed="false">Médio 5–7</button><button type="button" data-v="g" aria-pressed="false">Grande 15–20</button></div></div>
+        <div class="ctl">Situação<div class="seg" id="ptAb" role="group" aria-label="Situação do portal"><button type="button" data-v="0" aria-pressed="true">Vai abrir</button><button type="button" data-v="1" aria-pressed="false">Já aberto</button></div></div>
+        <div class="ctl"><span id="ptTLab">Abre em</span><div class="pt-t"><input id="ptH" type="number" min="0" max="23" placeholder="h" aria-label="Horas"><input id="ptM" type="number" min="0" max="59" placeholder="min" aria-label="Minutos"><input id="ptS" type="number" min="0" max="59" placeholder="seg" aria-label="Segundos"></div></div>
+        <div class="ctl">Avisar<select id="ptAvis" aria-label="Quando avisar"></select></div>
+      </div>
+      <div class="row-ctl"><button type="button" class="btn" id="ptAdd">Salvar lembrete</button><button type="button" class="bc-more" id="ptNotif" hidden>Permitir aviso do navegador</button><span class="muted small" id="ptMsg" role="status"></span></div>
+      <p class="pt-ov" id="ptOverlay" role="status"></p>
+    </div>
+    <div class="sheet"><h2>Lembretes <small id="ptN"></small></h2><div id="ptLista" class="pt-lista"></div></div>
+    <div id="ptAviso" aria-live="assertive"></div>
   </section>
 
   <!-- AVALON -->
@@ -999,35 +1024,36 @@ html.em-atual .av-card{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
-<script src="js/icons.js?v=978accef"></script>
-<script src="js/base.js?v=978accef"></script>
-<script src="js/precos.js?v=978accef"></script>
-<script src="js/fx.js?v=978accef"></script>
-<script src="js/biz.js?v=978accef"></script>
-<script src="js/builds.js?v=978accef"></script>
-<script src="js/nossas.js?v=978accef"></script>
-<script src="js/ip.js?v=978accef"></script>
-<script src="js/zvz.js?v=978accef"></script>
-<script src="js/pvp.js?v=978accef"></script>
-<script src="js/novos.js?v=978accef"></script>
-<script src="js/guia.js?v=978accef"></script>
-<script src="js/ui.js?v=978accef"></script>
-<script src="js/avalon.js?v=978accef"></script>
-<script src="js/oficina.js?v=978accef"></script>
-<script src="js/patch.js?v=978accef"></script>
-<script src="js/versao.js?v=978accef"></script>
-<script src="js/bag.js?v=978accef"></script>
-<script src="js/plano.js?v=978accef"></script>
-<script src="js/pesca.js?v=978accef"></script>
-<script src="js/listfil.js?v=978accef"></script>
-<script src="js/fav.js?v=978accef"></script>
-<script src="js/festas.js?v=978accef"></script>
-<script src="js/transporte.js?v=978accef"></script>
-<script src="js/rotacao.js?v=978accef"></script>
-<script src="js/menucraft.js?v=978accef"></script>
-<script src="js/compras.js?v=978accef"></script>
-<script src="js/live.js?v=978accef"></script>
-<script src="js/voz.js?v=978accef"></script>
-<script src="js/main.js?v=978accef"></script>
+<script src="js/icons.js?v=50215ac2"></script>
+<script src="js/base.js?v=50215ac2"></script>
+<script src="js/precos.js?v=50215ac2"></script>
+<script src="js/fx.js?v=50215ac2"></script>
+<script src="js/biz.js?v=50215ac2"></script>
+<script src="js/builds.js?v=50215ac2"></script>
+<script src="js/nossas.js?v=50215ac2"></script>
+<script src="js/ip.js?v=50215ac2"></script>
+<script src="js/zvz.js?v=50215ac2"></script>
+<script src="js/pvp.js?v=50215ac2"></script>
+<script src="js/novos.js?v=50215ac2"></script>
+<script src="js/guia.js?v=50215ac2"></script>
+<script src="js/ui.js?v=50215ac2"></script>
+<script src="js/avalon.js?v=50215ac2"></script>
+<script src="js/portais.js?v=50215ac2"></script>
+<script src="js/oficina.js?v=50215ac2"></script>
+<script src="js/patch.js?v=50215ac2"></script>
+<script src="js/versao.js?v=50215ac2"></script>
+<script src="js/bag.js?v=50215ac2"></script>
+<script src="js/plano.js?v=50215ac2"></script>
+<script src="js/pesca.js?v=50215ac2"></script>
+<script src="js/listfil.js?v=50215ac2"></script>
+<script src="js/fav.js?v=50215ac2"></script>
+<script src="js/festas.js?v=50215ac2"></script>
+<script src="js/transporte.js?v=50215ac2"></script>
+<script src="js/rotacao.js?v=50215ac2"></script>
+<script src="js/menucraft.js?v=50215ac2"></script>
+<script src="js/compras.js?v=50215ac2"></script>
+<script src="js/live.js?v=50215ac2"></script>
+<script src="js/voz.js?v=50215ac2"></script>
+<script src="js/main.js?v=50215ac2"></script>
 </body>
 </html>
