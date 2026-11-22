@@ -1,6 +1,19 @@
 {
  "itens": [
   {
+   "t": "2026-11-22T23:26:19Z",
+   "programa": "2.3.5",
+   "titulo": "Albion Overlay 2.3.5: Safari mais preciso",
+   "itens": [
+    "Baús de Avalon com o tamanho certo: pequeno para os baús de campeão comum, médio para os de miniboss e grande para os de boss.",
+    "Os baús pequenos agora aparecem no minimapa, com ícones novos e menores, em cima do baú do jogo, para ver na hora se é solo, de grupo ou de grupo grande.",
+    "Aspectos marcados em todas as estradas, inclusive nas zonas pretas, e só depois que o jogo mostra o aspecto.",
+    "Baú aberto sai do minimapa, e a lista de baús se refaz ao voltar ao mapa.",
+    "A calibração do minimapa fica travada depois de acertada, e as marcas somem enquanto o minimapa está com zoom.",
+    "A barra de título da janela do overlay volta a ficar escondida mesmo quando o navegador troca o recorte logo ao abrir."
+   ]
+  },
+  {
    "t": "2026-11-18T05:45:00Z",
    "titulo": "Aba Versão: aviso de publicação corrigido",
    "itens": [
