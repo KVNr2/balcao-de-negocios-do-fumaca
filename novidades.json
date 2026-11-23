@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-11-23T00:00:48Z",
+   "titulo": "Salas de voz: volume e avatares",
+   "itens": [
+    "A barra de volume mostra o valor de verdade: em 100% ela fica cheia, e o número aparece ao passar o mouse.",
+    "Na lista de salas, ao lado, cada pessoa aparece com o próprio avatar também na sala em que você está."
+   ]
+  },
+  {
    "t": "2026-11-22T23:47:23Z",
    "programa": "2.3.6",
    "titulo": "Portais: lembretes das Terras Ancestrais",

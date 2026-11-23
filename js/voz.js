@@ -94,6 +94,8 @@
     if(u){ a.textContent = ""; a.style.background = "var(--cloth-2) center/cover no-repeat url(\"" + u.replace(/"/g, "%22") + "\")"; a.classList.add("com-img"); }
     else { a.textContent = (n || "?").trim().charAt(0).toUpperCase() || "?"; a.style.background = n ? cor(n) : ""; a.classList.remove("com-img"); if(av) pedirFoto(av); }
   }
+  /* barra de volume: a parte preenchida acompanha o valor (100% = barra cheia) */
+  function pintaVol(r){ var mn = +r.min || 0, mx = +r.max || 100, v = +r.value; r.style.setProperty("--p", ((v - mn) / (mx - mn) * 100) + "%"); r.title = "Volume " + Math.round(v) + "%"; }
   function avatar(n, cls, av){ var a = document.createElement("span"); a.className = "dz-av" + (cls ? " " + cls : ""); pintarAv(a, n, av); return a; }
   function prefs(){ var p = ls("vz:prefs") || {}; return { eco: p.eco !== false, ruido: p.ruido !== false, ganho: p.ganho !== false, gate: p.gate !== false, micDev: p.micDev || "", saida: p.saida || "" }; }
   function salvarPrefs(){ ls("vz:prefs", { eco: $("vzEco").checked, ruido: $("vzRuido").checked, ganho: $("vzGanho").checked, gate: $("vzGate").checked, micDev: $("vzMicDev").value || "", saida: $("vzSaida").value || "" }); }
@@ -431,8 +433,8 @@
       if(me && mic && !micOn){ var mm = document.createElement("span"); mm.className = "dz-mudo"; mm.setAttribute("aria-label", "microfone desligado"); mm.textContent = "mudo"; t.appendChild(mm); }
       if(!me){
         var ct = document.createElement("div"); ct.className = "dz-t-c";
-        var vol = document.createElement("input"); vol.type = "range"; vol.min = 0; vol.max = 100; vol.value = c ? Math.round(c.vol * 100) : 100; vol.setAttribute("aria-label", "Volume de " + p.nome);
-        vol.addEventListener("input", function(){ var cc = conns[p.eu]; if(cc){ cc.vol = (+vol.value) / 100; aplicarVolumes(); } });
+        var vol = document.createElement("input"); vol.type = "range"; vol.min = 0; vol.max = 100; vol.value = c ? Math.round(c.vol * 100) : 100; vol.setAttribute("aria-label", "Volume de " + p.nome); pintaVol(vol);
+        vol.addEventListener("input", function(){ pintaVol(vol); var cc = conns[p.eu]; if(cc){ cc.vol = (+vol.value) / 100; aplicarVolumes(); } });
         var mu = document.createElement("button"); mu.type = "button"; mu.className = "mu"; mu.dataset.on = c && c.mudo ? "1" : "0"; mu.textContent = c && c.mudo ? "Mudo" : "Silenciar";
         mu.addEventListener("click", function(){ var cc = conns[p.eu]; if(!cc) return; cc.mudo = !cc.mudo; mu.dataset.on = cc.mudo ? "1" : "0"; mu.textContent = cc.mudo ? "Mudo" : "Silenciar"; aplicarVolumes(); });
         ct.appendChild(vol); ct.appendChild(mu); t.appendChild(ct);
@@ -454,7 +456,7 @@
       var bt = document.createElement("button"); bt.type = "button"; bt.className = "dz-c-b";
       bt.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5zM16 9a4 4 0 0 1 0 6"/></svg>';
       var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = c.sala; bt.appendChild(nm);
-      var gente = aqui ? pessoas.map(function(p){ return { eu: p.eu, nome: p.nome, tela: p.tela }; }) : (c.gente || []);
+      var gente = aqui ? pessoas.map(function(p){ return { eu: p.eu, nome: p.nome, tela: p.tela, av: p.eu === eu ? meuAv() : p.av }; }) : (c.gente || []);
       if(gente.length){ var n = document.createElement("span"); n.className = "n"; n.textContent = gente.length; bt.appendChild(n); }
       if(aqui){ bt.setAttribute("aria-current", "true"); bt.title = "Você está nesta sala"; } else { bt.title = "Entrar em " + c.sala; bt.addEventListener("click", function(){ entrar(c.sala, false); }); }
       row.appendChild(bt);
@@ -589,7 +591,7 @@
       somOn = !somOn; this.dataset.on = somOn ? "1" : "0"; this.setAttribute("aria-label", somOn ? "Silenciar o áudio da sala" : "Ligar o áudio da sala"); aplicarVolumes();
       if(somOn && ctx && ctx.state === "suspended") ctx.resume().catch(function(){});
     });
-    $("vzVol").addEventListener("input", function(){ volGeral = (+this.value) / 100; aplicarVolumes(); });
+    pintaVol($("vzVol")); $("vzVol").addEventListener("input", function(){ pintaVol(this); volGeral = (+this.value) / 100; aplicarVolumes(); });
     ["vzEco", "vzRuido", "vzGanho", "vzGate"].forEach(function(id){ $(id).addEventListener("change", function(){ salvarPrefs(); trocarMic(); }); });
     $("vzMicDev").addEventListener("change", function(){ salvarPrefs(); trocarMic(); });
     $("vzSaida").addEventListener("change", function(){
