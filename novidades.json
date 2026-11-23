@@ -1,6 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-11-23T00:50:12Z",
+   "programa": "2.3.8",
+   "titulo": "Albion Overlay 2.3.8: ícones firmes em cima dos baús",
+   "itens": [
+    "Os ícones do Safari se alinham pelos próprios baús que o jogo desenha no minimapa: em poucos segundos ficam em cima de cada baú, sem escorregar para o lado.",
+    "Antes a correção vinha só da seta do personagem, que se confunde com o redemoinho azul dos portais e deixava os ícones até 14 px fora do lugar.",
+    "O ajuste de cada mapa fica guardado: na próxima visita os ícones já entram no lugar certo."
+   ]
+  },
+  {
    "t": "2026-11-23T00:40:51Z",
    "programa": "2.3.7",
    "titulo": "Albion Overlay 2.3.7: Safari acha o minimapa onde ele estiver",
