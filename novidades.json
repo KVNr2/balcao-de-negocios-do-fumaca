@@ -1,6 +1,17 @@
 {
  "itens": [
   {
+   "t": "2026-11-23T00:40:51Z",
+   "programa": "2.3.7",
+   "titulo": "Albion Overlay 2.3.7: Safari acha o minimapa onde ele estiver",
+   "itens": [
+    "O Safari encontra o minimapa sozinho na tela: em qualquer lugar onde você o colocar no editor da interface, em qualquer escala da interface e em qualquer resolução, também com o jogo em janela ou noutro monitor.",
+    "Se você mover o minimapa com o jogo aberto, as marcas vão junto em poucos segundos.",
+    "Os ícones dos baús ficam mais certeiros: o programa mede cada mapa pela seta do seu personagem quando você para, corrigindo posição e tamanho, e guarda essa medida; na próxima visita ao mapa os ícones já entram no lugar.",
+    "Os ícones acompanham o tamanho da interface."
+   ]
+  },
+  {
    "t": "2026-11-23T00:00:48Z",
    "titulo": "Salas de voz: volume e avatares",
    "itens": [
