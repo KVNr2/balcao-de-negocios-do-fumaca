@@ -1,3 +1,6 @@
 dados/
 tools/_pesca_tmp/
 .privado/
+/tools/
+/catalogo-jogo/
+/builds/supabase.sql
