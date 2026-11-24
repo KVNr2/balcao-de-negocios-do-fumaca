@@ -18,6 +18,14 @@ jobs:
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
+      - name: Ferramentas (repositório privado)
+        uses: actions/checkout@v4
+        with:
+          repository: PedroAugusto92/albion-overlay
+          token: ${{ secrets.PRIVADO_TOKEN }}
+          path: .privado
+          sparse-checkout: site/tools
+      - run: rm -rf tools && cp -r .privado/site/tools tools
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

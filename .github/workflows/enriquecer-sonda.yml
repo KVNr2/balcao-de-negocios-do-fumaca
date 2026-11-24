@@ -9,6 +9,14 @@ jobs:
     timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
+      - name: Ferramentas (repositório privado)
+        uses: actions/checkout@v4
+        with:
+          repository: PedroAugusto92/albion-overlay
+          token: ${{ secrets.PRIVADO_TOKEN }}
+          path: .privado
+          sparse-checkout: site/tools
+      - run: rm -rf tools && cp -r .privado/site/tools tools
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -18,8 +26,7 @@ jobs:
       - name: Publicar
         if: always()
         run: |
-          git config user.name "rotulo-bot"
-          git config user.email "rotulo-bot@users.noreply.github.com"
-          git add tools/sonda-eventos.json tools/exemplos-ancient.json
-          git commit -m "Sonda e exemplos de Ancient Lands com tesouros/dragão no inventário" || exit 0
-          for i in 1 2 3; do git pull --rebase -X theirs && git push && break; sleep 3; done
+          cd .privado && git config user.name rotulo-bot && git config user.email rotulo-bot@users.noreply.github.com
+          for a in sonda-eventos.json exemplos-ancient.json; do [ -f "../tools/$a" ] && cp "../tools/$a" "site/tools/$a"; done
+          git add site/tools/sonda-eventos.json site/tools/exemplos-ancient.json; git commit -q -m "Sonda e exemplos de Ancient Lands com tesouros/dragão no inventário" || exit 0
+          for i in 1 2 3; do git pull --rebase -q && git push -q && break || sleep 5; done
