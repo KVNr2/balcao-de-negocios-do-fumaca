@@ -12,9 +12,9 @@ function nbVote(id){ const v=nbVotes(); v.has(id)?v.delete(id):v.add(id); try{ s
 async function nbLoad(){
   if(NB_REPO) return;
   NB_REPO=[]; try{ NB_CFG=await need("nuvem"); NB_CLOUD=!!(NB_CFG.url&&NB_CFG.key); }catch(e){ NB_CLOUD=false; }
-  if(NB_CLOUD){ try{ const [rb,rv,rm]=await Promise.all([nbApi("nb_builds?select=id,data&order=created_at.desc&limit=300"),nbApi("nb_votos_total?select=*"),nbApi("nb_votos?select=build_id&voter=eq."+encodeURIComponent(nbVoter()))]);
+  if(NB_CLOUD){ try{ const [rb,rv,rm]=await Promise.all([nbApi("nb_builds?select=id,data&order=created_at.desc&limit=300"),nbApi("rpc/nb_totais",{method:"POST",body:"{}"}),nbApi("rpc/nb_meus_votos",{method:"POST",body:JSON.stringify({p_voter:nbVoter()})})]);
       if(!rb.ok) throw 0; const bs=await rb.json(), tot={}; (rv.ok?await rv.json():[]).forEach(x=>tot[x.build_id]=x.n);
-      const mine=rm.ok?(await rm.json()).map(x=>x.build_id):[]; try{ store.set("nb:votes",JSON.stringify(mine)); }catch(e){}
+      const mine=rm.ok?(await rm.json()).map(x=>typeof x==="string"?x:x.nb_meus_votos||x.build_id):[]; try{ store.set("nb:votes",JSON.stringify(mine)); }catch(e){}
       NB_REPO=bs.map(x=>({...x.data,id:x.id,votos:tot[x.id]||0,cloud:true})); nbRefreshAll(); return; }catch(e){ NB_CLOUD=false; NB_REPO=[]; } }
   try{ const r=await fetch(`builds/index.json?v=${VER}`); const idx=r.ok?await r.json():[];
     const all=await Promise.all(idx.map(f=>fetch(`builds/${f}?v=${VER}`).then(x=>x.ok?x.json():null).catch(()=>null)));
@@ -37,7 +37,8 @@ function nbCard(b){
   const voted=nbVotes().has(b.id), vb=el("button",{type:"button",class:"nb-vote"+(voted?" on":""),"aria-pressed":String(voted),title:voted?"Tirar meu voto":"Votar nesta build"});
   vb.append(el("span",{class:"nb-arrow",text:"▲"}),el("b",{text:String(nbVotesOf(b))}),el("small",{text:"votos"}));
   vb.addEventListener("click",async()=>{ const had=nbVotes().has(b.id); nbVote(b.id);
-    if(b.cloud){ b.votos=Math.max(0,(+b.votos||0)+(had?-1:1)); nbRender(); try{ if(had) await nbApi(`nb_votos?build_id=eq.${encodeURIComponent(b.id)}&voter=eq.${encodeURIComponent(nbVoter())}`,{method:"DELETE"}); else await nbApi("nb_votos",{method:"POST",body:JSON.stringify({build_id:b.id,voter:nbVoter()}),headers:{Prefer:"return=minimal"}}); }catch(e){} }
+    if(b.cloud){ b.votos=Math.max(0,(+b.votos||0)+(had?-1:1)); nbRender(); try{ /* o código de quem votou é segredo: votar e tirar voto só pelas funções do banco (24/11) */
+      await nbApi(had?"rpc/nb_tirar_voto":"rpc/nb_votar",{method:"POST",body:JSON.stringify({p_build:b.id,p_voter:nbVoter()})}); }catch(e){} }
     else nbRender(); }); const ib=albionBadge(b); const rt=el("div",{class:"bc-r"}); rt.append(ib,vb); top.append(rt); card.append(top);
   if(b.desc) card.append(el("p",{class:"nb-desc small",text:b.desc}));
   card.append(gbStrip(b));

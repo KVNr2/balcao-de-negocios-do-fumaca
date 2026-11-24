@@ -1,6 +1,13 @@
 {
  "itens": [
   {
+   "t": "2026-11-24T05:23:16Z",
+   "titulo": "Builds da comunidade: votos protegidos",
+   "itens": [
+    "Os votos nas builds da comunidade ficaram protegidos: só quem votou consegue tirar o próprio voto."
+   ]
+  },
+  {
    "t": "2026-11-24T05:01:31Z",
    "programa": "2.3.10",
    "titulo": "Albion Overlay 2.3.10: pesquisas muito mais rápidas e baús com contador",
