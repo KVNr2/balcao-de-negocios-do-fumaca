@@ -1,6 +1,20 @@
 {
  "itens": [
   {
+   "t": "2026-11-24T05:01:31Z",
+   "programa": "2.3.10",
+   "titulo": "Albion Overlay 2.3.10: pesquisas muito mais rápidas e baús com contador",
+   "itens": [
+    "Pesquisa de item e de mapa de Avalon bem mais rápidas: o leitor da tela fica pronto desde que o overlay abre e o painel já fica preparado. Pela tela de detalhes do item o painel aparece em cerca de 0,3 s (antes, 2 a 3 s); o mapa de Avalon, em cerca de 0,6 s.",
+    "Pesquisando de novo com o painel aberto, ele é reaproveitado na hora; se a leitura falhar, o painel que estava aberto continua na tela.",
+    "Pelo inventário (passando o mouse no item), a pesquisa espera o balão do jogo terminar de aparecer antes de ler.",
+    "A leitura do nome do mapa de Avalon acerta mais quando o texto sai borrado, e não falha mais com o mouse perto da borda esquerda da tela.",
+    "Safari: o baú aberto mostra há quanto tempo foi aberto (branco até 2 minutos, amarelo depois, quando já pode renascer), também depois de trocar de mapa e voltar.",
+    "Safari: quando um baú muda de nível (buff) ou renasce, o ícone troca na hora.",
+    "Safari: as marcas não piscam mais perto dos baús nem com o mouse em cima do minimapa."
+   ]
+  },
+  {
    "t": "2026-11-23T16:39:58Z",
    "programa": "2.3.9",
    "titulo": "Albion Overlay 2.3.9: ícones de baú pequeno e médio corrigidos",
