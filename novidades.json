@@ -1,6 +1,19 @@
 {
  "itens": [
   {
+   "t": "2026-11-24T17:40:56Z",
+   "programa": "2.3.11",
+   "titulo": "Albion Overlay 2.3.11: encantamento certo pelo inventário e painel que não atrapalha o jogo",
+   "itens": [
+    "Pesquisa pelo inventário (mouse em cima do item): o encantamento agora é lido pela cor do brilho em volta do item (verde .1, azul .2, roxo .3, amarelo .4). Acerta também as armas de cristal e os itens obra-prima, que antes saíam com o encantamento errado.",
+    "O painel do item e do mapa de Avalon não tira mais o foco do jogo: dá para continuar passando o mouse nos itens sem clicar no jogo. Quando o painel fecha, o foco volta para o jogo.",
+    "O painel não aparece mais como janela na barra de tarefas.",
+    "Pesquisando outro item com o painel aberto, o painel mostra sempre o item novo (antes às vezes continuava o anterior).",
+    "Se o nome do item ainda não tinha aparecido no balão do jogo, a pesquisa tenta de novo sozinha, em vez de pedir para abrir a tela de detalhes.",
+    "O painel voltou a abrir em cerca de 1 segundo: a abertura instantânea da 2.3.10 era a causa dos problemas acima."
+   ]
+  },
+  {
    "t": "2026-11-24T05:23:16Z",
    "titulo": "Builds da comunidade: votos protegidos",
    "itens": [
