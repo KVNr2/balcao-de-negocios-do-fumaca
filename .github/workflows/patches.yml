@@ -5,6 +5,11 @@ on:
   schedule:
     - cron: "47 12 * * *"
   workflow_dispatch:
+    inputs:
+      reler_tudo:
+        description: "Reler todos os patches não curados (não só os 3 mais novos)"
+        type: boolean
+        default: false
 permissions:
   contents: write
 jobs:
@@ -24,6 +29,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Ler as notas oficiais
+        env:
+          RELER_TUDO: ${{ inputs.reler_tudo && '1' || '' }}
         run: python3 tools/atualizar_patch.py 2>&1 | tee /tmp/patch.log; test ${PIPESTATUS[0]} -eq 0
         shell: bash
       - name: Mostrar o fim do log se falhou
