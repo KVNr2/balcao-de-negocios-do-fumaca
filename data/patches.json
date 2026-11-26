@@ -1,7 +1,704 @@
 {
- "atualizado": "2026-11-09",
+ "atualizado": "2026-11-26",
  "fonte_nome": "Notas oficiais de patch do Albion Online (fórum oficial)",
  "patches": [
+  {
+   "id": "dragonfire-patch-5",
+   "titulo": "Dragonfire Patch 5",
+   "data": "2026-11-26",
+   "idioma": "en",
+   "curado": false,
+   "links": {
+    "oficial": "https://albiononline.com/changelog",
+    "geral": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1850460852984814"
+   },
+   "resumo": "20 mudanças de combate e 7 atualizações de conteúdo. Texto original em inglês.",
+   "balance": [
+    {
+     "cat": "Arcane Staffs",
+     "itens": [
+      {
+       "item": "Evensong",
+       "hab": "Dark Sphere",
+       "tipo": "buff",
+       "auto": true,
+       "nota": "Evensong has been shifted from a high-variance utility option towards a more reliable damage option for Arcane players.",
+       "linhas": [
+        {
+         "r": "Impact damage",
+         "de": "112",
+         "para": "179"
+        },
+        {
+         "r": "Dark Aura targets",
+         "de": "3",
+         "para": "1"
+        },
+        {
+         "r": "Now also applies a DoT to targets within the aura, dealing 31 magical damage every 0.9s for 5 ticks (155 additional damage in total)",
+         "texto": ""
+        },
+        {
+         "r": "No longer applies a damage debuff to targets within the aura",
+         "texto": ""
+        },
+        {
+         "r": "No longer applies a healing received debuff to targets within the aura",
+         "texto": ""
+        },
+        {
+         "r": "Slow",
+         "de": "15%",
+         "para": "25%"
+        },
+        {
+         "r": "Cooldown",
+         "de": "scaling",
+         "para": "25s"
+        },
+        {
+         "r": "Can no longer be cleansed, except by DoT removal",
+         "texto": ""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Axes",
+     "itens": [
+      {
+       "item": "all Axes",
+       "hab": "Battle Rush",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Battle Rush’s secondary effects have felt disconnected and unintuitive to take advantage of with a dash. To lean further into the sustain axe fantasy they have been replaced with lifesteal.",
+       "linhas": [
+        {
+         "r": "No longer decreases healing received by enemies within a 5m radius",
+         "texto": ""
+        },
+        {
+         "r": "No longer increases healing received by allies within a 5m radius",
+         "texto": ""
+        },
+        {
+         "r": "Added",
+         "texto": "If landing with at least 1 enemy within 5m, gain 15% lifesteal for 4s"
+        }
+       ]
+      },
+      {
+       "item": "Greataxe",
+       "hab": "Whirlwind",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Whirlwind already has a strong enough incentive to stick on a target, and now if they dodge a single tick your damage should keep ramping as long as other enemies are hit.",
+       "linhas": [
+        {
+         "r": "Damage now continues to scale if any target is hit (previously, scaling only continued when hitting the same target)",
+         "texto": ""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Bows",
+     "itens": [
+      {
+       "item": "Mistpiercer",
+       "hab": "Lucent Hawk",
+       "tipo": "nerf",
+       "auto": true,
+       "nota": "Mistpiercer’s total burst potential has been slightly too high, so its damage-per-bolt has been reduced with the Cloth Armor resilience penetration changes in mind (see Armors).",
+       "linhas": [
+        {
+         "r": "Damage",
+         "de": "178",
+         "para": "169"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Crossbows",
+     "itens": [
+      {
+       "item": "Energy Shaper",
+       "hab": "Divine Engine",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Divine Engine has had its total damage output preserved but shifted towards the end, to reduce the power of an off-screen three-tick kill but still reward coordination and hitting on crowd control.",
+       "linhas": [
+        {
+         "r": "Damage vs. players increases by 8 per tick (total damage unchanged)",
+         "texto": ""
+        },
+        {
+         "r": "First damage tick vs. players",
+         "de": "106",
+         "para": "74"
+        },
+        {
+         "r": "Final damage tick vs. players",
+         "de": "106",
+         "para": "138"
+        }
+       ]
+      },
+      {
+       "item": "Heavy Crossbow",
+       "hab": "Sweeping Bolt",
+       "tipo": "nerf",
+       "auto": true,
+       "nota": "The hitbox detection duration of Sweeping Bolt has been reduced to better match its visuals and prevent walking into invisible damage.",
+       "linhas": [
+        {
+         "r": "Hitbox duration",
+         "de": "0.7s",
+         "para": "0.3s"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Daggers",
+     "itens": [
+      {
+       "item": "Dagger Pair",
+       "hab": "Slit Throat",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Dagger Pair players, rejoice! Live out your fantasies of dashing in, executing your target, and dashing back out (or straight to your next victim). Or choose a damaging second-slot spell and deal some additional burst to finish the target.",
+       "linhas": [
+        {
+         "r": "No longer applies a bleed effect",
+         "texto": ""
+        },
+        {
+         "r": "No longer reduces healing received",
+         "texto": ""
+        },
+        {
+         "r": "Now resets second-slot spell on cast",
+         "texto": ""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Fire Staffs",
+     "itens": [
+      {
+       "item": "Dawnsong",
+       "hab": "Flaming Phoenix",
+       "tipo": "nerf",
+       "auto": true,
+       "nota": "The obscene range of Dawnsong has been pulled back slightly with the Cloth Armor resilience penetration changes in mind (see Armors).",
+       "linhas": [
+        {
+         "r": "Range",
+         "de": "15m",
+         "para": "12m"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Frost Staffs",
+     "itens": [
+      {
+       "item": "all Frost Staffs",
+       "hab": "Frost Beam",
+       "tipo": "buff",
+       "auto": true,
+       "nota": "Frost Beam’s area of effect has been increased slightly to make it more reliable in group PvP.",
+       "linhas": [
+        {
+         "r": "AoE radius",
+         "de": "4m",
+         "para": "5m"
+        }
+       ]
+      },
+      {
+       "item": "all Frost Staffs",
+       "hab": "Glacial Obelisk",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Glacial Obelisk’s powerful ally buffs have greatly incentivized users to cast on their allies, and casting on enemies has been a bit of a trap. Therefore, the damage recast has been removed and replaced with a shield to give the spell a more cohesive support identity, and give users a better reason to recast to end the buffs early and prevent some damage.",
+       "linhas": [
+        {
+         "r": "No longer damages on recast",
+         "texto": ""
+        },
+        {
+         "r": "Now shields for 200 for 3s on recast",
+         "texto": ""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Holy Staffs",
+     "itens": [
+      {
+       "item": "all Holy Staffs",
+       "hab": "Holy Flash",
+       "tipo": "nerf",
+       "auto": true,
+       "nota": "Holy Flash has long been the all-powerful, no-brainer AoE heal option across most of Albion. Its range has now been reduced slightly to give this option a clearer drawback. If you want powerful healing, you must put yourself closer to danger.",
+       "linhas": [
+        {
+         "r": "Range",
+         "de": "13m",
+         "para": "11m"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Nature Staffs",
+     "itens": [
+      {
+       "item": "Wild Staff",
+       "hab": "Well of Life",
+       "tipo": "buff",
+       "auto": true,
+       "nota": "With Well of Life’s longer cast time and strict positioning restrictions, an instant heal has been added to guarantee more value.",
+       "linhas": [
+        {
+         "r": "Now also heals instantly for 69 (total healing",
+         "de": "276",
+         "para": "345)"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Spears",
+     "itens": [
+      {
+       "item": "Trinity Spear",
+       "hab": "Spectral Trident",
+       "tipo": "nerf",
+       "auto": true,
+       "nota": "The hitbox detection duration of Trinity Spear’s impact damage and root has been reduced to better match its visuals and prevent walking into invisible damage.",
+       "linhas": [
+        {
+         "r": "Hitbox duration",
+         "de": "0.5s",
+         "para": "0.2s"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "War Gloves",
+     "itens": [
+      {
+       "item": "all War Gloves",
+       "hab": "Devastating Combo",
+       "tipo": "buff",
+       "auto": true,
+       "nota": "Devastating Combo’s crowd-control type has been changed from stun to root. This will give opponents more options for counterplay, whether to blink away or use other defensives. As compensation, its cooldown has been reduced.",
+       "linhas": [
+        {
+         "r": "",
+         "de": "Stun",
+         "para": "root"
+        },
+        {
+         "r": "Cooldown",
+         "de": "15s",
+         "para": "12s"
+        }
+       ]
+      },
+      {
+       "item": "Fists of Avalon",
+       "hab": "Purifying Combination",
+       "tipo": "nerf",
+       "auto": true,
+       "nota": "The hitbox detection duration of Fists of Avalon’s Power Punch has been reduced to better match its visuals and prevent walking into invisible damage.",
+       "linhas": [
+        {
+         "r": "Hitbox duration",
+         "de": "0.5s",
+         "para": "0.2s"
+        }
+       ]
+      },
+      {
+       "item": "Ravenstrike Cestus",
+       "hab": "Earth Crusher",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Earth Crusher now always knocks up, giving it more utility and adding some incentive to cancel the channel early.",
+       "linhas": [
+        {
+         "r": "Now knocks up at all stages for 0.7s (unchanged at 1.4s for full charge)",
+         "texto": ""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Helmets",
+     "itens": [
+      {
+       "item": "Knight Helmet",
+       "hab": "Displacement Immunity",
+       "tipo": "nerf",
+       "auto": true,
+       "nota": "Displacement has received a slow immunity to help users move freely while it is active, but its total duration and uptime has been reduced.",
+       "linhas": [
+        {
+         "r": "Duration",
+         "de": "7s",
+         "para": "5s"
+        },
+        {
+         "r": "Can no longer be slowed",
+         "texto": ""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Armors",
+     "itens": [
+      {
+       "item": "Dragonslayer Jacket",
+       "hab": "Wings of Fire",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Dragonslayer Jacket has been overperforming in large-scale PvP, so it has had its damage bonus removed, focusing its power on its defensive aspect. As compensation for smaller-scale PvP, its dash has changed from crowd-control immunity to full immunity.",
+       "linhas": [
+        {
+         "r": "No longer grants bonus damage while in the area",
+         "texto": ""
+        },
+        {
+         "r": "CC",
+         "de": "immunity",
+         "para": "full immunity while jumping"
+        }
+       ]
+      },
+      {
+       "item": "All Cloth Armor",
+       "hab": "",
+       "tipo": "buff",
+       "auto": true,
+       "nota": "Albion’s largest fights have become increasingly chaotic, and players have pointed out that Cloth Armor’s damage bonuses don’t sufficiently compensate for its lower durability. To encourage the use of Cloth Armor in these fights, all Cloth Robes now grant 15% resilience penetration, benefiting all damage dealt by the wearer. Maybe consider running with cloth damage dealers, and since you’ll be able to secure kills with fewer players, a slot could go to an additional support player?",
+       "linhas": [
+        {
+         "r": "Resilience penetration",
+         "de": "0%",
+         "para": "15%"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Miscellaneous",
+     "itens": [
+      {
+       "item": "Lava defense decrease vs. players: 50% → 25%",
+       "hab": "",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "In 2v2 Hellgates, lava has become too significant, so its effect has been reduced somewhat.",
+       "linhas": []
+      }
+     ]
+    }
+   ],
+   "secoes": [
+    {
+     "id": "season-35-changes",
+     "titulo": "Season 35 Changes",
+     "intro": "Season 35 is three weeks longer than usual, to avoid an overly long offseason after it ends. This patch introduces a number of changes for this extended season, in particular to the Crystal League.",
+     "itens": []
+    },
+    {
+     "id": "conqueror-s-challenge",
+     "titulo": "Conqueror’s Challenge",
+     "itens": [
+      [
+       "•",
+       "To account for the extended duration of Season 35, a new top level has been added for players who reach 2,000,000 Might: The reward for attaining this level is the Darkfang Swiftclaw skin"
+      ],
+      [
+       "▲",
+       "Rewards from Conqueror’s Chests has been increased by approximately 50% for all levels"
+      ],
+      [
+       "•",
+       "A new Crystal League Might Challenge has been introduced: Completing this grants 19,800 Season Points"
+      ]
+     ]
+    },
+    {
+     "id": "crystal-league",
+     "titulo": "Crystal League",
+     "itens": [
+      [
+       "•",
+       "5v5: Levels 8 and 9 have been removed"
+      ],
+      [
+       "!",
+       "5v5: Accumulated loot from lower-level matches is now fully paid out at Level 7"
+      ],
+      [
+       "•",
+       "5v5: Corresponding Albion Journal missions have been moved to the Archive section"
+      ],
+      [
+       "!",
+       "5v5: The Crystal Gladiator Helm is now a rare reward for winning Level 7 matches in both 5v5 and 20v20 formats"
+      ],
+      [
+       "▼",
+       "5v5: Maximum match duration: 25 minutes → 15 minutes"
+      ],
+      [
+       "!",
+       "5v5: There are now three matches per hour"
+      ],
+      [
+       "▲",
+       "5v5: Due to the extended duration of this season, one additional Level 7 match has been added"
+      ],
+      [
+       "!",
+       "20v20: Added new map aimed at group play: Tristone"
+      ],
+      [
+       "!",
+       "20v20: New layout"
+      ],
+      [
+       "▼",
+       "20v20: Number of Runestones: 5 → 3"
+      ],
+      [
+       "•",
+       "20v20: Point loss per difference in Runestones:"
+      ],
+      [
+       "•",
+       "20v20: 1 Runestone: 30 points"
+      ],
+      [
+       "•",
+       "20v20: 2 Runestones: 40 points"
+      ],
+      [
+       "•",
+       "20v20: 3 Runestones: 50 points"
+      ],
+      [
+       "▲",
+       "20v20: Tickets lost per death: 3 → 4"
+      ],
+      [
+       "▼",
+       "20v20: Maximum match duration: 25 minutes → 15 minutes"
+      ],
+      [
+       "•",
+       "20v20: Adjusted IP soft cap to match 5v5 matches:"
+      ],
+      [
+       "•",
+       "20v20: Level 1: 900 IP"
+      ],
+      [
+       "•",
+       "20v20: Level 2: 1000 IP"
+      ],
+      [
+       "•",
+       "20v20: Level 3: 1100 IP"
+      ],
+      [
+       "•",
+       "20v20: Level 4: 1200 IP"
+      ],
+      [
+       "•",
+       "20v20: Level 5: 1300 IP"
+      ],
+      [
+       "•",
+       "20v20: Level 6: 1400 IP"
+      ],
+      [
+       "•",
+       "20v20: Level 7: 1500 IP"
+      ],
+      [
+       "!",
+       "Players now receive a guaranteed reward when losing a Crystal League match, even without gaining any of the bonus loot rolls"
+      ]
+     ]
+    },
+    {
+     "id": "dragon-sanctuary-changes",
+     "titulo": "Dragon Sanctuary Changes",
+     "intro": "While the difficulty of the fights within the Dragon Sanctuary seems to be in a solid place now, there are some concerns with the rewards to be addressed. Considering the gear and time invested into Dragon Sanctuaries, we have doubled the loot value inside Azaryon’s chest overall, with more generous progression in higher tiers. We will continue to monitor loot values as well as your feedback to assess whether further changes are needed here.",
+     "itens": []
+    },
+    {
+     "id": "armory-changes",
+     "titulo": "Armory Changes",
+     "intro": "This patch brings a number of tweaks and improvements to the Armory, including two new categories. As before, data for these new categories will begin to be tracked with this patch, and their utility will increase over the coming days.",
+     "itens": [
+      [
+       "!",
+       "Added new categories for the Ancient Lands and Dragon Sanctuary"
+      ],
+      [
+       "!",
+       "Arena, Crystal Arena, Crystal League, Hellgates, and Corrupted Dungeons now show stats per match instead of per hour, and wins as a win rate"
+      ],
+      [
+       "!",
+       "Added an Escapability metric to the Mists and Open-World Solo categories"
+      ],
+      [
+       "!",
+       "Improved tracking accuracy across a number of categories:: Defeats in Corrupted Dungeons and Hellgates are now factored into win rates correctly"
+      ],
+      [
+       "!",
+       "Improved tracking accuracy across a number of categories:: Completed Hardcore Expedition runs now count as wins"
+      ],
+      [
+       "•",
+       "Improved tracking accuracy across a number of categories:: Fixed issue where many Tracking sessions were not tracked"
+      ],
+      [
+       "•",
+       "Improved tracking accuracy across a number of categories:: Open-World Large Group no longer includes PvE-only sessions"
+      ]
+     ]
+    },
+    {
+     "id": "ui-changes",
+     "titulo": "UI Changes",
+     "itens": [
+      [
+       "!",
+       "Spells can now be changed by right-clicking each slot on the spell bar"
+      ],
+      [
+       "!",
+       "Weapon and Armor details can now be opened from the Destiny Board Specialization Node UI"
+      ],
+      [
+       "•",
+       "Guild invite popups now display the Guild Tax rate and number of active members: There is also an additional flyout which displays recruitment info if applicable"
+      ],
+      [
+       "!",
+       "Added Danish and Norwegian as language options in the Guild UI"
+      ],
+      [
+       "!",
+       "Added ‘Previous’ and ‘Next’ buttons to the Bank UI to quickly switch tabs"
+      ],
+      [
+       "!",
+       "Bank Overview now displays the weight and value of a Bank’s contents at the bottom"
+      ],
+      [
+       "!",
+       "[MOBILE] Holding an icon on the minimap now displays its tooltip"
+      ]
+     ]
+    },
+    {
+     "id": "other-changes",
+     "titulo": "Other Changes",
+     "itens": [
+      [
+       "!",
+       "Added shrines next to Training Dummies on islands to reset health, energy, and cooldowns"
+      ],
+      [
+       "▲",
+       "Increased the speed of melding Artifacts and of crafting Victory Emotes from Community Tokens"
+      ],
+      [
+       "!",
+       "Reward chests (eg. Conqueror’s Challenge Chests, Adventurer’s Challenge Chests) now display the estimated market market value of their contents when opened"
+      ]
+     ]
+    }
+   ],
+   "fixes": [
+    {
+     "grupo": "Spell",
+     "itens": [
+      {
+       "t": "Rejuvenation (Nature Staffs): Fixed issue where movement was interrupted when casting"
+      }
+     ]
+    },
+    {
+     "grupo": "UI",
+     "itens": [
+      {
+       "t": "Fixed issue where Dragon Sanctuary PvE stats were not tracked in the leaderboard"
+      },
+      {
+       "t": "Please note that tracking of these stats begins with this patch, and it is unfortunately not possible to display earlier stats"
+      },
+      {
+       "t": "Fixed issue where items with a Quality higher than normal could not be stacked by clicking-and-dragging"
+      },
+      {
+       "p": "MOBILE",
+       "t": "Fixed issue where the HUD Tracker would lose its Destiny Board elements and no longer be collapsible after changing regions"
+      }
+     ]
+    },
+    {
+     "grupo": "Other",
+     "itens": [
+      {
+       "t": "Fixed issue where Sentry Mages could be damaged before a Territory battle to reduce their health during the battle"
+      },
+      {
+       "t": "Sentry Mages now heal fully at the beginning of Prime Time"
+      },
+      {
+       "t": "Fixed issue where Player Navigation could break on entering instanced content"
+      },
+      {
+       "p": "MOBILE",
+       "t": "Fixed issue where double-tapping to equip or loot items would sometimes open Item Details instead"
+      }
+     ]
+    }
+   ]
+  },
   {
    "id": "dragonfire-patch-4",
    "titulo": "Dragonfire Patch 4",
@@ -539,6 +1236,702 @@
    ],
    "curado": true,
    "idioma": "pt"
+  },
+  {
+   "id": "dragonfire-patch-2",
+   "titulo": "Dragonfire Patch 2",
+   "data": "2026-09-23",
+   "idioma": "en",
+   "curado": false,
+   "links": {
+    "oficial": "https://albiononline.com/changelog",
+    "geral": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1844751498217965"
+   },
+   "resumo": "12 mudanças de combate e 7 atualizações de conteúdo. Texto original em inglês.",
+   "balance": [
+    {
+     "cat": "Axes",
+     "itens": [
+      {
+       "item": "all Axes",
+       "hab": "Internal Bleeding",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "To make Internal Bleeding a more viable option in large-scale PvP, its damage-over-time effect can no longer be reflected.​",
+       "linhas": [
+        {
+         "r": "Damage-over-time can no longer be reflected",
+         "texto": ""
+        }
+       ]
+      },
+      {
+       "item": "Halberd",
+       "hab": "Tear Apart",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "AoE escalation has been added to Tear Apart’s CC resistance debuff to increase its value in group play.",
+       "linhas": [
+        {
+         "r": "Added AoE escalation to the crowd-control resistance reduction",
+         "texto": ""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Holy Staffs",
+     "itens": [
+      {
+       "item": "Divine Staff",
+       "hab": "Divine Protection",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Divine Protection now accounts for time spent waiting to cast the second part of the combo, effectively reducing its remaining cooldown.​",
+       "linhas": [
+        {
+         "r": "Elapsed time before casting Divinity’s Grace is refunded",
+         "texto": ""
+        }
+       ]
+      },
+      {
+       "item": "all Holy Staffs",
+       "hab": "Holy Flash",
+       "tipo": "nerf",
+       "auto": true,
+       "nota": "Holy Flash has been the go-to spell across most content due to its reliability, overall power, and high-healing output. To allow more room for alternatives to compete, its total healing has been reduced.",
+       "linhas": [
+        {
+         "r": "Healing",
+         "de": "117",
+         "para": "106"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Nature Staffs",
+     "itens": [
+      {
+       "item": "all Nature Staffs",
+       "hab": "Thorn Growth",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Thorns should now feel smoother to use, as casting it no longer delays the next auto-attack.",
+       "linhas": [
+        {
+         "r": "No longer triggers auto-attack cooldown after casting",
+         "texto": ""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Quarterstaffs",
+     "itens": [
+      {
+       "item": "all Quarterstaffs",
+       "hab": "Rising Blow",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Rising Blow has received an additional CC resistance debuff, giving it a stronger identity as a supportive tank tool for starting or extending crowd-control chains.​",
+       "linhas": [
+        {
+         "r": "Now reduces enemies’ crowd-control resistance by 15% for 4s",
+         "texto": ""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Shapeshifter Staffs",
+     "itens": [
+      {
+       "item": "Primal Staff",
+       "hab": "Wild Onslaught",
+       "tipo": "buff",
+       "auto": true,
+       "nota": "A previous Fear duration change has been partially reverted to give the Spirit Bear’s Roar more oomph.",
+       "linhas": [
+        {
+         "r": "Fear duration",
+         "de": "1s",
+         "para": "1.2s"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Spears",
+     "itens": [
+      {
+       "item": "Trinity Spear",
+       "hab": "Spectral Trident",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Some of Trinity Spear’s power has been moved from the area buff into impact damage, reducing its reliance on stat-checking with auto-attacks and better rewarding players for successfully landing the jump.",
+       "linhas": [
+        {
+         "r": "Impact damage",
+         "de": "191.65",
+         "para": "220"
+        },
+        {
+         "r": "Attack speed buff",
+         "de": "85%",
+         "para": "75%"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Swords",
+     "itens": [
+      {
+       "item": "Infinity Blade",
+       "hab": "Limitbreaker",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Limitbreaker now accounts for time spent waiting to cast the second part of the combo, effectively reducing the remaining cooldown.​",
+       "linhas": [
+        {
+         "r": "Elapsed time before casting Limitbreaker is refunded",
+         "texto": ""
+        }
+       ]
+      },
+      {
+       "item": "Dual Swords",
+       "hab": "Spinning Blades",
+       "tipo": "mudou",
+       "auto": true,
+       "nota": "Spinning Blades’ crowd-control immunity now also protects against Polymorph.",
+       "linhas": [
+        {
+         "r": "Now also grants immunity to transformation effects while jumping",
+         "texto": ""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Helmets",
+     "itens": [
+      {
+       "item": "Knight Helmet",
+       "hab": "Displacement Immunity",
+       "tipo": "buff",
+       "auto": true,
+       "nota": "Displacement Immunity’s uptime has been increased, giving groups more time to move unimpeded.",
+       "linhas": [
+        {
+         "r": "Buff duration",
+         "de": "6s",
+         "para": "7s (Uptime: 24% → 28%)"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "cat": "Armors",
+     "itens": [
+      {
+       "item": "Dragonslayer Jacket",
+       "hab": "Wings of Fire",
+       "tipo": "nerf",
+       "auto": true,
+       "nota": "Wings of Fire has had a maximum energy cost added, limiting how much energy the ability can consume.",
+       "linhas": [
+        {
+         "r": "Added max. energy cost",
+         "de": "0%",
+         "para": "10%"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "secoes": [
+    {
+     "id": "loot-adjustments",
+     "titulo": "Loot Adjustments",
+     "intro": "We have improved the loot for specific Dragonfire features which have been underperforming in terms of loot output:",
+     "itens": [
+      [
+       "▲",
+       "Ancient Lands: Medium Ancient Lands have had their non-Drake loot from chests increased by roughly 50%"
+      ],
+      [
+       "▲",
+       "Ancient Lands: Large Ancient Lands have had their base loot from chests increased by roughly 140%"
+      ],
+      [
+       "▲",
+       "Dragon Sanctuary: The chance of finding a Drake Egg in the final chest has been increased by roughly 400%"
+      ],
+      [
+       "▲",
+       "Dragon Sanctuary: Base loot from chests has been increased by 100% on average"
+      ],
+      [
+       "•",
+       "Outlands Dragon Attacks: Base loot from chests has been approximately doubled"
+      ],
+      [
+       "!",
+       "Outlands Dragon Attacks: Fame is now rewarded as part of the Might payout, instead of non-tradable Tomes of Insight in the chest, to ensure all participants get Fame and not just the player who opens the chest"
+      ],
+      [
+       "!",
+       "New Dragon item drop chances (e.g. Dragon Armor items) have not been changed, so the value of the new items is maintained"
+      ]
+     ]
+    },
+    {
+     "id": "ancient-lands-changes",
+     "titulo": "Ancient Lands Changes",
+     "itens": [
+      [
+       "•",
+       "A new feature has been added to orange-zone Ancient Lands: Item Freeze: When entering the portal, all items in a player’s inventory are ‘frozen’"
+      ],
+      [
+       "•",
+       "A new feature has been added to orange-zone Ancient Lands: Item Freeze: These items are not dropped on death"
+      ],
+      [
+       "•",
+       "A new feature has been added to orange-zone Ancient Lands: Item Freeze: Any items picked up while inside the Ancient Lands are not frozen, however, and will be dropped on death"
+      ],
+      [
+       "•",
+       "Island chests (excluding the center island) are now unlocked by completing the island quest: This is to prevent players, particularly on the Drake Islands, from sniping the main reward and leaving the quest objective to players attempting to summon the Fire Drake"
+      ],
+      [
+       "▼",
+       "Reduced Giants’ aggro range:: 11m → 8m"
+      ],
+      [
+       "▼",
+       "Reduced Spirit Weaver’s Drowsy Essence sleep duration: 4s → 2s"
+      ],
+      [
+       "!",
+       "Added new Bleedout revival animation"
+      ]
+     ]
+    },
+    {
+     "id": "dragon-sanctuary-changes",
+     "titulo": "Dragon Sanctuary Changes",
+     "intro": "Since the Dragonfire launch we’ve been watching and analyzing your Dragon Sanctuary runs, and we love seeing your strategies emerge to beat these bosses! In general we’re satisfied with the overall difficulty, but the Maeve fight in particular has a pretty high variance in how it unfolds. For this reason we have made some changes to Maeve that do not aim to nerf or buff her, but widen mid-fight recovery windows and change her pacing to increase more gradually. Besides that, we’ve started to see some more… cheesy strategies emerge, which we’ve tried to discourage with a few fixes and adjustments. Beyond those changes, there are some other things we may want to look at in future patches – in particular, higher-tier (8.1+) difficulty scaling. This does not necessarily mean that anything will change, but we want to keep an eye on these things. One small change we have made in this patch, though, is to reduce the potency of the Lingering Dragon Spirit.",
+     "itens": []
+    },
+    {
+     "id": "maeve-changes",
+     "titulo": "Maeve Changes",
+     "itens": [
+      [
+       "▼",
+       "Adjusted fight pacing: Storm Spire appearance threshold: 80% Health → 60% Health"
+      ],
+      [
+       "▲",
+       "Adjusted fight pacing: Rock Spike appearance threshold: 60% Health → 80% Health"
+      ],
+      [
+       "•",
+       "Adjusted fight pacing: Double Rock Spike appearance threshold: 40% Health"
+      ],
+      [
+       "▲",
+       "Realm Rift: Max. stacks: 5 → 15"
+      ],
+      [
+       "•",
+       "Realm Rift: Each stack increases Realm Rift’s damage by an additional 400"
+      ],
+      [
+       "▼",
+       "Realm Rift: Debuff duration: 3000s → 100s"
+      ],
+      [
+       "▼",
+       "Boulder Stomp: Reduced shockwave speed by roughly 10%"
+      ],
+      [
+       "▼",
+       "Boulder Stomp: Reduced initial damage by 20%: 1000 → 800"
+      ],
+      [
+       "!",
+       "Boulder Stomp: Now applies a debuff on hit, increasing damage taken from subsequent stomps by 5% for 75s, stacking up to 10 times"
+      ],
+      [
+       "▼",
+       "Storm Spire: Health reduced by roughly 5%"
+      ],
+      [
+       "▼",
+       "Primal Dragon Flame: True damage: 1250 → 900"
+      ],
+      [
+       "▲",
+       "Primal Dragon Flame: Normal damage: 750 → 1250"
+      ],
+      [
+       "▼",
+       "Rock Spike: Reduced area size slightly to make it a little more forgiving to run close to allies: 3m → 2.75m"
+      ],
+      [
+       "▼",
+       "Boulder Charge: Damage: 1000 → 900"
+      ],
+      [
+       "▼",
+       "Other adjustments: Reduced Maeve’s pursuit range: 50m → 40m"
+      ],
+      [
+       "▼",
+       "Fixes: Maeve can no longer be CC’d before the fight starts"
+      ],
+      [
+       "•",
+       "Fixes: Adjusted her arena to stop her boulders from getting stuck in terrain"
+      ],
+      [
+       "•",
+       "Fixes: Some of her spells are no longer reflectable"
+      ],
+      [
+       "•",
+       "Fixes: Fixed a rare issue where Storm Spires could sometimes decide the fight was over and disappear prematurely"
+      ]
+     ]
+    },
+    {
+     "id": "other-dragon-sanctuary-changes-and-fixes",
+     "titulo": "Other Dragon Sanctuary Changes and Fixes",
+     "itens": [
+      [
+       "▼",
+       "Reduced potency of Lingering Dragon Spirit: Mob damage and defense increase per stack: 33% → 20%"
+      ],
+      [
+       "•",
+       "Fixed an issue where Azaryon would sometimes stop using abilities"
+      ],
+      [
+       "!",
+       "Azaryon now enrages if players cause him to get stuck or repeat certain actions too often"
+      ]
+     ]
+    },
+    {
+     "id": "season-33-winner-statues-unveiled",
+     "titulo": "Season 33 Winner Statues Unveiled",
+     "intro": "Statues have been erected in Conqueror’s Hall to mark the winners of Season 33: Upside, Contingent, and I The Flying Dutchman I. Congratulations to the triumphant guilds!",
+     "itens": []
+    },
+    {
+     "id": "other-changes",
+     "titulo": "Other Changes",
+     "itens": [
+      [
+       "!",
+       "Added button to the Loadouts UI to share Loadouts outside of the game client: In addition, Loadouts can now be created using the ‘Start from clipboard’ option or by pasting text into an existing Loadout"
+      ],
+      [
+       "!",
+       "Leyfin fish can now be given as Laborer Journal rewards"
+      ],
+      [
+       "•",
+       "Polished appearance and clarity of Armory metrics section"
+      ],
+      [
+       "•",
+       "Polished appearance of Destiny Board specialization nodes"
+      ],
+      [
+       "•",
+       "Dragons in the open world are taking a minimalist approach to design, and periodically destroy any furniture in their vicinity"
+      ],
+      [
+       "!",
+       "Open-world Dragon Attacks now only show x-rays of the player character and party members to improve visibility"
+      ],
+      [
+       "!",
+       "When Tracking, a ping now appears on the minimap when in proximity to the target"
+      ]
+     ]
+    }
+   ],
+   "fixes": [
+    {
+     "grupo": "Spell",
+     "itens": [
+      {
+       "t": "Reawaken (all Holy Staffs): Fixed issue where the spell could be used on enemy players"
+      },
+      {
+       "t": "Premonition (Boots of Valor): Fixed issue where the movement speed bonus was not properly removed upon mounting"
+      }
+     ]
+    },
+    {
+     "grupo": "UI",
+     "itens": [
+      {
+       "p": "CONTROLLER",
+       "t": "Fixed issue where ‘Close Application’ confirmation popup was missing buttons"
+      },
+      {
+       "p": "CONTROLLER",
+       "t": "Fixed issue where it was not possible to select a character’s name in the kill message in chat"
+      },
+      {
+       "p": "MOBILE",
+       "t": "Fixed issue where damage numbers would not display on some Android devices with resolution set to high"
+      }
+     ]
+    },
+    {
+     "grupo": "Other",
+     "itens": [
+      {
+       "t": "Fixed issue where several Dragon attacks could be interrupted by spells or delayed by damage"
+      },
+      {
+       "t": "Fixed issue where player kills in the Ancient Lands are registered as both Kills and Knockdowns in the stats UI"
+      },
+      {
+       "t": "Fixed issue where Player Navigation would stop working after visiting the Roads of Avalon"
+      },
+      {
+       "t": "Fixed issue where Ancient Lands portals could not be found in deep Roads of Avalon regions"
+      },
+      {
+       "t": "Fixed issue where Mammoth Hunters and Spirit Weavers in the Ancient Lands would regenerate health during combat"
+      },
+      {
+       "t": "Fixed issue where Spirit Weavers’ flame summons could appear in unreachable areas"
+      },
+      {
+       "p": "CONTROLLER",
+       "t": "Fixed issue where ‘Quickly Navigate Here’ Player Navigation option was not available"
+      },
+      {
+       "p": "CONTROLLER",
+       "t": "Fixed issue where notifications would appear offscreen when Controller UI was open"
+      },
+      {
+       "t": "Various additional controller, graphical, animation, terrain, audio, UI, and localization fixes"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dragonfire-patch-1",
+   "titulo": "Dragonfire Patch 1",
+   "data": "2026-09-08",
+   "idioma": "en",
+   "curado": false,
+   "links": {
+    "oficial": "https://albiononline.com/changelog",
+    "geral": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1842846814455196"
+   },
+   "resumo": "1 mudanças de combate e 3 atualizações de conteúdo. Texto original em inglês.",
+   "balance": [
+    {
+     "cat": "Maces",
+     "itens": [
+      {
+       "item": "Oathkeepers",
+       "hab": "Blessed Aurora",
+       "tipo": "nerf",
+       "auto": true,
+       "nota": "",
+       "linhas": [
+        {
+         "r": "Heal on auto-attack",
+         "de": "66",
+         "para": "50"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "secoes": [
+    {
+     "id": "ancient-lands-changes",
+     "titulo": "Ancient Lands Changes",
+     "intro": "We’ve been closely following feedback around Ancient Lands portal availability and the amount of time players currently spend waiting at portal entrances. These changes are intended to make portals easier to find, reduce unnecessary waiting, and give groups more opportunities to explore the Ancient Lands while the feature is still new. In the longer term, the Ancient Lands are intended to be opportunity-driven content that appears more spontaneously during regular gameplay, rather than something that is always readily available. Portal availability and timings may therefore be adjusted again in future updates as we move closer to that intended balance. Several adjustments have been made to Ancient Lands portals to reduce waiting times and improve entry windows. In addition, changes have been made to mob health in large group variants to speed up progression through larger encounters, and to island quest completion requirements in all forms.",
+     "itens": [
+      [
+       "▼",
+       "Small Portals: Lock Time: 30 minutes → 15 minutes"
+      ],
+      [
+       "▲",
+       "Small Portals: Time available to enter after unlocking: 3 minutes → 8 minutes"
+      ],
+      [
+       "▲",
+       "Medium Portals: Time available to enter after unlocking: 3 minutes → 5 minutes"
+      ],
+      [
+       "▲",
+       "Large Portals: Portal lifetime: 45 minutes → 60 minutes"
+      ],
+      [
+       "▲",
+       "Large Portals: Time available to enter after unlocking: 3 minutes → 5 minutes"
+      ],
+      [
+       "▼",
+       "Large Portals: Regular enemy Health reduced by 50%"
+      ],
+      [
+       "•",
+       "Large Portals: Drakes are unaffected"
+      ],
+      [
+       "!",
+       "Portals are now always visible on the World Map, regardless of distance"
+      ],
+      [
+       "•",
+       "Ancient Lands island quests now require defeating 50% of the mobs on an island instead of earning a set amount of Fame: Marmots do not count toward this requirement"
+      ]
+     ]
+    },
+    {
+     "id": "dragon-sanctuary-changes",
+     "titulo": "Dragon Sanctuary Changes",
+     "intro": "These are some initial adjustments based on the Dragon Sanctuary attempts we've seen so far. We’ll need some time to review combat data, player progression, and feedback, and we’ll likely make further adjustments in future patches. With high-end PvE content like the Dragon Sanctuary, it takes time to distinguish between mechanics that are still unfamiliar to players and those that may genuinely be overtuned, particularly at Tier 8.1 and above. These encounters are intended to be highly challenging, but should feel fair once their mechanics are understood. Please continue to give your feedback, as we're closely following your attempts and progress!",
+     "itens": [
+      [
+       "•",
+       "Maeve's Boulders no longer dash during her Primal Dragon Flame ability: This behavior occurred only rarely and should no longer occur"
+      ],
+      [
+       "•",
+       "Maeve's Rock Spike stacks now clear correctly when the effect ends: This was a visual issue only and did not affect gameplay"
+      ],
+      [
+       "•",
+       "Azaryon’s Inferno, which requires players to hide behind rocks, now deals significantly more damage toward the end of the attack: This does not increase the attack’s intended difficulty, but more strongly punishes ignoring the mechanic entirely"
+      ],
+      [
+       "•",
+       "Reduced the duration of Lingering Dragon Spirit by approximately 2 hours: This is designed to make it easier for players to follow a consistent weekly raid schedule"
+      ]
+     ]
+    },
+    {
+     "id": "other-changes",
+     "titulo": "Other Changes",
+     "itens": [
+      [
+       "!",
+       "Combined specialization node UIs on the Destiny Board can now be closed by clicking anywhere on the Destiny Board"
+      ],
+      [
+       "•",
+       "Reduced the UI scale of Destiny Board specialization nodes when hovered to prevent overlap with other nodes: Item icons have been enlarged at the same time to improve readability"
+      ],
+      [
+       "▲",
+       "Improved profanity filtering in chat and in player-generated names, including better detection of common variations of blocked terms"
+      ]
+     ]
+    }
+   ],
+   "fixes": [
+    {
+     "grupo": "Ancient Lands",
+     "itens": [
+      {
+       "t": "Fixed an issue where Blessings could be removed upon knockdown or death"
+      },
+      {
+       "t": "Fixed an issue where certain mobs dropped significantly more Silver than intended upon death"
+      },
+      {
+       "t": "Chest loot is unaffected"
+      },
+      {
+       "t": "Fixed issue where defeating Mammoth Hunters did not count toward the corresponding Albion Journal mission"
+      },
+      {
+       "t": "Fixed issue where players defeated by a damage-over-time effect could become invulnerable instead of entering the Bleedout state"
+      }
+     ]
+    },
+    {
+     "grupo": "UI",
+     "itens": [
+      {
+       "t": "Fixed issue where sent whispers could appear as if they had been received from oneself"
+      },
+      {
+       "t": "Fixed issue where specialization bonus values were cut off in Destiny Board flyouts"
+      },
+      {
+       "t": "Fixed issue where the ‘Collapse Tracker’ button would be positioned incorrectly when the Combined HUD Tracker was placed on the left side of the screen"
+      },
+      {
+       "t": "Fixed issue where Dragon Armor would display the mastery level of the corresponding Avalonian Armor instead of its own"
+      },
+      {
+       "t": "Fixed issue where the Item Details UI would remain open after clicking the ‘Take’ button"
+      }
+     ]
+    },
+    {
+     "grupo": "Other",
+     "itens": [
+      {
+       "t": "Fixed issue where cleared enemies in the Dragon Sanctuary could respawn after three hours"
+      },
+      {
+       "t": "Fixed issue where Spirit Weavers’ summons would remain active after the Spirit Weaver was defeated"
+      },
+      {
+       "t": "Fixed issue where Dragon Attacks could remain active beyond their three-hour duration if no players were nearby when they were due to despawn"
+      },
+      {
+       "p": "CONTROLLER",
+       "t": "Fixed issue where Destiny Board search results could not be scrolled through fully with the right analog stick"
+      },
+      {
+       "p": "CONTROLLER",
+       "t": "Fixed issue where the price slider for Buy and Sell Orders was not set correctly"
+      },
+      {
+       "p": "CONTROLLER",
+       "t": "Fixed issue where ‘Cancel Order’ and ‘Apply Market Average’ had overlapping Y-button inputs when editing active Buy Orders"
+      },
+      {
+       "t": "Various additional controller, graphical, animation, terrain, audio, UI, and localization fixes"
+      }
+     ]
+    }
+   ]
   }
  ]
 }
