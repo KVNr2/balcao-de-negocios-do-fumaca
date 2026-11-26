@@ -6,58 +6,58 @@
    "id": "dragonfire-patch-5",
    "titulo": "Dragonfire Patch 5",
    "data": "2026-11-26",
-   "idioma": "en",
+   "idioma": "pt",
    "curado": false,
    "links": {
     "oficial": "https://albiononline.com/changelog",
-    "geral": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1850460852984814"
+    "geral": "https://store.steampowered.com/news/app/761890/view/692027103749603410"
    },
-   "resumo": "20 mudanças de combate e 7 atualizações de conteúdo. Texto original em inglês.",
+   "resumo": "20 mudanças de combate e 7 atualizações de conteúdo. Texto oficial em português.",
    "balance": [
     {
-     "cat": "Arcane Staffs",
+     "cat": "Cajados Arcanos",
      "itens": [
       {
-       "item": "Evensong",
-       "hab": "Dark Sphere",
+       "item": "Som Equilibrado",
+       "hab": "Esfera Negra",
        "tipo": "buff",
        "auto": true,
-       "nota": "Evensong has been shifted from a high-variance utility option towards a more reliable damage option for Arcane players.",
+       "nota": "Som Equilibrado foi deslocado de uma opção de utilidade de alta variância para uma opção de dano mais confiável para jogadores de Arcano.",
        "linhas": [
         {
-         "r": "Impact damage",
+         "r": "Dano do impacto",
          "de": "112",
          "para": "179"
         },
         {
-         "r": "Dark Aura targets",
+         "r": "Alvos da Aura Negra",
          "de": "3",
          "para": "1"
         },
         {
-         "r": "Now also applies a DoT to targets within the aura, dealing 31 magical damage every 0.9s for 5 ticks (155 additional damage in total)",
+         "r": "Agora também aplica um dano ao longo do tempo aos alvos dentro da aura, causando 31 de dano mágico a cada 0,9 s por 5 instâncias (155 de dano adicional no total)",
          "texto": ""
         },
         {
-         "r": "No longer applies a damage debuff to targets within the aura",
+         "r": "Não aplica mais uma desvantagem de dano aos alvos dentro da aura",
          "texto": ""
         },
         {
-         "r": "No longer applies a healing received debuff to targets within the aura",
+         "r": "Não aplica mais uma desvantagem à cura recebida pelos alvos dentro da aura",
          "texto": ""
         },
         {
-         "r": "Slow",
+         "r": "Lentidão",
          "de": "15%",
          "para": "25%"
         },
         {
-         "r": "Cooldown",
-         "de": "scaling",
+         "r": "Recarga",
+         "de": "escalonamento",
          "para": "25s"
         },
         {
-         "r": "Can no longer be cleansed, except by DoT removal",
+         "r": "Não pode mais ser Purificado, exceto pela remoção do dano ao longo do tempo",
          "texto": ""
         }
        ]
@@ -65,38 +65,38 @@
      ]
     },
     {
-     "cat": "Axes",
+     "cat": "Machados",
      "itens": [
       {
-       "item": "all Axes",
-       "hab": "Battle Rush",
+       "item": "todos os Machados",
+       "hab": "Impulso de Batalha",
        "tipo": "mudou",
        "auto": true,
-       "nota": "Battle Rush’s secondary effects have felt disconnected and unintuitive to take advantage of with a dash. To lean further into the sustain axe fantasy they have been replaced with lifesteal.",
+       "nota": "Os efeitos secundários da habilidade Impulso de Batalha pareciam desconectados e pouco intuitivos de aproveitar com uma investida. Para aprofundar ainda mais a fantasia do machado de sustentação, eles foram substituídos por roubo de vida.",
        "linhas": [
         {
-         "r": "No longer decreases healing received by enemies within a 5m radius",
+         "r": "Não diminui mais a Cura Recebida pelos inimigos dentro de um raio de 5m",
          "texto": ""
         },
         {
-         "r": "No longer increases healing received by allies within a 5m radius",
+         "r": "Não aumenta mais a Cura Recebida por aliados em um raio de 5m",
          "texto": ""
         },
         {
-         "r": "Added",
-         "texto": "If landing with at least 1 enemy within 5m, gain 15% lifesteal for 4s"
+         "r": "Adicionado",
+         "texto": "Ao aterrissar com pelo menos 1 Inimigo num raio de 5m, ganha 15% de roubo de vida por 4s"
         }
        ]
       },
       {
-       "item": "Greataxe",
-       "hab": "Whirlwind",
+       "item": "Machadão",
+       "hab": "Turbilhão",
        "tipo": "mudou",
        "auto": true,
-       "nota": "Whirlwind already has a strong enough incentive to stick on a target, and now if they dodge a single tick your damage should keep ramping as long as other enemies are hit.",
+       "nota": "A habilidade Turbilhão já tem um incentivo forte o suficiente para permanecer em um alvo e, agora, se ele esquivar de uma única instância, seu dano continuará aumentando enquanto outros inimigos forem atingidos.",
        "linhas": [
         {
-         "r": "Damage now continues to scale if any target is hit (previously, scaling only continued when hitting the same target)",
+         "r": "O dano agora continua a aumentar se qualquer alvo for atingido (anteriormente, o aumento continuava apenas ao atingir o mesmo alvo)",
          "texto": ""
         }
        ]
@@ -104,17 +104,17 @@
      ]
     },
     {
-     "cat": "Bows",
+     "cat": "Arcos",
      "itens": [
       {
-       "item": "Mistpiercer",
-       "hab": "Lucent Hawk",
+       "item": "Fura-bruma",
+       "hab": "Falcão Luminoso",
        "tipo": "nerf",
        "auto": true,
-       "nota": "Mistpiercer’s total burst potential has been slightly too high, so its damage-per-bolt has been reduced with the Cloth Armor resilience penetration changes in mind (see Armors).",
+       "nota": "O potencial de dano explosivo total do Fura-bruma tem sido um pouco alto demais, então o dano por projétil foi reduzido levando em consideração as mudanças na perfuração de resiliência da Armadura de Tecido (consulte Armaduras).",
        "linhas": [
         {
-         "r": "Damage",
+         "r": "Dano",
          "de": "178",
          "para": "169"
         }
@@ -123,67 +123,67 @@
      ]
     },
     {
-     "cat": "Crossbows",
+     "cat": "Bestas",
      "itens": [
       {
-       "item": "Energy Shaper",
-       "hab": "Divine Engine",
+       "item": "Modelador de Energia",
+       "hab": "Motor Divino",
        "tipo": "mudou",
        "auto": true,
-       "nota": "Divine Engine has had its total damage output preserved but shifted towards the end, to reduce the power of an off-screen three-tick kill but still reward coordination and hitting on crowd control.",
+       "nota": "A habilidade Motor Divino teve seu dano total preservado, mas deslocado para o final, para reduzir o poder de uma eliminação em três instâncias fora da tela, mas ainda recompensar a coordenação e os acertos sob efeito de controle de multidões.",
        "linhas": [
         {
-         "r": "Damage vs. players increases by 8 per tick (total damage unchanged)",
+         "r": "Dano contra Jogadores aumenta em 8 por instância (dano total inalterado)",
          "texto": ""
         },
         {
-         "r": "First damage tick vs. players",
+         "r": "Primeira instância de dano contra jogadores",
          "de": "106",
          "para": "74"
         },
         {
-         "r": "Final damage tick vs. players",
+         "r": "Instância de dano final contra jogadores",
          "de": "106",
          "para": "138"
         }
        ]
       },
       {
-       "item": "Heavy Crossbow",
-       "hab": "Sweeping Bolt",
+       "item": "Besta Pesada",
+       "hab": "Seta Arrebatadora",
        "tipo": "nerf",
        "auto": true,
-       "nota": "The hitbox detection duration of Sweeping Bolt has been reduced to better match its visuals and prevent walking into invisible damage.",
+       "nota": "A duração da detecção da área de acerto da habilidade Seta Arrebatadora foi reduzida para combinar melhor com seus visuais e evitar que os jogadores atravessem dano invisível.",
        "linhas": [
         {
-         "r": "Hitbox duration",
-         "de": "0.7s",
-         "para": "0.3s"
+         "r": "Duração da área de acerto",
+         "de": "0,7s",
+         "para": "0,3s"
         }
        ]
       }
      ]
     },
     {
-     "cat": "Daggers",
+     "cat": "Adagas",
      "itens": [
       {
-       "item": "Dagger Pair",
-       "hab": "Slit Throat",
+       "item": "Par de Adagas",
+       "hab": "Garganta Cortada",
        "tipo": "mudou",
        "auto": true,
-       "nota": "Dagger Pair players, rejoice! Live out your fantasies of dashing in, executing your target, and dashing back out (or straight to your next victim). Or choose a damaging second-slot spell and deal some additional burst to finish the target.",
+       "nota": "Jogadores do Par de Adagas, alegrem-se! Realize suas fantasias de entrar correndo, executar seu alvo e sair correndo novamente (ou ir direto para sua próxima vítima). Ou escolha um Feitiço de segundo espaço que cause dano e desfira uma explosão adicional para finalizar o alvo.",
        "linhas": [
         {
-         "r": "No longer applies a bleed effect",
+         "r": "Não aplica mais um efeito de sangramento",
          "texto": ""
         },
         {
-         "r": "No longer reduces healing received",
+         "r": "Não reduz mais a cura recebida",
          "texto": ""
         },
         {
-         "r": "Now resets second-slot spell on cast",
+         "r": "Agora reinicia o feitiço do segundo espaço ao ser usada",
          "texto": ""
         }
        ]
@@ -191,17 +191,17 @@
      ]
     },
     {
-     "cat": "Fire Staffs",
+     "cat": "Cajados de Fogo",
      "itens": [
       {
-       "item": "Dawnsong",
-       "hab": "Flaming Phoenix",
+       "item": "Canção da Alvorada",
+       "hab": "Fênix Flamejante",
        "tipo": "nerf",
        "auto": true,
-       "nota": "The obscene range of Dawnsong has been pulled back slightly with the Cloth Armor resilience penetration changes in mind (see Armors).",
+       "nota": "O alcance absurdo da Canção da Alvorada foi ligeiramente reduzido levando em conta as mudanças na perfuração de resiliência da Armadura de Tecido (consulte Armaduras).",
        "linhas": [
         {
-         "r": "Range",
+         "r": "Alcance",
          "de": "15m",
          "para": "12m"
         }
@@ -210,35 +210,35 @@
      ]
     },
     {
-     "cat": "Frost Staffs",
+     "cat": "Cajados de Gelo",
      "itens": [
       {
-       "item": "all Frost Staffs",
-       "hab": "Frost Beam",
+       "item": "todos os Cajados de Gelo",
+       "hab": "Raio de Gelo",
        "tipo": "buff",
        "auto": true,
-       "nota": "Frost Beam’s area of effect has been increased slightly to make it more reliable in group PvP.",
+       "nota": "A área de efeito da habilidade Raio de Gelo foi aumentada ligeiramente para torná-la mais confiável no PvP em Grupo.",
        "linhas": [
         {
-         "r": "AoE radius",
+         "r": "Raio da área",
          "de": "4m",
          "para": "5m"
         }
        ]
       },
       {
-       "item": "all Frost Staffs",
-       "hab": "Glacial Obelisk",
+       "item": "todos os Cajados de Gelo",
+       "hab": "Obelisco Glacial",
        "tipo": "mudou",
        "auto": true,
-       "nota": "Glacial Obelisk’s powerful ally buffs have greatly incentivized users to cast on their allies, and casting on enemies has been a bit of a trap. Therefore, the damage recast has been removed and replaced with a shield to give the spell a more cohesive support identity, and give users a better reason to recast to end the buffs early and prevent some damage.",
+       "nota": "Os poderosos bônus da habilidade Obelisco Glacial para aliados incentivaram muito os usuários a conjurá-lo em seus aliados, enquanto conjurá-lo nos inimigos tem sido uma armadilha. Portanto, a reformulação do dano foi removida e substituída por um escudo para dar ao Feitiço uma identidade de suporte mais coesa e oferecer aos usuários um motivo melhor para reutilizar o Feitiço, encerrando os bônus mais cedo e evitando parte do dano.",
        "linhas": [
         {
-         "r": "No longer damages on recast",
+         "r": "Não causa mais dano ao ser lançado novamente",
          "texto": ""
         },
         {
-         "r": "Now shields for 200 for 3s on recast",
+         "r": "Agora concede escudos que absorvem 200 de dano por 3s ao ser lançado novamente",
          "texto": ""
         }
        ]
@@ -246,17 +246,17 @@
      ]
     },
     {
-     "cat": "Holy Staffs",
+     "cat": "Cajados Sagrados",
      "itens": [
       {
-       "item": "all Holy Staffs",
-       "hab": "Holy Flash",
+       "item": "todos os Cajados Sagrados",
+       "hab": "Luz Sagrada",
        "tipo": "nerf",
        "auto": true,
-       "nota": "Holy Flash has long been the all-powerful, no-brainer AoE heal option across most of Albion. Its range has now been reduced slightly to give this option a clearer drawback. If you want powerful healing, you must put yourself closer to danger.",
+       "nota": "A habilidade Luz Sagrada tem sido há muito tempo a opção de cura em área onipotente e óbvia na maior parte de Albion. Seu alcance foi reduzido ligeiramente agora para dar a esta opção uma desvantagem mais clara. Se você quiser uma Cura poderosa, deverá se colocar mais perto do perigo.",
        "linhas": [
         {
-         "r": "Range",
+         "r": "Alcance",
          "de": "13m",
          "para": "11m"
         }
@@ -265,17 +265,17 @@
      ]
     },
     {
-     "cat": "Nature Staffs",
+     "cat": "Cajados da Natureza",
      "itens": [
       {
-       "item": "Wild Staff",
-       "hab": "Well of Life",
+       "item": "Cajado Selvagem",
+       "hab": "Poço de Vida",
        "tipo": "buff",
        "auto": true,
-       "nota": "With Well of Life’s longer cast time and strict positioning restrictions, an instant heal has been added to guarantee more value.",
+       "nota": "Com o maior tempo de lançamento da habilidade Fonte da Vida e as rigorosas restrições de posicionamento, uma cura instantânea foi adicionada para garantir mais valor.",
        "linhas": [
         {
-         "r": "Now also heals instantly for 69 (total healing",
+         "r": "Agora também cura instantaneamente em 69 (cura total",
          "de": "276",
          "para": "345)"
         }
@@ -284,69 +284,69 @@
      ]
     },
     {
-     "cat": "Spears",
+     "cat": "Lanças",
      "itens": [
       {
-       "item": "Trinity Spear",
-       "hab": "Spectral Trident",
+       "item": "Lança Trina",
+       "hab": "Tridente Espectral",
        "tipo": "nerf",
        "auto": true,
-       "nota": "The hitbox detection duration of Trinity Spear’s impact damage and root has been reduced to better match its visuals and prevent walking into invisible damage.",
+       "nota": "A duração da detecção da área de acerto do dano de impacto e do enraizar da Lança Trina foi reduzida para corresponder melhor aos visuais e evitar que os jogadores caminhem em direção a dano invisível.",
        "linhas": [
         {
-         "r": "Hitbox duration",
-         "de": "0.5s",
-         "para": "0.2s"
+         "r": "Duração da área de acerto",
+         "de": "0,5s",
+         "para": "0,2s"
         }
        ]
       }
      ]
     },
     {
-     "cat": "War Gloves",
+     "cat": "Luvas de Guerra",
      "itens": [
       {
-       "item": "all War Gloves",
-       "hab": "Devastating Combo",
+       "item": "todas as Luvas de Guerra",
+       "hab": "Combo Devastador",
        "tipo": "buff",
        "auto": true,
-       "nota": "Devastating Combo’s crowd-control type has been changed from stun to root. This will give opponents more options for counterplay, whether to blink away or use other defensives. As compensation, its cooldown has been reduced.",
+       "nota": "O tipo de controle de multidões da habilidade Combo Devastador foi alterado de atordoamento para enraizamento. Isso dará aos adversários mais opções de contra-ataque, seja teletransportando-se para longe ou usando outras habilidades defensivas. Como compensação, a recarga foi reduzida.",
        "linhas": [
         {
          "r": "",
-         "de": "Stun",
-         "para": "root"
+         "de": "Atordoamento",
+         "para": "enraizamento"
         },
         {
-         "r": "Cooldown",
+         "r": "Tempo de recarga",
          "de": "15s",
          "para": "12s"
         }
        ]
       },
       {
-       "item": "Fists of Avalon",
-       "hab": "Purifying Combination",
+       "item": "Punhos de Avalon",
+       "hab": "Combinação Purificante",
        "tipo": "nerf",
        "auto": true,
-       "nota": "The hitbox detection duration of Fists of Avalon’s Power Punch has been reduced to better match its visuals and prevent walking into invisible damage.",
+       "nota": "A duração da detecção da área de acerto da habilidade Soco Poderoso dos Punhos de Avalon foi reduzida para corresponder melhor aos seus efeitos visuais e evitar que os jogadores caminhem em direção a dano invisível.",
        "linhas": [
         {
-         "r": "Hitbox duration",
-         "de": "0.5s",
-         "para": "0.2s"
+         "r": "Duração da área de acerto",
+         "de": "0,5s",
+         "para": "0,2s"
         }
        ]
       },
       {
-       "item": "Ravenstrike Cestus",
-       "hab": "Earth Crusher",
+       "item": "Cestus Golpeadores",
+       "hab": "Esmaga-terra",
        "tipo": "mudou",
        "auto": true,
-       "nota": "Earth Crusher now always knocks up, giving it more utility and adding some incentive to cancel the channel early.",
+       "nota": "A habilidade Esmaga-terra agora sempre joga os inimigos para o alto, proporcionando mais utilidade e criando um incentivo para interromper a canalização mais cedo.",
        "linhas": [
         {
-         "r": "Now knocks up at all stages for 0.7s (unchanged at 1.4s for full charge)",
+         "r": "Agora joga os alvos para o alto em todas as etapas por 0,7 s (inalterado em 1,4 s para o avanço total)",
          "texto": ""
         }
        ]
@@ -354,22 +354,22 @@
      ]
     },
     {
-     "cat": "Helmets",
+     "cat": "Capacetes",
      "itens": [
       {
-       "item": "Knight Helmet",
-       "hab": "Displacement Immunity",
+       "item": "Elmo de Cavaleiro",
+       "hab": "Imunidade ao Deslocamento",
        "tipo": "nerf",
        "auto": true,
-       "nota": "Displacement has received a slow immunity to help users move freely while it is active, but its total duration and uptime has been reduced.",
+       "nota": "A habilidade Imunidade ao Deslocamento recebeu imunidade à lentidão para ajudar os usuários a se moverem livremente enquanto estiver ativa, mas sua duração total e seu tempo de atividade foram reduzidos.",
        "linhas": [
         {
-         "r": "Duration",
+         "r": "Duração",
          "de": "7s",
          "para": "5s"
         },
         {
-         "r": "Can no longer be slowed",
+         "r": "Não pode mais ser desacelerado",
          "texto": ""
         }
        ]
@@ -377,35 +377,35 @@
      ]
     },
     {
-     "cat": "Armors",
+     "cat": "Armaduras",
      "itens": [
       {
-       "item": "Dragonslayer Jacket",
-       "hab": "Wings of Fire",
+       "item": "Casaco Mata-dragões",
+       "hab": "Asas de Fogo",
        "tipo": "mudou",
        "auto": true,
-       "nota": "Dragonslayer Jacket has been overperforming in large-scale PvP, so it has had its damage bonus removed, focusing its power on its defensive aspect. As compensation for smaller-scale PvP, its dash has changed from crowd-control immunity to full immunity.",
+       "nota": "O Casaco Mata-dragões tem tido um desempenho excessivo em PvP de grande escala, por isso o seu bônus de dano foi removido, concentrando o seu poder no aspecto defensivo. Como compensação pelo PvP em menor escala, seu avanço mudou de imunidade a controle de multidões para imunidade total.",
        "linhas": [
         {
-         "r": "No longer grants bonus damage while in the area",
+         "r": "Não concede mais dano adicional enquanto está na área",
          "texto": ""
         },
         {
-         "r": "CC",
-         "de": "immunity",
-         "para": "full immunity while jumping"
+         "r": "Imunidade a",
+         "de": "CM",
+         "para": "imunidade total durante o salto"
         }
        ]
       },
       {
-       "item": "All Cloth Armor",
+       "item": "Todas as Armaduras de Tecido",
        "hab": "",
        "tipo": "buff",
        "auto": true,
-       "nota": "Albion’s largest fights have become increasingly chaotic, and players have pointed out that Cloth Armor’s damage bonuses don’t sufficiently compensate for its lower durability. To encourage the use of Cloth Armor in these fights, all Cloth Robes now grant 15% resilience penetration, benefiting all damage dealt by the wearer. Maybe consider running with cloth damage dealers, and since you’ll be able to secure kills with fewer players, a slot could go to an additional support player?",
+       "nota": "As maiores batalhas de Albion tornaram-se cada vez mais caóticas, e os jogadores apontaram que os bônus de dano da Armadura de Tecido não compensam suficientemente sua menor durabilidade. Para incentivar o uso de Armadura de Tecido nessas lutas, todos os Robes de Tecido agora concedem 15% de perfuração de resiliência, beneficiando todo o dano causado pelo usuário. Talvez considere ter danos com armaduras de tecido e, como você poderá garantir eliminações com menos jogadores, um espaço poderia ser destinado a um jogador de suporte adicional?",
        "linhas": [
         {
-         "r": "Resilience penetration",
+         "r": "Perfuração de Resiliência",
          "de": "0%",
          "para": "15%"
         }
@@ -414,14 +414,14 @@
      ]
     },
     {
-     "cat": "Miscellaneous",
+     "cat": "Outros",
      "itens": [
       {
-       "item": "Lava defense decrease vs. players: 50% → 25%",
+       "item": "Redução de defesa da lava contra jogadores: 50% → 25%",
        "hab": "",
        "tipo": "mudou",
        "auto": true,
-       "nota": "In 2v2 Hellgates, lava has become too significant, so its effect has been reduced somewhat.",
+       "nota": "Nos Hellgates 2v2, a lava tornou-se muito significativa, por isso o seu efeito foi reduzido um pouco.",
        "linhas": []
       }
      ]
@@ -429,271 +429,271 @@
    ],
    "secoes": [
     {
-     "id": "season-35-changes",
-     "titulo": "Season 35 Changes",
-     "intro": "Season 35 is three weeks longer than usual, to avoid an overly long offseason after it ends. This patch introduces a number of changes for this extended season, in particular to the Crystal League.",
+     "id": "mudan-as-na-temporada-35",
+     "titulo": "Mudanças na Temporada 35",
+     "intro": "A Temporada 35 é três semanas mais longa do que o normal, para evitar uma temporada baixa excessivamente longa após o seu término. Este pacote de atualizações introduz diversas mudanças para esta Temporada estendida, especialmente na Liga de Cristal.",
      "itens": []
     },
     {
-     "id": "conqueror-s-challenge",
-     "titulo": "Conqueror’s Challenge",
+     "id": "desafio-do-conquistador",
+     "titulo": "Desafio do Conquistador",
      "itens": [
       [
        "•",
-       "To account for the extended duration of Season 35, a new top level has been added for players who reach 2,000,000 Might: The reward for attaining this level is the Darkfang Swiftclaw skin"
+       "Para compensar a duração estendida da Temporada 35, um novo nível máximo foi adicionado para os jogadores que alcançarem 2.000.000 de Influência.: A recompensa por atingir este nível é a Fantasia de Garra-ligeira Presa Sombria"
       ],
       [
        "▲",
-       "Rewards from Conqueror’s Chests has been increased by approximately 50% for all levels"
+       "As recompensas dos Baús do Conquistador foram aumentadas em aproximadamente 50% para todos os níveis"
       ],
       [
        "•",
-       "A new Crystal League Might Challenge has been introduced: Completing this grants 19,800 Season Points"
+       "Um novo Desafio de Influência da Liga de Cristal foi introduzido: Concluir isso concede 19.800 Pontos de Temporada"
       ]
      ]
     },
     {
-     "id": "crystal-league",
-     "titulo": "Crystal League",
+     "id": "liga-de-cristal",
+     "titulo": "Liga de Cristal",
      "itens": [
       [
        "•",
-       "5v5: Levels 8 and 9 have been removed"
+       "5v5: Os níveis 8 e 9 foram removidos"
       ],
       [
        "!",
-       "5v5: Accumulated loot from lower-level matches is now fully paid out at Level 7"
+       "5v5: Os saques acumulados de partidas de níveis inferiores agora são totalmente pagos no nível 7"
       ],
       [
        "•",
-       "5v5: Corresponding Albion Journal missions have been moved to the Archive section"
+       "5v5: As missões correspondentes do Diário de Albion foram movidas para a seção Arquivo"
       ],
       [
        "!",
-       "5v5: The Crystal Gladiator Helm is now a rare reward for winning Level 7 matches in both 5v5 and 20v20 formats"
+       "5v5: O Elmo do Gladiador de Cristal agora é uma recompensa rara por vencer partidas de nível 7 nos formatos 5v5 e 20v20"
       ],
       [
        "▼",
-       "5v5: Maximum match duration: 25 minutes → 15 minutes"
+       "5v5: Duração máxima da partida: 25 minutos → 15 minutos"
       ],
       [
        "!",
-       "5v5: There are now three matches per hour"
+       "5v5: Agora há três partidas por hora"
       ],
       [
        "▲",
-       "5v5: Due to the extended duration of this season, one additional Level 7 match has been added"
+       "5v5: Devido à duração estendida desta temporada, uma partida adicional de nível 7 foi adicionada"
       ],
       [
        "!",
-       "20v20: Added new map aimed at group play: Tristone"
+       "20v20: Um novo mapa voltado para partidas em grupo foi adicionado: Tristone"
       ],
       [
        "!",
-       "20v20: New layout"
+       "20v20: Novo layout"
       ],
       [
        "▼",
-       "20v20: Number of Runestones: 5 → 3"
+       "20v20: Número de Pedras Rúnicas: 5 → 3"
       ],
       [
        "•",
-       "20v20: Point loss per difference in Runestones:"
+       "20v20: Perda de pontos por diferença nas Pedras Rúnicas:"
       ],
       [
        "•",
-       "20v20: 1 Runestone: 30 points"
+       "20v20: 1 Pedra Rúnica: 30 pontos"
       ],
       [
        "•",
-       "20v20: 2 Runestones: 40 points"
+       "20v20: 2 Pedras Rúnicas: 40 pontos"
       ],
       [
        "•",
-       "20v20: 3 Runestones: 50 points"
+       "20v20: 3 Pedras Rúnicas: 50 pontos"
       ],
       [
        "▲",
-       "20v20: Tickets lost per death: 3 → 4"
+       "20v20: Pontos perdidos por morte: 3 → 4"
       ],
       [
        "▼",
-       "20v20: Maximum match duration: 25 minutes → 15 minutes"
+       "20v20: Duração máxima da partida: 25 minutos → 15 minutos"
       ],
       [
        "•",
-       "20v20: Adjusted IP soft cap to match 5v5 matches:"
+       "20v20: Limite Suave de PI ajustado para corresponder às partidas 5v5:"
       ],
       [
        "•",
-       "20v20: Level 1: 900 IP"
+       "20v20: Nível 1: 900 de PI"
       ],
       [
        "•",
-       "20v20: Level 2: 1000 IP"
+       "20v20: Nível 2: 1000 de PI"
       ],
       [
        "•",
-       "20v20: Level 3: 1100 IP"
+       "20v20: Nível 3: 1100 de PI"
       ],
       [
        "•",
-       "20v20: Level 4: 1200 IP"
+       "20v20: Nível 4: 1200 de PI"
       ],
       [
        "•",
-       "20v20: Level 5: 1300 IP"
+       "20v20: Nível 5: 1300 de PI"
       ],
       [
        "•",
-       "20v20: Level 6: 1400 IP"
+       "20v20: Nível 6: 1400 de PI"
       ],
       [
        "•",
-       "20v20: Level 7: 1500 IP"
+       "20v20: Nível 7: 1500 de PI"
       ],
       [
        "!",
-       "Players now receive a guaranteed reward when losing a Crystal League match, even without gaining any of the bonus loot rolls"
+       "Os jogadores agora recebem uma recompensa garantida ao perder uma partida da Liga de Cristal, mesmo sem obter nenhuma das rolagens de saque bônus"
       ]
      ]
     },
     {
-     "id": "dragon-sanctuary-changes",
-     "titulo": "Dragon Sanctuary Changes",
-     "intro": "While the difficulty of the fights within the Dragon Sanctuary seems to be in a solid place now, there are some concerns with the rewards to be addressed. Considering the gear and time invested into Dragon Sanctuaries, we have doubled the loot value inside Azaryon’s chest overall, with more generous progression in higher tiers. We will continue to monitor loot values as well as your feedback to assess whether further changes are needed here.",
+     "id": "altera-es-no-santu-rio-dos-drag-es",
+     "titulo": "Alterações no Santuário dos Dragões",
+     "intro": "Embora a dificuldade das lutas dentro do Santuário dos Dragões pareça estar adequada agora, há algumas questões relacionadas às recompensas que precisam ser abordadas. Considerando o equipamento e o tempo investidos nos Santuários dos Dragões, dobramos o valor total dos saques dentro do baú de Azaryon, com uma progressão mais generosa nos graus mais altos. Continuaremos monitorando os valores dos saques, bem como seus comentários, para avaliar se são necessárias outras alterações aqui.",
      "itens": []
     },
     {
-     "id": "armory-changes",
-     "titulo": "Armory Changes",
-     "intro": "This patch brings a number of tweaks and improvements to the Armory, including two new categories. As before, data for these new categories will begin to be tracked with this patch, and their utility will increase over the coming days.",
+     "id": "altera-es-no-arsenal",
+     "titulo": "Alterações no Arsenal",
+     "intro": "Este pacote de atualizações traz diversos ajustes e melhorias para o Arsenal, incluindo duas novas categorias. Como antes, os dados para estas novas categorias começarão a ser monitorados neste pacote de atualizações, e sua utilidade aumentará nos próximos dias.",
      "itens": [
       [
        "!",
-       "Added new categories for the Ancient Lands and Dragon Sanctuary"
+       "Novas categorias para Terras Ancestrais e Santuário dos Dragões foram adicionadas"
       ],
       [
        "!",
-       "Arena, Crystal Arena, Crystal League, Hellgates, and Corrupted Dungeons now show stats per match instead of per hour, and wins as a win rate"
+       "As categorias Arena, Arena de Cristal, Liga de Cristal, Hellgates e Masmorras Corrompidas agora exibem os atributos por partida em vez de por hora, e as vitórias como uma taxa de vitórias"
       ],
       [
        "!",
-       "Added an Escapability metric to the Mists and Open-World Solo categories"
+       "Uma métrica de Escapabilidade foi adicionada às categorias Brumas e Mundo Aberto Solo"
       ],
       [
        "!",
-       "Improved tracking accuracy across a number of categories:: Defeats in Corrupted Dungeons and Hellgates are now factored into win rates correctly"
+       "Precisão de rastreamento aprimorada em várias categorias:: Derrotas nas Masmorras Corrompidas e nos Hellgates agora são contabilizadas corretamente nas taxas de vitória"
       ],
       [
        "!",
-       "Improved tracking accuracy across a number of categories:: Completed Hardcore Expedition runs now count as wins"
+       "Precisão de rastreamento aprimorada em várias categorias:: As incursões concluídas da Expedição Hardcore agora contam como vitórias"
       ],
       [
        "•",
-       "Improved tracking accuracy across a number of categories:: Fixed issue where many Tracking sessions were not tracked"
+       "Precisão de rastreamento aprimorada em várias categorias:: Problema em que muitas sessões de Rastreamento não eram rastreadas foi corrigido"
       ],
       [
        "•",
-       "Improved tracking accuracy across a number of categories:: Open-World Large Group no longer includes PvE-only sessions"
+       "Precisão de rastreamento aprimorada em várias categorias:: O Grupo Grande de Mundo Aberto não inclui mais sessões exclusivamente de PvE"
       ]
      ]
     },
     {
-     "id": "ui-changes",
-     "titulo": "UI Changes",
+     "id": "mudan-as-na-interface-do-usu-rio",
+     "titulo": "Mudanças na Interface do Usuário",
      "itens": [
       [
        "!",
-       "Spells can now be changed by right-clicking each slot on the spell bar"
+       "Os feitiços agora podem ser alterados clicando com o botão direito em cada espaço da barra de feitiços"
       ],
       [
        "!",
-       "Weapon and Armor details can now be opened from the Destiny Board Specialization Node UI"
+       "Agora é possível abrir os detalhes de Armas e Armaduras pela Interface do Nó de Especialização do Painel do Destino"
       ],
       [
        "•",
-       "Guild invite popups now display the Guild Tax rate and number of active members: There is also an additional flyout which displays recruitment info if applicable"
+       "Os pop-ups de convite para a Guilda agora exibem a taxa de imposto da Guilda e o número de membros ativos: Há também um menu adicional que exibe informações de recrutamento, se aplicável"
       ],
       [
        "!",
-       "Added Danish and Norwegian as language options in the Guild UI"
+       "Dinamarquês e norueguês foram adicionados como opções de idioma na Interface da Guilda"
       ],
       [
        "!",
-       "Added ‘Previous’ and ‘Next’ buttons to the Bank UI to quickly switch tabs"
+       "Os botões ‘Anterior’ e ‘Próximo’ foram adicionados à Interface do Banco para alternar rapidamente entre as abas"
       ],
       [
        "!",
-       "Bank Overview now displays the weight and value of a Bank’s contents at the bottom"
+       "A Visão Geral do Banco agora exibe o peso e o valor do conteúdo de um banco na parte inferior"
       ],
       [
        "!",
-       "[MOBILE] Holding an icon on the minimap now displays its tooltip"
+       "[MOBILE] Manter um ícone pressionado no minimapa agora exibe sua dica de ferramenta"
       ]
      ]
     },
     {
-     "id": "other-changes",
-     "titulo": "Other Changes",
+     "id": "outras-mudan-as",
+     "titulo": "Outras Mudanças",
      "itens": [
       [
        "!",
-       "Added shrines next to Training Dummies on islands to reset health, energy, and cooldowns"
+       "Foram adicionados santuários ao lado dos Bonecos de Treinamento nas ilhas para redefinir vida, energia e recargas"
       ],
       [
        "▲",
-       "Increased the speed of melding Artifacts and of crafting Victory Emotes from Community Tokens"
+       "A Velocidade de combinação de Artefatos e de fabricação de Emotes de vitória com Token da Comunidade foi aumentada"
       ],
       [
        "!",
-       "Reward chests (eg. Conqueror’s Challenge Chests, Adventurer’s Challenge Chests) now display the estimated market market value of their contents when opened"
+       "Os baús de recompensa (por exemplo, os Baús do Desafio do Conquistador e os Baús do Desafio do Aventureiro) agora exibem o valor de mercado estimado do seu conteúdo quando abertos"
       ]
      ]
     }
    ],
    "fixes": [
     {
-     "grupo": "Spell",
+     "grupo": "Feitiços",
      "itens": [
       {
-       "t": "Rejuvenation (Nature Staffs): Fixed issue where movement was interrupted when casting"
+       "t": "Rejuvenescimento (Cajados da Natureza): Problema em que o movimento era interrompido durante o lançamento foi corrigido"
       }
      ]
     },
     {
-     "grupo": "UI",
+     "grupo": "Interface do Usuário",
      "itens": [
       {
-       "t": "Fixed issue where Dragon Sanctuary PvE stats were not tracked in the leaderboard"
+       "t": "Problema em que os atributos de PvE do Santuário dos Dragões não eram registrados na classificação foi corrigido"
       },
       {
-       "t": "Please note that tracking of these stats begins with this patch, and it is unfortunately not possible to display earlier stats"
+       "t": "Observe que o rastreamento desses atributos começa neste pacote de atualizações e, infelizmente, não é possível exibir atributos anteriores"
       },
       {
-       "t": "Fixed issue where items with a Quality higher than normal could not be stacked by clicking-and-dragging"
+       "t": "Problema em que itens com uma Qualidade superior à normal não podiam ser acumulados ao clicar e arrastar foi corrigido"
       },
       {
        "p": "MOBILE",
-       "t": "Fixed issue where the HUD Tracker would lose its Destiny Board elements and no longer be collapsible after changing regions"
+       "t": "Problema em que o Acompanhador da HUD perdia seus elementos do Painel do Destino e não podia mais ser recolhido após mudar de região foi corrigido"
       }
      ]
     },
     {
-     "grupo": "Other",
+     "grupo": "Outras Correções",
      "itens": [
       {
-       "t": "Fixed issue where Sentry Mages could be damaged before a Territory battle to reduce their health during the battle"
+       "t": "Problema que permitia que os Magos Vigias sofressem dano antes de uma batalha por um Território, reduzindo sua vida durante a batalha foi corrigido"
       },
       {
-       "t": "Sentry Mages now heal fully at the beginning of Prime Time"
+       "t": "Os Magos Vigias agora recuperam totalmente a cura no início do Horário Principal"
       },
       {
-       "t": "Fixed issue where Player Navigation could break on entering instanced content"
+       "t": "Problema em que a Navegação do Jogador podia apresentar falhas ao entrar em conteúdo instanciado foi corrigido"
       },
       {
        "p": "MOBILE",
-       "t": "Fixed issue where double-tapping to equip or loot items would sometimes open Item Details instead"
+       "t": "Problema em que tocar duas vezes para equipar ou saquear itens às vezes abria os detalhes do item foi corrigido"
       }
      ]
     }
