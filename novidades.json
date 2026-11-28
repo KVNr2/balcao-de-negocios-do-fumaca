@@ -1,6 +1,18 @@
 {
  "itens": [
   {
+   "t": "2026-11-28T04:56:07Z",
+   "programa": "2.3.12",
+   "titulo": "Albion Overlay 2.3.12: busca de itens mais rápida, painel que não atrapalha e baús no minimapa",
+   "itens": [
+    "A busca pelo nome do item no catálogo ficou muito mais rápida: a resposta ao balão do jogo sai de cerca de 0,6 s para dezenas de milissegundos.",
+    "O painel do item e do mapa de Avalon não tira mais o foco do jogo: dá para continuar passando o mouse nos itens sem clicar no jogo, e o foco volta para o jogo ao fechar.",
+    "O painel não aparece mais embaixo do mouse, e a janela de espera fica aquecida para abrir mais depressa.",
+    "As marcas dos baús continuam visíveis no minimapa mesmo com o mapa grande (N) aberto.",
+    "O registro de buff e renascimento dos baús passa a sair em arquivos próprios para diagnóstico (safari-buff.jsonl e safari-renasce.jsonl)."
+   ]
+  },
+  {
    "t": "2026-11-28T04:29:16Z",
    "titulo": "Nossas builds: composições de várias builds",
    "itens": [
