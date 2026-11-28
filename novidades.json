@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-11-28T04:29:16Z",
+   "titulo": "Nossas builds: composições de várias builds",
+   "itens": [
+    "Em Builds > Nossas builds, o segmento agora escolhe entre ver builds sozinhas ou composições.",
+    "Clique em \"Criar composição\" para juntar várias builds numa entrada só, marcando quais entram com o mínimo de jogadores e quais entram se vier mais gente.",
+    "Cada composição pode ser votada, copiada para a party em texto e aberta de novo no segmento de composições; em cada build de dentro há o botão \"Ver build sozinha\"."
+   ]
+  },
+  {
    "t": "2026-11-24T17:40:56Z",
    "programa": "2.3.11",
    "titulo": "Albion Overlay 2.3.11: encantamento certo pelo inventário e painel que não atrapalha o jogo",

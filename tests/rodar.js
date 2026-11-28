@@ -96,6 +96,65 @@ async function simular(p) {
     return { p: salvo.p && salvo.p.length, o: salvo.o && salvo.o.length, txt: cjTexto(c).split("\n").length, cheio6: cheio }; });
   conf("conjunto de builds guarda principais e opcionais", cj.p === 2 && cj.o === 1 && cj.txt === 6, cj);
 
+  /* 8b. Nossas builds: criar composição, ver build sozinha e voltar à composição */
+  const nc = await p.evaluate(async () => {
+    const esp = ms => new Promise(f => setTimeout(f, ms));
+    document.getElementById("t-builds").click();
+    localStorage.removeItem("nb:mine"); localStorage.removeItem("nb:view"); localStorage.removeItem("bSrc");
+    NB_CLOUD = false; NB_REPO = []; NB_ALL = []; nbRefreshAll();
+    document.querySelectorAll("#bSrc button")[1].click();
+    for (let i = 0; i < 40 && !document.querySelector("#nbBox .nb-view"); i++) await esp(100);
+    const constmk = (id, t, w, k) => ({ id, t, au: "Teste", k, ks: [k], data: "2026-11-28", votos: 0, w, wc: w.replace(/^T\d_/, "").replace(/@\d$/, "") });
+    nbSaveMine([constmk("nc-a", "Build A", "T8_MAIN_SWORD", ""), constmk("nc-b", "Build B", "T8_2H_HAMMER", "")]);
+    nbRefreshAll(); nbView = "build"; nbRender();
+    const criar = [...document.querySelectorAll("#nbBox .nb-bar button")].find(b => /Criar composição/.test(b.textContent));
+    criar.click();
+    for (let i = 0; i < 60 && (!document.querySelector(".nb-cp-form") || document.querySelectorAll(".nb-cp-form input[type=number]").length < 2); i++) await esp(100);
+    const form = document.querySelector(".nb-cp-form");
+    form.querySelector('input[type="text"]').value = "Composição de teste";
+    const nums = form.querySelectorAll('input[type="number"]');
+    nums[0].value = "2"; nums[0].dispatchEvent(new Event("change"));
+    nums[1].value = "3"; nums[1].dispatchEvent(new Event("change"));
+    for (let i = 0; i < 2; i++) {
+      const row = [...form.querySelectorAll(".nb-cp-it")][i];
+      const bt = [...row.querySelectorAll("button")].find(b => b.textContent === "Principal");
+      bt.click();
+    }
+    const salvar = [...form.querySelectorAll("button")].find(b => /Salvar composição/.test(b.textContent));
+    salvar.click();
+    for (let i = 0; i < 60 && !document.querySelector("#nbBox .bcard.nb-comp"); i++) await esp(100);
+    const salvo = JSON.parse(localStorage.getItem("nb:mine") || "[]").find(x => x.tipo === "comp") || {};
+    const cartao = document.querySelector("#nbBox .bcard.nb-comp");
+    const aberto = !!cartao && !!cartao.querySelector(".nb-cp-det");
+    const ver = cartao && [...cartao.querySelectorAll("button")].find(b => /Ver build sozinha/.test(b.textContent));
+    if (ver) ver.click();
+    for (let i = 0; i < 60 && !document.querySelector("#nbBox .bcard.open:not(.nb-comp)"); i++) await esp(100);
+    const sozinha = !!document.querySelector("#nbBox .bcard.open:not(.nb-comp)");
+    const volta = [...document.querySelectorAll("#nbBox button")].find(b => /Voltar para a composição/.test(b.textContent));
+    if (volta) volta.click();
+    for (let i = 0; i < 60 && !document.querySelector("#nbBox .bcard.nb-comp.open"); i++) await esp(100);
+    const resultado = {
+      tipo: salvo.tipo, p: salvo.p && salvo.p.length, o: salvo.o && salvo.o.length, min: salvo.min, max: salvo.max,
+      cartao: !!cartao, aberto, sozinha, volta: !!document.querySelector("#nbBox .bcard.nb-comp.open"),
+      texto: cartao ? /Composição de teste/.test(cartao.textContent) : false,
+      view: nbView
+    };
+    return resultado;
+  });
+  conf("Nossas builds: composição agrupa builds e alterna entre build sozinha e composição",
+    nc.tipo === "comp" && nc.p === 2 && nc.o === 0 && nc.min === 2 && nc.max === 3 && nc.cartao && nc.aberto && nc.sozinha && nc.volta && nc.texto && nc.view === "comp", nc);
+  await p.setViewportSize({ width: 390, height: 844 });
+  const ncEstreito = await p.evaluate(() => {
+    nbView = "comp"; nbRender();
+    const cartao = document.querySelector("#nbBox .bcard.nb-comp");
+    const r = cartao && cartao.getBoundingClientRect();
+    return { largura: r && Math.round(r.width), tela: window.innerWidth, cabe: !!r && r.width <= window.innerWidth + 2,
+      botoes: !!cartao && [...cartao.querySelectorAll("button")].every(b => b.getBoundingClientRect().width > 0) };
+  });
+  conf("composição cabe na tela estreita", ncEstreito.cabe && ncEstreito.botoes, ncEstreito);
+  await p.setViewportSize({ width: 1440, height: 1000 });
+  await p.evaluate(() => { localStorage.removeItem("nb:mine"); localStorage.removeItem("nb:view"); localStorage.removeItem("bSrc"); NB_CLOUD = false; NB_REPO = []; nbRefreshAll(); });
+
   /* 9. Refino: T2 e T3 na lista, e refinar sem foco */
   const rf = await p.evaluate(async () => { document.getElementById("t-refino").click();
     OF.tiers.clear(); OF.tiers.add(2); OF.tiers.add(3); renderOf();

@@ -9,6 +9,14 @@ Cada arquivo `.json` desta pasta é uma build que aparece na aba **Builds > Noss
 4. Acrescente o nome do arquivo em `builds/index.json`, por exemplo: `["minha-build.json"]`.
 5. Faça commit e push. Em 1 a 2 minutos a build aparece para todo mundo.
 
+## Como publicar uma composição
+Uma composição reúne várias builds numa entrada só, com jogadores principais e opcionais. Em **Builds > Nossas builds > Composições**, clique em **Criar composição**, escolha as builds e salve. Para publicar:
+1. Na composição salva, clique em **Baixar arquivo**.
+2. Coloque o arquivo nesta pasta e acrescente o nome em `builds/index.json`.
+3. Faça commit e push. A composição aparece no segmento **Composições**.
+
+O arquivo da composição leva `"tipo": "comp"`, `min`, `max`, `p` (principais) e `o` (opcionais). Cada build de dentro vai junto no arquivo, então a composição continua funcionando mesmo que uma build de origem saia da lista.
+
 ## Votos
 O campo `votos` do arquivo é a contagem oficial. Cada visitante também pode dar o seu voto,
 que fica salvo só no navegador dele e soma +1 na tela dele.
