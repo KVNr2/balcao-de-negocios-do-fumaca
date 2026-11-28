@@ -159,7 +159,7 @@ async function consultar(){
   var av=(P.get("av")||"").split(";").filter(Boolean);if(av.length){$("av").hidden=false;$("av").textContent="Atenção na leitura: "+av.join("; ")}
   if(OV){   /* protocolo das janelinhas do overlay (sem barra do navegador; arrastar pelo cabeçalho) */
     requestAnimationFrame(function(){requestAnimationFrame(function(){fetch("/pronto?dlg=1",{method:"POST"})})});
-    var moldura=function(){var t=Math.round((window.outerHeight-window.innerHeight)*(window.devicePixelRatio||1));if(t>=10&&t<=90)fetch("/moldura?dlg=1&top="+t,{method:"POST"})};
+    var moldura=function(){var d=window.devicePixelRatio||1;var t=Math.round((window.outerHeight-window.innerHeight)*d);var lim=Math.round(52*d);if(t>=10&&t<=lim)fetch("/moldura?dlg=1&top="+t,{method:"POST"})};
     moldura();setTimeout(moldura,400);
     var c=$("bar"),d=null,pend=null,raf=0;
     var flush=function(){raf=0;if(pend){fetch("/mover?dlg=1&dx="+Math.round(pend.x*(window.devicePixelRatio||1))+"&dy="+Math.round(pend.y*(window.devicePixelRatio||1)),{method:"POST"});pend=null}};
