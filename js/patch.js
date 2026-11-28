@@ -41,6 +41,50 @@ function ptIcone(it){ let id=it.ic||null;
   const im=el("img",{class:"pt-ic",alt:"",loading:"lazy",decoding:"async",width:"48",height:"48"});
   iconSrc(im,id,()=>{ im.style.visibility="hidden"; });
   return im; }
+/* Ícone das habilidades citadas no patch: o texto traz o nome (PT ou EN) e data/skills.json traz o ID do render.
+   PT_NOMES completa os nomes antigos que o dicionário de habilidades não tem mais. */
+let PT_SKS=null, PT_SKILLS=null, PT_SKILL_TEXTO=null;
+const ptSkillNorm = s => String(s==null?"":s).replace(/\s*\([^)]*\)/g,"").trim().replace(/\s+/g," ").toLocaleLowerCase("pt-BR");
+function ptSkillMapa(){
+  if(PT_SKILLS) return PT_SKILLS;
+  PT_SKILLS=new Map();
+  const add=(nome,id)=>{ const k=ptSkillNorm(nome); if(!k||!/^[A-Z][A-Z0-9_]{2,}$/.test(id||"")) return;
+    if(!PT_SKILLS.has(k)) PT_SKILLS.set(k,{id,nome:String(nome).trim()}); };
+  for(const [id,v] of Object.entries((PT_SKS&&PT_SKS.s)||{})){ add(v&&v[0],id); add(v&&v[2],id); }
+  for(const [en,pt] of Object.entries((PT_NOMES&&PT_NOMES.h)||{})){ const achado=PT_SKILLS.get(ptSkillNorm(en)); if(achado) add(pt,achado.id); }
+  return PT_SKILLS;
+}
+function ptSkillId(nome){ const v=ptSkillMapa().get(ptSkillNorm(nome)); return v&&v.id||null; }
+function ptSkillImg(id){ if(!id||typeof spellImg!=="function") return null; const im=spellImg(id,"pt-sk"); if(im) im.dataset.skill=id; return im; }
+/* Cola o ícone no nome dentro de um texto. extras são as habs do cartão (entram mesmo sendo curtas, como
+   "Turbilhão"); no resto só entram nomes com espaço ou bem específicos, para não confundir palavras comuns
+   ("investida", "impacto"...) com habilidade. */
+function ptTextoSkills(txt,extras){
+  const frag=document.createDocumentFragment(), texto=String(txt==null?"":txt);
+  if(!texto){ return frag; }
+  if(!PT_SKILL_TEXTO){
+    const vistos=new Set(), lista=[];
+    for(const v of ptSkillMapa().values()){ const k=ptSkillNorm(v.nome); if(k.length<5) continue;
+      if(!v.nome.includes(" ")&&k.length<12) continue; if(vistos.has(k)) continue; vistos.add(k); lista.push(v); }
+    lista.sort((a,b)=>b.nome.length-a.nome.length); PT_SKILL_TEXTO=lista;
+  }
+  const mapa=new Map(); for(const v of PT_SKILL_TEXTO) mapa.set(ptSkillNorm(v.nome),v);
+  for(const nome of (extras||[])){ const id=ptSkillId(nome), k=ptSkillNorm(nome); if(id&&k) mapa.set(k,{nome:String(nome).trim(),id}); }
+  const nomes=[...mapa.values()].sort((a,b)=>b.nome.length-a.nome.length);
+  if(!nomes.length){ frag.append(document.createTextNode(texto)); return frag; }
+  const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const re=new RegExp("(^|[^\\p{L}\\p{N}])("+nomes.map(v=>esc(v.nome)).join("|")+")(?=$|[^\\p{L}\\p{N}])","gu");
+  let last=0,m; const usados=new Set();
+  while((m=re.exec(texto))){
+    const ini=m.index+m[1].length, fim=ini+m[2].length;
+    if(ini>last) frag.append(document.createTextNode(texto.slice(last,ini)));
+    const id=mapa.get(ptSkillNorm(m[2]));
+    if(id&&!usados.has(id.id)){ usados.add(id.id); const ic=ptSkillImg(id.id); if(ic) frag.append(ic); }
+    frag.append(document.createTextNode(m[2])); last=fim; re.lastIndex=fim;
+  }
+  if(last<texto.length) frag.append(document.createTextNode(texto.slice(last)));
+  return frag;
+}
 let PT_NOMES=null; /* data/nomes-ptbr.json: nomes oficiais do jogo (i: itens, h: habilidades), inglês → português */
 function ptUm(n){ n=(n||"").trim(); if(!n) return n; const d=PT_NOMES&&PT_NOMES.i; if(d&&d[n]) return d[n];
   const m=n.match(/^(?:Todos os|Todas as|All)\s+(.+?)s?$/); if(m&&d&&d[m[1]]) return "Todos os "+d[m[1]];
@@ -50,29 +94,37 @@ function ptNome(it){ return it.nome||ptTrad(it.item); }
 function ptHab(it){ const h=it.hab||""; if(!h||it.hab_pt) return it.hab_pt||h; const m=h.match(/^(.*?)(\s*\([^)]*\))?$/), b=(m&&m[1]||h).trim(), x=m&&m[2]||"", d=PT_NOMES&&PT_NOMES.h; return d&&d[b]?d[b]+x:h; }
 const ptEl=(tag,props,kids)=>el(tag,props,...(kids||[]));
 const PT_TIPO={buff:"Buff",nerf:"Nerf",mudou:"Mudou"};
-function ptLinha(l){ const row=el("div",{class:"pt-row"}); row.append(el("span",{class:"pt-r",text:l.r}));
+function ptLinha(l,extras){ const row=el("div",{class:"pt-row"}); row.append(el("span",{class:"pt-r"},ptTextoSkills(l.r,extras)));
   const v=el("span",{class:"pt-v"});
-  if(l.texto){ v.append(el("span",{class:"pt-tx",text:l.texto})); }
+  if(l.texto){ v.append(el("span",{class:"pt-tx"},ptTextoSkills(l.texto,extras))); }
   else { v.append(el("span",{class:"pt-de",text:l.de}),el("span",{class:"pt-seta",text:"→"}),el("b",{class:"pt-para",text:l.para})); const p=ptPct(l.de,l.para); if(p) v.append(el("small",{class:"pt-pct "+(p[0]==="+"?"up":"dn"),text:p})); }
   row.append(v); return row; }
 function ptCard(it,idx,cat){ const c=el("article",{class:"pt-card "+it.tipo,id:`pt-${idx}`}); c.dataset.tipo=it.tipo;
   const h=el("header",{class:"pt-ch"}); const ic=ptIcone(it); if(ic) h.append(ic);
-  const t=el("div",{class:"pt-ct"}); if(cat) t.append(el("small",{class:"pt-kick",text:cat})); t.append(el("b",{text:ptNome(it)}),el("small",{text:ptHab(it)})); h.append(t,el("span",{class:"pt-badge "+it.tipo,text:PT_TIPO[it.tipo]||it.tipo,title:it.auto?"Classificação automática: pode errar":""})); c.append(h);
-  (it.linhas||[]).forEach(l=>c.append(ptLinha(l)));
-  if(it.nota) c.append(ptEl("p",{class:"pt-nota"},[el("b",{text:it.auto?"Nota dos devs (original) ":"Nota dos devs "}),document.createTextNode(it.nota)]));
+  const t=el("div",{class:"pt-ct"}); if(cat) t.append(el("small",{class:"pt-kick",text:cat}));
+  const hab=el("small",{class:"pt-hab"}), nomeHab=ptHab(it), idHab=ptSkillId(it.hab)||ptSkillId(nomeHab), icHab=idHab&&ptSkillImg(idHab);
+  if(icHab) hab.append(icHab); hab.append(document.createTextNode(nomeHab));
+  t.append(el("b",{text:ptNome(it)}),hab); h.append(t,el("span",{class:"pt-badge "+it.tipo,text:PT_TIPO[it.tipo]||it.tipo,title:it.auto?"Classificação automática: pode errar":""})); c.append(h);
+  (it.linhas||[]).forEach(l=>c.append(ptLinha(l,[it.hab,nomeHab])));
+  if(it.nota) c.append(ptEl("p",{class:"pt-nota"},[el("b",{text:it.auto?"Nota dos devs (original) ":"Nota dos devs "}),ptTextoSkills(it.nota,[it.hab,nomeHab])]));
   return c; }
 function ptCompacto(a){ const w=el("div",{class:"pt-comp"});
   if(a.idioma==="en") w.append(el("p",{class:"small muted",text:"Texto original em inglês, lido automaticamente do fórum oficial."}));
-  (a.balance||[]).forEach(g=>{ const ul=el("ul",{class:"pt-sim"}); g.itens.forEach(it=>{ const li=el("li"); li.append(el("span",{class:"pt-badge "+it.tipo,text:PT_TIPO[it.tipo]||it.tipo}),el("span",{text:`${ptNome(it)}${it.hab?" ("+ptHab(it)+")":""}: `+(it.linhas||[]).map(l=>l.texto!=null?`${l.r}${l.texto?": "+l.texto:""}`:`${l.r}: ${l.de} → ${l.para}`).join("; ")})); ul.append(li); }); w.append(el("h4",{class:"pt-gh",text:g.cat}),ul); });
-  (a.secoes||[]).forEach(s=>{ w.append(el("h4",{class:"pt-gh",text:s.titulo})); const ul=el("ul",{class:"pt-sim"}); (s.itens||[]).forEach(([s1,tx])=>{ const li=el("li"); li.append(el("span",{class:"pt-s",text:s1,"aria-hidden":"true"}),el("span",{text:tx})); ul.append(li); }); w.append(ul); });
-  (a.fixes||[]).forEach(g=>{ w.append(el("h4",{class:"pt-gh",text:"Correções: "+g.grupo})); const ul=el("ul",{class:"pt-sim"}); g.itens.forEach(x=>{ const li=el("li"); if(x.p) li.append(el("span",{class:"pt-plat",text:x.p})); li.append(el("span",{text:x.t})); ul.append(li); }); w.append(ul); });
+  (a.balance||[]).forEach(g=>{ const ul=el("ul",{class:"pt-sim"}); g.itens.forEach(it=>{ const li=el("li"); li.append(el("span",{class:"pt-badge "+it.tipo,text:PT_TIPO[it.tipo]||it.tipo}));
+    const tx=el("span"); tx.append(document.createTextNode(ptNome(it)));
+    if(it.hab){ const nomeHab=ptHab(it), id=ptSkillId(it.hab)||ptSkillId(nomeHab); tx.append(document.createTextNode(" (")); const ic=id&&ptSkillImg(id); if(ic) tx.append(ic); tx.append(document.createTextNode(nomeHab+")")); }
+    tx.append(document.createTextNode(": "));
+    (it.linhas||[]).forEach((l,j)=>{ if(j) tx.append(document.createTextNode("; ")); tx.append(ptTextoSkills(l.r)); if(l.texto!=null) tx.append(document.createTextNode(l.texto?": "+l.texto:"")); else tx.append(document.createTextNode(`: ${l.de} → ${l.para}`)); });
+    li.append(tx); ul.append(li); }); w.append(el("h4",{class:"pt-gh",text:g.cat}),ul); });
+  (a.secoes||[]).forEach(s=>{ w.append(el("h4",{class:"pt-gh",text:s.titulo})); const ul=el("ul",{class:"pt-sim"}); (s.itens||[]).forEach(([s1,tx])=>{ const li=el("li"); li.append(el("span",{class:"pt-s",text:s1,"aria-hidden":"true"}),el("span",{},ptTextoSkills(tx))); ul.append(li); }); w.append(ul); });
+  (a.fixes||[]).forEach(g=>{ w.append(el("h4",{class:"pt-gh",text:"Correções: "+g.grupo})); const ul=el("ul",{class:"pt-sim"}); g.itens.forEach(x=>{ const li=el("li"); if(x.p) li.append(el("span",{class:"pt-plat",text:x.p})); li.append(el("span",{},ptTextoSkills(x.t))); ul.append(li); }); w.append(ul); });
   return w; }
 function ptSecao(s){ const b=el("section",{class:"block pt-sec",id:"pt-"+s.id}); b.append(el("h3",{class:"orn",text:s.titulo}));
-  if(s.intro) b.append(el("p",{class:"small muted",text:s.intro}));
+  if(s.intro) b.append(el("p",{class:"small muted"},ptTextoSkills(s.intro)));
   if(s.tabela){ const t=el("table",{class:"pt-tab"}); const th=el("tr"); s.tabela.cab.forEach(x=>th.append(el("th",{text:x}))); t.append(ptEl("thead",{},[th])); const tb=el("tbody"); s.tabela.linhas.forEach(r=>{ const tr=el("tr"); r.forEach(x=>tr.append(el("td",{text:x}))); tb.append(tr); }); t.append(tb); b.append(ptEl("div",{class:"tbl"},[t])); }
-  const ul=el("ul",{class:"pt-sim"}); (s.itens||[]).forEach(([s1,tx])=>{ const li=el("li"); li.append(el("span",{class:"pt-s s"+({"▲":"up","▼":"dn","!":"nw","=":"eq","⇄":"vr"}[s1]||"nw"),text:s1,"aria-hidden":"true"}),el("span",{text:tx})); ul.append(li); }); b.append(ul); return b; }
+  const ul=el("ul",{class:"pt-sim"}); (s.itens||[]).forEach(([s1,tx])=>{ const li=el("li"); li.append(el("span",{class:"pt-s s"+({"▲":"up","▼":"dn","!":"nw","=":"eq","⇄":"vr"}[s1]||"nw"),text:s1,"aria-hidden":"true"}),el("span",{},ptTextoSkills(tx))); ul.append(li); }); b.append(ul); return b; }
 function ptFixes(p){ const b=el("section",{class:"block pt-sec",id:"pt-fixes"}); const n=(p.fixes||[]).reduce((a,g)=>a+g.itens.length,0); b.append(el("h3",{class:"orn",text:`Correções (${n})`}));
-  p.fixes.forEach(g=>{ b.append(el("h4",{class:"pt-gh",text:`${g.grupo} (${g.itens.length})`})); const ul=el("ul",{class:"pt-sim"}); g.itens.forEach(x=>{ const li=el("li"); if(x.p) li.append(el("span",{class:"pt-plat",text:x.p})); li.append(el("span",{text:x.t})); ul.append(li); }); b.append(ul); }); return b; }
+  p.fixes.forEach(g=>{ b.append(el("h4",{class:"pt-gh",text:`${g.grupo} (${g.itens.length})`})); const ul=el("ul",{class:"pt-sim"}); g.itens.forEach(x=>{ const li=el("li"); if(x.p) li.append(el("span",{class:"pt-plat",text:x.p})); li.append(el("span",{},ptTextoSkills(x.t))); ul.append(li); }); b.append(ul); }); return b; }
 function ptRender(){
   const box=$("patchBox"); if(!box||!PATCHES) return; box.textContent="";
   const [p,...ant]=PATCHES.patches; const bal0=p.balance||[], sec0=p.secoes||[], fix0=p.fixes||[], en=p.idioma==="en"; const todos=[]; bal0.forEach(g=>g.itens.forEach(it=>todos.push(it)));
@@ -107,6 +159,6 @@ function ptRender(){
 }
 async function renderPatch(){
   const box=$("patchBox"); if(!box) return;
-  if(!PATCHES){ box.textContent="Carregando as notas de patch…"; try{ const [pj]=await Promise.all([need("patches"),(PT_NOMES?Promise.resolve():need("nomes-ptbr").then(n=>{ PT_NOMES=n; }).catch(()=>{})),(GEAR?Promise.resolve():need("gear").then(g=>{ GEAR=g; }).catch(()=>{}))]); PATCHES=pj; }catch(e){ box.textContent="Não consegui carregar as notas de patch agora."; return; } }
+  if(!PATCHES){ box.textContent="Carregando as notas de patch…"; try{ const [pj]=await Promise.all([need("patches"),(PT_NOMES?Promise.resolve():need("nomes-ptbr").then(n=>{ PT_NOMES=n; }).catch(()=>{})),(PT_SKS?Promise.resolve():need("skills").then(d=>{ PT_SKS=d; }).catch(()=>{})),(GEAR?Promise.resolve():need("gear").then(g=>{ GEAR=g; }).catch(()=>{}))]); PATCHES=pj; }catch(e){ box.textContent="Não consegui carregar as notas de patch agora."; return; } }
   ptRender();
 }

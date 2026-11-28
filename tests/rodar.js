@@ -14,6 +14,9 @@ function precoBase(id) { const t = +id[1] || 4, e = +(id.split("@")[1] || 0);
   return (1800 + (id.length * 137) % 1600) * Math.pow(2.1, t) * (1 + e * 1.2); }
 const agora = () => new Date(Date.now() - 2 * 3600e3).toISOString().slice(0, 19);
 async function simular(p) {
+  /* ícones de skill do patch notes: imagem mínima, para o teste não depender do render do jogo */
+  await p.route("https://render.albiononline.com/v1/spell/**", r => r.fulfill({ contentType: "image/png",
+    body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==", "base64") }));
   await p.route(/^https:\/\/(?!127\.0\.0\.1).*\.(png|jpg|webp|woff2?|css)(\?.*)?$/, r => r.abort());
   await p.route("https://cdn.jsdelivr.net/**", r => r.abort());
   await p.route("https://albionmarket.gg/**", r => r.abort());
@@ -155,14 +158,15 @@ async function simular(p) {
   await p.setViewportSize({ width: 1440, height: 1000 });
   await p.evaluate(() => { localStorage.removeItem("nb:mine"); localStorage.removeItem("nb:view"); localStorage.removeItem("bSrc"); NB_CLOUD = false; NB_REPO = []; nbRefreshAll(); });
 
-  /* 8c. Patch notes: ícones voltam com nomes traduzidos, ingleses e grupos de armas */
+  /* 8c. Patch notes: ícones de item (traduzido, inglês, grupos) e de skill (hab, nota, correções) */
   const pi = await p.evaluate(async () => {
     const esp = ms => new Promise(f => setTimeout(f, ms));
     document.getElementById("t-patch").click();
-    for (let i = 0; i < 60 && !(PATCHES && PT_NOMES && GEAR && document.querySelectorAll("#patchBox .pt-ic").length); i++) await esp(200);
+    for (let i = 0; i < 60 && !(PATCHES && PT_NOMES && GEAR && PT_SKS && document.querySelectorAll("#patchBox .pt-ic").length); i++) await esp(200);
     const ic = item => { const x = ptIcone({ item }); return x && x.dataset.item; };
+    const skills = sel => [...document.querySelectorAll(sel)].map(x => x.dataset.skill);
     return {
-      carregado: !!PATCHES && !!PT_NOMES && !!GEAR,
+      carregado: !!PATCHES && !!PT_NOMES && !!GEAR && !!PT_SKS,
       naTela: document.querySelectorAll("#patchBox .pt-ic").length,
       traduzido: ic("Som Equilibrado"),
       ingles: ic("Evensong"),
@@ -173,7 +177,12 @@ async function simular(p) {
       grupoSagrados: ic("todos os Cajados Sagrados"),
       grupoTecido: ic("Todas as Armaduras de Tecido"),
       gruposEn: ["all Axes", "all Holy Staffs", "all Nature Staffs", "all Quarterstaffs"].map(ic),
-      rotulo: document.querySelector("#t-patch .tl").textContent.trim()
+      rotulo: document.querySelector("#t-patch .tl").textContent.trim(),
+      skTotal: document.querySelectorAll("#patchBox .pt-sk").length,
+      skHab: skills("#pt-0 .pt-hab .pt-sk"),
+      skNota: skills("#pt-1 .pt-nota .pt-sk"),
+      skCorrecao: skills("#pt-fixes .pt-sk"),
+      skAnteriores: document.querySelectorAll("#pt-ant .pt-sk").length
     };
   });
   conf("patch notes mostram ícones com nome traduzido, inglês e grupos",
@@ -182,6 +191,9 @@ async function simular(p) {
     pi.grupoMachados === "T8_2H_AXE" && pi.grupoSagrados === "T8_MAIN_HOLYSTAFF" && pi.grupoTecido === "T8_ARMOR_CLOTH_SET3" &&
     JSON.stringify(pi.gruposEn) === JSON.stringify(["T8_2H_AXE", "T8_MAIN_HOLYSTAFF", "T8_MAIN_NATURESTAFF", "T8_2H_QUARTERSTAFF"]) &&
     pi.rotulo === "Patch", pi);
+  conf("patch notes colam ícone de skill na hab, na nota e nas correções",
+    pi.skTotal > 10 && pi.skHab.includes("ARCANE_METEOR") && pi.skNota.includes("AXE_CHARGE") &&
+    pi.skCorrecao.includes("REJUVENATION") && pi.skAnteriores > 0, pi);
 
   /* 9. Refino: T2 e T3 na lista, e refinar sem foco */
   const rf = await p.evaluate(async () => { document.getElementById("t-refino").click();

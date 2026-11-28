@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-11-28T07:40:49Z",
+   "programa": "2.3.15",
+   "titulo": "Patch notes com ícone das skills",
+   "itens": [
+    "Ícone da habilidade ao lado do nome citado no patch notes",
+    "Vale para hab, nota dos devs, correções e patches anteriores"
+   ]
+  },
+  {
    "t": "2026-11-28T07:17:26Z",
    "titulo": "Patch notes: ícones dos grupos de armas completados",
    "itens": [
