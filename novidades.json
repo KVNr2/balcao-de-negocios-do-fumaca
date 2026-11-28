@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-11-28T07:05:52Z",
+   "titulo": "Patch notes: ícones das armas de volta",
+   "itens": [
+    "Os ícones voltaram a aparecer nas notas de patch, mesmo quando os nomes dos itens vêm em português.",
+    "Grupos como todos os Machados, Cajados de Gelo e Luvas de Guerra também ganharam ícone no resumo.",
+    "O rótulo da aba Patch não fica mais preso em uma versão antiga."
+   ]
+  },
+  {
    "t": "2026-11-28T06:05:23Z",
    "programa": "2.3.14",
    "titulo": "Overlay 2.3.14: baús não somem ao mover o mouse",

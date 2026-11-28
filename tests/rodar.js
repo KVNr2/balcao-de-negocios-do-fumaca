@@ -155,6 +155,28 @@ async function simular(p) {
   await p.setViewportSize({ width: 1440, height: 1000 });
   await p.evaluate(() => { localStorage.removeItem("nb:mine"); localStorage.removeItem("nb:view"); localStorage.removeItem("bSrc"); NB_CLOUD = false; NB_REPO = []; nbRefreshAll(); });
 
+  /* 8c. Patch notes: ícones voltam com nomes traduzidos, ingleses e grupos de armas */
+  const pi = await p.evaluate(async () => {
+    const esp = ms => new Promise(f => setTimeout(f, ms));
+    document.getElementById("t-patch").click();
+    for (let i = 0; i < 60 && !(PATCHES && PT_NOMES && GEAR && document.querySelectorAll("#patchBox .pt-ic").length); i++) await esp(200);
+    const ic = item => { const x = ptIcone({ item }); return x && x.dataset.item; };
+    return {
+      carregado: !!PATCHES && !!PT_NOMES && !!GEAR,
+      naTela: document.querySelectorAll("#patchBox .pt-ic").length,
+      traduzido: ic("Som Equilibrado"),
+      ingles: ic("Evensong"),
+      machadao: ic("Machadão"),
+      grupoGelo: ic("todos os Cajados de Gelo"),
+      grupoLuvas: ic("todas as Luvas de Guerra"),
+      rotulo: document.querySelector("#t-patch .tl").textContent.trim()
+    };
+  });
+  conf("patch notes mostram ícones com nome traduzido, inglês e grupos",
+    pi.carregado && pi.naTela > 0 && pi.traduzido === "T8_2H_ARCANE_RINGPAIR_AVALON" && pi.ingles === pi.traduzido &&
+    pi.machadao === "T8_2H_AXE" && pi.grupoGelo === "T8_MAIN_FROSTSTAFF" && pi.grupoLuvas === "T8_2H_KNUCKLES_SET1" &&
+    pi.rotulo === "Patch", pi);
+
   /* 9. Refino: T2 e T3 na lista, e refinar sem foco */
   const rf = await p.evaluate(async () => { document.getElementById("t-refino").click();
     OF.tiers.clear(); OF.tiers.add(2); OF.tiers.add(3); renderOf();

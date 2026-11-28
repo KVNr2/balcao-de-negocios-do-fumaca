@@ -1,16 +1,33 @@
 /* ================= aba Patch: notas oficiais do Albion no formato do albionzvz.com =================
    Dados: data/patches.json, escrito a partir das notas oficiais de patch do fórum do Albion
    (forum.albiononline.com, categoria Patch Notes, e o Log de alterações em albiononline.com/changelog). */
-let PATCHES=null, PT_FILTRO="todos";
+let PATCHES=null, PT_FILTRO="todos", PT_REV=null;
 const PT_DATA=s=>{ const d=new Date(s+"T12:00:00Z"); return isNaN(d)?s:d.toLocaleDateString("pt-BR",{timeZone:"UTC",day:"2-digit",month:"long",year:"numeric"}); };
 function ptNum(s){ const m=/-?\d+(?:[.,]\d+)?/.exec(String(s||"").replace(/\s/g,"")); return m?parseFloat(m[0].replace(",",".")):null; }
 function ptPct(de,para){ const a=ptNum(de), b=ptNum(para); if(a==null||b==null||a===0) return null; const p=(b-a)/Math.abs(a)*100; if(Math.abs(p)<0.05) return null;
   const r=Math.abs(p)>=100?Math.round(p):Math.round(p*10)/10; return (r>0?"+":"−")+String(Math.abs(r)).replace(".",",")+"%"; }
+/* Os patch notes podem chegar em inglês (bots) ou em português (edição automática). gearKey() só lê GEAR.n, em inglês;
+   por isso montamos o caminho inverso com GEAR.p e nome-ptbr.json antes de desistir do ícone. */
+const PT_NORM=s=>String(s||"").trim().replace(/\s+/g," ").toLocaleLowerCase("pt-BR");
+const PT_GRUPOS={"machados":"2H_AXE","cajados de gelo":"MAIN_FROSTSTAFF","cajados sagrados":"MAIN_HOLYSTAFF","luvas de guerra":"2H_KNUCKLES_SET1"};
+function ptReverso(){ if(PT_REV) return PT_REV; PT_REV=new Map();
+  const add=(nome,valor)=>{ const k=PT_NORM(nome); if(k&&valor&&!PT_REV.has(k)) PT_REV.set(k,valor); };
+  for(const [chave,nome] of Object.entries((GEAR&&GEAR.p)||{})) add(nome,chave);
+  for(const [en,pt] of Object.entries((PT_NOMES&&PT_NOMES.i)||{})) add(pt,en);
+  return PT_REV; }
+function ptChaveItem(it){ const nome=String(it.item||"").trim(); if(!nome) return null;
+  const rev=ptReverso().get(PT_NORM(nome)), chave=rev&&((GEAR&&GEAR.n&&GEAR.n[rev])||rev); if(chave) return chave;
+  try{ const k=typeof gearKey==="function"?gearKey(nome):null; if(k) return k; }catch(e){}
+  const m=nome.match(/^(?:todos os|todas as|all)\s+(.+)$/i);
+  if(m){ const g=PT_NORM(m[1]).replace(/s$/,""); return PT_GRUPOS[g]||null; }
+  return null; }
 function ptIcone(it){ let id=it.ic||null;
   if(id&&!/^T\d/.test(id)) id="T8_"+id;
-  if(!id){ try{ const k=GEAR&&typeof gearKey==="function"?gearKey(it.item):null; if(k) id="T8_"+k; }catch(e){} }
+  if(!id){ try{ const k=ptChaveItem(it); if(k) id=/^T\d/.test(k)?k:"T8_"+k; }catch(e){} }
   if(!id) return null;
-  const im=el("img",{class:"pt-ic",src:`icons/${id}.webp`,alt:"",loading:"lazy",width:"48",height:"48"}); im.addEventListener("error",()=>{ im.style.visibility="hidden"; }); return im; }
+  const im=el("img",{class:"pt-ic",alt:"",loading:"lazy",decoding:"async",width:"48",height:"48"});
+  iconSrc(im,id,()=>{ im.style.visibility="hidden"; });
+  return im; }
 let PT_NOMES=null; /* data/nomes-ptbr.json: nomes oficiais do jogo (i: itens, h: habilidades), inglês → português */
 function ptUm(n){ n=(n||"").trim(); if(!n) return n; const d=PT_NOMES&&PT_NOMES.i; if(d&&d[n]) return d[n];
   const m=n.match(/^(?:Todos os|Todas as|All)\s+(.+?)s?$/); if(m&&d&&d[m[1]]) return "Todos os "+d[m[1]];
