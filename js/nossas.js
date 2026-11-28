@@ -16,7 +16,8 @@ const nbMembers = c => [].concat((c&&c.p)||[],(c&&c.o)||[]);
 const nbResolve = m => { const id=typeof m==="string"?m:m&&m.id; return (NB_ALL||[]).find(b=>b.id===id&&!nbIsComp(b))||(typeof m==="object"?m:null); };
 function nbPrepBuild(b){
   if(!b||nbIsComp(b)) return;
-  if(!b.wc&&b.w){ b.wc=b.w.replace(/^T\d_/,"").replace(/@\d$/,""); b.l=(typeof W2LINE!=="undefined"&&W2LINE[b.wc])||""; }
+  if(!b.wc&&b.w) b.wc=b.w.replace(/^T\d_/,"").replace(/@\d$/,"");
+  if(b.wc&&!b.l&&typeof W2LINE!=="undefined"&&W2LINE) b.l=W2LINE[b.wc]||"";
   if(!b.nome) b.nome=b.t||codeName(b.wc||"");
 }
 function nbPrepAll(){
@@ -408,8 +409,8 @@ async function nbFormComp(pre){
     if(!nome.value.trim()||!picked.size){ err.hidden=false; err.textContent="Dê um nome à composição e escolha pelo menos uma build."; return; }
     const escolhidas=[...picked.values()].sort((a,b)=>(a.g==="p"?0:1)-(b.g==="p"?0:1));
     if(!escolhidas.some(x=>x.g==="p")){ err.hidden=false; err.textContent="Marque pelo menos uma build como principal."; return; }
-    const todos=escolhidas.map(x=>x.b);
-    const c={...(pre||{}),tipo:"comp",id:pre&&pre.id||nbId(nome.value),t:nome.value.trim(),au:au.value.trim()||"Visitante",ks:[...K.st],k:[...K.st][0]||"",desc:ds.value.trim(),data:new Date().toISOString().slice(0,10),votos:pre&&pre.votos||0,min,max,p:todos.slice(0,min),o:todos.slice(min,max)};
+    const c={...(pre||{}),tipo:"comp",id:pre&&pre.id||nbId(nome.value),t:nome.value.trim(),au:au.value.trim()||"Visitante",ks:[...K.st],k:[...K.st][0]||"",desc:ds.value.trim(),data:new Date().toISOString().slice(0,10),votos:pre&&pre.votos||0,min,max,
+      p:escolhidas.filter(x=>x.g==="p").map(x=>x.b),o:escolhidas.filter(x=>x.g==="o").map(x=>x.b)};
     delete c.local; delete c.repo; delete c.cloud; delete c._qs; delete c._qi; delete c._refresh;
     try{ store.set("nbAuthor",au.value.trim()); }catch(e){}
     const fim=()=>{ nbView="comp"; try{ store.set("nb:view",nbView); }catch(e){} nbOpen=c.id; nbRender(); setTimeout(()=>{ const card=document.querySelector("#nbBox .bcard.open"); if(card) card.scrollIntoView({behavior:"smooth",block:"center"}); },100); };
