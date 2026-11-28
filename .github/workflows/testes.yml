@@ -2,7 +2,7 @@ name: Testes do site
 on:
   push:
     branches: [main]
-    paths: ["js/**", "css/**", "index.html", "tests/**"]
+    paths: ["js/**", "css/**", "data/**", "index.html", "novidades.json", "versao.json", "programa/versao.json", "tests/**", ".github/workflows/**"]
   pull_request:
   workflow_dispatch:
 permissions:

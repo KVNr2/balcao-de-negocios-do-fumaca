@@ -78,8 +78,15 @@ async function renderVersao(){
     let nota=null; try{ nota=((await fetch("novidades.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json())).itens||[]).find(x=>x.programa===pj.versao); }catch(e){}
     if(tok!==VTOK) return;
     if(nota){ const dt=new Date(nota.t); pt.append(el("b",{text:fmtDH(dt)}), el("span",{text:`horário de Brasília · ${haQuanto(dt)}`})); const ul=el("ul",{class:"v-list"}); (nota.itens||[]).forEach(t=>ul.append(el("li",{text:t}))); prog.append(ul); }
-    else try{ const c=(await fetch("https://api.github.com/repos/KVNr2/balcao-de-negocios-do-fumaca/commits?path=programa/versao.json&per_page=1",{headers:{Accept:"application/vnd.github+json"}}).then(r=>r.json()))[0];
-      const dt=new Date(c.commit.committer.date); pt.append(el("b",{text:fmtDH(dt)}), el("span",{text:`horário de Brasília · ${haQuanto(dt)} · ${c.commit.message.split("\n")[0].replace(/^(?:AlbionSpecs|Albion Overlay)\s*[\d.]+:\s*/,"")}`})); }catch(e){}
+    else {
+      /* sem nota ligada a esta versão: ela veio só para acompanhar o site, sem mudança no programa */
+      const aviso=el("small",{class:"muted",text:"Sem mudança no programa nesta versão."}); pt.append(aviso);
+      prog.append(el("p",{class:"small muted",text:"Esta versão veio só para acompanhar o site; o overlay em si não mudou."}));
+      try{ const c=(await fetch("https://api.github.com/repos/KVNr2/balcao-de-negocios-do-fumaca/commits?path=programa/versao.json&per_page=1",{headers:{Accept:"application/vnd.github+json"}}).then(r=>r.json()))[0];
+        const dt=new Date(c.commit.committer.date); aviso.remove();
+        pt.append(el("b",{text:fmtDH(dt)}), el("span",{text:`horário de Brasília · ${haQuanto(dt)} · sem mudança no programa nesta versão`}));
+      }catch(e){}
+    }
     if(document.body.classList.contains("em-overlay")){
       /* dentro do Overlay: "Recarregar" do site só recarrega esta página; o programa só troca de versão ao reabrir */
       let rodando=""; try{ const e=await fetch("/estado",{cache:"no-store"}).then(r=>r.json()); rodando=((e.versao||"").match(/\d+(?:\.\d+)+/)||[""])[0]; }catch(e){}

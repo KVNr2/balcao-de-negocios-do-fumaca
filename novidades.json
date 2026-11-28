@@ -1,8 +1,16 @@
 {
  "itens": [
   {
+   "t": "2026-11-28T17:45:43Z",
+   "titulo": "Correção das novidades do overlay",
+   "itens": [
+    "As versões 2.3.15 e 2.3.16 eram só do site e agora aparecem rotuladas como Site",
+    "O cartão do programa explica quando a versão veio só para acompanhar o site",
+    "O overlay continua na 2.3.16: não houve mudança no programa"
+   ]
+  },
+  {
    "t": "2026-11-28T07:49:38Z",
-   "programa": "2.3.16",
    "titulo": "Patch notes com ícones maiores",
    "itens": [
     "Ícones das habilidades ampliados no patch notes"
@@ -10,7 +18,6 @@
   },
   {
    "t": "2026-11-28T07:40:49Z",
-   "programa": "2.3.15",
    "titulo": "Patch notes com ícone das skills",
    "itens": [
     "Ícone da habilidade ao lado do nome citado no patch notes",

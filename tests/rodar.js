@@ -195,6 +195,20 @@ async function simular(p) {
     pi.skTotal > 10 && pi.skHab.includes("ARCANE_METEOR") && pi.skNota.includes("AXE_CHARGE") &&
     pi.skCorrecao.includes("REJUVENATION") && pi.skAnteriores > 0, pi);
 
+  /* 8c. mudança de patch notes é do site: não pode virar novidade do programa */
+  const nv = await p.evaluate(async () => {
+    const esp = ms => new Promise(f => setTimeout(f, ms));
+    const prog = () => document.querySelector("#vBox .v-prog")?.innerText || "";
+    /* a aba Versão já foi aberta no loop de páginas: não clique de novo (isso limparia o cartão no meio da espera) */
+    for (let i = 0; i < 200 && !(/v\d+\.\d+\.\d+/.test(prog()) && /(sem mudança no programa|não mudou)/i.test(prog())); i++) await esp(100);
+    const j = await fetch("novidades.json?" + Date.now(), { cache: "no-store" }).then(r => r.json());
+    return { ligadas: (j.itens || []).filter(x => /^2\.3\.1[56]$/.test(x.programa || "")).length, prog: prog(),
+      token: typeof VTOK !== "undefined" ? VTOK : null, hash: location.hash,
+      box: (document.getElementById("vBox")?.innerHTML || "").slice(0, 220) };
+  });
+  conf("novidades do overlay não atribuem patch notes ao programa",
+    nv.ligadas === 0 && !/Patch notes|ícones maiores/i.test(nv.prog) && /(sem mudança no programa|não mudou)/i.test(nv.prog), nv);
+
   /* 9. Refino: T2 e T3 na lista, e refinar sem foco */
   const rf = await p.evaluate(async () => { document.getElementById("t-refino").click();
     OF.tiers.clear(); OF.tiers.add(2); OF.tiers.add(3); renderOf();
