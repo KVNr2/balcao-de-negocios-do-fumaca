@@ -1,6 +1,15 @@
 {
  "itens": [
   {
+   "t": "2026-11-28T06:05:23Z",
+   "programa": "2.3.14",
+   "titulo": "Overlay 2.3.14: baús não somem ao mover o mouse",
+   "itens": [
+    "Baús no minimapa não piscam mais quando o mouse passa pelo painel de Avalon",
+    "Falso zoom do minimapa não apaga mais as marcas dos baús"
+   ]
+  },
+  {
    "t": "2026-11-28T05:37:00Z",
    "programa": "2.3.13",
    "titulo": "Albion Overlay 2.3.13: botao de fechar do mapa de Avalon corrigido",
