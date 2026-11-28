@@ -2197,7 +2197,7 @@ nav.tabs #t-live.ao-vivo .tl::after{content:"";display:inline-block;width:8px;he
 .pt-card.pt-flash{animation:ptflash 1.6s ease-out}@keyframes ptflash{0%{box-shadow:0 0 0 3px var(--saffron)}100%{box-shadow:0 0 0 0 transparent}}
 .pt-ch{display:flex;align-items:center;gap:10px}.pt-ic{width:48px;height:48px;object-fit:contain;flex:none}
 .pt-ct{display:flex;flex-direction:column;min-width:0;flex:1}.pt-ct b{color:var(--parch);font:600 16px var(--f-display)}.pt-ct small{color:var(--smoke);font-size:13.5px}
-.pt-sk{width:18px;height:18px;object-fit:contain;vertical-align:-4px;margin:0 3px 0 0;flex:none}.pt-hab{display:inline-flex;align-items:center;gap:3px;flex-wrap:wrap}
+.pt-sk{width:24px;height:24px;object-fit:contain;vertical-align:-6px;margin:0 4px 0 0;flex:none}.pt-hab{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}.pt-hab .pt-sk{width:26px;height:26px}
 .pt-badge{font:700 11px var(--f-body);letter-spacing:.05em;text-transform:uppercase;border-radius:6px;padding:3px 8px;flex:none}
 .pt-badge.buff{background:rgba(110,190,120,.18);color:var(--gain)}.pt-badge.nerf{background:rgba(230,100,90,.18);color:var(--loss)}.pt-badge.mudou{background:rgba(232,171,69,.18);color:var(--saffron)}
 .pt-row{display:flex;flex-direction:column;gap:3px;font-size:14px;border-top:1px solid var(--line-soft,var(--line));padding-top:6px}
