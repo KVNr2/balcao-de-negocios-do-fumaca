@@ -1,6 +1,14 @@
 {
  "itens": [
   {
+   "t": "2026-11-28T07:17:26Z",
+   "titulo": "Patch notes: ícones dos grupos de armas completados",
+   "itens": [
+    "Grupos como todos os Machados, Cajados Sagrados e Armaduras de Tecido voltaram a mostrar ícone.",
+    "Os grupos em inglês das notas antigas (all Axes, all Holy Staffs, all Nature Staffs e all Quarterstaffs) também foram cobertos."
+   ]
+  },
+  {
    "t": "2026-11-28T07:05:52Z",
    "titulo": "Patch notes: ícones das armas de volta",
    "itens": [

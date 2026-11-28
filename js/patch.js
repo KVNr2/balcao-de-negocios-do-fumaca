@@ -9,7 +9,17 @@ function ptPct(de,para){ const a=ptNum(de), b=ptNum(para); if(a==null||b==null||
 /* Os patch notes podem chegar em inglês (bots) ou em português (edição automática). gearKey() só lê GEAR.n, em inglês;
    por isso montamos o caminho inverso com GEAR.p e nome-ptbr.json antes de desistir do ícone. */
 const PT_NORM=s=>String(s||"").trim().replace(/\s+/g," ").toLocaleLowerCase("pt-BR");
-const PT_GRUPOS={"machados":"2H_AXE","cajados de gelo":"MAIN_FROSTSTAFF","cajados sagrados":"MAIN_HOLYSTAFF","luvas de guerra":"2H_KNUCKLES_SET1"};
+/* grupos de armas: aceita o nome em português ou inglês, no singular ou no plural (o texto dos patch notes mistura os dois) */
+const PT_GRUPOS={
+  "machados":"2H_AXE","machado":"2H_AXE","axes":"2H_AXE","axe":"2H_AXE",
+  "cajados de gelo":"MAIN_FROSTSTAFF","cajado de gelo":"MAIN_FROSTSTAFF","frost staffs":"MAIN_FROSTSTAFF","frost staff":"MAIN_FROSTSTAFF",
+  "cajados sagrados":"MAIN_HOLYSTAFF","cajado sagrado":"MAIN_HOLYSTAFF","holy staffs":"MAIN_HOLYSTAFF","holy staff":"MAIN_HOLYSTAFF",
+  "nature staffs":"MAIN_NATURESTAFF","nature staff":"MAIN_NATURESTAFF",
+  "bordões":"2H_QUARTERSTAFF","bordão":"2H_QUARTERSTAFF","quarterstaffs":"2H_QUARTERSTAFF","quarterstaff":"2H_QUARTERSTAFF",
+  "luvas de guerra":"2H_KNUCKLES_SET1","luva de guerra":"2H_KNUCKLES_SET1","war gloves":"2H_KNUCKLES_SET1","war glove":"2H_KNUCKLES_SET1",
+  "armaduras de tecido":"ARMOR_CLOTH_SET3","armadura de tecido":"ARMOR_CLOTH_SET3","cloth armors":"ARMOR_CLOTH_SET3","cloth armor":"ARMOR_CLOTH_SET3"
+};
+const PT_SING=s=>String(s||"").trim().split(/\s+/).map(w=>w.length>3&&w.endsWith("s")?w.slice(0,-1):w).join(" ");
 function ptReverso(){ if(PT_REV) return PT_REV; PT_REV=new Map();
   const add=(nome,valor)=>{ const k=PT_NORM(nome); if(k&&valor&&!PT_REV.has(k)) PT_REV.set(k,valor); };
   for(const [chave,nome] of Object.entries((GEAR&&GEAR.p)||{})) add(nome,chave);
@@ -18,8 +28,11 @@ function ptReverso(){ if(PT_REV) return PT_REV; PT_REV=new Map();
 function ptChaveItem(it){ const nome=String(it.item||"").trim(); if(!nome) return null;
   const rev=ptReverso().get(PT_NORM(nome)), chave=rev&&((GEAR&&GEAR.n&&GEAR.n[rev])||rev); if(chave) return chave;
   try{ const k=typeof gearKey==="function"?gearKey(nome):null; if(k) return k; }catch(e){}
+  const norm=PT_NORM(nome), sing=PT_SING(norm);
+  if(PT_GRUPOS[norm]) return PT_GRUPOS[norm];
+  if(PT_GRUPOS[sing]) return PT_GRUPOS[sing];
   const m=nome.match(/^(?:todos os|todas as|all)\s+(.+)$/i);
-  if(m){ const g=PT_NORM(m[1]).replace(/s$/,""); return PT_GRUPOS[g]||null; }
+  if(m){ const g=PT_NORM(m[1]); return PT_GRUPOS[g]||PT_GRUPOS[PT_SING(g)]||null; }
   return null; }
 function ptIcone(it){ let id=it.ic||null;
   if(id&&!/^T\d/.test(id)) id="T8_"+id;

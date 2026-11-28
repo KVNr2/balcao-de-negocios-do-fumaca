@@ -169,12 +169,18 @@ async function simular(p) {
       machadao: ic("Machadão"),
       grupoGelo: ic("todos os Cajados de Gelo"),
       grupoLuvas: ic("todas as Luvas de Guerra"),
+      grupoMachados: ic("todos os Machados"),
+      grupoSagrados: ic("todos os Cajados Sagrados"),
+      grupoTecido: ic("Todas as Armaduras de Tecido"),
+      gruposEn: ["all Axes", "all Holy Staffs", "all Nature Staffs", "all Quarterstaffs"].map(ic),
       rotulo: document.querySelector("#t-patch .tl").textContent.trim()
     };
   });
   conf("patch notes mostram ícones com nome traduzido, inglês e grupos",
     pi.carregado && pi.naTela > 0 && pi.traduzido === "T8_2H_ARCANE_RINGPAIR_AVALON" && pi.ingles === pi.traduzido &&
     pi.machadao === "T8_2H_AXE" && pi.grupoGelo === "T8_MAIN_FROSTSTAFF" && pi.grupoLuvas === "T8_2H_KNUCKLES_SET1" &&
+    pi.grupoMachados === "T8_2H_AXE" && pi.grupoSagrados === "T8_MAIN_HOLYSTAFF" && pi.grupoTecido === "T8_ARMOR_CLOTH_SET3" &&
+    JSON.stringify(pi.gruposEn) === JSON.stringify(["T8_2H_AXE", "T8_MAIN_HOLYSTAFF", "T8_MAIN_NATURESTAFF", "T8_2H_QUARTERSTAFF"]) &&
     pi.rotulo === "Patch", pi);
 
   /* 9. Refino: T2 e T3 na lista, e refinar sem foco */
